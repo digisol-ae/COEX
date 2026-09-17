@@ -66,6 +66,14 @@ The full scope document lives in the Claude project "ECHO System Development" as
 7. Conventional commits, small pull requests.
 8. Documentation updated in the same commit as the code.
 
+## Navigation
+
+One file defines the menu: src/components/navigation/navigation.ts. Groups are named after the
+part of the business they serve, not after the module implementing them. A new module adds a group
+there and nothing else, because the sidebar, the permission filtering and the collapse state all
+read from that list. Permissions are applied on the server, so a link a person may not open is
+never sent to their browser.
+
 ## Where things live
 
 - `src/modules/<module>/` one folder per module, never importing from a sibling module
