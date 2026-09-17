@@ -4,11 +4,11 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
-1. Entra app registration on the DigiSol Microsoft 365 tenant. Needed for single sign on and for
-   Graph document titles and permissions. Password sign on covers the gap. State: awaiting John.
-2. Backups. Atlas free tier has none. The decision is needed before M7 loads osTicket history:
-   paid tier with continuous backups, or a scheduled mongodump to object storage. State: awaiting
-   John.
+1. Entra app registration. Deferred by John on 17 Sep 2026. Password sign on covers the gap.
+   Revisit before the team starts signing in daily, since it also unlocks Graph document titles.
+2. Backups. Deferred by John on 17 Sep 2026. Atlas free tier has none. This stops being optional at
+   M7, when real osTicket history lands in the database: either a paid tier with continuous backups
+   or a scheduled mongodump to object storage, decided before the dry run.
 3. Figma design. John may share a file to adopt. Tokens live in one place, so adopting it is mostly
    rewriting globals.css and the component library rather than touching screens. State: awaiting
    John.

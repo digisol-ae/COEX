@@ -5,6 +5,12 @@ import { TenantSettingsForm } from './settings-form';
 
 export const metadata = { title: 'Tenant settings · COEX' };
 
+/** Minutes from midnight to the 09:00 form a time input expects. */
+function toTimeInput(minutes: number): string {
+  const hours = String(Math.floor(minutes / 60)).padStart(2, '0');
+  return `${hours}:${String(minutes % 60).padStart(2, '0')}`;
+}
+
 export default async function TenantSettingsPage() {
   const actor = await requirePermission('tenant.manage');
   const tenant = await asUser(actor, getCurrentTenant);
@@ -25,6 +31,9 @@ export default async function TenantSettingsPage() {
           taskPrefix: tenant.numbering?.taskPrefix ?? 'T',
           ticketPrefix: tenant.numbering?.ticketPrefix ?? 'S',
           attachmentRetentionMonths: tenant.attachmentRetentionMonths ?? 24,
+          workingDays: tenant.workingDays ?? [1, 2, 3, 4, 5],
+          dayStart: toTimeInput(tenant.dayStartMinutes ?? 540),
+          dayEnd: toTimeInput(tenant.dayEndMinutes ?? 1080),
         }}
       />
     </div>

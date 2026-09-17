@@ -41,6 +41,16 @@ const tenantSchema = new Schema(
 
     attachmentRetentionMonths: { type: Number, default: 24 },
 
+    /**
+     * The working calendar, used by service level targets. A four hour response promise must not
+     * expire overnight or over a weekend, so the clock only runs during these hours.
+     * 0 is Sunday. The Gulf working week runs Monday to Friday.
+     */
+    workingDays: { type: [Number], default: [1, 2, 3, 4, 5] },
+    /** Minutes from midnight, so 9:00 is 540. */
+    dayStartMinutes: { type: Number, default: 9 * 60 },
+    dayEndMinutes: { type: Number, default: 18 * 60 },
+
     deletedAt: { type: Date, default: null, index: true },
   },
   { timestamps: true },

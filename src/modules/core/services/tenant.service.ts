@@ -33,6 +33,9 @@ export interface TenantSettingsInput {
   taskPrefix: string;
   ticketPrefix: string;
   attachmentRetentionMonths: number;
+  workingDays: number[];
+  dayStartMinutes: number;
+  dayEndMinutes: number;
 }
 
 export async function updateTenantSettings(input: TenantSettingsInput): Promise<void> {
@@ -45,6 +48,9 @@ export async function updateTenantSettings(input: TenantSettingsInput): Promise<
     taskPrefix: tenant.numbering?.taskPrefix ?? '',
     ticketPrefix: tenant.numbering?.ticketPrefix ?? '',
     attachmentRetentionMonths: tenant.attachmentRetentionMonths,
+    workingDays: tenant.workingDays,
+    dayStartMinutes: tenant.dayStartMinutes,
+    dayEndMinutes: tenant.dayEndMinutes,
   };
 
   await TenantModel.updateOne(
@@ -57,6 +63,9 @@ export async function updateTenantSettings(input: TenantSettingsInput): Promise<
         'numbering.taskPrefix': input.taskPrefix.trim(),
         'numbering.ticketPrefix': input.ticketPrefix.trim(),
         attachmentRetentionMonths: input.attachmentRetentionMonths,
+        workingDays: input.workingDays,
+        dayStartMinutes: input.dayStartMinutes,
+        dayEndMinutes: input.dayEndMinutes,
       },
     },
   );

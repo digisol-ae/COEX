@@ -9,6 +9,16 @@ const initialState: TenantFormState = {};
 const TIMEZONES = ['Asia/Dubai', 'Asia/Karachi', 'Asia/Riyadh', 'Europe/London', 'UTC'];
 const CURRENCIES = ['AED', 'PKR', 'USD', 'SAR', 'GBP'];
 
+const DAYS = [
+  { value: 1, label: 'Mon' },
+  { value: 2, label: 'Tue' },
+  { value: 3, label: 'Wed' },
+  { value: 4, label: 'Thu' },
+  { value: 5, label: 'Fri' },
+  { value: 6, label: 'Sat' },
+  { value: 0, label: 'Sun' },
+];
+
 export function TenantSettingsForm({
   defaults,
 }: {
@@ -20,6 +30,9 @@ export function TenantSettingsForm({
     taskPrefix: string;
     ticketPrefix: string;
     attachmentRetentionMonths: number;
+    workingDays: number[];
+    dayStart: string;
+    dayEnd: string;
   };
 }) {
   const [state, formAction, pending] = useActionState(saveTenantSettingsAction, initialState);
@@ -78,6 +91,40 @@ export function TenantSettingsForm({
                 defaultValue={defaults.attachmentRetentionMonths}
                 required
               />
+            </Field>
+          </div>
+        </CardSection>
+
+        <CardSection title="Working calendar">
+          <p className="mb-3 text-sm text-[var(--color-ink-muted)]">
+            Support response targets are measured in working hours, so a four hour promise made on
+            Friday evening lands on Monday morning rather than expiring overnight.
+          </p>
+
+          <div className="mb-4 flex flex-wrap gap-3">
+            {DAYS.map((day) => (
+              <label
+                key={day.value}
+                className="flex items-center gap-2 text-sm text-[var(--color-ink-muted)]"
+              >
+                <input
+                  type="checkbox"
+                  name="workingDays"
+                  value={day.value}
+                  defaultChecked={defaults.workingDays.includes(day.value)}
+                />
+                {day.label}
+              </label>
+            ))}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Day starts">
+              <Input name="dayStart" type="time" defaultValue={defaults.dayStart} required />
+            </Field>
+
+            <Field label="Day ends">
+              <Input name="dayEnd" type="time" defaultValue={defaults.dayEnd} required />
             </Field>
           </div>
         </CardSection>
