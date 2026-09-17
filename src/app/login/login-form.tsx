@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
+import { Button, Field, Input, Notice } from '@/components/ui';
 import { loginAction, type LoginState } from './actions';
 
 const initialState: LoginState = {};
@@ -10,50 +11,19 @@ export function LoginForm() {
 
   return (
     <form action={formAction} className="mt-8 space-y-4">
-      <div className="space-y-1.5">
-        <label htmlFor="email" className="block text-sm font-medium text-[var(--color-ink)]">
-          Email address
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="username"
-          required
-          className="w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-3 py-2 text-[var(--color-ink)] outline-none"
-        />
-      </div>
+      <Field label="Email address">
+        <Input name="email" type="email" autoComplete="username" required />
+      </Field>
 
-      <div className="space-y-1.5">
-        <label htmlFor="password" className="block text-sm font-medium text-[var(--color-ink)]">
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          className="w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-3 py-2 text-[var(--color-ink)] outline-none"
-        />
-      </div>
+      <Field label="Password">
+        <Input name="password" type="password" autoComplete="current-password" required />
+      </Field>
 
-      {state.error ? (
-        <p
-          role="alert"
-          className="rounded-[var(--radius-control)] bg-[var(--color-status-alert-soft)] px-3 py-2 text-sm text-[var(--color-status-alert)]"
-        >
-          {state.error}
-        </p>
-      ) : null}
+      {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full rounded-[var(--radius-control)] bg-[var(--color-action)] px-4 py-2.5 font-medium text-[var(--color-ink-inverse)] transition-colors hover:bg-[var(--color-action-hover)] disabled:opacity-60"
-      >
+      <Button type="submit" disabled={pending} className="w-full py-2.5">
         {pending ? 'Signing in' : 'Sign in'}
-      </button>
+      </Button>
     </form>
   );
 }

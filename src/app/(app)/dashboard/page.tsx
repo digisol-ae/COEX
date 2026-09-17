@@ -47,7 +47,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {tiles.map((tile) => (
           <Link key={tile.label} href={tile.href}>
-            <Card className="px-4 py-4 transition-colors hover:bg-[var(--color-surface-muted)]">
+            <Card className="h-full px-4 py-4 transition-colors hover:bg-[var(--color-surface-muted)]">
               <p className="text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
                 {tile.label}
               </p>

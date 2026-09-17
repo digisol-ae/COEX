@@ -13,7 +13,7 @@ import {
 } from './collapsed-store';
 
 /**
- * The menu itself, shared by the desktop sidebar and the mobile drawer.
+ * The menu itself, shared by the dark sidebar and the phone drawer.
  *
  * One implementation rather than two, because a menu that exists twice drifts: a link gets added
  * to the sidebar and forgotten on the phone, and only a user on a client site ever finds out.
@@ -31,7 +31,7 @@ export function NavigationTree({
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <nav className="space-y-4">
+    <nav className="space-y-5">
       <NavigationLink
         href={HOME.href}
         label={HOME.label}
@@ -51,14 +51,14 @@ export function NavigationTree({
               type="button"
               onClick={() => toggleCollapsed(group.id)}
               aria-expanded={open}
-              className="flex w-full items-center justify-between rounded-[var(--radius-control)] px-3 py-1.5 text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase transition-colors hover:text-[var(--color-ink-muted)]"
+              className="flex w-full items-center justify-between rounded-[var(--radius-control)] px-3 py-1.5 text-[11px] font-medium tracking-[0.08em] text-[var(--color-rail-ink-muted)] uppercase transition-colors hover:text-[var(--color-rail-ink)]"
             >
               {group.label}
               <Chevron open={open} />
             </button>
 
             {open ? (
-              <div className="mt-0.5 space-y-0.5">
+              <div className="mt-1 space-y-0.5">
                 {group.items.map((item) => (
                   <NavigationLink
                     key={item.href}
@@ -94,14 +94,21 @@ function NavigationLink({
       onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
       className={clsx(
-        // The generous height is for thumbs: 44 pixels is the smallest target that is reliably
-        // hit on a phone.
-        'block rounded-[var(--radius-control)] px-3 py-2.5 text-sm transition-colors',
+        // The generous height is for thumbs: 44 pixels is the smallest target reliably hit on a
+        // phone.
+        'relative block rounded-[var(--radius-control)] px-3 py-2.5 text-sm transition-colors',
         active
-          ? 'bg-[var(--color-surface-muted)] font-medium text-[var(--color-ink)]'
-          : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]',
+          ? 'bg-[var(--color-rail-raised)] font-medium text-[var(--color-rail-ink)]'
+          : 'text-[var(--color-rail-ink-muted)] hover:bg-[var(--color-rail-raised)]/60 hover:text-[var(--color-rail-ink)]',
       )}
     >
+      {active ? (
+        // The one place brand red appears in navigation: a three pixel mark on the current page.
+        <span
+          aria-hidden="true"
+          className="absolute top-1/2 left-0 h-5 w-[3px] -translate-y-1/2 rounded-full bg-[image:var(--gradient-brand)]"
+        />
+      ) : null}
       {label}
     </Link>
   );

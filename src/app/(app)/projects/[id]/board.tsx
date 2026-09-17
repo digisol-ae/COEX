@@ -16,6 +16,7 @@ import {
   Td,
   Th,
 } from '@/components/ui';
+import { Avatar } from '@/components/ui/avatar';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
 import { createTaskAction, moveTaskAction, type TaskFormState } from '../../tasks/actions';
 
@@ -281,10 +282,23 @@ function TaskCard({
         ) : null}
       </div>
 
-      <p className="mt-2 text-xs text-[var(--color-ink-muted)]">
-        {task.assigneeNames.join(', ') || 'Unassigned'}
-        {task.dueDate ? ` · due ${task.dueDate.toLocaleDateString('en-GB')}` : ''}
-      </p>
+      <div className="mt-2 flex items-center gap-2">
+        {task.assigneeNames.length ? (
+          <div className="flex -space-x-1.5">
+            {task.assigneeNames.map((name) => (
+              <Avatar key={name} name={name} size="small" />
+            ))}
+          </div>
+        ) : (
+          <span className="text-xs text-[var(--color-ink-subtle)]">Unassigned</span>
+        )}
+
+        {task.dueDate ? (
+          <span className="text-xs text-[var(--color-ink-muted)]">
+            due {task.dueDate.toLocaleDateString('en-GB')}
+          </span>
+        ) : null}
+      </div>
 
       {canManage ? (
         <form action={moveTaskAction} className="mt-2">

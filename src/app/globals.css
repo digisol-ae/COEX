@@ -37,6 +37,35 @@
   --color-action-hover: #2b2b2b;
   --color-focus: #ee3d51;
 
+  /*
+   * The navigation rail is dark so the working area stays white and quiet. All the colour in the
+   * product lives on small objects against one of these two backgrounds: never on a large area.
+   */
+  --color-rail: #161616;
+  --color-rail-raised: #232323;
+  --color-rail-ink: #f4f5f1;
+  --color-rail-ink-muted: #a3a49f;
+  --color-rail-line: #2c2c2c;
+
+  /*
+   * Gradients are used sparingly: the rail, the sign in page and the identity chips. A gradient
+   * behind text or a table is decoration that makes the content harder to read.
+   */
+  --gradient-rail: linear-gradient(180deg, #1b1b1b 0%, #141414 55%, #171412 100%);
+  --gradient-canvas: linear-gradient(160deg, #fbfcf8 0%, #f5f8ed 45%, #f7f6f2 100%);
+  --gradient-brand: linear-gradient(135deg, #ee3d51 0%, #f2725f 100%);
+
+  /*
+   * Identity colours, assigned from a person's name. Soft enough to sit beside body text without
+   * competing with it, and distinct enough that a team of ten reads as ten people.
+   */
+  --color-person-1: #4a6b80;
+  --color-person-2: #4f7a54;
+  --color-person-3: #a8762f;
+  --color-person-4: #6b5b95;
+  --color-person-5: #3f7d7a;
+  --color-person-6: #9a5b6e;
+
   /* Status, muted so that a full board does not shout */
   --color-status-ok: #4f7a54;
   --color-status-ok-soft: #eaf1e9;
@@ -77,7 +106,8 @@
 }
 
 body {
-  background: var(--color-canvas);
+  background: var(--gradient-canvas);
+  background-attachment: fixed;
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -86,4 +116,14 @@ body {
 *:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
+}
+
+/*
+ * Cards sit on a tinted canvas, so they carry a whisper of a shadow rather than a border alone.
+ * Anything heavier turns a dense table into a stack of boxes.
+ */
+.surface-raised {
+  box-shadow:
+    0 1px 2px rgb(20 20 20 / 4%),
+    0 8px 24px -16px rgb(20 20 20 / 18%);
 }

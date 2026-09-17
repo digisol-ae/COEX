@@ -35,7 +35,7 @@ export function Card({ children, className }: { children: ReactNode; className?:
   return (
     <div
       className={clsx(
-        'rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)]',
+        'surface-raised rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)]',
         className,
       )}
     >
@@ -70,7 +70,7 @@ export function Button({
       className={clsx(
         'rounded-[var(--radius-control)] px-4 py-2 text-sm font-medium transition-colors disabled:opacity-60',
         variant === 'primary' &&
-          'bg-[var(--color-action)] text-[var(--color-ink-inverse)] hover:bg-[var(--color-action-hover)]',
+          'bg-[var(--color-action)] text-[var(--color-ink-inverse)] shadow-[0_1px_2px_rgb(20_20_20/12%)] hover:bg-[var(--color-action-hover)]',
         variant === 'secondary' &&
           'border border-[var(--color-line-strong)] text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]',
         // Red is reserved for destruction and alarm. Nothing else in the product uses it.

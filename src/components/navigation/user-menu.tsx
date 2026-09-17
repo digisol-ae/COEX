@@ -1,11 +1,11 @@
 import { logoutAction } from '@/app/login/actions';
+import { Avatar } from '@/components/ui/avatar';
 
 /**
  * Identity and sign out in the header.
  *
  * Sign out is an icon rather than a button with a word in it: it is used once a day at most, and a
- * full button gives a rare action the same weight as the work on the screen. The accessible label
- * and the tooltip carry the meaning for anyone who needs it.
+ * full button gives a rare action the same weight as the work on the screen.
  */
 export function UserMenu({
   name,
@@ -52,24 +52,5 @@ export function UserMenu({
         </button>
       </form>
     </div>
-  );
-}
-
-/** Initials rather than a photograph, because nobody will upload one and a grey circle is worse. */
-function Avatar({ name }: { name: string }) {
-  const initials = name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('');
-
-  return (
-    <span
-      aria-hidden="true"
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-surface-sunken)] text-xs font-medium text-[var(--color-ink-muted)]"
-    >
-      {initials}
-    </span>
   );
 }

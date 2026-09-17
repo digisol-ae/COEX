@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
 import { listTasks } from '@/modules/tasks/services/task.service';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
+import { Avatar } from '@/components/ui/avatar';
 import { TaskFilters } from './filters';
 
 export const metadata = { title: 'Tasks · COEX' };
@@ -83,8 +84,16 @@ export default async function TasksPage({
                   </Td>
                   <Td className="text-[var(--color-ink-muted)]">{task.projectName}</Td>
                   <Td className="text-[var(--color-ink-muted)]">{task.status}</Td>
-                  <Td className="text-[var(--color-ink-muted)]">
-                    {task.assigneeNames.join(', ') || 'Unassigned'}
+                  <Td>
+                    {task.assigneeNames.length ? (
+                      <div className="flex -space-x-1.5">
+                        {task.assigneeNames.map((name) => (
+                          <Avatar key={name} name={name} size="small" />
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-[var(--color-ink-subtle)]">Unassigned</span>
+                    )}
                   </Td>
                   <Td>
                     {task.dueDate ? (

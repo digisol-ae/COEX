@@ -60,7 +60,7 @@ export function MobileNavigation({ groups }: { groups: NavigationGroup[] }) {
             className="absolute inset-0 bg-[var(--color-brand-black)]/30"
           />
 
-          <div className="relative flex h-full w-72 max-w-[85vw] flex-col overflow-y-auto border-r border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-5">
+          <div className="relative flex h-full w-72 max-w-[85vw] flex-col overflow-y-auto bg-[image:var(--gradient-rail)] px-3 py-5">
             <div className="mb-6 flex items-center justify-between pl-2">
               <Image
                 src="/brand/logo-long.png"
@@ -74,7 +74,7 @@ export function MobileNavigation({ groups }: { groups: NavigationGroup[] }) {
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close menu"
-                className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-ink-muted)]"
+                className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-rail-ink-muted)] hover:text-[var(--color-rail-ink)]"
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <path
