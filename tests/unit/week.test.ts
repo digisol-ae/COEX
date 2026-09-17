@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { daysOfWeek, formatMinutes, parseDuration, startOfWeek } from '@/modules/time/week';
 import { toCsv } from '@/modules/time/services/export.service';
+import { progressPercent } from '@/modules/tasks/services/project.service';
 
 /** Pure functions, no database. These run on every push. */
 
@@ -58,5 +59,33 @@ describe('csv', () => {
 
   it('starts with a byte order mark so Excel reads accented names correctly', () => {
     expect(toCsv([['Name'], ['Aún Ali']]).startsWith('﻿')).toBe(true);
+  });
+});
+
+describe('project progress', () => {
+  it('weights by estimate, so ten small tasks do not outvote one large one', () => {
+    // Nine tasks of one hour, all done, and one of forty hours that is not.
+    const tasks = [
+      ...Array.from({ length: 9 }, () => ({ isClosed: true, estimateMinutes: 60 })),
+      { isClosed: false, estimateMinutes: 40 * 60 },
+    ];
+
+    // A plain count would claim ninety percent. The work says eighteen.
+    expect(progressPercent(tasks)).toBe(18);
+  });
+
+  it('falls back to counting when nothing carries an estimate', () => {
+    expect(
+      progressPercent([
+        { isClosed: true, estimateMinutes: null },
+        { isClosed: true, estimateMinutes: null },
+        { isClosed: false, estimateMinutes: null },
+        { isClosed: false, estimateMinutes: null },
+      ]),
+    ).toBe(50);
+  });
+
+  it('reads nothing as nothing rather than dividing by zero', () => {
+    expect(progressPercent([])).toBe(0);
   });
 });

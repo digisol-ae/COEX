@@ -18,6 +18,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { formatDateTime } from '@/modules/tasks/dates';
 import { formatMinutes } from '@/modules/time/week';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
+import { Gantt } from './gantt';
 import {
   createTaskAction,
   moveTaskAction,
@@ -48,6 +49,14 @@ interface DragState {
   fromStatus: string;
 }
 
+export type ProjectView = 'board' | 'list' | 'gantt';
+
+const VIEWS: { id: ProjectView; label: string }[] = [
+  { id: 'board', label: 'Board' },
+  { id: 'list', label: 'List' },
+  { id: 'gantt', label: 'Gantt' },
+];
+
 export function Board({
   projectId,
   columns,
@@ -63,9 +72,9 @@ export function Board({
   tasks: TaskSummary[];
   users: { id: string; name: string }[];
   canManage: boolean;
-  initialView: 'board' | 'list';
+  initialView: ProjectView;
 }) {
-  const [view, setView] = useState<'board' | 'list'>(initialView);
+  const [view, setView] = useState<ProjectView>(initialView);
   const [adding, setAdding] = useState(false);
   const [state, formAction, pending] = useActionState(createTaskAction, initialState);
   const [, startTransition] = useTransition();
@@ -117,18 +126,18 @@ export function Board({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex gap-1 rounded-[var(--radius-control)] bg-[var(--color-surface-sunken)] p-1">
-          {(['board', 'list'] as const).map((option) => (
+          {VIEWS.map((option) => (
             <button
-              key={option}
+              key={option.id}
               type="button"
-              onClick={() => setView(option)}
+              onClick={() => setView(option.id)}
               className={
-                view === option
+                view === option.id
                   ? 'rounded-[var(--radius-control)] bg-[var(--color-surface)] px-3 py-1 text-sm font-medium text-[var(--color-ink)]'
                   : 'px-3 py-1 text-sm text-[var(--color-ink-muted)]'
               }
             >
-              {option === 'board' ? 'Board' : 'List'}
+              {option.label}
             </button>
           ))}
         </div>
@@ -205,6 +214,8 @@ export function Board({
           </CardSection>
         </Card>
       ) : null}
+
+      {view === 'gantt' ? <Gantt tasks={ordered} /> : null}
 
       {view === 'board' ? (
         // A phone cannot show four columns at once, so the board scrolls sideways rather than
@@ -295,7 +306,7 @@ export function Board({
             })}
           </div>
         </div>
-      ) : (
+      ) : view === 'list' ? (
         <ListView
           tasks={ordered}
           columns={columns}
@@ -306,7 +317,7 @@ export function Board({
           onDragEnd={() => setDragging(null)}
           onDropOn={(status, index) => drop(status, index)}
         />
-      )}
+      ) : null}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { asUser, requirePermission } from '@/lib/session';
 import { listProjects } from '@/modules/tasks/services/project.service';
 import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
+import { Progress } from '@/components/ui/progress';
 import { NewProjectPanel } from './panels';
 
 export const metadata = { title: 'Projects · COEX' };
@@ -47,7 +48,7 @@ export default async function ProjectsPage() {
               <tr>
                 <Th>Project</Th>
                 <Th>Customer</Th>
-                <Th>Phases</Th>
+                <Th>Progress</Th>
                 <Th>Open</Th>
                 <Th>Due</Th>
               </tr>
@@ -73,8 +74,11 @@ export default async function ProjectsPage() {
                       ? (customerNames.get(project.organisationId) ?? 'Unknown')
                       : '—'}
                   </Td>
-                  <Td className="text-xs text-[var(--color-ink-subtle)]">
-                    {project.phases.length ? project.phases.join(', ') : 'none'}
+                  <Td className="w-48">
+                    <Progress
+                      percent={project.progressPercent}
+                      label={`${project.name} progress`}
+                    />
                   </Td>
                   <Td>
                     <Badge tone={project.openTaskCount > 0 ? 'info' : 'ok'}>

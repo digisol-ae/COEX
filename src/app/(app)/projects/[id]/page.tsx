@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
 import { getProject } from '@/modules/tasks/services/project.service';
 import { listTasks } from '@/modules/tasks/services/task.service';
+import { progressPercent } from '@/modules/tasks/services/project.service';
+import { Progress } from '@/components/ui/progress';
 import { listUsers } from '@/modules/core/services/user.service';
 import { PageHeader } from '@/components/ui';
 import { Board } from './board';
@@ -40,7 +42,26 @@ export default async function ProjectPage({
       </Link>
 
       <div className="mt-3">
-        <PageHeader title={project.name} description={project.description ?? undefined} />
+        <PageHeader
+          title={project.name}
+          description={project.description ?? undefined}
+          action={
+            <div className="w-48">
+              <Progress
+                percent={progressPercent(
+                  tasks.map((task) => ({
+                    isClosed: task.isClosed,
+                    estimateMinutes: task.estimateMinutes,
+                  })),
+                )}
+                label={`${project.name} progress`}
+              />
+              <p className="mt-1 text-right text-xs text-[var(--color-ink-subtle)]">
+                {tasks.filter((task) => task.isClosed).length} of {tasks.length} tasks done
+              </p>
+            </div>
+          }
+        />
       </div>
 
       <Board
@@ -50,7 +71,7 @@ export default async function ProjectPage({
         tasks={tasks}
         users={users.map((user) => ({ id: user.id, name: user.name }))}
         canManage={actor.permissions.includes('task.manage')}
-        initialView={view === 'list' ? 'list' : 'board'}
+        initialView={view === 'list' ? 'list' : view === 'gantt' ? 'gantt' : 'board'}
       />
     </div>
   );
