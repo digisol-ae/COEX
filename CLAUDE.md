@@ -70,4 +70,7 @@ monolith from becoming a tangle.
 - Feedback raised in chat as numbered items, then written into FEEDBACK.md.
 - Anything decided in conversation is written into CLAUDE.md or FEEDBACK.md, never left in chat.
 - John pushes to the repository himself.
-- Replies on this project in English.
+- John runs every command himself. Claude writes the code and hands over the exact commands with a
+  short note on what each one does and what good output looks like. Claude does not run npm
+  scripts, seeds, migrations or the dev server on John's machine.
+- Replies on this project in English only, whatever language the question is asked in.
