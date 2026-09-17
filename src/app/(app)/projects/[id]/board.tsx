@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useActionState, useOptimistic, useState, useTransition } from 'react';
 import { clsx } from 'clsx';
 import {
-  Badge,
   Button,
   Card,
   CardSection,
@@ -15,6 +14,7 @@ import {
   Select,
 } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
+import { Chip, PriorityFlag, StatusPill } from '@/components/ui/pill';
 import { formatDateTime } from '@/modules/tasks/dates';
 import { formatMinutes } from '@/modules/time/week';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
@@ -36,13 +36,6 @@ const initialState: TaskFormState = {};
  * works with a keyboard, with a screen reader and on a phone, where dragging between columns that
  * do not fit on screen is miserable. Both go through the same action.
  */
-
-const PRIORITY_TONE = {
-  urgent: 'alert',
-  high: 'warn',
-  normal: 'neutral',
-  low: 'neutral',
-} as const;
 
 interface DragState {
   taskId: string;
@@ -242,9 +235,7 @@ export function Board({
                   }}
                 >
                   <div className="mb-2 flex items-center justify-between">
-                    <h2 className="text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                      {column.name}
-                    </h2>
+                    <StatusPill status={column.name} isClosed={column.isClosed} />
                     <span className="text-xs text-[var(--color-ink-subtle)]">
                       {inColumn.length}
                     </span>
@@ -350,32 +341,32 @@ function TaskCard({
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
     >
-      <Link
-        href={`/tasks/${task.id}`}
-        className="block text-sm font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
-      >
-        {task.title}
-      </Link>
+      <div className="flex items-start gap-2">
+        <PriorityFlag priority={task.priority} />
 
-      <p className="mt-1 font-mono text-xs text-[var(--color-ink-subtle)]">{task.number}</p>
+        <Link
+          href={`/tasks/${task.id}`}
+          className="block flex-1 text-sm font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
+        >
+          {task.title}
+        </Link>
+      </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        {task.priority !== 'normal' ? (
-          <Badge tone={PRIORITY_TONE[task.priority]}>{task.priority}</Badge>
-        ) : null}
+      <p className="mt-1 font-mono text-[11px] text-[var(--color-ink-subtle)]">{task.number}</p>
 
-        {task.isOverdue ? <Badge tone="alert">overdue</Badge> : null}
+      <div className="mt-2 flex flex-wrap items-center gap-1">
+        {task.isOverdue ? <Chip tone="alert">overdue</Chip> : null}
+
+        {task.phase ? <Chip>{task.phase}</Chip> : null}
 
         {task.subtaskCount > 0 ? (
-          <span className="text-xs text-[var(--color-ink-subtle)]">
-            {task.subtasksDone}/{task.subtaskCount} subtasks
-          </span>
+          <Chip title="Subtasks done">
+            {task.subtasksDone}/{task.subtaskCount}
+          </Chip>
         ) : null}
 
         {task.plannedMinutes ? (
-          <span className="text-xs text-[var(--color-ink-subtle)]">
-            {formatMinutes(task.plannedMinutes)} planned
-          </span>
+          <Chip title="Planned working hours">{formatMinutes(task.plannedMinutes)}</Chip>
         ) : null}
       </div>
 
@@ -486,7 +477,9 @@ function ListView({
                       canManage && 'cursor-grab active:cursor-grabbing',
                     )}
                   >
-                    <span className="font-mono text-xs text-[var(--color-ink-subtle)]">
+                    <PriorityFlag priority={task.priority} />
+
+                    <span className="font-mono text-[11px] text-[var(--color-ink-subtle)]">
                       {task.number}
                     </span>
 
@@ -497,9 +490,7 @@ function ListView({
                       {task.title}
                     </Link>
 
-                    {task.phase ? (
-                      <span className="text-xs text-[var(--color-ink-subtle)]">{task.phase}</span>
-                    ) : null}
+                    {task.phase ? <Chip>{task.phase}</Chip> : null}
 
                     {task.plannedMinutes ? (
                       <span className="text-xs text-[var(--color-ink-muted)] tabular-nums">

@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
 import { listTasks } from '@/modules/tasks/services/task.service';
-import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
+import { Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
+import { Avatar } from '@/components/ui/avatar';
+import { Chip, PriorityFlag, StatusPill } from '@/components/ui/pill';
 import { formatDateTime } from '@/modules/tasks/dates';
 import { formatMinutes } from '@/modules/time/week';
-import { Avatar } from '@/components/ui/avatar';
 import { TaskFilters } from './filters';
 
 export const metadata = { title: 'Tasks · COEX' };
@@ -59,34 +60,66 @@ export default async function TasksPage({
           <Table>
             <thead>
               <tr>
-                <Th>Number</Th>
+                <Th>{''}</Th>
                 <Th>Task</Th>
-                <Th>Project</Th>
                 <Th>Status</Th>
-                <Th>Assigned</Th>
-                <Th>Planned</Th>
-                <Th>Ends</Th>
+                <Th>Project</Th>
+                <Th>Schedule</Th>
+                <Th>Who</Th>
               </tr>
             </thead>
             <tbody>
               {tasks.map((task) => (
-                <tr key={task.id}>
-                  <Td className="font-mono text-xs text-[var(--color-ink-muted)]">{task.number}</Td>
-                  <Td>
+                <tr key={task.id} className="group hover:bg-[var(--color-surface-muted)]/60">
+                  <Td className="w-8 pr-0">
+                    <PriorityFlag priority={task.priority} />
+                  </Td>
+
+                  <Td className="max-w-sm">
                     <Link
                       href={`/tasks/${task.id}`}
-                      className="font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
+                      className="block truncate font-medium text-[var(--color-ink)] underline-offset-4 group-hover:underline"
                     >
                       {task.title}
                     </Link>
-                    {task.priority === 'urgent' || task.priority === 'high' ? (
-                      <Badge tone={task.priority === 'urgent' ? 'alert' : 'warn'}>
-                        {task.priority}
-                      </Badge>
+                    <span className="font-mono text-[11px] text-[var(--color-ink-subtle)]">
+                      {task.number}
+                    </span>
+                    {task.subtaskCount > 0 ? (
+                      <span className="ml-2 text-[11px] text-[var(--color-ink-subtle)]">
+                        {task.subtasksDone}/{task.subtaskCount} subtasks
+                      </span>
                     ) : null}
                   </Td>
-                  <Td className="text-[var(--color-ink-muted)]">{task.projectName}</Td>
-                  <Td className="text-[var(--color-ink-muted)]">{task.status}</Td>
+
+                  <Td>
+                    <StatusPill status={task.status} isClosed={task.isClosed} />
+                  </Td>
+
+                  <Td className="text-[var(--color-ink-muted)]">
+                    <span className="block truncate text-sm">{task.projectName}</span>
+                    {task.phase ? (
+                      <span className="text-[11px] text-[var(--color-ink-subtle)]">
+                        {task.phase}
+                      </span>
+                    ) : null}
+                  </Td>
+
+                  <Td>
+                    <div className="flex flex-wrap items-center gap-1">
+                      {task.endAt ? (
+                        <Chip tone={task.isOverdue ? 'alert' : 'neutral'} title="Ends">
+                          {formatDateTime(task.endAt)}
+                        </Chip>
+                      ) : null}
+                      {task.plannedMinutes ? (
+                        <Chip title="Planned working hours">
+                          {formatMinutes(task.plannedMinutes)}
+                        </Chip>
+                      ) : null}
+                    </div>
+                  </Td>
+
                   <Td>
                     {task.assigneeNames.length ? (
                       <div className="flex -space-x-1.5">
@@ -95,25 +128,7 @@ export default async function TasksPage({
                         ))}
                       </div>
                     ) : (
-                      <span className="text-xs text-[var(--color-ink-subtle)]">Unassigned</span>
-                    )}
-                  </Td>
-                  <Td className="tabular-nums text-[var(--color-ink-muted)]">
-                    {task.plannedMinutes ? formatMinutes(task.plannedMinutes) : '—'}
-                  </Td>
-                  <Td>
-                    {task.endAt ? (
-                      <span
-                        className={
-                          task.isOverdue
-                            ? 'tabular-nums text-[var(--color-status-alert)]'
-                            : 'tabular-nums text-[var(--color-ink-muted)]'
-                        }
-                      >
-                        {formatDateTime(task.endAt)}
-                      </span>
-                    ) : (
-                      <span className="text-[var(--color-ink-subtle)]">—</span>
+                      <span className="text-[11px] text-[var(--color-ink-subtle)]">Unassigned</span>
                     )}
                   </Td>
                 </tr>

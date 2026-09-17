@@ -56,6 +56,28 @@
   --gradient-brand: linear-gradient(135deg, #ee3d51 0%, #f2725f 100%);
 
   /*
+   * Status pills. Saturated enough to read at a glance in a dense row, soft enough that twenty of
+   * them down a list do not fight. Each ships with its own text colour rather than relying on
+   * white text, which fails on the lighter fills.
+   */
+  --color-pill-todo: #eceee7;
+  --color-pill-todo-ink: #55584f;
+  --color-pill-progress: #e3edf4;
+  --color-pill-progress-ink: #35617d;
+  --color-pill-blocked: #fdecee;
+  --color-pill-blocked-ink: #c0293c;
+  --color-pill-done: #e7f1e7;
+  --color-pill-done-ink: #3f6b45;
+  --color-pill-review: #f6efe0;
+  --color-pill-review-ink: #8a6420;
+
+  /* Priority marks, used as a small flag rather than as a fill. */
+  --color-priority-urgent: #ee3d51;
+  --color-priority-high: #c47f1f;
+  --color-priority-normal: #8a8d86;
+  --color-priority-low: #b8bab4;
+
+  /*
    * Identity colours, assigned from a person's name. Soft enough to sit beside body text without
    * competing with it, and distinct enough that a team of ten reads as ten people.
    */

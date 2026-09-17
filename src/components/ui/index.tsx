@@ -126,7 +126,7 @@ export function Table({ children }: { children: ReactNode }) {
 
 export function Th({ children }: { children: ReactNode }) {
   return (
-    <th className="border-b border-[var(--color-line)] px-5 py-3 text-left text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
+    <th className="border-b border-[var(--color-line)] px-4 py-2 text-left text-[11px] font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
       {children}
     </th>
   );
@@ -134,7 +134,7 @@ export function Th({ children }: { children: ReactNode }) {
 
 export function Td({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <td className={clsx('border-b border-[var(--color-line)] px-5 py-3 align-middle', className)}>
+    <td className={clsx('border-b border-[var(--color-line)] px-4 py-2 align-middle', className)}>
       {children}
     </td>
   );
