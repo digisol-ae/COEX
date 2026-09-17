@@ -15,7 +15,7 @@ export function NewPortfolioPanel() {
   }
 
   return (
-    <Card className="w-80">
+    <Card className="w-full sm:w-80">
       <CardSection title="New portfolio">
         <form action={formAction} className="space-y-3">
           <Field label="Name" hint="A business area, for example Support">
@@ -62,7 +62,7 @@ export function NewProjectPanel({
   }
 
   return (
-    <Card className="w-80">
+    <Card className="w-full sm:w-80">
       <CardSection title="New project">
         <form action={formAction} className="space-y-3">
           <input type="hidden" name="portfolioId" value={portfolioId} />

@@ -15,7 +15,7 @@ export function NewCustomerPanel() {
   }
 
   return (
-    <Card className="w-96">
+    <Card className="w-full sm:w-96">
       <CardSection title="New customer">
         <form action={formAction} className="space-y-3">
           <Field label="Company name">

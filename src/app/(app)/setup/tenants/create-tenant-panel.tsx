@@ -15,7 +15,7 @@ export function CreateTenantPanel() {
   }
 
   return (
-    <Card className="w-96">
+    <Card className="w-full sm:w-96">
       <CardSection title="New tenant">
         {state.password ? (
           <div className="space-y-3">

@@ -20,7 +20,7 @@ export function CreateUserPanel() {
   }
 
   return (
-    <Card className="w-96">
+    <Card className="w-full sm:w-96">
       <CardSection title="New user">
         {state.createdPassword ? (
           <div className="space-y-3">

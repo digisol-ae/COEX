@@ -130,36 +130,42 @@ export function Board({
       ) : null}
 
       {view === 'board' ? (
-        <div
-          className="grid gap-4"
-          style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(15rem, 1fr))` }}
-        >
-          {columns.map((column) => {
-            const inColumn = tasks.filter((task) => task.status === column.name);
+        // A phone cannot show four columns at once, so the board scrolls sideways rather than
+        // squeezing every card into an unreadable strip.
+        <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+          <div
+            className="grid gap-4"
+            style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(15rem, 1fr))` }}
+          >
+            {columns.map((column) => {
+              const inColumn = tasks.filter((task) => task.status === column.name);
 
-            return (
-              <div key={column.name} className="min-w-0">
-                <div className="mb-2 flex items-center justify-between">
-                  <h2 className="text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                    {column.name}
-                  </h2>
-                  <span className="text-xs text-[var(--color-ink-subtle)]">{inColumn.length}</span>
-                </div>
+              return (
+                <div key={column.name} className="min-w-0">
+                  <div className="mb-2 flex items-center justify-between">
+                    <h2 className="text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                      {column.name}
+                    </h2>
+                    <span className="text-xs text-[var(--color-ink-subtle)]">
+                      {inColumn.length}
+                    </span>
+                  </div>
 
-                <div className="space-y-2">
-                  {inColumn.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      projectId={projectId}
-                      columns={columns}
-                      canManage={canManage}
-                    />
-                  ))}
+                  <div className="space-y-2">
+                    {inColumn.map((task) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        projectId={projectId}
+                        columns={columns}
+                        canManage={canManage}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       ) : (
         <Card>

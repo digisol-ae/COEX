@@ -15,7 +15,7 @@ export function ProductPanel() {
   }
 
   return (
-    <Card className="w-96">
+    <Card className="w-full sm:w-96">
       <CardSection title="New product">
         <form action={formAction} className="space-y-3">
           <Field label="Name">
