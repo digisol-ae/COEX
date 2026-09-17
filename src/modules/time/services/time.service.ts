@@ -51,6 +51,15 @@ export async function getRunningTimer(userId?: string): Promise<RunningTimer | n
   };
 }
 
+/** Total time recorded against one task, by everyone. */
+export async function loggedMinutesForTask(taskId: string): Promise<number> {
+  await connectToDatabase();
+
+  const found = await entries().find({ taskId: toObjectId(taskId) });
+
+  return found.reduce((sum, entry) => sum + (entry.minutes ?? 0), 0);
+}
+
 export async function startTimer(taskId: string): Promise<void> {
   await connectToDatabase();
 

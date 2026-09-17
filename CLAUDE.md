@@ -91,10 +91,14 @@ monolith from becoming a tangle.
 - A fresh Claude session per working day.
 - Feedback raised in chat as numbered items, then written into FEEDBACK.md.
 - Anything decided in conversation is written into CLAUDE.md or FEEDBACK.md, never left in chat.
-- John pushes to the repository himself.
-- John runs every command himself. Claude writes the code and hands over the exact commands with a
-  short note on what each one does and what good output looks like. Claude does not run npm
-  scripts, seeds, migrations or the dev server on John's machine.
+- Claude may run commands on John's Mac and may push to GitHub. Granted 17 Sep 2026. Installs still
+  happen natively on macOS, never from the Linux sandbox, or the binaries come out wrong.
+- Claude still hands over the command when the point is for John to see it run, and always says what
+  it ran and what came back.
+- Pushing works only from macOS: the GitHub credentials live in the Mac keychain, and the sandbox
+  cannot read them. Use the Terminal bridge for git push.
+- Two things stay with John: anything that costs money, and anything needing his Microsoft or
+  GitHub account.
 - Replies on this project in English only, whatever language the question is asked in.
 
 ## Environment

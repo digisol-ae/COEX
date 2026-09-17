@@ -1,8 +1,11 @@
 import { connectToDatabase } from '@/lib/db';
+import { toObjectId } from '@/lib/ids';
 import { getContext } from '@/lib/tenant-context';
 import { TaskModel } from '../models/task.model';
 import { PortfolioModel } from '../models/portfolio.model';
 import { UserModel } from '@/modules/core/models/user.model';
+import { TimeEntryModel } from '@/modules/time/models/time-entry.model';
+import { endOfWeek, startOfWeek } from '@/modules/time/week';
 
 /**
  * The numbers behind the dashboard.
@@ -31,6 +34,8 @@ export interface DashboardData {
   byPortfolio: GroupCount[];
   byAssignee: GroupCount[];
   ageing: { number: string; title: string; days: number; id: string }[];
+  /** Time logged this week against the estimate on the same open work. */
+  week: { loggedMinutes: number; estimatedMinutes: number };
 }
 
 function startOfToday(): Date {
@@ -92,7 +97,30 @@ export async function loadDashboard(scope: {
     .sort({ lastActivityAt: 1 })
     .limit(10);
 
+  const weekStart = startOfWeek(new Date());
+
+  const [loggedThisWeek] = await TimeEntryModel.aggregate<{ minutes: number }>([
+    {
+      $match: {
+        tenantId,
+        deletedAt: null,
+        workDate: { $gte: weekStart, $lt: endOfWeek(new Date()) },
+        ...(scope.onlyAssigneeId ? { userId: toObjectId(scope.onlyAssigneeId) } : {}),
+      },
+    },
+    { $group: { _id: null, minutes: { $sum: '$minutes' } } },
+  ]);
+
+  const [estimated] = await TaskModel.aggregate<{ minutes: number }>([
+    { $match: { ...base, estimateMinutes: { $gt: 0 } } },
+    { $group: { _id: null, minutes: { $sum: '$estimateMinutes' } } },
+  ]);
+
   return {
+    week: {
+      loggedMinutes: loggedThisWeek?.minutes ?? 0,
+      estimatedMinutes: estimated?.minutes ?? 0,
+    },
     tiles: { open, overdue, dueToday, unassigned, blocked },
     byPortfolio: byPortfolio.filter((row) => row.count > 0),
     byAssignee: byAssignee.filter((row) => row.count > 0).sort((a, b) => b.count - a.count),

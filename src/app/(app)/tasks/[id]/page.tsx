@@ -5,7 +5,8 @@ import { getTask } from '@/modules/tasks/services/task.service';
 import { getProject } from '@/modules/tasks/services/portfolio.service';
 import { listUsers } from '@/modules/core/services/user.service';
 import { Badge, Card, CardSection, PageHeader } from '@/components/ui';
-import { getRunningTimer } from '@/modules/time/services/time.service';
+import { getRunningTimer, loggedMinutesForTask } from '@/modules/time/services/time.service';
+import { formatMinutes } from '@/modules/time/week';
 import { TimerButton } from '@/modules/time/components/timer-button';
 import { TaskForm } from './task-form';
 import { StepList } from './step-list';
@@ -18,10 +19,11 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
   const task = await asUser(actor, () => getTask(id));
   if (!task) notFound();
 
-  const { project, users, timer } = await asUser(actor, async () => ({
+  const { project, users, timer, loggedMinutes } = await asUser(actor, async () => ({
     project: await getProject(String(task.projectId)),
     users: await listUsers(),
     timer: await getRunningTimer(),
+    loggedMinutes: await loggedMinutesForTask(id),
   }));
 
   const canManage = actor.permissions.includes('task.manage');
@@ -53,6 +55,34 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
 
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
         <div className="space-y-6">
+          <Card>
+            <CardSection title="Time">
+              <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+                <div>
+                  <p className="text-xs tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                    Logged
+                  </p>
+                  <p className="text-lg font-medium text-[var(--color-ink)] tabular-nums">
+                    {formatMinutes(loggedMinutes)}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                    Estimate
+                  </p>
+                  <p className="text-lg font-medium text-[var(--color-ink-muted)] tabular-nums">
+                    {task.estimateMinutes ? formatMinutes(task.estimateMinutes) : 'none'}
+                  </p>
+                </div>
+
+                {task.estimateMinutes && loggedMinutes > task.estimateMinutes ? (
+                  <Badge tone="warn">over estimate</Badge>
+                ) : null}
+              </div>
+            </CardSection>
+          </Card>
+
           <StepList
             taskId={id}
             canManage={canManage}

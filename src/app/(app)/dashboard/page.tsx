@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { asUser, requireUser } from '@/lib/session';
 import { loadDashboard } from '@/modules/tasks/services/dashboard.service';
 import { Card, CardSection, EmptyState, PageHeader } from '@/components/ui';
+import { formatMinutes } from '@/modules/time/week';
 
 export const metadata = { title: 'Dashboard · COEX' };
 
@@ -67,6 +68,32 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      <Card className="mt-4 px-5 py-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <div>
+            <p className="text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
+              Logged this week
+            </p>
+            <p className="mt-1 text-2xl font-bold text-[var(--color-ink)] tabular-nums">
+              {formatMinutes(data.week.loggedMinutes)}
+            </p>
+          </div>
+
+          <p className="text-sm text-[var(--color-ink-muted)]">
+            {data.week.estimatedMinutes > 0
+              ? `against ${formatMinutes(data.week.estimatedMinutes)} estimated on open work`
+              : 'no estimates set on open work yet'}
+          </p>
+
+          <Link
+            href="/time"
+            className="text-sm text-[var(--color-ink-muted)] underline-offset-4 hover:underline"
+          >
+            Open timesheet
+          </Link>
+        </div>
+      </Card>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
