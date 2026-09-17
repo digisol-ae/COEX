@@ -109,6 +109,7 @@ export async function addContactAction(
         title: text(formData, 'title'),
         email: text(formData, 'email'),
         mobile: text(formData, 'mobile'),
+        country: text(formData, 'mobileCountry') || 'AE',
         isPrimary: formData.get('isPrimary') === 'on',
       }),
     );

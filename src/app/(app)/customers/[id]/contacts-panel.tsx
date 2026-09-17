@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { Button, Card, CardSection, EmptyState, Field, Input, Notice } from '@/components/ui';
 import type { ContactSummary } from '@/modules/crm/services/contact.service';
+import { MobileInput } from '@/modules/crm/components/mobile-input';
 import { addContactAction, archiveContactAction, type CrmFormState } from '../actions';
 
 const initialState: CrmFormState = {};
@@ -83,8 +84,11 @@ export function ContactsPanel({
                 <Input name="email" type="email" />
               </Field>
 
-              <Field label="Mobile" hint="Any format. Stored as +971… so WhatsApp replies match.">
-                <Input name="mobile" />
+              <Field
+                label="Mobile"
+                hint="Pick the country, then type the local number. Stored in full international form so WhatsApp replies match."
+              >
+                <MobileInput />
               </Field>
 
               <label className="flex items-center gap-2 text-sm text-[var(--color-ink-muted)]">

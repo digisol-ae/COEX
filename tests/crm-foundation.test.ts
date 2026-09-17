@@ -5,7 +5,12 @@ import { runWithContext } from '@/lib/tenant-context';
 import { createOrganisation, listOrganisations } from '@/modules/crm/services/organisation.service';
 import { createContact, listContacts } from '@/modules/crm/services/contact.service';
 import { listTimeline, recordActivity } from '@/modules/crm/services/activity.service';
-import { normaliseMobile } from '@/modules/crm/phone';
+import { normaliseMobile, splitMobile } from '@/modules/crm/phone';
+import {
+  createProduct,
+  fromMinorUnits,
+  toMinorUnits,
+} from '@/modules/crm/services/product.service';
 
 const tenantOne = new Types.ObjectId();
 const tenantTwo = new Types.ObjectId();
@@ -37,9 +42,19 @@ describe('mobile normalisation', () => {
     expect(normaliseMobile('0300 1234567', 'PK')).toBe('+923001234567');
   });
 
+  it('handles the 00 international prefix used across the Gulf', () => {
+    expect(normaliseMobile('00971501234567')).toBe('+971501234567');
+  });
+
   it('returns nothing for empty input rather than inventing a number', () => {
     expect(normaliseMobile('')).toBeNull();
     expect(normaliseMobile(null)).toBeNull();
+  });
+
+  it('splits a stored number back into country and local part for editing', () => {
+    expect(splitMobile('+971501234567')).toEqual({ country: 'AE', local: '501234567' });
+    expect(splitMobile('+923001234567')).toEqual({ country: 'PK', local: '3001234567' });
+    expect(splitMobile(null)).toEqual({ country: 'AE', local: '' });
   });
 });
 
@@ -139,5 +154,38 @@ describe('the single timeline', () => {
 
     const otherTenantView = await runWithContext(contextTwo, () => listTimeline(id));
     expect(otherTenantView).toHaveLength(0);
+  });
+});
+
+describe('product prices', () => {
+  it('stores money as integer minor units, so rounding never drifts', () => {
+    expect(toMinorUnits('1499.00')).toBe(149900);
+    expect(toMinorUnits('1,499.50')).toBe(149950);
+    expect(toMinorUnits('0.1')).toBe(10);
+    expect(toMinorUnits('')).toBeNull();
+    expect(toMinorUnits(null)).toBeNull();
+  });
+
+  it('renders minor units back for display', () => {
+    expect(fromMinorUnits(149900)).toBe('1499.00');
+    expect(fromMinorUnits(null)).toBe('');
+  });
+
+  it('refuses a duplicate product code within a tenant but allows it across tenants', async () => {
+    await runWithContext(contextOne, () =>
+      createProduct({ name: 'R4+ Practice Management', code: 'r4plus', kind: 'software' }),
+    );
+
+    await expect(
+      runWithContext(contextOne, () =>
+        createProduct({ name: 'Another', code: 'R4PLUS', kind: 'software' }),
+      ),
+    ).rejects.toThrow(/already in use/);
+
+    await expect(
+      runWithContext(contextTwo, () =>
+        createProduct({ name: 'Their product', code: 'R4PLUS', kind: 'software' }),
+      ),
+    ).resolves.not.toThrow();
   });
 });
