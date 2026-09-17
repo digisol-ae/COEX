@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useSyncExternalStore } from 'react';
 import { clsx } from 'clsx';
 import { HOME, type NavigationGroup } from './navigation';
+import { ProjectTree } from './project-tree';
 import {
   getCollapsedSnapshot,
   getServerSnapshot,
@@ -59,15 +60,20 @@ export function NavigationTree({
 
             {open ? (
               <div className="mt-1 space-y-0.5">
-                {group.items.map((item) => (
-                  <NavigationLink
-                    key={item.href}
-                    href={item.href}
-                    label={item.label}
-                    active={isActive(item.href)}
-                    onNavigate={onNavigate}
-                  />
-                ))}
+                {group.items.map((item) =>
+                  // Projects carries a tree of its own: tasks, then subtasks, loaded on expand.
+                  item.href === '/projects' ? (
+                    <ProjectTree key={item.href} />
+                  ) : (
+                    <NavigationLink
+                      key={item.href}
+                      href={item.href}
+                      label={item.label}
+                      active={isActive(item.href)}
+                      onNavigate={onNavigate}
+                    />
+                  ),
+                )}
               </div>
             ) : null}
           </div>
