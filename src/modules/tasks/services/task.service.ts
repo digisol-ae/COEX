@@ -66,6 +66,7 @@ export interface TaskSummary {
   projectId: string;
   projectName: string;
   phase: string | null;
+  assigneeIds: string[];
   assigneeNames: string[];
   startAt: Date | null;
   endAt: Date | null;
@@ -74,6 +75,7 @@ export interface TaskSummary {
   sortOrder: number;
   subtaskCount: number;
   subtasksDone: number;
+  subtasks: { id: string; title: string; done: boolean }[];
   documentCount: number;
   isClosed: boolean;
   isOverdue: boolean;
@@ -128,6 +130,7 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
     projectId: String(task.projectId),
     projectName: projectNames.get(String(task.projectId)) ?? 'Unknown',
     phase: task.phase ?? null,
+    assigneeIds: task.assigneeIds.map((id) => String(id)),
     assigneeNames: task.assigneeIds.map((id) => names.get(String(id)) ?? 'Unknown'),
     startAt: task.startAt ?? null,
     endAt: task.endAt ?? null,
@@ -136,6 +139,11 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
     sortOrder: task.sortOrder ?? 0,
     subtaskCount: task.subtasks.length,
     subtasksDone: task.subtasks.filter((subtask) => subtask.done).length,
+    subtasks: task.subtasks.map((subtask) => ({
+      id: String(subtask._id),
+      title: subtask.title,
+      done: subtask.done,
+    })),
     documentCount: task.documentLinks.length,
     isClosed: task.isClosed ?? false,
     isOverdue: !task.isClosed && !!task.endAt && task.endAt < now,
@@ -334,6 +342,69 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
         startAt: after?.startAt,
         endAt: after?.endAt,
       },
+    ),
+  });
+}
+
+/**
+ * A one-field change from a list or a card.
+ *
+ * updateTask replaces the whole task, which is right for the task form and wrong for setting a
+ * date from a row: anything the caller did not send would be wiped. patchTask touches only the
+ * fields it is given, and recomputes planned hours whenever either date moves.
+ */
+export interface TaskPatch {
+  priority?: Priority;
+  startAt?: string | null;
+  endAt?: string | null;
+  assigneeIds?: string[];
+  title?: string;
+}
+
+export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
+  await connectToDatabase();
+
+  const before = await tasks().findById(id);
+  if (!before) throw new Error('Task not found.');
+
+  const set: Record<string, unknown> = { lastActivityAt: new Date() };
+
+  if (patch.priority) set.priority = patch.priority;
+
+  if (patch.title !== undefined) {
+    const title = patch.title.trim();
+    if (!title) throw new Error('A task needs a title.');
+    set.title = title;
+  }
+
+  if (patch.assigneeIds) {
+    const assigneeIds = patch.assigneeIds.filter(Boolean).map((value) => toObjectId(value));
+    set.assigneeIds = assigneeIds;
+    set.primaryAssigneeId = assigneeIds[0] ?? null;
+  }
+
+  if (patch.startAt !== undefined || patch.endAt !== undefined) {
+    const startAt = patch.startAt !== undefined ? toDate(patch.startAt) : (before.startAt ?? null);
+    const endAt = patch.endAt !== undefined ? toDate(patch.endAt) : (before.endAt ?? null);
+
+    if (startAt && endAt && endAt <= startAt) {
+      throw new Error('The end must come after the start.');
+    }
+
+    set.startAt = startAt;
+    set.endAt = endAt;
+    set.plannedMinutes = await plannedMinutesFor(startAt, endAt);
+  }
+
+  await tasks().updateOne({ _id: before._id }, { $set: set });
+
+  await recordAudit({
+    action: 'task.updated',
+    entityType: 'Task',
+    entityId: before._id,
+    ...changedFields(
+      { priority: before.priority, startAt: before.startAt, endAt: before.endAt },
+      { priority: set.priority, startAt: set.startAt, endAt: set.endAt },
     ),
   });
 }

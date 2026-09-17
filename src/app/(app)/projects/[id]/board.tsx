@@ -13,8 +13,7 @@ import {
   Notice,
   Select,
 } from '@/components/ui';
-import { Avatar } from '@/components/ui/avatar';
-import { Chip, PriorityFlag, StatusPill } from '@/components/ui/pill';
+import { Chip, StatusDot, StatusPill } from '@/components/ui/pill';
 import { formatDateTime } from '@/modules/tasks/dates';
 import { formatMinutes } from '@/modules/time/week';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
@@ -22,8 +21,17 @@ import { Gantt } from './gantt';
 import { ViewTabs } from './view-tabs';
 import { Toolbar } from './toolbar';
 import {
+  AssigneePicker,
+  CalendarIcon,
+  PriorityPicker,
+  SchedulePicker,
+  StatusPicker,
+  type PriorityValue,
+} from './inline-edit';
+import {
   createTaskAction,
-  moveTaskAction,
+  patchTaskAction,
+  setSubtaskDoneAction,
   reorderTaskAction,
   type TaskFormState,
 } from '../../tasks/actions';
@@ -31,12 +39,13 @@ import {
 const initialState: TaskFormState = {};
 
 /**
- * Board and list in one component, because they show the same data and the toggle should not
+ * Board, list and Gantt in one component, because they show the same data and switching should not
  * reload the page.
  *
- * Dragging is the fast path, and the column dropdown on every card stays as the reliable one: it
- * works with a keyboard, with a screen reader and on a phone, where dragging between columns that
- * do not fit on screen is miserable. Both go through the same action.
+ * Every view edits in place. Dragging is the fast path for moving work along, and the pickers on
+ * each row and card are the reliable one: they work with a keyboard, with a screen reader and on a
+ * phone, where dragging between columns that do not fit on screen is miserable. Both go through
+ * the same actions, and both show the change before the server answers.
  */
 
 interface DragState {
@@ -45,6 +54,21 @@ interface DragState {
 }
 
 export type ProjectView = 'board' | 'list' | 'gantt';
+
+type OptimisticChange =
+  | { kind: 'move'; taskId: string; status: string; index: number }
+  | { kind: 'patch'; taskId: string; patch: Partial<TaskSummary> };
+
+interface EditHandlers {
+  users: { id: string; name: string }[];
+  columns: { name: string; isClosed: boolean }[];
+  canManage: boolean;
+  onPriority: (task: TaskSummary, priority: PriorityValue) => void;
+  onSchedule: (task: TaskSummary, value: { startAt: string | null; endAt: string | null }) => void;
+  onAssignees: (task: TaskSummary, ids: string[]) => void;
+  onStatus: (task: TaskSummary, status: string) => void;
+  onSubtask: (task: TaskSummary, subtaskId: string, done: boolean) => void;
+}
 
 export function Board({
   projectId,
@@ -68,30 +92,35 @@ export function Board({
   const [assigneeFilter, setAssigneeFilter] = useState<string | null>(null);
   const [showClosed, setShowClosed] = useState(false);
   const [search, setSearch] = useState('');
+  const [editError, setEditError] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState(createTaskAction, initialState);
   const [, startTransition] = useTransition();
   const [dragging, setDragging] = useState<DragState | null>(null);
   const [dropTarget, setDropTarget] = useState<{ status: string; index: number } | null>(null);
 
   /**
-   * The board shows the move immediately and the server catches up. Waiting for a round trip
-   * before the card lands makes dragging feel broken even when it is working.
+   * Every view shows the change immediately and the server catches up. Waiting for a round trip
+   * before a card lands, or before a date appears, makes the tool feel broken even when it is
+   * working perfectly.
    */
-  const [ordered, applyMove] = useOptimistic(
-    tasks,
-    (current, move: { taskId: string; status: string; index: number }) => {
-      const moving = current.find((task) => task.id === move.taskId);
-      if (!moving) return current;
+  const [ordered, applyChange] = useOptimistic(tasks, (current, change: OptimisticChange) => {
+    if (change.kind === 'patch') {
+      return current.map((task) =>
+        task.id === change.taskId ? { ...task, ...change.patch } : task,
+      );
+    }
 
-      const without = current.filter((task) => task.id !== move.taskId);
-      const inColumn = without.filter((task) => task.status === move.status);
-      const elsewhere = without.filter((task) => task.status !== move.status);
+    const moving = current.find((task) => task.id === change.taskId);
+    if (!moving) return current;
 
-      inColumn.splice(move.index, 0, { ...moving, status: move.status });
+    const without = current.filter((task) => task.id !== change.taskId);
+    const inColumn = without.filter((task) => task.status === change.status);
+    const elsewhere = without.filter((task) => task.status !== change.status);
 
-      return [...elsewhere, ...inColumn];
-    },
-  );
+    inColumn.splice(change.index, 0, { ...moving, status: change.status });
+
+    return [...elsewhere, ...inColumn];
+  });
 
   const nameOf = new Map(users.map((user) => [user.id, user.name]));
 
@@ -113,6 +142,83 @@ export function Board({
 
   const columnTasks = (status: string) => visible.filter((task) => task.status === status);
 
+  function patch(
+    taskId: string,
+    optimistic: Partial<TaskSummary>,
+    sent: Parameters<typeof patchTaskAction>[0],
+  ) {
+    setEditError(null);
+
+    startTransition(async () => {
+      applyChange({ kind: 'patch', taskId, patch: optimistic });
+
+      const result = await patchTaskAction(sent);
+      if (result.error) setEditError(result.error);
+    });
+  }
+
+  const handlers: EditHandlers = {
+    users,
+    columns,
+    canManage,
+    onPriority: (task, priority) =>
+      patch(task.id, { priority }, { id: task.id, projectId, priority }),
+    onSchedule: (task, value) =>
+      patch(
+        task.id,
+        {
+          startAt: value.startAt ? new Date(value.startAt) : null,
+          endAt: value.endAt ? new Date(value.endAt) : null,
+          isOverdue: !!value.endAt && new Date(value.endAt) < new Date() && !task.isClosed,
+        },
+        { id: task.id, projectId, startAt: value.startAt, endAt: value.endAt },
+      ),
+    onAssignees: (task, ids) =>
+      patch(
+        task.id,
+        {
+          assigneeIds: ids,
+          assigneeNames: ids.map((id) => nameOf.get(id) ?? 'Unknown'),
+        },
+        { id: task.id, projectId, assigneeIds: ids },
+      ),
+    onStatus: (task, status) => {
+      const target = columnTasks(status).filter((candidate) => candidate.id !== task.id);
+
+      setEditError(null);
+
+      startTransition(async () => {
+        applyChange({ kind: 'move', taskId: task.id, status, index: target.length });
+
+        await reorderTaskAction({
+          id: task.id,
+          projectId,
+          status,
+          afterTaskId: target[target.length - 1]?.id ?? null,
+          beforeTaskId: null,
+        });
+      });
+    },
+    onSubtask: (task, subtaskId, done) => {
+      setEditError(null);
+
+      startTransition(async () => {
+        applyChange({
+          kind: 'patch',
+          taskId: task.id,
+          patch: {
+            subtasks: task.subtasks.map((subtask) =>
+              subtask.id === subtaskId ? { ...subtask, done } : subtask,
+            ),
+            subtasksDone: task.subtasksDone + (done ? 1 : -1),
+          },
+        });
+
+        await setSubtaskDoneAction({ taskId: task.id, subtaskId, done, projectId });
+      });
+    },
+  };
+
   function drop(status: string, index: number) {
     if (!dragging || !canManage) return;
 
@@ -126,7 +232,7 @@ export function Board({
     setDropTarget(null);
 
     startTransition(async () => {
-      applyMove({ taskId, status, index });
+      applyChange({ kind: 'move', taskId, status, index });
 
       await reorderTaskAction({ id: taskId, projectId, status, afterTaskId, beforeTaskId });
     });
@@ -150,6 +256,8 @@ export function Board({
           ) : null
         }
       />
+
+      {editError ? <Notice tone="alert">{editError}</Notice> : null}
 
       {adding ? (
         <Card>
@@ -227,7 +335,7 @@ export function Board({
         <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
           <div
             className="grid gap-4"
-            style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(15rem, 1fr))` }}
+            style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(16rem, 1fr))` }}
           >
             {columns.map((column) => {
               const inColumn = columnTasks(column.name);
@@ -306,9 +414,8 @@ export function Board({
 
                         <TaskCard
                           task={task}
-                          projectId={projectId}
-                          columns={columns}
-                          canManage={canManage}
+                          handlers={handlers}
+                          isClosedColumn={column.isClosed}
                           onDragStart={() =>
                             setDragging({ taskId: task.id, fromStatus: column.name })
                           }
@@ -335,9 +442,7 @@ export function Board({
       ) : view === 'list' ? (
         <ListView
           tasks={visible}
-          columns={columns}
-          projectId={projectId}
-          canManage={canManage}
+          handlers={handlers}
           dragging={dragging}
           onDragStart={(taskId, status) => setDragging({ taskId, fromStatus: status })}
           onDragEnd={() => setDragging(null)}
@@ -348,27 +453,34 @@ export function Board({
   );
 }
 
+/**
+ * A card.
+ *
+ * The status dot, the people, the date and the flag are all live: clicking any of them opens a
+ * small menu and the change is saved. That is the difference between a board you look at and a
+ * board you plan on.
+ */
 function TaskCard({
   task,
-  projectId,
-  columns,
-  canManage,
+  handlers,
+  isClosedColumn,
   onDragStart,
   onDragEnd,
   isDragging,
 }: {
   task: TaskSummary;
-  projectId: string;
-  columns: { name: string }[];
-  canManage: boolean;
+  handlers: EditHandlers;
+  isClosedColumn: boolean;
   onDragStart: () => void;
   onDragEnd: () => void;
   isDragging: boolean;
 }) {
+  const { canManage, columns, users } = handlers;
+
   return (
     <Card
       className={clsx(
-        'p-3 transition-opacity',
+        'group p-3 transition-opacity',
         canManage && 'cursor-grab active:cursor-grabbing',
         isDragging && 'opacity-40',
       )}
@@ -377,7 +489,13 @@ function TaskCard({
       onDragEnd={onDragEnd}
     >
       <div className="flex items-start gap-2">
-        <PriorityFlag priority={task.priority} />
+        <StatusPicker
+          status={task.status}
+          columns={columns}
+          disabled={!canManage}
+          onChange={(status) => handlers.onStatus(task, status)}
+          trigger={<StatusDot status={task.status} isClosed={isClosedColumn} className="mt-0.5" />}
+        />
 
         <Link
           href={`/tasks/${task.id}`}
@@ -385,68 +503,68 @@ function TaskCard({
         >
           {task.title}
         </Link>
+
+        <span className="font-mono text-[10px] text-[var(--color-ink-subtle)] opacity-0 transition-opacity group-hover:opacity-100">
+          {task.number.split('-').pop()}
+        </span>
       </div>
 
-      <p className="mt-1 font-mono text-[11px] text-[var(--color-ink-subtle)]">{task.number}</p>
+      {task.phase || task.isOverdue || task.subtaskCount > 0 || task.plannedMinutes ? (
+        <div className="mt-2 flex flex-wrap items-center gap-1 pl-4">
+          {task.isOverdue ? <Chip tone="alert">overdue</Chip> : null}
 
-      <div className="mt-2 flex flex-wrap items-center gap-1">
-        {task.isOverdue ? <Chip tone="alert">overdue</Chip> : null}
+          {task.phase ? <Chip>{task.phase}</Chip> : null}
 
-        {task.phase ? <Chip>{task.phase}</Chip> : null}
+          {task.subtaskCount > 0 ? (
+            <Chip title="Subtasks done">
+              {task.subtasksDone}/{task.subtaskCount}
+            </Chip>
+          ) : null}
 
-        {task.subtaskCount > 0 ? (
-          <Chip title="Subtasks done">
-            {task.subtasksDone}/{task.subtaskCount}
-          </Chip>
-        ) : null}
-
-        {task.plannedMinutes ? (
-          <Chip title="Planned working hours">{formatMinutes(task.plannedMinutes)}</Chip>
-        ) : null}
-      </div>
-
-      <div className="mt-2 flex items-center gap-2">
-        {task.assigneeNames.length ? (
-          <div className="flex -space-x-1.5">
-            {task.assigneeNames.map((name) => (
-              <Avatar key={name} name={name} size="small" />
-            ))}
-          </div>
-        ) : (
-          <span className="text-xs text-[var(--color-ink-subtle)]">Unassigned</span>
-        )}
-
-        {task.endAt ? (
-          <span
-            className={clsx(
-              'text-xs',
-              task.isOverdue ? 'text-[var(--color-status-alert)]' : 'text-[var(--color-ink-muted)]',
-            )}
-          >
-            {formatDateTime(task.endAt)}
-          </span>
-        ) : null}
-      </div>
-
-      {canManage ? (
-        <form action={moveTaskAction} className="mt-2">
-          <input type="hidden" name="id" value={task.id} />
-          <input type="hidden" name="projectId" value={projectId} />
-          <Select
-            name="status"
-            defaultValue={task.status}
-            onChange={(event) => event.currentTarget.form?.requestSubmit()}
-            className="text-xs"
-            aria-label={`Move ${task.number} to another column`}
-          >
-            {columns.map((column) => (
-              <option key={column.name} value={column.name}>
-                {column.name}
-              </option>
-            ))}
-          </Select>
-        </form>
+          {task.plannedMinutes ? (
+            <Chip title="Planned working hours">{formatMinutes(task.plannedMinutes)}</Chip>
+          ) : null}
+        </div>
       ) : null}
+
+      <div className="mt-2 flex items-center gap-1 pl-3">
+        <AssigneePicker
+          users={users}
+          selectedIds={task.assigneeIds}
+          disabled={!canManage}
+          onChange={(ids) => handlers.onAssignees(task, ids)}
+        />
+
+        <SchedulePicker
+          startAt={task.startAt}
+          endAt={task.endAt}
+          disabled={!canManage}
+          onChange={(value) => handlers.onSchedule(task, value)}
+          trigger={
+            <span
+              className={clsx(
+                'flex items-center gap-1 text-[11px]',
+                task.endAt
+                  ? task.isOverdue
+                    ? 'text-[var(--color-status-alert)]'
+                    : 'text-[var(--color-ink-muted)]'
+                  : 'text-[var(--color-ink-subtle)]',
+              )}
+            >
+              <CalendarIcon />
+              {task.endAt ? formatDateTime(task.endAt) : 'Set date'}
+            </span>
+          }
+        />
+
+        <span className="ml-auto">
+          <PriorityPicker
+            priority={task.priority}
+            disabled={!canManage}
+            onChange={(priority) => handlers.onPriority(task, priority)}
+          />
+        </span>
+      </div>
     </Card>
   );
 }
@@ -456,29 +574,27 @@ function TaskCard({
  *
  * A task list is a table, and people read a table by column. Name, who, when and priority sit in
  * fixed positions so the eye runs down one of them rather than reading every row as a sentence.
- * Each group carries its count and its own add row, because the intent when you are looking at
- * To do is almost always to add another one.
+ * Every one of those cells is editable in place, and a row with subtasks opens to show them, so a
+ * whole project can be planned without leaving this screen.
  */
 function ListView({
   tasks,
-  columns,
-  projectId,
-  canManage,
+  handlers,
   dragging,
   onDragStart,
   onDragEnd,
   onDropOn,
 }: {
   tasks: TaskSummary[];
-  columns: { name: string; isClosed: boolean }[];
-  projectId: string;
-  canManage: boolean;
+  handlers: EditHandlers;
   dragging: DragState | null;
   onDragStart: (taskId: string, status: string) => void;
   onDragEnd: () => void;
   onDropOn: (status: string, index: number) => void;
 }) {
   const [collapsed, setCollapsed] = useState<string[]>([]);
+  const [expanded, setExpanded] = useState<string[]>([]);
+  const { canManage, columns, users } = handlers;
 
   if (tasks.length === 0) {
     return (
@@ -497,8 +613,9 @@ function ListView({
         return (
           <div key={column.name}>
             <div className="flex items-center gap-2 py-1.5">
-              <button
-                type="button"
+              <Caret
+                open={open}
+                label={`${open ? 'Collapse' : 'Expand'} ${column.name}`}
                 onClick={() =>
                   setCollapsed((current) =>
                     open
@@ -506,27 +623,7 @@ function ListView({
                       : current.filter((name) => name !== column.name),
                   )
                 }
-                aria-expanded={open}
-                aria-label={`${open ? 'Collapse' : 'Expand'} ${column.name}`}
-                className="flex h-5 w-5 items-center justify-center text-[var(--color-ink-subtle)] hover:text-[var(--color-ink)]"
-              >
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  aria-hidden="true"
-                  className={clsx('transition-transform', open ? 'rotate-90' : '')}
-                >
-                  <path
-                    d="M4.5 2.5L8 6l-3.5 3.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
+              />
 
               <StatusPill status={column.name} isClosed={column.isClosed} />
               <span className="text-xs text-[var(--color-ink-subtle)] tabular-nums">
@@ -559,100 +656,171 @@ function ListView({
                         <th className="w-24 border-b border-[var(--color-line)] px-2 py-1.5 text-left font-medium">
                           Planned
                         </th>
-                        <th className="w-20 border-b border-[var(--color-line)] px-2 py-1.5 text-left font-medium">
+                        <th className="w-24 border-b border-[var(--color-line)] px-2 py-1.5 text-left font-medium">
                           Priority
                         </th>
                       </tr>
                     </thead>
 
                     <tbody>
-                      {inColumn.map((task, index) => (
-                        <tr
-                          key={task.id}
-                          draggable={canManage}
-                          onDragStart={() => onDragStart(task.id, column.name)}
-                          onDragEnd={onDragEnd}
-                          onDragOver={(event) => dragging && event.preventDefault()}
-                          onDrop={(event) => {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            onDropOn(column.name, index);
-                          }}
-                          className={clsx(
-                            'group border-b border-[var(--color-line)] last:border-b-0 hover:bg-[var(--color-surface-muted)]/60',
-                            canManage && 'cursor-grab active:cursor-grabbing',
-                          )}
-                        >
-                          <td className="px-2 py-2 align-middle">
-                            <span className="font-mono text-[10px] text-[var(--color-ink-subtle)]">
-                              {task.number.split('-').pop()}
-                            </span>
-                          </td>
+                      {inColumn.map((task, index) => {
+                        const isOpen = expanded.includes(task.id);
 
-                          <td className="px-2 py-2 align-middle">
-                            <div className="flex items-center gap-2">
-                              <Link
-                                href={`/tasks/${task.id}`}
-                                className="truncate font-medium text-[var(--color-ink)] underline-offset-4 group-hover:underline"
-                              >
-                                {task.title}
-                              </Link>
-
-                              {task.subtaskCount > 0 ? (
-                                <Chip title="Subtasks done">
-                                  {task.subtasksDone}/{task.subtaskCount}
-                                </Chip>
-                              ) : null}
-
-                              {task.phase ? <Chip>{task.phase}</Chip> : null}
-                            </div>
-                          </td>
-
-                          <td className="px-2 py-2 align-middle">
-                            {task.assigneeNames.length ? (
-                              <div className="flex -space-x-1.5">
-                                {task.assigneeNames.map((name) => (
-                                  <Avatar key={name} name={name} size="small" />
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-[11px] text-[var(--color-ink-subtle)]">
-                                Unassigned
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="px-2 py-2 align-middle">
-                            {task.endAt ? (
-                              <span
-                                className={clsx(
-                                  'text-[12px] tabular-nums',
-                                  task.isOverdue
-                                    ? 'text-[var(--color-status-alert)]'
-                                    : 'text-[var(--color-ink-muted)]',
+                        return (
+                          <Row key={task.id}>
+                            <tr
+                              draggable={canManage}
+                              onDragStart={() => onDragStart(task.id, column.name)}
+                              onDragEnd={onDragEnd}
+                              onDragOver={(event) => dragging && event.preventDefault()}
+                              onDrop={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                onDropOn(column.name, index);
+                              }}
+                              className={clsx(
+                                'group border-b border-[var(--color-line)] hover:bg-[var(--color-surface-muted)]/60',
+                                canManage && 'cursor-grab active:cursor-grabbing',
+                              )}
+                            >
+                              <td className="px-2 py-2 align-middle">
+                                {task.subtaskCount > 0 ? (
+                                  <Caret
+                                    open={isOpen}
+                                    label={`${isOpen ? 'Hide' : 'Show'} subtasks of ${task.title}`}
+                                    onClick={() =>
+                                      setExpanded((current) =>
+                                        isOpen
+                                          ? current.filter((id) => id !== task.id)
+                                          : [...current, task.id],
+                                      )
+                                    }
+                                  />
+                                ) : (
+                                  <span className="font-mono text-[10px] text-[var(--color-ink-subtle)]">
+                                    {task.number.split('-').pop()}
+                                  </span>
                                 )}
-                              >
-                                {formatDateTime(task.endAt)}
-                              </span>
-                            ) : (
-                              <span className="text-[var(--color-ink-subtle)]">—</span>
-                            )}
-                          </td>
+                              </td>
 
-                          <td className="px-2 py-2 align-middle text-[12px] text-[var(--color-ink-muted)] tabular-nums">
-                            {task.plannedMinutes ? formatMinutes(task.plannedMinutes) : '—'}
-                          </td>
+                              <td className="px-2 py-2 align-middle">
+                                <div className="flex items-center gap-2">
+                                  <StatusPicker
+                                    status={task.status}
+                                    columns={columns}
+                                    disabled={!canManage}
+                                    onChange={(status) => handlers.onStatus(task, status)}
+                                    trigger={
+                                      <StatusDot status={task.status} isClosed={column.isClosed} />
+                                    }
+                                  />
 
-                          <td className="px-2 py-2 align-middle">
-                            <div className="flex items-center gap-1.5">
-                              <PriorityFlag priority={task.priority} />
-                              <span className="text-[12px] text-[var(--color-ink-muted)] capitalize">
-                                {task.priority}
-                              </span>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                                  <Link
+                                    href={`/tasks/${task.id}`}
+                                    className="truncate font-medium text-[var(--color-ink)] underline-offset-4 group-hover:underline"
+                                  >
+                                    {task.title}
+                                  </Link>
+
+                                  {task.subtaskCount > 0 ? (
+                                    <Chip title="Subtasks done">
+                                      {task.subtasksDone}/{task.subtaskCount}
+                                    </Chip>
+                                  ) : null}
+
+                                  {task.phase ? <Chip>{task.phase}</Chip> : null}
+                                </div>
+                              </td>
+
+                              <td className="px-2 py-2 align-middle">
+                                <AssigneePicker
+                                  users={users}
+                                  selectedIds={task.assigneeIds}
+                                  disabled={!canManage}
+                                  onChange={(ids) => handlers.onAssignees(task, ids)}
+                                />
+                              </td>
+
+                              <td className="px-2 py-2 align-middle">
+                                <SchedulePicker
+                                  startAt={task.startAt}
+                                  endAt={task.endAt}
+                                  disabled={!canManage}
+                                  onChange={(value) => handlers.onSchedule(task, value)}
+                                  trigger={
+                                    <span
+                                      className={clsx(
+                                        'text-[12px] tabular-nums',
+                                        task.endAt
+                                          ? task.isOverdue
+                                            ? 'text-[var(--color-status-alert)]'
+                                            : 'text-[var(--color-ink-muted)]'
+                                          : 'text-[var(--color-ink-subtle)]',
+                                      )}
+                                    >
+                                      {task.endAt ? formatDateTime(task.endAt) : 'Set date'}
+                                    </span>
+                                  }
+                                />
+                              </td>
+
+                              <td className="px-2 py-2 align-middle text-[12px] text-[var(--color-ink-muted)] tabular-nums">
+                                {task.plannedMinutes ? formatMinutes(task.plannedMinutes) : '—'}
+                              </td>
+
+                              <td className="px-2 py-2 align-middle">
+                                <span className="flex items-center gap-1">
+                                  <PriorityPicker
+                                    priority={task.priority}
+                                    disabled={!canManage}
+                                    onChange={(priority) => handlers.onPriority(task, priority)}
+                                  />
+                                  <span className="text-[12px] text-[var(--color-ink-muted)] capitalize">
+                                    {task.priority}
+                                  </span>
+                                </span>
+                              </td>
+                            </tr>
+
+                            {isOpen
+                              ? task.subtasks.map((subtask) => (
+                                  <tr
+                                    key={subtask.id}
+                                    className="border-b border-[var(--color-line)] bg-[var(--color-surface-sunken)]/40"
+                                  >
+                                    <td />
+                                    <td colSpan={5} className="px-2 py-1.5">
+                                      <label className="flex items-center gap-2 pl-4 text-[13px]">
+                                        <input
+                                          type="checkbox"
+                                          checked={subtask.done}
+                                          disabled={!canManage}
+                                          onChange={(event) =>
+                                            handlers.onSubtask(
+                                              task,
+                                              subtask.id,
+                                              event.target.checked,
+                                            )
+                                          }
+                                          className="h-3.5 w-3.5 rounded border-[var(--color-line-strong)]"
+                                        />
+                                        <span
+                                          className={clsx(
+                                            subtask.done
+                                              ? 'text-[var(--color-ink-subtle)] line-through'
+                                              : 'text-[var(--color-ink-muted)]',
+                                          )}
+                                        >
+                                          {subtask.title}
+                                        </span>
+                                      </label>
+                                    </td>
+                                  </tr>
+                                ))
+                              : null}
+                          </Row>
+                        );
+                      })}
 
                       {inColumn.length === 0 ? (
                         <tr>
@@ -674,8 +842,40 @@ function ListView({
           </div>
         );
       })}
-
-      <input type="hidden" value={projectId} readOnly />
     </div>
+  );
+}
+
+/** A task and its subtask rows are siblings in one tbody, so they are grouped by a fragment. */
+function Row({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
+
+function Caret({ open, label, onClick }: { open: boolean; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-expanded={open}
+      aria-label={label}
+      className="flex h-5 w-5 items-center justify-center text-[var(--color-ink-subtle)] hover:text-[var(--color-ink)]"
+    >
+      <svg
+        width="10"
+        height="10"
+        viewBox="0 0 12 12"
+        fill="none"
+        aria-hidden="true"
+        className={clsx('transition-transform', open ? 'rotate-90' : '')}
+      >
+        <path
+          d="M4.5 2.5L8 6l-3.5 3.5"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
   );
 }

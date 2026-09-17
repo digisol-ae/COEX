@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
 import { getProject } from '@/modules/tasks/services/project.service';
@@ -8,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Monogram } from '@/components/ui/monogram';
 import { listUsers } from '@/modules/core/services/user.service';
 import { PageHeader } from '@/components/ui';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Board } from './board';
 
 export default async function ProjectPage({
@@ -35,14 +35,15 @@ export default async function ProjectPage({
 
   return (
     <div className="mx-auto max-w-7xl">
-      <Link
-        href="/projects"
-        className="text-sm text-[var(--color-ink-muted)] underline-offset-4 hover:underline"
-      >
-        Back to projects
-      </Link>
+      <Breadcrumb
+        trail={[
+          { label: 'Tasks and planning', href: '/tasks' },
+          { label: 'Projects', href: '/projects' },
+          { label: project.name },
+        ]}
+      />
 
-      <div className="mt-3">
+      <div className="mt-2">
         <PageHeader
           icon={<Monogram name={project.name} />}
           title={project.name}

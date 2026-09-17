@@ -12,6 +12,7 @@ import {
   listTasks,
   moveTask,
   moveTaskToPosition,
+  patchTask,
 } from '@/modules/tasks/services/task.service';
 import { loadDashboard } from '@/modules/tasks/services/dashboard.service';
 
@@ -246,5 +247,109 @@ describe('dashboard counts', () => {
     );
 
     expect(data.tiles.open).toBe(1);
+  });
+});
+
+describe('editing one task field from a row', () => {
+  it('changes only the field it is given', async () => {
+    const projectId = await aProject();
+
+    const id = await runWithContext(context, () =>
+      createTask({
+        projectId,
+        title: 'Write the migration',
+        priority: 'low',
+        assigneeIds: [String(userId)],
+        phase: 'Discovery',
+        estimateMinutes: 120,
+      }),
+    );
+
+    await runWithContext(context, () => patchTask(id, { priority: 'urgent' }));
+
+    const task = await runWithContext(context, () => getTask(id));
+
+    expect(task?.priority).toBe('urgent');
+    expect(task?.title).toBe('Write the migration');
+    expect(task?.phase).toBe('Discovery');
+    expect(task?.estimateMinutes).toBe(120);
+    expect(task?.assigneeIds.map(String)).toEqual([String(userId)]);
+  });
+
+  it('recomputes planned hours when only the end moves', async () => {
+    const projectId = await aProject();
+
+    const id = await runWithContext(context, () =>
+      createTask({
+        projectId,
+        title: 'Plan the week',
+        startAt: '2026-01-05T09:00:00',
+        endAt: '2026-01-05T17:00:00',
+      }),
+    );
+
+    const before = await runWithContext(context, () => getTask(id));
+
+    await runWithContext(context, () => patchTask(id, { endAt: '2026-01-06T17:00:00' }));
+
+    const after = await runWithContext(context, () => getTask(id));
+
+    expect(after?.startAt?.toISOString()).toBe(before?.startAt?.toISOString());
+    expect(after?.plannedMinutes).toBeGreaterThan(before?.plannedMinutes ?? 0);
+  });
+
+  it('refuses an end that lands before the start already on the task', async () => {
+    const projectId = await aProject();
+
+    const id = await runWithContext(context, () =>
+      createTask({
+        projectId,
+        title: 'Backwards',
+        startAt: '2026-01-05T09:00:00',
+        endAt: '2026-01-07T17:00:00',
+      }),
+    );
+
+    await expect(
+      runWithContext(context, () => patchTask(id, { endAt: '2026-01-04T17:00:00' })),
+    ).rejects.toThrow();
+  });
+
+  it('clears both dates when both are sent empty', async () => {
+    const projectId = await aProject();
+
+    const id = await runWithContext(context, () =>
+      createTask({
+        projectId,
+        title: 'Unschedule me',
+        startAt: '2026-01-05T09:00:00',
+        endAt: '2026-01-07T17:00:00',
+      }),
+    );
+
+    await runWithContext(context, () => patchTask(id, { startAt: null, endAt: null }));
+
+    const task = await runWithContext(context, () => getTask(id));
+
+    expect(task?.startAt).toBeNull();
+    expect(task?.endAt).toBeNull();
+    expect(task?.plannedMinutes).toBeNull();
+  });
+
+  it('reports subtasks in the list so a row can open without another query', async () => {
+    const projectId = await aProject();
+
+    const id = await runWithContext(context, () => createTask({ projectId, title: 'Has steps' }));
+
+    await runWithContext(context, async () => {
+      await addSubtask(id, 'First step');
+      await addSubtask(id, 'Second step');
+    });
+
+    const [summary] = await runWithContext(context, () => listTasks({ projectId }));
+
+    expect(summary.subtasks.map((subtask) => subtask.title)).toEqual(['First step', 'Second step']);
+    expect(summary.subtasks.every((subtask) => subtask.id.length > 0)).toBe(true);
+    expect(summary.assigneeIds).toEqual([]);
   });
 });

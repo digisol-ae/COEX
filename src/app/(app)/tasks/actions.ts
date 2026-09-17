@@ -10,6 +10,7 @@ import {
   createTask,
   moveTask,
   moveTaskToPosition,
+  patchTask,
   removeDocumentLink,
   toggleSubtask,
   updateTask,
@@ -161,6 +162,57 @@ export async function updateTaskAction(
 
   revalidatePath(`/tasks/${id}`);
   return { saved: true };
+}
+
+/**
+ * Inline edits from a card or a row.
+ *
+ * These come from a click on the board, not from a form, so they take arguments rather than
+ * FormData and send only the field that changed.
+ */
+export async function patchTaskAction(input: {
+  id: string;
+  projectId: string;
+  priority?: 'urgent' | 'high' | 'normal' | 'low';
+  startAt?: string | null;
+  endAt?: string | null;
+  assigneeIds?: string[];
+}): Promise<TaskFormState> {
+  const actor = await requirePermission('task.manage');
+
+  try {
+    await asUser(actor, () =>
+      patchTask(input.id, {
+        priority: input.priority,
+        startAt: input.startAt,
+        endAt: input.endAt,
+        assigneeIds: input.assigneeIds,
+      }),
+    );
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not save the change.' };
+  }
+
+  revalidatePath(`/projects/${input.projectId}`);
+  revalidatePath(`/tasks/${input.id}`);
+  revalidatePath('/tasks');
+  revalidatePath('/dashboard');
+  return { saved: true };
+}
+
+/** The subtask checkbox inside the project list, which has to refresh the project page too. */
+export async function setSubtaskDoneAction(input: {
+  taskId: string;
+  subtaskId: string;
+  done: boolean;
+  projectId: string;
+}): Promise<void> {
+  const actor = await requirePermission('task.manage');
+
+  await asUser(actor, () => toggleSubtask(input.taskId, input.subtaskId, input.done));
+
+  revalidatePath(`/projects/${input.projectId}`);
+  revalidatePath(`/tasks/${input.taskId}`);
 }
 
 export async function addSubtaskAction(formData: FormData): Promise<void> {

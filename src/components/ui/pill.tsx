@@ -61,6 +61,43 @@ export function StatusPill({
 }
 
 /**
+ * The status as a single dot, for the left edge of a card.
+ *
+ * A card already carries its column by position, so repeating the whole pill on it wastes the
+ * widest line. The dot keeps the colour, and clicking it is how the status changes.
+ */
+export function StatusDot({
+  status,
+  isClosed,
+  className,
+}: {
+  status: string;
+  isClosed?: boolean;
+  className?: string;
+}) {
+  const tone = toneForStatus(status, isClosed);
+
+  return (
+    <span
+      title={status}
+      className={clsx(
+        'inline-block h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-inset',
+        DOT_CLASSES[tone],
+        className,
+      )}
+    />
+  );
+}
+
+const DOT_CLASSES: Record<PillTone, string> = {
+  todo: 'bg-transparent ring-[var(--color-pill-todo-ink)]',
+  progress: 'bg-transparent ring-[var(--color-pill-progress-ink)]',
+  blocked: 'bg-transparent ring-[var(--color-pill-blocked-ink)]',
+  review: 'bg-transparent ring-[var(--color-pill-review-ink)]',
+  done: 'bg-[var(--color-pill-done-ink)] ring-[var(--color-pill-done-ink)]',
+};
+
+/**
  * Priority as a flag rather than a fill.
  *
  * Filling a row with priority colour competes with status. A small flag sits quietly at normal and

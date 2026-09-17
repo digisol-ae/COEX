@@ -104,6 +104,9 @@
   /* Shape */
   --radius-card: 0.75rem;
   --radius-control: 0.5rem;
+
+  /* A menu floats above the page, so it needs more lift than a card. */
+  --shadow-pop: 0 2px 4px rgb(20 20 20 / 6%), 0 12px 32px -12px rgb(20 20 20 / 28%);
 }
 
 @font-face {
