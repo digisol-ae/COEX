@@ -19,6 +19,8 @@ import { formatDateTime } from '@/modules/tasks/dates';
 import { formatMinutes } from '@/modules/time/week';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
 import { Gantt } from './gantt';
+import { ViewTabs } from './view-tabs';
+import { Toolbar } from './toolbar';
 import {
   createTaskAction,
   moveTaskAction,
@@ -44,12 +46,6 @@ interface DragState {
 
 export type ProjectView = 'board' | 'list' | 'gantt';
 
-const VIEWS: { id: ProjectView; label: string }[] = [
-  { id: 'board', label: 'Board' },
-  { id: 'list', label: 'List' },
-  { id: 'gantt', label: 'Gantt' },
-];
-
 export function Board({
   projectId,
   columns,
@@ -69,6 +65,9 @@ export function Board({
 }) {
   const [view, setView] = useState<ProjectView>(initialView);
   const [adding, setAdding] = useState(false);
+  const [assigneeFilter, setAssigneeFilter] = useState<string | null>(null);
+  const [showClosed, setShowClosed] = useState(false);
+  const [search, setSearch] = useState('');
   const [state, formAction, pending] = useActionState(createTaskAction, initialState);
   const [, startTransition] = useTransition();
   const [dragging, setDragging] = useState<DragState | null>(null);
@@ -94,7 +93,25 @@ export function Board({
     },
   );
 
-  const columnTasks = (status: string) => ordered.filter((task) => task.status === status);
+  const nameOf = new Map(users.map((user) => [user.id, user.name]));
+
+  const visible = ordered.filter((task) => {
+    if (!showClosed && task.isClosed) return false;
+
+    if (assigneeFilter) {
+      const name = nameOf.get(assigneeFilter);
+      if (!name || !task.assigneeNames.includes(name)) return false;
+    }
+
+    if (search.trim()) {
+      const text = `${task.number} ${task.title} ${task.phase ?? ''}`.toLowerCase();
+      if (!text.includes(search.trim().toLowerCase())) return false;
+    }
+
+    return true;
+  });
+
+  const columnTasks = (status: string) => visible.filter((task) => task.status === status);
 
   function drop(status: string, index: number) {
     if (!dragging || !canManage) return;
@@ -117,28 +134,22 @@ export function Board({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex gap-1 rounded-[var(--radius-control)] bg-[var(--color-surface-sunken)] p-1">
-          {VIEWS.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              onClick={() => setView(option.id)}
-              className={
-                view === option.id
-                  ? 'rounded-[var(--radius-control)] bg-[var(--color-surface)] px-3 py-1 text-sm font-medium text-[var(--color-ink)]'
-                  : 'px-3 py-1 text-sm text-[var(--color-ink-muted)]'
-              }
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+      <ViewTabs view={view} onChange={setView} />
 
-        {canManage ? (
-          <Button onClick={() => setAdding(!adding)}>{adding ? 'Close' : 'Add task'}</Button>
-        ) : null}
-      </div>
+      <Toolbar
+        users={users}
+        assigneeId={assigneeFilter}
+        onAssignee={setAssigneeFilter}
+        showClosed={showClosed}
+        onShowClosed={setShowClosed}
+        search={search}
+        onSearch={setSearch}
+        action={
+          canManage ? (
+            <Button onClick={() => setAdding(!adding)}>{adding ? 'Close' : 'Add task'}</Button>
+          ) : null
+        }
+      />
 
       {adding ? (
         <Card>
@@ -208,7 +219,7 @@ export function Board({
         </Card>
       ) : null}
 
-      {view === 'gantt' ? <Gantt tasks={ordered} /> : null}
+      {view === 'gantt' ? <Gantt tasks={visible} /> : null}
 
       {view === 'board' ? (
         // A phone cannot show four columns at once, so the board scrolls sideways rather than
@@ -234,11 +245,35 @@ export function Board({
                     drop(column.name, inColumn.length);
                   }}
                 >
-                  <div className="mb-2 flex items-center justify-between">
+                  <div className="mb-2 flex items-center gap-2">
                     <StatusPill status={column.name} isClosed={column.isClosed} />
-                    <span className="text-xs text-[var(--color-ink-subtle)]">
+                    <span className="text-xs text-[var(--color-ink-subtle)] tabular-nums">
                       {inColumn.length}
                     </span>
+
+                    {canManage ? (
+                      <button
+                        type="button"
+                        onClick={() => setAdding(true)}
+                        aria-label={`Add a task to ${column.name}`}
+                        className="ml-auto flex h-6 w-6 items-center justify-center rounded text-[var(--color-ink-subtle)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
+                      >
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M6 2.5v7M2.5 6h7"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      </button>
+                    ) : null}
                   </div>
 
                   <div
@@ -299,7 +334,7 @@ export function Board({
         </div>
       ) : view === 'list' ? (
         <ListView
-          tasks={ordered}
+          tasks={visible}
           columns={columns}
           projectId={projectId}
           canManage={canManage}
@@ -416,7 +451,14 @@ function TaskCard({
   );
 }
 
-/** The list view groups by column, so dragging a row can both reorder and change status. */
+/**
+ * The list view: grouped by column, with real columns.
+ *
+ * A task list is a table, and people read a table by column. Name, who, when and priority sit in
+ * fixed positions so the eye runs down one of them rather than reading every row as a sentence.
+ * Each group carries its count and its own add row, because the intent when you are looking at
+ * To do is almost always to add another one.
+ */
 function ListView({
   tasks,
   columns,
@@ -436,99 +478,200 @@ function ListView({
   onDragEnd: () => void;
   onDropOn: (status: string, index: number) => void;
 }) {
+  const [collapsed, setCollapsed] = useState<string[]>([]);
+
   if (tasks.length === 0) {
     return (
       <Card>
-        <EmptyState message="No tasks in this project yet." />
+        <EmptyState message="No tasks here. Add one, or widen the filters above." />
       </Card>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {columns.map((column) => {
         const inColumn = tasks.filter((task) => task.status === column.name);
+        const open = !collapsed.includes(column.name);
 
         return (
-          <Card key={column.name}>
-            <CardSection title={`${column.name} · ${inColumn.length}`}>
-              <ul
-                className="divide-y divide-[var(--color-line)]"
-                onDragOver={(event) => dragging && event.preventDefault()}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  onDropOn(column.name, inColumn.length);
-                }}
+          <div key={column.name}>
+            <div className="flex items-center gap-2 py-1.5">
+              <button
+                type="button"
+                onClick={() =>
+                  setCollapsed((current) =>
+                    open
+                      ? [...current, column.name]
+                      : current.filter((name) => name !== column.name),
+                  )
+                }
+                aria-expanded={open}
+                aria-label={`${open ? 'Collapse' : 'Expand'} ${column.name}`}
+                className="flex h-5 w-5 items-center justify-center text-[var(--color-ink-subtle)] hover:text-[var(--color-ink)]"
               >
-                {inColumn.map((task, index) => (
-                  <li
-                    key={task.id}
-                    draggable={canManage}
-                    onDragStart={() => onDragStart(task.id, column.name)}
-                    onDragEnd={onDragEnd}
-                    onDragOver={(event) => dragging && event.preventDefault()}
-                    onDrop={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      onDropOn(column.name, index);
-                    }}
-                    className={clsx(
-                      'flex flex-wrap items-center gap-3 py-2.5',
-                      canManage && 'cursor-grab active:cursor-grabbing',
-                    )}
-                  >
-                    <PriorityFlag priority={task.priority} />
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  aria-hidden="true"
+                  className={clsx('transition-transform', open ? 'rotate-90' : '')}
+                >
+                  <path
+                    d="M4.5 2.5L8 6l-3.5 3.5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
 
-                    <span className="font-mono text-[11px] text-[var(--color-ink-subtle)]">
-                      {task.number}
-                    </span>
+              <StatusPill status={column.name} isClosed={column.isClosed} />
+              <span className="text-xs text-[var(--color-ink-subtle)] tabular-nums">
+                {inColumn.length}
+              </span>
+            </div>
 
-                    <Link
-                      href={`/tasks/${task.id}`}
-                      className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
-                    >
-                      {task.title}
-                    </Link>
+            {open ? (
+              <Card>
+                <div
+                  onDragOver={(event) => dragging && event.preventDefault()}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    onDropOn(column.name, inColumn.length);
+                  }}
+                >
+                  <table className="w-full border-collapse text-sm">
+                    <thead>
+                      <tr className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                        <th className="w-6 border-b border-[var(--color-line)] px-2 py-1.5" />
+                        <th className="border-b border-[var(--color-line)] px-2 py-1.5 text-left font-medium">
+                          Name
+                        </th>
+                        <th className="w-24 border-b border-[var(--color-line)] px-2 py-1.5 text-left font-medium">
+                          Who
+                        </th>
+                        <th className="w-40 border-b border-[var(--color-line)] px-2 py-1.5 text-left font-medium">
+                          Ends
+                        </th>
+                        <th className="w-24 border-b border-[var(--color-line)] px-2 py-1.5 text-left font-medium">
+                          Planned
+                        </th>
+                        <th className="w-20 border-b border-[var(--color-line)] px-2 py-1.5 text-left font-medium">
+                          Priority
+                        </th>
+                      </tr>
+                    </thead>
 
-                    {task.phase ? <Chip>{task.phase}</Chip> : null}
+                    <tbody>
+                      {inColumn.map((task, index) => (
+                        <tr
+                          key={task.id}
+                          draggable={canManage}
+                          onDragStart={() => onDragStart(task.id, column.name)}
+                          onDragEnd={onDragEnd}
+                          onDragOver={(event) => dragging && event.preventDefault()}
+                          onDrop={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            onDropOn(column.name, index);
+                          }}
+                          className={clsx(
+                            'group border-b border-[var(--color-line)] last:border-b-0 hover:bg-[var(--color-surface-muted)]/60',
+                            canManage && 'cursor-grab active:cursor-grabbing',
+                          )}
+                        >
+                          <td className="px-2 py-2 align-middle">
+                            <span className="font-mono text-[10px] text-[var(--color-ink-subtle)]">
+                              {task.number.split('-').pop()}
+                            </span>
+                          </td>
 
-                    {task.plannedMinutes ? (
-                      <span className="text-xs text-[var(--color-ink-muted)] tabular-nums">
-                        {formatMinutes(task.plannedMinutes)}
-                      </span>
-                    ) : null}
+                          <td className="px-2 py-2 align-middle">
+                            <div className="flex items-center gap-2">
+                              <Link
+                                href={`/tasks/${task.id}`}
+                                className="truncate font-medium text-[var(--color-ink)] underline-offset-4 group-hover:underline"
+                              >
+                                {task.title}
+                              </Link>
 
-                    {task.endAt ? (
-                      <span
-                        className={clsx(
-                          'text-xs tabular-nums',
-                          task.isOverdue
-                            ? 'text-[var(--color-status-alert)]'
-                            : 'text-[var(--color-ink-muted)]',
-                        )}
-                      >
-                        {formatDateTime(task.endAt)}
-                      </span>
-                    ) : null}
+                              {task.subtaskCount > 0 ? (
+                                <Chip title="Subtasks done">
+                                  {task.subtasksDone}/{task.subtaskCount}
+                                </Chip>
+                              ) : null}
 
-                    {task.assigneeNames.length ? (
-                      <div className="flex -space-x-1.5">
-                        {task.assigneeNames.map((name) => (
-                          <Avatar key={name} name={name} size="small" />
-                        ))}
-                      </div>
-                    ) : null}
-                  </li>
-                ))}
+                              {task.phase ? <Chip>{task.phase}</Chip> : null}
+                            </div>
+                          </td>
 
-                {inColumn.length === 0 ? (
-                  <li className="py-4 text-center text-xs text-[var(--color-ink-subtle)]">
-                    {canManage ? 'Drop a task here' : 'Nothing here'}
-                  </li>
-                ) : null}
-              </ul>
-            </CardSection>
-          </Card>
+                          <td className="px-2 py-2 align-middle">
+                            {task.assigneeNames.length ? (
+                              <div className="flex -space-x-1.5">
+                                {task.assigneeNames.map((name) => (
+                                  <Avatar key={name} name={name} size="small" />
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-[11px] text-[var(--color-ink-subtle)]">
+                                Unassigned
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="px-2 py-2 align-middle">
+                            {task.endAt ? (
+                              <span
+                                className={clsx(
+                                  'text-[12px] tabular-nums',
+                                  task.isOverdue
+                                    ? 'text-[var(--color-status-alert)]'
+                                    : 'text-[var(--color-ink-muted)]',
+                                )}
+                              >
+                                {formatDateTime(task.endAt)}
+                              </span>
+                            ) : (
+                              <span className="text-[var(--color-ink-subtle)]">—</span>
+                            )}
+                          </td>
+
+                          <td className="px-2 py-2 align-middle text-[12px] text-[var(--color-ink-muted)] tabular-nums">
+                            {task.plannedMinutes ? formatMinutes(task.plannedMinutes) : '—'}
+                          </td>
+
+                          <td className="px-2 py-2 align-middle">
+                            <div className="flex items-center gap-1.5">
+                              <PriorityFlag priority={task.priority} />
+                              <span className="text-[12px] text-[var(--color-ink-muted)] capitalize">
+                                {task.priority}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+
+                      {inColumn.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="px-3 py-3 text-center text-xs text-[var(--color-ink-subtle)]"
+                          >
+                            {canManage
+                              ? 'Nothing here. Drop a task in, or add one.'
+                              : 'Nothing here'}
+                          </td>
+                        </tr>
+                      ) : null}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            ) : null}
+          </div>
         );
       })}
 
