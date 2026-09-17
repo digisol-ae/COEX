@@ -4,6 +4,17 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
+0. Next work, agreed with John on 17 Sep 2026. Tasks and Tickets are the focus, because he will use
+   both daily in a live environment.
+   a. Start and end date with time on a task, so planned hours can be calculated and compared with
+   logged time.
+   b. Drag and drop a task between columns on the board, and reorder or move it in the list view.
+   c. Projects in the menu as an expandable tree: project, then its tasks, then their subtasks.
+   d. A Gantt view per project.
+   e. An overall progress percentage per project, shown as a bar.
+   Note: once John works live, the deferred backup decision stops being optional, because the data
+   stops being disposable.
+
 1. Entra app registration. Deferred by John on 17 Sep 2026. Password sign on covers the gap.
    Revisit before the team starts signing in daily, since it also unlocks Graph document titles.
 2. Backups. Deferred by John on 17 Sep 2026. Atlas free tier has none. This stops being optional at
