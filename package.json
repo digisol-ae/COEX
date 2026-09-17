@@ -10,7 +10,10 @@
     "check:db": "node scripts/check-db.mjs",
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:unit": "vitest run tests/unit",
+    "test:db": "vitest run tests/database",
+    "check": "npm run test && npm run build"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.1",

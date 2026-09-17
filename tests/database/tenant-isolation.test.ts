@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Types } from 'mongoose';
-import { clearDatabase, connectForTests, disconnectFromTests } from './setup';
+import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
 import { repository } from '@/lib/repository';
 import { UserModel } from '@/modules/core/models/user.model';
@@ -26,7 +26,7 @@ const users = () => repository(UserModel);
 let recordTwoId: Types.ObjectId;
 
 beforeAll(async () => {
-  await connectForTests();
+  await connectForTests('isolation');
 });
 
 afterAll(async () => {

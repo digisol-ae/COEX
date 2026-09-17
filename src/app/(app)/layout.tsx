@@ -1,4 +1,6 @@
-import { requireUser } from '@/lib/session';
+import { asUser, requireUser } from '@/lib/session';
+import { getRunningTimer } from '@/modules/time/services/time.service';
+import { RunningTimer } from '@/modules/time/components/running-timer';
 import { Sidebar } from '@/components/navigation/sidebar';
 import { MobileNavigation } from '@/components/navigation/mobile-navigation';
 import { UserMenu } from '@/components/navigation/user-menu';
@@ -14,6 +16,7 @@ import { visibleGroups } from '@/components/navigation/navigation';
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
   const groups = visibleGroups(user.permissions);
+  const timer = await asUser(user, () => getRunningTimer());
 
   return (
     <div className="flex min-h-screen">
@@ -27,7 +30,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             {user.tenantName}
           </p>
 
-          <div className="hidden flex-1 sm:block" />
+          <div className="flex flex-1 justify-end sm:justify-center">
+            {timer ? (
+              <RunningTimer
+                taskId={timer.taskId}
+                taskNumber={timer.taskNumber}
+                taskTitle={timer.taskTitle}
+                startedAt={timer.startedAt.toISOString()}
+              />
+            ) : null}
+          </div>
 
           <UserMenu name={user.name} role={user.role} tenantName={user.tenantName} />
         </header>

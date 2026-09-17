@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Types } from 'mongoose';
-import { clearDatabase, connectForTests, disconnectFromTests } from './setup';
+import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
 import {
   createFieldDefinition,
@@ -23,7 +23,7 @@ const otherTenant = {
 };
 
 beforeAll(async () => {
-  await connectForTests();
+  await connectForTests('fields');
 });
 
 afterAll(async () => {

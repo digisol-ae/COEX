@@ -5,6 +5,8 @@ import { getTask } from '@/modules/tasks/services/task.service';
 import { getProject } from '@/modules/tasks/services/portfolio.service';
 import { listUsers } from '@/modules/core/services/user.service';
 import { Badge, Card, CardSection, PageHeader } from '@/components/ui';
+import { getRunningTimer } from '@/modules/time/services/time.service';
+import { TimerButton } from '@/modules/time/components/timer-button';
 import { TaskForm } from './task-form';
 import { StepList } from './step-list';
 import { DocumentLinks } from './document-links';
@@ -16,9 +18,10 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
   const task = await asUser(actor, () => getTask(id));
   if (!task) notFound();
 
-  const { project, users } = await asUser(actor, async () => ({
+  const { project, users, timer } = await asUser(actor, async () => ({
     project: await getProject(String(task.projectId)),
     users: await listUsers(),
+    timer: await getRunningTimer(),
   }));
 
   const canManage = actor.permissions.includes('task.manage');
@@ -37,7 +40,8 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
           title={task.title}
           description={`${task.number} · ${project?.name ?? ''}`}
           action={
-            <div className="flex gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <TimerButton taskId={id} running={timer?.taskId === id} />
               <Badge tone={task.isClosed ? 'ok' : 'info'}>{task.status}</Badge>
               {task.priority !== 'normal' ? (
                 <Badge tone={task.priority === 'urgent' ? 'alert' : 'warn'}>{task.priority}</Badge>

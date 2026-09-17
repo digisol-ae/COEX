@@ -36,7 +36,8 @@ export const GROUPS: NavigationGroup[] = [
     items: [
       { href: '/tasks', label: 'My tasks', permission: 'task.read.own' },
       { href: '/projects', label: 'Projects', permission: 'task.read.all' },
-      // Timesheets and the time report join here at M4.
+      { href: '/time', label: 'Timesheet', permission: 'task.read.own' },
+      { href: '/time/report', label: 'Time report', permission: 'task.read.all' },
     ],
   },
   {
