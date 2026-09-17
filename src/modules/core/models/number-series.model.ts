@@ -12,7 +12,8 @@ const numberSeriesSchema = new Schema(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     series: { type: String, required: true },
-    nextValue: { type: Number, default: 1 },
+    /** No default: the first $inc on a missing field produces 1, which is the first number. */
+    nextValue: { type: Number },
   },
   { timestamps: true },
 );

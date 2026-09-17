@@ -94,6 +94,27 @@ describe('tasks', () => {
     expect(second?.number).toBe('DGS-T-2');
   });
 
+  it('never hands the same number to two tasks created at the same moment', async () => {
+    const projectId = await aProject();
+
+    const ids = await runWithContext(context, () =>
+      Promise.all(
+        Array.from({ length: 5 }, (_, index) =>
+          createTask({ projectId, title: `Task ${index + 1}` }),
+        ),
+      ),
+    );
+
+    const numbers = await runWithContext(context, async () =>
+      Promise.all(ids.map(async (id) => (await getTask(id))?.number)),
+    );
+
+    expect(new Set(numbers).size).toBe(5);
+    expect([...numbers].sort()).toEqual(
+      ['DGS-T-1', 'DGS-T-2', 'DGS-T-3', 'DGS-T-4', 'DGS-T-5'].sort(),
+    );
+  });
+
   it('opens a task in the first column and closes it in the closed column', async () => {
     const projectId = await aProject();
     const id = await runWithContext(context, () => createTask({ projectId, title: 'A task' }));

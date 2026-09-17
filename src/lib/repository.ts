@@ -66,7 +66,7 @@ export function repository<T extends TenantScopedDocument>(model: Model<T>) {
     },
 
     updateOne(filter: Filter, update: UpdateQuery<T>, options: QueryOptions = {}) {
-      return model.findOneAndUpdate(scope(filter, options), update, { new: true });
+      return model.findOneAndUpdate(scope(filter, options), update, { returnDocument: 'after' });
     },
 
     /** Soft delete. Records never leave the database, so history and audit stay intact. */
@@ -74,7 +74,7 @@ export function repository<T extends TenantScopedDocument>(model: Model<T>) {
       return model.findOneAndUpdate(
         scope(filter),
         { $set: { deletedAt: new Date() } },
-        { new: true },
+        { returnDocument: 'after' },
       );
     },
   };
