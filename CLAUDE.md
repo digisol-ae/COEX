@@ -77,6 +77,10 @@ monolith from becoming a tangle.
 
 ## Environment
 
+COEX runs on port 3100, not 3000, because the CIBO accounts program already uses 3000 on John's
+Mac. Both can run at once. Cookies ignore the port, so the session cookie is named coex_session to
+keep it distinct from anything CIBO sets on localhost.
+
 Node 22 LTS, pinned in .nvmrc and in the engines field. Node 23 is an odd numbered release, never
 became LTS and is already end of life; it also ships the npm build that throws
 "Cannot read properties of null (reading 'edgesOut')" during install. Mongoose 9 renamed

@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3100",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --port 3100",
     "lint": "eslint",
     "check:db": "node scripts/check-db.mjs",
     "seed": "tsx --env-file=.env.local scripts/seed.ts"
@@ -33,6 +33,7 @@
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.7",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5",
     "vitest": "^5.0.1"
   },
