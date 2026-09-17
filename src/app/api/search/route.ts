@@ -2,6 +2,8 @@ import { asUser, getSignedInUser } from '@/lib/session';
 import { listTasks } from '@/modules/tasks/services/task.service';
 import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { listProjects } from '@/modules/tasks/services/project.service';
+import { searchTickets } from '@/modules/tickets/services/ticket.service';
+import { STATUS_LABELS } from '@/modules/tickets/labels';
 
 /**
  * Quick search across the things people look for by name: a task, a project, a customer.
@@ -56,6 +58,22 @@ export async function GET(request: Request) {
             href: `/projects/${project.id}`,
           });
         }
+      }
+    }
+
+    if (user.permissions.includes('ticket.read.own')) {
+      const seesEveryTicket = user.permissions.includes('ticket.read.all');
+      const tickets = await searchTickets(query);
+
+      for (const ticket of tickets) {
+        if (!seesEveryTicket && ticket.assigneeId !== user.id) continue;
+
+        found.push({
+          type: 'Ticket',
+          label: ticket.subject,
+          detail: `${ticket.number} · ${STATUS_LABELS[ticket.status]}`,
+          href: `/support/tickets/${ticket.id}`,
+        });
       }
     }
 

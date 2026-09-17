@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { asUser, requireUser } from '@/lib/session';
 import { loadDashboard } from '@/modules/tasks/services/dashboard.service';
+import { loadDeskSnapshot } from '@/modules/tickets/services/metrics.service';
+import { untilDue } from '@/modules/tickets/labels';
 import { Card, CardSection, EmptyState, PageHeader } from '@/components/ui';
 import { formatMinutes } from '@/modules/time/week';
 
@@ -18,9 +20,12 @@ export default async function DashboardPage() {
 
   const seesEverything = user.permissions.includes('task.read.all');
 
-  const data = await asUser(user, () =>
-    loadDashboard({ onlyAssigneeId: seesEverything ? undefined : user.id }),
-  );
+  const seesTickets = user.permissions.includes('ticket.read.own');
+
+  const { data, desk } = await asUser(user, async () => ({
+    data: await loadDashboard({ onlyAssigneeId: seesEverything ? undefined : user.id }),
+    desk: seesTickets ? await loadDeskSnapshot({ userId: user.id }) : null,
+  }));
 
   const tiles = [
     { label: 'Open', value: data.tiles.open, href: '/tasks', tone: 'ink' },
@@ -95,6 +100,61 @@ export default async function DashboardPage() {
         </div>
       </Card>
 
+      {desk ? (
+        <Card className="mt-4">
+          <CardSection title="Support">
+            <div className="flex flex-wrap gap-4 text-sm">
+              <DeskCount label="Mine" value={desk.mine} href="/support/tickets?scope=mine" />
+              <DeskCount
+                label="Unassigned"
+                value={desk.unassigned}
+                href="/support/tickets?scope=unassigned"
+                tone={desk.unassigned > 0 ? 'warn' : undefined}
+              />
+              <DeskCount
+                label="Past target"
+                value={desk.breached}
+                href="/support/tickets?scope=breached"
+                tone={desk.breached > 0 ? 'alert' : undefined}
+              />
+              <DeskCount
+                label="Reply due within four hours"
+                value={desk.dueSoon}
+                href="/support/tickets?scope=open"
+              />
+            </div>
+
+            {desk.pressing.length > 0 ? (
+              <ul className="mt-3 space-y-1.5 border-t border-[var(--color-line)] pt-3">
+                {desk.pressing.map((ticket) => (
+                  <li key={ticket.id} className="flex items-center justify-between gap-3 text-sm">
+                    <Link
+                      href={`/support/tickets/${ticket.id}`}
+                      className="truncate text-[var(--color-ink)] underline-offset-4 hover:underline"
+                    >
+                      <span className="font-mono text-xs text-[var(--color-ink-subtle)]">
+                        {ticket.number}
+                      </span>{' '}
+                      {ticket.subject}
+                    </Link>
+
+                    <span
+                      className={
+                        ticket.isBreached
+                          ? 'shrink-0 text-xs text-[var(--color-status-alert)]'
+                          : 'shrink-0 text-xs text-[var(--color-ink-muted)]'
+                      }
+                    >
+                      {ticket.isBreached ? 'past target' : untilDue(ticket.dueAt)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </CardSection>
+        </Card>
+      ) : null}
+
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
           <CardSection title="Open work by project">
@@ -158,5 +218,36 @@ export default async function DashboardPage() {
         </CardSection>
       </Card>
     </div>
+  );
+}
+
+function DeskCount({
+  label,
+  value,
+  href,
+  tone,
+}: {
+  label: string;
+  value: number;
+  href: string;
+  tone?: 'warn' | 'alert';
+}) {
+  return (
+    <Link href={href} className="group">
+      <p className="text-xs tracking-wide text-[var(--color-ink-subtle)] uppercase">{label}</p>
+      <p
+        className={
+          value === 0
+            ? 'text-xl font-bold text-[var(--color-ink-subtle)] tabular-nums'
+            : tone === 'alert'
+              ? 'text-xl font-bold text-[var(--color-status-alert)] tabular-nums'
+              : tone === 'warn'
+                ? 'text-xl font-bold text-[var(--color-status-warn)] tabular-nums'
+                : 'text-xl font-bold text-[var(--color-ink)] tabular-nums'
+        }
+      >
+        {value}
+      </p>
+    </Link>
   );
 }

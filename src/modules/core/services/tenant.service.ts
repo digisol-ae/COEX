@@ -3,6 +3,7 @@ import { getContext } from '@/lib/tenant-context';
 import { TenantModel } from '../models/tenant.model';
 import { UserModel } from '../models/user.model';
 import { AuditLogModel } from '../models/audit-log.model';
+import { QueueModel } from '@/modules/tickets/models/queue.model';
 import { recordAudit, changedFields } from './audit.service';
 import { hashPassword } from '@/lib/password';
 import { randomBytes } from 'node:crypto';
@@ -139,6 +140,16 @@ export async function createTenant(input: CreateTenantInput): Promise<{ password
     role: 'tenant_admin',
     passwordHash: await hashPassword(password),
     mustChangePassword: true,
+    status: 'active',
+  });
+
+  // A tenant with no queue cannot accept a ticket, so day one comes with one rather than with a
+  // dead end. It is renamed far more often than it is deleted, which is why it is named plainly.
+  await QueueModel.create({
+    tenantId: tenant._id,
+    name: 'General support',
+    description: 'Everything that has not been sorted into a queue of its own yet.',
+    isDefault: true,
     status: 'active',
   });
 

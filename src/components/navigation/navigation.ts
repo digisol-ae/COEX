@@ -49,7 +49,15 @@ export const GROUPS: NavigationGroup[] = [
       // Leads, pipeline and quotations join here in a later phase.
     ],
   },
-  // Support arrives at M5: queues, tickets, canned replies.
+  {
+    id: 'support',
+    label: 'Support',
+    items: [
+      { href: '/support/tickets', label: 'Tickets', permission: 'ticket.read.own' },
+      { href: '/support/metrics', label: 'Desk report', permission: 'ticket.read.all' },
+      // Channels join here at M6: email threading and WhatsApp through XVERSE.
+    ],
+  },
   {
     id: 'security',
     label: 'Security',
@@ -63,6 +71,8 @@ export const GROUPS: NavigationGroup[] = [
     id: 'setup',
     label: 'Setup',
     items: [
+      { href: '/setup/queues', label: 'Queues', permission: 'tenant.manage' },
+      { href: '/setup/canned-replies', label: 'Saved replies', permission: 'ticket.manage' },
       { href: '/setup/tenant', label: 'Tenant settings', permission: 'tenant.manage' },
       { href: '/setup/fields', label: 'Custom fields', permission: 'tenant.manage' },
       { href: '/setup/tenants', label: 'Tenants', permission: 'tenant.create' },

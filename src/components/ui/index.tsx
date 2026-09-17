@@ -175,6 +175,7 @@ export function Notice({ tone = 'info', children }: { tone?: Tone; children: Rea
       className={clsx(
         'rounded-[var(--radius-control)] px-3 py-2 text-sm',
         tone === 'ok' && 'bg-[var(--color-status-ok-soft)] text-[var(--color-status-ok)]',
+        tone === 'warn' && 'bg-[var(--color-status-warn-soft)] text-[var(--color-status-warn)]',
         tone === 'alert' && 'bg-[var(--color-status-alert-soft)] text-[var(--color-status-alert)]',
         tone === 'info' && 'bg-[var(--color-status-info-soft)] text-[var(--color-status-info)]',
       )}

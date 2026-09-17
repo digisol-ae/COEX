@@ -107,3 +107,26 @@ export function workingMinutesBetween(from: Date, to: Date, calendar = DEFAULT_C
 
   return total;
 }
+
+/**
+ * A target read back in the words people use.
+ *
+ * Targets are stored in working minutes, and "1440 minutes" tells nobody anything. Anything under
+ * a working day reads in hours; beyond that it reads in working days, because that is how the
+ * promise was made in the first place.
+ */
+export function formatWorkingMinutes(minutes: number, calendar = DEFAULT_CALENDAR): string {
+  const dayMinutes = Math.max(1, calendar.dayEndMinutes - calendar.dayStartMinutes);
+
+  if (minutes < 60) return `${minutes}m`;
+
+  if (minutes < dayMinutes) {
+    const hours = minutes / 60;
+    return `${Number.isInteger(hours) ? hours : hours.toFixed(1)}h`;
+  }
+
+  const days = minutes / dayMinutes;
+  const rounded = Number.isInteger(days) ? days : Number(days.toFixed(1));
+
+  return `${rounded} working ${rounded === 1 ? 'day' : 'days'}`;
+}
