@@ -9,8 +9,8 @@
     "lint": "eslint",
     "check:db": "node scripts/check-db.mjs",
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
-    "test": "vitest run --env-file=.env.local",
-    "test:watch": "vitest --env-file=.env.local"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.1",
