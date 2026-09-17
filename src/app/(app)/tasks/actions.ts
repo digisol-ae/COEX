@@ -9,6 +9,7 @@ import {
   archiveTask,
   createTask,
   moveTask,
+  moveTaskToPosition,
   removeDocumentLink,
   toggleSubtask,
   updateTask,
@@ -79,7 +80,8 @@ export async function createTaskAction(
         description: text(formData, 'description'),
         priority: toPriority(text(formData, 'priority')),
         assigneeIds: assigneesFrom(formData),
-        dueDate: text(formData, 'dueDate') || null,
+        startAt: text(formData, 'startAt') || null,
+        endAt: text(formData, 'endAt') || null,
         phase: text(formData, 'phase') || null,
         estimateMinutes: text(formData, 'estimateHours')
           ? Math.round(Number(text(formData, 'estimateHours')) * 60)
@@ -94,6 +96,25 @@ export async function createTaskAction(
   revalidatePath('/tasks');
   revalidatePath('/dashboard');
   return { saved: true };
+}
+
+/** Used by drag and drop, which sends the neighbours rather than an index. */
+export async function reorderTaskAction(input: {
+  id: string;
+  projectId: string;
+  status: string;
+  afterTaskId: string | null;
+  beforeTaskId: string | null;
+}): Promise<void> {
+  const actor = await requirePermission('task.manage');
+
+  await asUser(actor, () =>
+    moveTaskToPosition(input.id, input.status, input.afterTaskId, input.beforeTaskId),
+  );
+
+  revalidatePath(`/projects/${input.projectId}`);
+  revalidatePath('/tasks');
+  revalidatePath('/dashboard');
 }
 
 export async function moveTaskAction(formData: FormData): Promise<void> {
@@ -122,8 +143,8 @@ export async function updateTaskAction(
         description: text(formData, 'description'),
         priority: toPriority(text(formData, 'priority')),
         assigneeIds: assigneesFrom(formData),
-        dueDate: text(formData, 'dueDate') || null,
-        startDate: text(formData, 'startDate') || null,
+        startAt: text(formData, 'startAt') || null,
+        endAt: text(formData, 'endAt') || null,
         estimateMinutes: text(formData, 'estimateHours')
           ? Math.round(Number(text(formData, 'estimateHours')) * 60)
           : null,

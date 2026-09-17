@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
 import { listTasks } from '@/modules/tasks/services/task.service';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
+import { formatDateTime } from '@/modules/tasks/dates';
+import { formatMinutes } from '@/modules/time/week';
 import { Avatar } from '@/components/ui/avatar';
 import { TaskFilters } from './filters';
 
@@ -62,7 +64,8 @@ export default async function TasksPage({
                 <Th>Project</Th>
                 <Th>Status</Th>
                 <Th>Assigned</Th>
-                <Th>Due</Th>
+                <Th>Planned</Th>
+                <Th>Ends</Th>
               </tr>
             </thead>
             <tbody>
@@ -95,16 +98,19 @@ export default async function TasksPage({
                       <span className="text-xs text-[var(--color-ink-subtle)]">Unassigned</span>
                     )}
                   </Td>
+                  <Td className="tabular-nums text-[var(--color-ink-muted)]">
+                    {task.plannedMinutes ? formatMinutes(task.plannedMinutes) : '—'}
+                  </Td>
                   <Td>
-                    {task.dueDate ? (
+                    {task.endAt ? (
                       <span
                         className={
                           task.isOverdue
-                            ? 'text-[var(--color-status-alert)]'
-                            : 'text-[var(--color-ink-muted)]'
+                            ? 'tabular-nums text-[var(--color-status-alert)]'
+                            : 'tabular-nums text-[var(--color-ink-muted)]'
                         }
                       >
-                        {task.dueDate.toLocaleDateString('en-GB')}
+                        {formatDateTime(task.endAt)}
                       </span>
                     ) : (
                       <span className="text-[var(--color-ink-subtle)]">—</span>

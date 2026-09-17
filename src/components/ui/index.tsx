@@ -31,9 +31,14 @@ export function PageHeader({
   );
 }
 
-export function Card({ children, className }: { children: ReactNode; className?: string }) {
+export function Card({
+  children,
+  className,
+  ...props
+}: ComponentProps<'div'> & { children: ReactNode }) {
   return (
     <div
+      {...props}
       className={clsx(
         'surface-raised rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)]',
         className,

@@ -21,8 +21,8 @@ export function TaskForm({
     description: string;
     priority: string;
     assigneeIds: string[];
-    dueDate: string;
-    startDate: string;
+    startAt: string;
+    endAt: string;
     estimateHours: string;
     tags: string;
     phase: string;
@@ -34,8 +34,8 @@ export function TaskForm({
     return (
       <dl className="space-y-3 text-sm">
         <div>
-          <dt className="text-xs tracking-wide text-[var(--color-ink-subtle)] uppercase">Due</dt>
-          <dd className="text-[var(--color-ink)]">{task.dueDate || 'No date'}</dd>
+          <dt className="text-xs tracking-wide text-[var(--color-ink-subtle)] uppercase">Ends</dt>
+          <dd className="text-[var(--color-ink)]">{task.endAt || 'No date'}</dd>
         </div>
         <div>
           <dt className="text-xs tracking-wide text-[var(--color-ink-subtle)] uppercase">
@@ -93,16 +93,19 @@ export function TaskForm({
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Start">
-            <Input name="startDate" type="date" defaultValue={task.startDate} />
+          <Field label="Starts">
+            <Input name="startAt" type="datetime-local" defaultValue={task.startAt} />
           </Field>
 
-          <Field label="Due">
-            <Input name="dueDate" type="date" defaultValue={task.dueDate} />
+          <Field label="Ends" hint="Also the deadline">
+            <Input name="endAt" type="datetime-local" defaultValue={task.endAt} />
           </Field>
         </div>
 
-        <Field label="Estimate" hint="Hours. Compared against logged time in milestone four.">
+        <Field
+          label="Estimate"
+          hint="Hours of effort, which is a different question from when it happens."
+        >
           <Input
             name="estimateHours"
             type="number"

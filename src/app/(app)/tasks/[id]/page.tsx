@@ -7,6 +7,7 @@ import { listUsers } from '@/modules/core/services/user.service';
 import { Badge, Card, CardSection, PageHeader } from '@/components/ui';
 import { getRunningTimer, loggedMinutesForTask } from '@/modules/time/services/time.service';
 import { formatMinutes } from '@/modules/time/week';
+import { toDateTimeInput } from '@/modules/tasks/dates';
 import { TimerButton } from '@/modules/time/components/timer-button';
 import { TaskForm } from './task-form';
 import { SubtaskList } from './subtask-list';
@@ -76,6 +77,18 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
                   </p>
                 </div>
 
+                <div>
+                  <p className="text-xs tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                    Planned
+                  </p>
+                  <p
+                    className="text-lg font-medium text-[var(--color-ink-muted)] tabular-nums"
+                    title="Working hours between the start and the end, using the tenant working calendar"
+                  >
+                    {task.plannedMinutes ? formatMinutes(task.plannedMinutes) : 'not scheduled'}
+                  </p>
+                </div>
+
                 {task.estimateMinutes && loggedMinutes > task.estimateMinutes ? (
                   <Badge tone="warn">over estimate</Badge>
                 ) : null}
@@ -115,8 +128,8 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
                 description: task.description ?? '',
                 priority: task.priority,
                 assigneeIds: task.assigneeIds.map((value) => String(value)),
-                dueDate: task.dueDate ? task.dueDate.toISOString().slice(0, 10) : '',
-                startDate: task.startDate ? task.startDate.toISOString().slice(0, 10) : '',
+                startAt: toDateTimeInput(task.startAt),
+                endAt: toDateTimeInput(task.endAt),
                 estimateHours: task.estimateMinutes ? String(task.estimateMinutes / 60) : '',
                 tags: (task.tags ?? []).join(', '),
                 phase: task.phase ?? '',

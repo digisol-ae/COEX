@@ -11,6 +11,7 @@ import {
   getTask,
   listTasks,
   moveTask,
+  moveTaskToPosition,
 } from '@/modules/tasks/services/task.service';
 import { loadDashboard } from '@/modules/tasks/services/dashboard.service';
 
@@ -147,12 +148,79 @@ describe('tasks', () => {
   });
 });
 
+describe('planned hours', () => {
+  it('counts working hours between the start and the end, not elapsed time', async () => {
+    const projectId = await aProject();
+
+    // Monday 09:00 to Wednesday 18:00 is three working days of nine hours, not fifty seven hours.
+    const id = await runWithContext(context, () =>
+      createTask({
+        projectId,
+        title: 'Scheduled',
+        startAt: '2026-09-21T09:00:00',
+        endAt: '2026-09-23T18:00:00',
+      }),
+    );
+
+    const task = await runWithContext(context, () => getTask(id));
+
+    expect(task?.plannedMinutes).toBe(27 * 60);
+  });
+
+  it('records nothing when only one end of the window is known', async () => {
+    const projectId = await aProject();
+
+    const id = await runWithContext(context, () =>
+      createTask({ projectId, title: 'Half planned', startAt: '2026-09-21T09:00:00' }),
+    );
+
+    const task = await runWithContext(context, () => getTask(id));
+
+    expect(task?.plannedMinutes).toBeNull();
+  });
+});
+
+describe('board ordering', () => {
+  it('places a dragged task between its new neighbours', async () => {
+    const projectId = await aProject();
+
+    const ids = await runWithContext(context, async () => [
+      await createTask({ projectId, title: 'First' }),
+      await createTask({ projectId, title: 'Second' }),
+      await createTask({ projectId, title: 'Third' }),
+    ]);
+
+    // Drag the third card to the top of the same column.
+    await runWithContext(context, () => moveTaskToPosition(ids[2], 'To do', null, ids[0]));
+
+    const order = await runWithContext(context, () => listTasks({ projectId }));
+
+    expect(order.map((task) => task.title)).toEqual(['Third', 'First', 'Second']);
+  });
+
+  it('changes the column when a task is dragged into another one', async () => {
+    const projectId = await aProject();
+    const id = await runWithContext(context, () => createTask({ projectId, title: 'Moving' }));
+
+    await runWithContext(context, () => moveTaskToPosition(id, 'In progress', null, null));
+
+    const task = await runWithContext(context, () => getTask(id));
+
+    expect(task?.status).toBe('In progress');
+  });
+});
+
 describe('dashboard counts', () => {
   it('counts open, overdue and unassigned work', async () => {
     const projectId = await aProject();
 
     await runWithContext(context, async () => {
-      await createTask({ projectId, title: 'Overdue and unassigned', dueDate: '2026-01-01' });
+      await createTask({
+        projectId,
+        title: 'Overdue and unassigned',
+        startAt: '2026-01-01T09:00:00',
+        endAt: '2026-01-02T17:00:00',
+      });
       await createTask({ projectId, title: 'Assigned', assigneeIds: [String(userId)] });
       const done = await createTask({ projectId, title: 'Finished' });
       await moveTask(done, 'Done');

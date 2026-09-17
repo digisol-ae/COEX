@@ -9,6 +9,12 @@ import { UserModel } from '@/modules/core/models/user.model';
 import { TaskModel } from '../models/task.model';
 import { ProjectModel } from '../models/project.model';
 import { parseDocumentLink } from '../document-links';
+import { TenantModel } from '@/modules/core/models/tenant.model';
+import {
+  DEFAULT_CALENDAR,
+  workingMinutesBetween,
+  type WorkingCalendar,
+} from '@/modules/tickets/business-hours';
 
 /**
  * Tasks.
@@ -21,6 +27,34 @@ import { parseDocumentLink } from '../document-links';
 
 const tasks = () => repository(TaskModel);
 
+/**
+ * Planned hours come from the working calendar, not from elapsed time.
+ *
+ * A task planned from Monday morning to Wednesday evening is three working days of about eight
+ * hours, not the fifty six hours a clock would report. Anything else makes planned hours useless
+ * next to logged hours.
+ */
+async function plannedMinutesFor(startAt: Date | null, endAt: Date | null): Promise<number | null> {
+  if (!startAt || !endAt || endAt <= startAt) return null;
+
+  const tenant = await TenantModel.findOne({ _id: getContext().tenantId });
+
+  const calendar: WorkingCalendar = {
+    workingDays: tenant?.workingDays?.length ? tenant.workingDays : DEFAULT_CALENDAR.workingDays,
+    dayStartMinutes: tenant?.dayStartMinutes ?? DEFAULT_CALENDAR.dayStartMinutes,
+    dayEndMinutes: tenant?.dayEndMinutes ?? DEFAULT_CALENDAR.dayEndMinutes,
+  };
+
+  return workingMinutesBetween(startAt, endAt, calendar);
+}
+
+function toDate(value: string | null | undefined): Date | null {
+  if (!value) return null;
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 export type Priority = 'urgent' | 'high' | 'normal' | 'low';
 
 export interface TaskSummary {
@@ -31,9 +65,13 @@ export interface TaskSummary {
   priority: Priority;
   projectId: string;
   projectName: string;
+  phase: string | null;
   assigneeNames: string[];
-  dueDate: Date | null;
+  startAt: Date | null;
+  endAt: Date | null;
+  plannedMinutes: number | null;
   estimateMinutes: number | null;
+  sortOrder: number;
   subtaskCount: number;
   subtasksDone: number;
   documentCount: number;
@@ -52,12 +90,6 @@ export interface TaskFilter {
   unassignedOnly?: boolean;
 }
 
-function startOfToday(): Date {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return now;
-}
-
 export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]> {
   await connectToDatabase();
 
@@ -68,10 +100,10 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   if (filter.assigneeId) query.assigneeIds = toObjectId(filter.assigneeId);
   if (filter.status) query.status = filter.status;
   if (!filter.includeClosed) query.isClosed = false;
-  if (filter.overdueOnly) query.dueDate = { $lt: startOfToday() };
+  if (filter.overdueOnly) query.endAt = { $lt: new Date() };
   if (filter.unassignedOnly) query.assigneeIds = { $size: 0 };
 
-  const found = await tasks().find(query).sort({ dueDate: 1, createdAt: -1 });
+  const found = await tasks().find(query).sort({ sortOrder: 1, endAt: 1, createdAt: -1 });
 
   const projectNames = new Map(
     (await ProjectModel.find({ tenantId: getContext().tenantId, deletedAt: null })).map(
@@ -85,7 +117,7 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   const users = await UserModel.find({ _id: { $in: assigneeIds } }).select('name');
   const names = new Map(users.map((user) => [String(user._id), user.name]));
 
-  const today = startOfToday();
+  const now = new Date();
 
   return found.map((task) => ({
     id: String(task._id),
@@ -95,14 +127,18 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
     priority: task.priority as Priority,
     projectId: String(task.projectId),
     projectName: projectNames.get(String(task.projectId)) ?? 'Unknown',
+    phase: task.phase ?? null,
     assigneeNames: task.assigneeIds.map((id) => names.get(String(id)) ?? 'Unknown'),
-    dueDate: task.dueDate ?? null,
+    startAt: task.startAt ?? null,
+    endAt: task.endAt ?? null,
+    plannedMinutes: task.plannedMinutes ?? null,
     estimateMinutes: task.estimateMinutes ?? null,
+    sortOrder: task.sortOrder ?? 0,
     subtaskCount: task.subtasks.length,
     subtasksDone: task.subtasks.filter((subtask) => subtask.done).length,
     documentCount: task.documentLinks.length,
     isClosed: task.isClosed ?? false,
-    isOverdue: !task.isClosed && !!task.dueDate && task.dueDate < today,
+    isOverdue: !task.isClosed && !!task.endAt && task.endAt < now,
     lastActivityAt: task.lastActivityAt ?? task.updatedAt,
   }));
 }
@@ -118,7 +154,8 @@ export interface CreateTaskInput {
   description?: string;
   priority?: Priority;
   assigneeIds?: string[];
-  dueDate?: string | null;
+  startAt?: string | null;
+  endAt?: string | null;
   estimateMinutes?: number | null;
   organisationId?: string | null;
   phase?: string | null;
@@ -141,6 +178,9 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
 
   const assigneeIds = (input.assigneeIds ?? []).filter(Boolean).map((id) => toObjectId(id));
 
+  const startAt = toDate(input.startAt);
+  const endAt = toDate(input.endAt);
+
   const created = await tasks().create({
     number: await nextNumber('task'),
     title: input.title.trim(),
@@ -151,8 +191,11 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     priority: input.priority ?? 'normal',
     assigneeIds,
     primaryAssigneeId: assigneeIds[0] ?? null,
-    dueDate: input.dueDate ? new Date(input.dueDate) : null,
+    startAt,
+    endAt,
+    plannedMinutes: await plannedMinutesFor(startAt, endAt),
     estimateMinutes: input.estimateMinutes ?? null,
+    sortOrder: Date.now(),
     organisationId: toOptionalObjectId(input.organisationId ?? project.organisationId),
     isClosed: firstColumn?.isClosed ?? false,
     lastActivityAt: new Date(),
@@ -232,8 +275,8 @@ export interface UpdateTaskInput {
   description?: string;
   priority: Priority;
   assigneeIds: string[];
-  dueDate?: string | null;
-  startDate?: string | null;
+  startAt?: string | null;
+  endAt?: string | null;
   estimateMinutes?: number | null;
   tags?: string[];
   phase?: string | null;
@@ -247,6 +290,13 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
 
   const assigneeIds = input.assigneeIds.filter(Boolean).map((value) => toObjectId(value));
 
+  const startAt = toDate(input.startAt);
+  const endAt = toDate(input.endAt);
+
+  if (startAt && endAt && endAt <= startAt) {
+    throw new Error('The end must come after the start.');
+  }
+
   const after = await tasks().updateOne(
     { _id: before._id },
     {
@@ -256,8 +306,9 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
         priority: input.priority,
         assigneeIds,
         primaryAssigneeId: assigneeIds[0] ?? null,
-        dueDate: input.dueDate ? new Date(input.dueDate) : null,
-        startDate: input.startDate ? new Date(input.startDate) : null,
+        startAt,
+        endAt,
+        plannedMinutes: await plannedMinutesFor(startAt, endAt),
         estimateMinutes: input.estimateMinutes ?? null,
         tags: input.tags ?? [],
         phase: input.phase?.trim() || null,
@@ -271,8 +322,18 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
     entityType: 'Task',
     entityId: before._id,
     ...changedFields(
-      { title: before.title, priority: before.priority, dueDate: before.dueDate },
-      { title: after?.title, priority: after?.priority, dueDate: after?.dueDate },
+      {
+        title: before.title,
+        priority: before.priority,
+        startAt: before.startAt,
+        endAt: before.endAt,
+      },
+      {
+        title: after?.title,
+        priority: after?.priority,
+        startAt: after?.startAt,
+        endAt: after?.endAt,
+      },
     ),
   });
 }
@@ -353,6 +414,51 @@ export async function removeDocumentLink(taskId: string, linkId: string): Promis
     { _id: toObjectId(taskId) },
     { $pull: { documentLinks: { _id: toObjectId(linkId) } }, $set: { lastActivityAt: new Date() } },
   );
+}
+
+/**
+ * Moving a task on the board.
+ *
+ * Position is stored rather than inferred from dates, because a board people drag things around on
+ * has an order that means something to them and nothing to a computer. New position is the midpoint
+ * between its neighbours, so a move rewrites one row rather than renumbering the column.
+ */
+export async function moveTaskToPosition(
+  id: string,
+  status: string,
+  afterTaskId: string | null,
+  beforeTaskId: string | null,
+): Promise<void> {
+  await connectToDatabase();
+
+  const task = await tasks().findById(id);
+  if (!task) throw new Error('Task not found.');
+
+  if (task.status !== status) {
+    await moveTask(id, status);
+  }
+
+  const [after, before] = await Promise.all([
+    afterTaskId ? tasks().findById(afterTaskId) : null,
+    beforeTaskId ? tasks().findById(beforeTaskId) : null,
+  ]);
+
+  const afterOrder = after?.sortOrder ?? null;
+  const beforeOrder = before?.sortOrder ?? null;
+
+  let sortOrder: number;
+
+  if (afterOrder !== null && beforeOrder !== null) {
+    sortOrder = (afterOrder + beforeOrder) / 2;
+  } else if (afterOrder !== null) {
+    sortOrder = afterOrder + 1000;
+  } else if (beforeOrder !== null) {
+    sortOrder = beforeOrder - 1000;
+  } else {
+    sortOrder = Date.now();
+  }
+
+  await tasks().updateOne({ _id: task._id }, { $set: { sortOrder, lastActivityAt: new Date() } });
 }
 
 export async function archiveTask(id: string): Promise<void> {

@@ -58,9 +58,29 @@ const taskSchema = new Schema(
     primaryAssigneeId: { type: Schema.Types.ObjectId, ref: 'User', default: null, index: true },
     watcherIds: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
 
-    startDate: { type: Date, default: null },
-    dueDate: { type: Date, default: null, index: true },
+    /**
+     * The planned window, with times rather than dates alone, which is what the Gantt view draws
+     * and what planned hours are calculated from.
+     *
+     * endAt is also the deadline: a task is overdue when it is open and endAt has passed. Keeping
+     * a separate due date beside a planned end is how two fields end up disagreeing and nobody
+     * knows which one the report used.
+     */
+    startAt: { type: Date, default: null, index: true },
+    endAt: { type: Date, default: null, index: true },
+
+    /**
+     * Working minutes between startAt and endAt, stored rather than computed on read so a report
+     * cannot disagree with a screen. Working minutes, not elapsed: a task planned from Monday
+     * morning to Wednesday evening is three working days, not fifty six hours.
+     */
+    plannedMinutes: { type: Number, default: null },
+
+    /** The effort someone expects it to take, which is a different question from when it happens. */
     estimateMinutes: { type: Number, default: null },
+
+    /** Position within its board column, so an ordering survives a reload. */
+    sortOrder: { type: Number, default: 0 },
 
     tags: { type: [String], default: [] },
     subtasks: { type: [subtaskSchema], default: [] },
@@ -92,7 +112,8 @@ const taskSchema = new Schema(
 
 taskSchema.index({ tenantId: 1, number: 1 }, { unique: true });
 taskSchema.index({ tenantId: 1, projectId: 1, status: 1 });
-taskSchema.index({ tenantId: 1, isClosed: 1, dueDate: 1 });
+taskSchema.index({ tenantId: 1, isClosed: 1, endAt: 1 });
+taskSchema.index({ tenantId: 1, projectId: 1, status: 1, sortOrder: 1 });
 taskSchema.index({ tenantId: 1, primaryAssigneeId: 1, isClosed: 1 });
 
 export type Task = InferSchemaType<typeof taskSchema>;

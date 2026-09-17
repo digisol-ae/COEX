@@ -63,8 +63,8 @@ export async function loadDashboard(scope: {
 
   const [open, overdue, dueToday, unassigned, blocked] = await Promise.all([
     TaskModel.countDocuments(base),
-    TaskModel.countDocuments({ ...base, dueDate: { $lt: startOfToday() } }),
-    TaskModel.countDocuments({ ...base, dueDate: { $gte: startOfToday(), $lte: endOfToday() } }),
+    TaskModel.countDocuments({ ...base, endAt: { $lt: new Date() } }),
+    TaskModel.countDocuments({ ...base, endAt: { $gte: startOfToday(), $lte: endOfToday() } }),
     TaskModel.countDocuments({ ...base, assigneeIds: { $size: 0 } }),
     TaskModel.countDocuments({ ...base, status: 'Blocked' }),
   ]);
