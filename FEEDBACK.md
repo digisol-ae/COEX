@@ -4,14 +4,14 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
-0. Next work, agreed with John on 17 Sep 2026. Tasks and Tickets are the focus, because he will use
-   both daily in a live environment.
-   a. Start and end date with time on a task, so planned hours can be calculated and compared with
-   logged time.
-   b. Drag and drop a task between columns on the board, and reorder or move it in the list view.
-   c. Projects in the menu as an expandable tree: project, then its tasks, then their subtasks.
-   d. A Gantt view per project.
-   e. An overall progress percentage per project, shown as a bar.
+0. Awaiting John's look at the project screen, rebuilt on 17 Sep 2026 against his ClickUp
+   walkthrough: view tabs, a filter toolbar, a grouped list table, editing in place on cards and
+   rows, subtasks opening inside a row, Gantt zoom, and a breadcrumb.
+   Not built yet from that walkthrough, in the order I would take them:
+   a. A slide over panel for a task, so opening one does not leave the board.
+   b. An inline add row at the foot of each list group and board column, instead of the shared form.
+   c. Counts beside the items in the icon rail.
+   d. Exporting a Gantt as an image or PDF.
    Note: once John works live, the deferred backup decision stops being optional, because the data
    stops being disposable.
 
@@ -26,18 +26,23 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Done
 
-1. M4 Time tracking built on 17 Sep 2026: timer on the task, running timer in the header, weekly
+1. The five task features John asked for on 17 Sep 2026, all built: start and end with time driving
+   planned hours; drag and drop across columns and within the list; projects as an expandable tree
+   in the menu down to subtasks; a Gantt per project, now with Week, Month, Quarter and Fit zoom;
+   and a progress percentage per project. Editing in place followed, because a plan that needs a
+   full form per change does not get kept up to date.
+2. M4 Time tracking built on 17 Sep 2026: timer on the task, running timer in the header, weekly
    timesheet, week locking with an audited unlock reason, time report by person, project and
    customer, CSV export. Awaiting John's acceptance.
-2. Continuous integration on GitHub: types, lint, formatting, unit tests and build on every push.
+3. Continuous integration on GitHub: types, lint, formatting, unit tests and build on every push.
    The suite is split so pure functions run in CI and database tests run locally.
-3. Navigation reworked: collapsible groups for Tasks and planning, CRM, Security and Setup, a phone
+4. Navigation reworked: collapsible groups for Tasks and planning, CRM, Security and Setup, a phone
    drawer sharing one implementation with the sidebar, and sign out reduced to an icon.
-4. M3 Tasks and dashboard built: portfolios, projects, board and list views, steps, Microsoft 365
+5. M3 Tasks and dashboard built: portfolios, projects, board and list views, steps, Microsoft 365
    document links, filters in the address bar, and the dashboard as the screen after login.
-5. M2 CRM foundation built: customers, contacts with a country picker for mobiles, sites, the single
+6. M2 CRM foundation built: customers, contacts with a country picker for mobiles, sites, the single
    timeline, the product catalogue and per tenant custom fields.
-6. M1 Foundation accepted by John: tenancy, password sign on, revocable sessions, roles with per
+7. M1 Foundation accepted by John: tenancy, password sign on, revocable sessions, roles with per
    user overrides, audit log, tenant settings, user administration and tenant creation.
-7. Product name COEX, repository digisol-ae/COEX, terminology Portfolio, Project, Task, Step, team
+8. Product name COEX, repository digisol-ae/COEX, terminology Portfolio, Project, Task, Step, team
    size ten, port 3100, Node 22 LTS.
