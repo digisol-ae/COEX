@@ -1,7 +1,7 @@
 import { requireUser } from '@/lib/session';
-import { logoutAction } from '../login/actions';
 import { Sidebar } from '@/components/navigation/sidebar';
 import { MobileNavigation } from '@/components/navigation/mobile-navigation';
+import { UserMenu } from '@/components/navigation/user-menu';
 import { visibleGroups } from '@/components/navigation/navigation';
 
 /**
@@ -20,26 +20,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Sidebar groups={groups} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-[var(--color-line)] bg-[var(--color-surface)] px-4 py-3 sm:px-6">
+        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-[var(--color-line)] bg-[var(--color-surface)]/95 px-4 py-2.5 backdrop-blur sm:px-6">
           <MobileNavigation groups={groups} />
 
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-[var(--color-ink)]">
-              {user.tenantName}
-            </p>
-            <p className="truncate text-xs text-[var(--color-ink-subtle)]">
-              {user.name} · {user.role.replace('_', ' ')}
-            </p>
-          </div>
+          <p className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--color-ink)] sm:hidden">
+            {user.tenantName}
+          </p>
 
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="rounded-[var(--radius-control)] border border-[var(--color-line-strong)] px-3 py-1.5 text-sm text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
-            >
-              Sign out
-            </button>
-          </form>
+          <div className="hidden flex-1 sm:block" />
+
+          <UserMenu name={user.name} role={user.role} tenantName={user.tenantName} />
         </header>
 
         <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">{children}</main>
