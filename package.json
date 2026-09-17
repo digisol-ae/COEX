@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check:db": "node scripts/check-db.mjs"
+    "check:db": "node scripts/check-db.mjs",
+    "seed": "tsx --env-file=.env.local scripts/seed.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.1",
