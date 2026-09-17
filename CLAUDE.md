@@ -74,3 +74,12 @@ monolith from becoming a tangle.
   short note on what each one does and what good output looks like. Claude does not run npm
   scripts, seeds, migrations or the dev server on John's machine.
 - Replies on this project in English only, whatever language the question is asked in.
+
+## Environment rule that bit us once
+
+Dependencies are installed on John's Mac, by John, with `npm install` in Terminal. Claude must
+never run `npm install` from its Linux sandbox into this folder: packages such as lightningcss,
+@tailwindcss/oxide and @node-rs/argon2 ship compiled binaries per platform, so a Linux install
+leaves node_modules unusable on macOS and the build fails with "Cannot find module
+'../lightningcss.darwin-arm64.node'". The cure is `rm -rf node_modules package-lock.json` followed
+by `npm install` on the Mac.
