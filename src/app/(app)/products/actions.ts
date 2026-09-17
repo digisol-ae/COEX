@@ -54,7 +54,7 @@ export async function saveProductAction(
     return { error: error instanceof Error ? error.message : 'Could not save the product.' };
   }
 
-  revalidatePath('/setup/products');
+  revalidatePath('/products');
   return { saved: true };
 }
 
@@ -65,5 +65,5 @@ export async function toggleProductStatusAction(formData: FormData): Promise<voi
 
   await asUser(actor, () => (status === 'active' ? retireProduct(id) : reactivateProduct(id)));
 
-  revalidatePath('/setup/products');
+  revalidatePath('/products');
 }

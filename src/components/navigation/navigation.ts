@@ -5,8 +5,13 @@ import type { Permission } from '@/modules/core/permissions';
  *
  * Groups are named after the part of the business they serve rather than after the module that
  * happens to implement them, because the people using COEX think in terms of their work. New
- * modules add a group here and nothing else: the sidebar, the permissions filtering and the
- * expand state all follow from this one list.
+ * modules add a group here and nothing else: the sidebar, the permission filtering and the expand
+ * state all follow from this one list.
+ *
+ * Two placements are deliberate. Products sits in CRM because it is commercial data people look up
+ * while talking to a customer, not configuration. Users and the audit log sit in Security because
+ * access control and the record of who did what are what an ADHICS style review asks to see, and
+ * they belong beside the session and sign in controls that join them later.
  */
 
 export interface NavigationItem {
@@ -31,7 +36,7 @@ export const GROUPS: NavigationGroup[] = [
     items: [
       { href: '/tasks', label: 'My tasks', permission: 'task.read.own' },
       { href: '/projects', label: 'Projects', permission: 'task.read.all' },
-      // Time tracking joins here at M4, the calendar view at M3 polish.
+      // Timesheets and the time report join here at M4.
     ],
   },
   {
@@ -39,19 +44,26 @@ export const GROUPS: NavigationGroup[] = [
     label: 'CRM',
     items: [
       { href: '/customers', label: 'Customers', permission: 'customer.read' },
+      { href: '/products', label: 'Products', permission: 'customer.read' },
       // Leads, pipeline and quotations join here in a later phase.
     ],
   },
   // Support arrives at M5: queues, tickets, canned replies.
   {
+    id: 'security',
+    label: 'Security',
+    items: [
+      { href: '/security/users', label: 'Users and roles', permission: 'user.read' },
+      { href: '/security/audit', label: 'Audit log', permission: 'audit.read' },
+      // Active sessions and the sign in policy join here with Entra.
+    ],
+  },
+  {
     id: 'setup',
     label: 'Setup',
     items: [
-      { href: '/setup/products', label: 'Products', permission: 'customer.read' },
-      { href: '/setup/users', label: 'Users', permission: 'user.read' },
       { href: '/setup/tenant', label: 'Tenant settings', permission: 'tenant.manage' },
       { href: '/setup/fields', label: 'Custom fields', permission: 'tenant.manage' },
-      { href: '/setup/audit', label: 'Audit log', permission: 'audit.read' },
       { href: '/setup/tenants', label: 'Tenants', permission: 'tenant.create' },
     ],
   },

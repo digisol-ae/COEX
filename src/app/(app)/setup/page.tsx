@@ -8,18 +8,6 @@ export const metadata = { title: 'Setup · COEX' };
 /** A landing page for configuration, so Setup is a place rather than only a menu heading. */
 const SECTIONS: { href: string; label: string; description: string; permission: Permission }[] = [
   {
-    href: '/setup/products',
-    label: 'Products',
-    description: 'What DigiSol sells and supports. Everything else prices from this list.',
-    permission: 'customer.read',
-  },
-  {
-    href: '/setup/users',
-    label: 'Users',
-    description: 'Who can sign in, their role, and suspending an account immediately.',
-    permission: 'user.read',
-  },
-  {
     href: '/setup/tenant',
     label: 'Tenant settings',
     description: 'Name, timezone, currency, numbering prefixes and attachment retention.',
@@ -32,16 +20,22 @@ const SECTIONS: { href: string; label: string; description: string; permission: 
     permission: 'tenant.manage',
   },
   {
-    href: '/setup/audit',
-    label: 'Audit log',
-    description: 'Append only record of every change, with who made it and when.',
-    permission: 'audit.read',
-  },
-  {
     href: '/setup/tenants',
     label: 'Tenants',
     description: 'Every company on the platform. Platform administrators only.',
     permission: 'tenant.create',
+  },
+  {
+    href: '/security/users',
+    label: 'Users and roles',
+    description: 'Who can sign in and what they may do. Lives under Security.',
+    permission: 'user.read',
+  },
+  {
+    href: '/security/audit',
+    label: 'Audit log',
+    description: 'Append only record of every change. Lives under Security.',
+    permission: 'audit.read',
   },
 ];
 
