@@ -10,6 +10,8 @@ import { logoutAction } from '../login/actions';
 
 const NAVIGATION = [
   { href: '/dashboard', label: 'Dashboard' },
+  { href: '/tasks', label: 'Tasks', permission: 'task.read.own' as const },
+  { href: '/projects', label: 'Projects', permission: 'task.read.all' as const },
   { href: '/customers', label: 'Customers', permission: 'customer.read' as const },
   { href: '/products', label: 'Products', permission: 'customer.read' as const },
   { href: '/admin/users', label: 'Users', permission: 'user.read' as const },

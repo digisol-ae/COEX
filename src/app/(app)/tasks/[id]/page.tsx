@@ -1,0 +1,95 @@
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { asUser, requirePermission } from '@/lib/session';
+import { getTask } from '@/modules/tasks/services/task.service';
+import { getProject } from '@/modules/tasks/services/portfolio.service';
+import { listUsers } from '@/modules/core/services/user.service';
+import { Badge, Card, CardSection, PageHeader } from '@/components/ui';
+import { TaskForm } from './task-form';
+import { StepList } from './step-list';
+import { DocumentLinks } from './document-links';
+
+export default async function TaskPage({ params }: { params: Promise<{ id: string }> }) {
+  const actor = await requirePermission('task.read.own');
+  const { id } = await params;
+
+  const task = await asUser(actor, () => getTask(id));
+  if (!task) notFound();
+
+  const { project, users } = await asUser(actor, async () => ({
+    project: await getProject(String(task.projectId)),
+    users: await listUsers(),
+  }));
+
+  const canManage = actor.permissions.includes('task.manage');
+
+  return (
+    <div className="mx-auto max-w-5xl">
+      <Link
+        href={`/projects/${String(task.projectId)}`}
+        className="text-sm text-[var(--color-ink-muted)] underline-offset-4 hover:underline"
+      >
+        Back to {project?.name ?? 'project'}
+      </Link>
+
+      <div className="mt-3">
+        <PageHeader
+          title={task.title}
+          description={`${task.number} · ${project?.name ?? ''}`}
+          action={
+            <div className="flex gap-2">
+              <Badge tone={task.isClosed ? 'ok' : 'info'}>{task.status}</Badge>
+              {task.priority !== 'normal' ? (
+                <Badge tone={task.priority === 'urgent' ? 'alert' : 'warn'}>{task.priority}</Badge>
+              ) : null}
+            </div>
+          }
+        />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
+        <div className="space-y-6">
+          <StepList
+            taskId={id}
+            canManage={canManage}
+            steps={task.steps.map((step) => ({
+              id: String(step._id),
+              title: step.title,
+              done: step.done ?? false,
+            }))}
+          />
+
+          <DocumentLinks
+            taskId={id}
+            canManage={canManage}
+            links={task.documentLinks.map((link) => ({
+              id: String(link._id),
+              url: link.url,
+              title: link.title,
+            }))}
+          />
+        </div>
+
+        <Card>
+          <CardSection title="Details">
+            <TaskForm
+              canManage={canManage}
+              users={users.map((user) => ({ id: user.id, name: user.name }))}
+              task={{
+                id,
+                title: task.title,
+                description: task.description ?? '',
+                priority: task.priority,
+                assigneeIds: task.assigneeIds.map((value) => String(value)),
+                dueDate: task.dueDate ? task.dueDate.toISOString().slice(0, 10) : '',
+                startDate: task.startDate ? task.startDate.toISOString().slice(0, 10) : '',
+                estimateHours: task.estimateMinutes ? String(task.estimateMinutes / 60) : '',
+                tags: (task.tags ?? []).join(', '),
+              }}
+            />
+          </CardSection>
+        </Card>
+      </div>
+    </div>
+  );
+}
