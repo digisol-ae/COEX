@@ -3,14 +3,20 @@
 import { useActionState } from 'react';
 import { Button, Field, Input, Notice, Select } from '@/components/ui';
 import { archiveOrganisationAction, updateOrganisationAction, type CrmFormState } from '../actions';
+import { CustomFields, type CustomFieldValues } from '@/modules/crm/components/custom-fields';
+import type { FieldDefinitionSummary } from '@/modules/crm/services/field-definition.service';
 
 const initialState: CrmFormState = {};
 
 export function DetailsForm({
   organisation,
   editable,
+  customFields,
+  customFieldValues,
 }: {
   editable: boolean;
+  customFields: FieldDefinitionSummary[];
+  customFieldValues: CustomFieldValues;
   organisation: {
     id: string;
     name: string;
@@ -82,6 +88,8 @@ export function DetailsForm({
             className="w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] outline-none"
           />
         </Field>
+
+        <CustomFields fields={customFields} values={customFieldValues} />
 
         <div className="flex items-center gap-3">
           <Button type="submit" disabled={pending}>

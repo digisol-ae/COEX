@@ -19,8 +19,17 @@ Confirmed product name. The repository is COEX.
 
 ## Where we are
 
-M1 Foundation is accepted. M2 CRM foundation is in progress: organisations, contacts, locations,
-products, custom fields and the single activity timeline.
+M1 Foundation is accepted. M2 CRM foundation is built: customers, contacts, sites, products, the
+single activity timeline and per tenant custom fields. M3 Tasks and dashboard is next.
+
+Conventions worth knowing before changing CRM code:
+
+- Mobile numbers are stored in E.164 and entered with a country picker, because XVERSE matches
+  inbound WhatsApp by number.
+- Money is stored as integer minor units with an explicit currency.
+- Nothing deletes: customers and contacts archive, products retire, custom fields hide.
+- Custom field keys are generated from the label once and then frozen; renaming a key would orphan
+  every value stored against it.
 
 ## Phase 1 scope
 

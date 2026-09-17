@@ -5,6 +5,7 @@ import { getOrganisation } from '@/modules/crm/services/organisation.service';
 import { listContacts } from '@/modules/crm/services/contact.service';
 import { listLocations } from '@/modules/crm/services/location.service';
 import { listTimeline } from '@/modules/crm/services/activity.service';
+import { listFieldDefinitions } from '@/modules/crm/services/field-definition.service';
 import { Badge, Card, CardSection, PageHeader } from '@/components/ui';
 import { DetailsForm } from './details-form';
 import { ContactsPanel } from './contacts-panel';
@@ -18,11 +19,21 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   const organisation = await asUser(actor, () => getOrganisation(id));
   if (!organisation) notFound();
 
-  const [contacts, locations, timeline] = await asUser(actor, async () => [
-    await listContacts(id),
-    await listLocations(id),
-    await listTimeline(id),
-  ]);
+  const { contacts, locations, timeline, customFieldDefinitions } = await asUser(
+    actor,
+    async () => ({
+      contacts: await listContacts(id),
+      locations: await listLocations(id),
+      timeline: await listTimeline(id),
+      customFieldDefinitions: await listFieldDefinitions('organisation'),
+    }),
+  );
+
+  // A Mongoose Map has to become a plain object before it crosses into a client component.
+  const customFieldValues = Object.fromEntries(organisation.customFields ?? []) as Record<
+    string,
+    string | number | boolean | null
+  >;
 
   const editable = actor.permissions.includes('customer.manage');
 
@@ -55,6 +66,8 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
             <CardSection title="Details">
               <DetailsForm
                 editable={editable}
+                customFields={customFieldDefinitions}
+                customFieldValues={customFieldValues}
                 organisation={{
                   id,
                   name: organisation.name,

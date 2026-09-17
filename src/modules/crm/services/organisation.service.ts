@@ -86,6 +86,8 @@ export interface OrganisationInput {
   address?: string;
   country?: string;
   notes?: string;
+  /** Values for the tenant's own field definitions, already validated by the CRM field service. */
+  customFields?: Record<string, unknown>;
 }
 
 export async function createOrganisation(input: OrganisationInput): Promise<string> {
@@ -132,6 +134,7 @@ export async function updateOrganisation(id: string, input: OrganisationInput): 
         address: input.address?.trim() || null,
         country: input.country || 'AE',
         notes: input.notes?.trim() || null,
+        ...(input.customFields ? { customFields: input.customFields } : {}),
       },
     },
   );

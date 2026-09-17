@@ -12,6 +12,10 @@ import {
 import { createContact, archiveContact } from '@/modules/crm/services/contact.service';
 import { createLocation, archiveLocation } from '@/modules/crm/services/location.service';
 import { recordActivity, type ActivityKind } from '@/modules/crm/services/activity.service';
+import {
+  listFieldDefinitions,
+  readCustomFieldValues,
+} from '@/modules/crm/services/field-definition.service';
 
 export interface CrmFormState {
   error?: string;
@@ -65,8 +69,10 @@ export async function updateOrganisationAction(
   const id = text(formData, 'id');
 
   try {
-    await asUser(actor, () =>
-      updateOrganisation(id, {
+    await asUser(actor, async () => {
+      const fields = await listFieldDefinitions('organisation');
+
+      await updateOrganisation(id, {
         name: text(formData, 'name'),
         kind: toKind(formData.get('kind')),
         industry: text(formData, 'industry'),
@@ -75,8 +81,9 @@ export async function updateOrganisationAction(
         website: text(formData, 'website'),
         address: text(formData, 'address'),
         notes: text(formData, 'notes'),
-      }),
-    );
+        customFields: readCustomFieldValues(fields, formData),
+      });
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not save the customer.' };
   }
