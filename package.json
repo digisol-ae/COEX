@@ -10,6 +10,7 @@
     "check:db": "node scripts/check-db.mjs"
   },
   "dependencies": {
+    "@node-rs/argon2": "^2.2.1",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
