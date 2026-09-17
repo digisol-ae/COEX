@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { clsx } from 'clsx';
+import { Monogram } from '@/components/ui/monogram';
 
 /**
  * The project tree in the sidebar: project, then its tasks, then their subtasks.
@@ -87,10 +88,10 @@ export function ProjectTree() {
         <Link
           href="/projects"
           className={clsx(
-            'flex-1 rounded-[var(--radius-control)] px-3 py-2.5 text-sm transition-colors',
+            'flex-1 rounded-[var(--radius-control)] px-2 py-2 text-[13px] transition-colors',
             pathname.startsWith('/projects')
-              ? 'bg-[var(--color-rail-raised)] font-medium text-[var(--color-rail-ink)]'
-              : 'text-[var(--color-rail-ink-muted)] hover:bg-[var(--color-rail-raised)]/60 hover:text-[var(--color-rail-ink)]',
+              ? 'bg-[var(--color-surface-muted)] font-medium text-[var(--color-ink)]'
+              : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]',
           )}
         >
           Projects
@@ -101,14 +102,14 @@ export function ProjectTree() {
           onClick={toggleTree}
           aria-expanded={open}
           aria-label={open ? 'Hide the project list' : 'Show the project list'}
-          className="flex h-8 w-7 items-center justify-center text-[var(--color-rail-ink-muted)] transition-colors hover:text-[var(--color-rail-ink)]"
+          className="flex h-8 w-7 items-center justify-center text-[var(--color-ink-subtle)] transition-colors hover:text-[var(--color-ink)]"
         >
           <Chevron open={open} />
         </button>
       </div>
 
       {open ? (
-        <div className="mt-0.5 ml-3 space-y-0.5 border-l border-[var(--color-rail-line)] pl-2">
+        <div className="mt-0.5 ml-2 space-y-0.5 border-l border-[var(--color-line)] pl-2">
           {loading === 'projects' ? <Loading /> : null}
 
           {projects?.length === 0 && loading !== 'projects' ? (
@@ -127,17 +128,18 @@ export function ProjectTree() {
                   <Link
                     href={`/projects/${project.id}`}
                     className={clsx(
-                      'min-w-0 flex-1 truncate rounded-[var(--radius-control)] px-2 py-1.5 text-xs transition-colors',
+                      'flex min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] px-2 py-1.5 text-xs transition-colors',
                       pathname === `/projects/${project.id}`
-                        ? 'bg-[var(--color-rail-raised)] text-[var(--color-rail-ink)]'
-                        : 'text-[var(--color-rail-ink-muted)] hover:text-[var(--color-rail-ink)]',
+                        ? 'bg-[var(--color-surface-muted)] text-[var(--color-ink)]'
+                        : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]',
                     )}
                   >
-                    {project.name}
+                    <Monogram name={project.name} size="small" />
+                    <span className="truncate">{project.name}</span>
                   </Link>
 
                   {project.openTaskCount > 0 ? (
-                    <span className="px-1 text-[10px] text-[var(--color-rail-ink-muted)] tabular-nums">
+                    <span className="px-1 text-[10px] text-[var(--color-ink-subtle)] tabular-nums">
                       {project.openTaskCount}
                     </span>
                   ) : null}
@@ -147,18 +149,18 @@ export function ProjectTree() {
                     onClick={() => toggleProject(project.id)}
                     aria-expanded={projectOpen}
                     aria-label={`${projectOpen ? 'Hide' : 'Show'} tasks in ${project.name}`}
-                    className="flex h-6 w-5 items-center justify-center text-[var(--color-rail-ink-muted)] hover:text-[var(--color-rail-ink)]"
+                    className="flex h-6 w-5 items-center justify-center text-[var(--color-ink-subtle)] hover:text-[var(--color-ink)]"
                   >
                     <Chevron open={projectOpen} small />
                   </button>
                 </div>
 
                 {projectOpen ? (
-                  <div className="ml-2 space-y-0.5 border-l border-[var(--color-rail-line)] pl-2">
+                  <div className="ml-2 space-y-0.5 border-l border-[var(--color-line)] pl-2">
                     {loading === project.id ? <Loading /> : null}
 
                     {tasks?.length === 0 && loading !== project.id ? (
-                      <p className="px-2 py-1 text-[11px] text-[var(--color-rail-ink-muted)]">
+                      <p className="px-2 py-1 text-[11px] text-[var(--color-ink-subtle)]">
                         No tasks
                       </p>
                     ) : null}
@@ -168,27 +170,27 @@ export function ProjectTree() {
                         <Link
                           href={`/tasks/${task.id}`}
                           className={clsx(
-                            'block truncate rounded-[var(--radius-control)] px-2 py-1 text-[11px] transition-colors hover:text-[var(--color-rail-ink)]',
+                            'block truncate rounded-[var(--radius-control)] px-2 py-1 text-[11px] transition-colors hover:text-[var(--color-ink)]',
                             task.isClosed
-                              ? 'text-[var(--color-rail-ink-muted)] line-through'
-                              : 'text-[var(--color-rail-ink-muted)]',
+                              ? 'text-[var(--color-ink-subtle)] line-through'
+                              : 'text-[var(--color-ink-muted)]',
                             pathname === `/tasks/${task.id}` &&
-                              'bg-[var(--color-rail-raised)] text-[var(--color-rail-ink)]',
+                              'bg-[var(--color-surface-muted)] text-[var(--color-ink)]',
                           )}
                         >
                           {task.title}
                         </Link>
 
                         {task.subtasks.length > 0 ? (
-                          <div className="ml-2 border-l border-[var(--color-rail-line)] pl-2">
+                          <div className="ml-2 border-l border-[var(--color-line)] pl-2">
                             {task.subtasks.map((subtask) => (
                               <p
                                 key={subtask.id}
                                 className={clsx(
                                   'truncate px-2 py-0.5 text-[11px]',
                                   subtask.done
-                                    ? 'text-[var(--color-rail-ink-muted)] line-through'
-                                    : 'text-[var(--color-rail-ink-muted)]',
+                                    ? 'text-[var(--color-ink-subtle)] line-through'
+                                    : 'text-[var(--color-ink-muted)]',
                                 )}
                               >
                                 {subtask.title}

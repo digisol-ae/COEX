@@ -26,16 +26,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Sidebar groups={groups} tenantName={user.tenantName} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-[var(--color-line)] bg-[var(--color-surface)]/95 px-4 py-2.5 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-[var(--color-line)] bg-[var(--color-surface)]/95 px-4 py-2 backdrop-blur sm:px-6">
           <MobileNavigation groups={groups} />
-
-          <div className="hidden flex-1 sm:flex">
-            <QuickSearch />
-          </div>
 
           <p className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--color-ink)] sm:hidden">
             {user.tenantName}
           </p>
+
+          <div className="hidden flex-1 justify-center sm:flex">
+            <QuickSearch />
+          </div>
 
           {timer ? (
             <RunningTimer
@@ -49,7 +49,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <UserMenu name={user.name} role={user.role} tenantName={user.tenantName} />
         </header>
 
-        <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+        <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6">{children}</main>
       </div>
     </div>
   );

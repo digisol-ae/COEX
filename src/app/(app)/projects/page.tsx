@@ -4,6 +4,7 @@ import { listProjects } from '@/modules/tasks/services/project.service';
 import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { Progress } from '@/components/ui/progress';
+import { Monogram } from '@/components/ui/monogram';
 import { NewProjectPanel } from './panels';
 
 export const metadata = { title: 'Projects · COEX' };
@@ -57,17 +58,22 @@ export default async function ProjectsPage() {
               {projects.map((project) => (
                 <tr key={project.id}>
                   <Td>
-                    <Link
-                      href={`/projects/${project.id}`}
-                      className="font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
-                    >
-                      {project.name}
-                    </Link>
-                    {project.description ? (
-                      <div className="text-xs text-[var(--color-ink-subtle)]">
-                        {project.description}
+                    <div className="flex items-center gap-2.5">
+                      <Monogram name={project.name} />
+                      <div className="min-w-0">
+                        <Link
+                          href={`/projects/${project.id}`}
+                          className="block truncate font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
+                        >
+                          {project.name}
+                        </Link>
+                        {project.description ? (
+                          <div className="truncate text-xs text-[var(--color-ink-subtle)]">
+                            {project.description}
+                          </div>
+                        ) : null}
                       </div>
-                    ) : null}
+                    </div>
                   </Td>
                   <Td className="text-[var(--color-ink-muted)]">
                     {project.organisationId

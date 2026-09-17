@@ -13,18 +13,23 @@ export function PageHeader({
   title,
   description,
   action,
+  icon,
 }: {
   title: string;
   description?: string;
   action?: ReactNode;
+  icon?: ReactNode;
 }) {
   return (
-    <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--color-ink)]">{title}</h1>
-        {description ? (
-          <p className="mt-1.5 max-w-2xl text-sm text-[var(--color-ink-muted)]">{description}</p>
-        ) : null}
+    <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+      <div className="flex items-start gap-3">
+        {icon ? <span className="mt-1">{icon}</span> : null}
+        <div>
+          <h1 className="text-xl font-bold text-[var(--color-ink)]">{title}</h1>
+          {description ? (
+            <p className="mt-1 max-w-2xl text-sm text-[var(--color-ink-muted)]">{description}</p>
+          ) : null}
+        </div>
       </div>
       {action}
     </div>

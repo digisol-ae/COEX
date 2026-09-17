@@ -5,19 +5,19 @@ import { usePathname } from 'next/navigation';
 import { useSyncExternalStore } from 'react';
 import { clsx } from 'clsx';
 import { HOME, type NavigationGroup } from './navigation';
-import { ProjectTree } from './project-tree';
 import {
   getCollapsedSnapshot,
   getServerSnapshot,
   subscribe,
   toggleCollapsed,
 } from './collapsed-store';
+import { ProjectTree } from './project-tree';
 
 /**
- * The menu itself, shared by the dark sidebar and the phone drawer.
+ * The menu itself, shared by the panel and the phone drawer.
  *
  * One implementation rather than two, because a menu that exists twice drifts: a link gets added
- * to the sidebar and forgotten on the phone, and only a user on a client site ever finds out.
+ * to one and forgotten in the other, and only a user on a client site ever finds out.
  */
 export function NavigationTree({
   groups,
@@ -32,7 +32,7 @@ export function NavigationTree({
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <nav className="space-y-5">
+    <nav className="space-y-4">
       <NavigationLink
         href={HOME.href}
         label={HOME.label}
@@ -52,14 +52,14 @@ export function NavigationTree({
               type="button"
               onClick={() => toggleCollapsed(group.id)}
               aria-expanded={open}
-              className="flex w-full items-center justify-between rounded-[var(--radius-control)] px-3 py-1.5 text-[11px] font-medium tracking-[0.08em] text-[var(--color-rail-ink-muted)] uppercase transition-colors hover:text-[var(--color-rail-ink)]"
+              className="flex w-full items-center justify-between rounded-[var(--radius-control)] px-2 py-1 text-[11px] font-semibold tracking-[0.06em] text-[var(--color-ink-subtle)] uppercase transition-colors hover:text-[var(--color-ink-muted)]"
             >
               {group.label}
               <Chevron open={open} />
             </button>
 
             {open ? (
-              <div className="mt-1 space-y-0.5">
+              <div className="mt-0.5 space-y-0.5">
                 {group.items.map((item) =>
                   // Projects carries a tree of its own: tasks, then subtasks, loaded on expand.
                   item.href === '/projects' ? (
@@ -102,19 +102,12 @@ function NavigationLink({
       className={clsx(
         // The generous height is for thumbs: 44 pixels is the smallest target reliably hit on a
         // phone.
-        'relative block rounded-[var(--radius-control)] px-3 py-2.5 text-sm transition-colors',
+        'block rounded-[var(--radius-control)] px-2 py-2 text-[13px] transition-colors',
         active
-          ? 'bg-[var(--color-rail-raised)] font-medium text-[var(--color-rail-ink)]'
-          : 'text-[var(--color-rail-ink-muted)] hover:bg-[var(--color-rail-raised)]/60 hover:text-[var(--color-rail-ink)]',
+          ? 'bg-[var(--color-surface-muted)] font-medium text-[var(--color-ink)]'
+          : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]',
       )}
     >
-      {active ? (
-        // The one place brand red appears in navigation: a three pixel mark on the current page.
-        <span
-          aria-hidden="true"
-          className="absolute top-1/2 left-0 h-5 w-[3px] -translate-y-1/2 rounded-full bg-[image:var(--gradient-brand)]"
-        />
-      ) : null}
       {label}
     </Link>
   );

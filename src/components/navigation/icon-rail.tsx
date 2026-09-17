@@ -5,30 +5,36 @@ import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
 
 /**
- * The icon rail.
+ * The icon rail: dark, narrow, and labelled.
  *
- * Two columns rather than one: a narrow rail of destinations that never moves, and a panel beside
- * it that changes with where you are. It is the pattern every tool people already use adopts,
- * because it keeps the whole product one click away while giving the current area room to breathe.
+ * Labels under the icons rather than tooltips alone. An icon set nobody has seen before is a
+ * guessing game, and a new joiner should not have to hover over six shapes to find their tasks.
+ * They cost eleven pixels of height and remove the guessing entirely.
  */
 
 interface RailItem {
   href: string;
   label: string;
-  icon: 'home' | 'tasks' | 'projects' | 'time' | 'customers' | 'tickets' | 'settings';
+  icon: 'home' | 'tasks' | 'projects' | 'time' | 'customers' | 'settings';
   permission?: string;
 }
 
 const ITEMS: RailItem[] = [
   { href: '/dashboard', label: 'Home', icon: 'home' },
-  { href: '/tasks', label: 'My tasks', icon: 'tasks', permission: 'task.read.own' },
+  { href: '/tasks', label: 'Tasks', icon: 'tasks', permission: 'task.read.own' },
   { href: '/projects', label: 'Projects', icon: 'projects', permission: 'task.read.all' },
-  { href: '/time', label: 'Timesheet', icon: 'time', permission: 'task.read.own' },
-  { href: '/customers', label: 'Customers', icon: 'customers', permission: 'customer.read' },
+  { href: '/time', label: 'Time', icon: 'time', permission: 'task.read.own' },
+  { href: '/customers', label: 'CRM', icon: 'customers', permission: 'customer.read' },
   { href: '/setup', label: 'Setup', icon: 'settings', permission: 'tenant.manage' },
 ];
 
-export function IconRail({ permissions }: { permissions: string[] }) {
+export function IconRail({
+  permissions,
+  counts,
+}: {
+  permissions: string[];
+  counts?: Partial<Record<string, number>>;
+}) {
   const pathname = usePathname();
 
   const visible = ITEMS.filter((item) => !item.permission || permissions.includes(item.permission));
@@ -36,34 +42,40 @@ export function IconRail({ permissions }: { permissions: string[] }) {
   return (
     <nav
       aria-label="Main"
-      className="hidden w-14 shrink-0 flex-col items-center gap-1 bg-[image:var(--gradient-rail)] py-4 md:flex"
+      className="hidden w-16 shrink-0 flex-col items-center gap-0.5 bg-[image:var(--gradient-rail)] py-3 md:flex"
     >
       <Link
         href="/dashboard"
         aria-label="COEX home"
-        className="mb-3 flex h-9 w-9 items-center justify-center rounded-[10px] bg-[image:var(--gradient-brand)] text-sm font-bold text-white"
+        className="mb-2 flex h-9 w-9 items-center justify-center rounded-[10px] bg-[image:var(--gradient-brand)] text-sm font-bold text-white"
       >
         C
       </Link>
 
       {visible.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const count = counts?.[item.href];
 
         return (
           <Link
             key={item.href}
             href={item.href}
-            title={item.label}
-            aria-label={item.label}
             aria-current={active ? 'page' : undefined}
             className={clsx(
-              'flex h-10 w-10 items-center justify-center rounded-[10px] transition-colors',
+              'relative flex w-14 flex-col items-center gap-1 rounded-[10px] px-1 py-2 transition-colors',
               active
                 ? 'bg-[var(--color-rail-raised)] text-[var(--color-rail-ink)]'
                 : 'text-[var(--color-rail-ink-muted)] hover:bg-[var(--color-rail-raised)]/60 hover:text-[var(--color-rail-ink)]',
             )}
           >
             <Icon name={item.icon} />
+            <span className="text-[10px] leading-none">{item.label}</span>
+
+            {count ? (
+              <span className="absolute top-1 right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-brand-red)] px-1 text-[9px] font-medium text-white">
+                {count > 99 ? '99+' : count}
+              </span>
+            ) : null}
           </Link>
         );
       })}
@@ -123,14 +135,6 @@ function Icon({ name }: { name: RailItem['icon'] }) {
         <path d="M2.5 15v-1.5a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3V15" />
         <circle cx="7" cy="6" r="2.5" />
         <path d="M12.5 15v-1.5a3 3 0 0 0-1.2-2.4M11.5 4a2.5 2.5 0 0 1 0 4" />
-      </svg>
-    );
-  }
-
-  if (name === 'tickets') {
-    return (
-      <svg {...common}>
-        <path d="M2.5 7a1.5 1.5 0 0 0 0 4v2.5h13V11a1.5 1.5 0 0 1 0-4V4.5h-13z" />
       </svg>
     );
   }

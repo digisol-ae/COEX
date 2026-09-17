@@ -1,33 +1,23 @@
-import Image from 'next/image';
 import type { NavigationGroup } from './navigation';
 import { NavigationTree } from './navigation-tree';
 
 /**
- * The panel beside the rail, shown from the medium breakpoint upwards.
+ * The panel beside the rail.
  *
- * Dark like the rail so the two read as one surface, and the working area stays white and quiet,
- * which is what people stare at all day. The tenant sits at the top because a person working
- * across two client tenants needs to know which one they are in before they read anything else.
+ * Light rather than dark, so the eye travels from the dark rail into the working area without a
+ * second heavy block in the middle. It holds the workspace name, a way to add something, and the
+ * list of what is inside the current area.
  */
 export function Sidebar({ groups, tenantName }: { groups: NavigationGroup[]; tenantName: string }) {
   return (
-    <aside className="hidden w-56 shrink-0 flex-col bg-[var(--color-rail)] px-3 py-4 md:flex">
-      <div className="mb-5 flex items-center gap-2 border-b border-[var(--color-rail-line)] pb-4">
-        <Image
-          src="/brand/monogram.png"
-          alt=""
-          width={28}
-          height={28}
-          priority
-          className="h-6 w-6 rounded object-contain"
-        />
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-[var(--color-rail-ink)]">{tenantName}</p>
-          <p className="text-[11px] text-[var(--color-rail-ink-muted)]">COEX</p>
-        </div>
+    <aside className="hidden w-60 shrink-0 flex-col border-r border-[var(--color-line)] bg-[var(--color-surface)] md:flex">
+      <div className="flex items-center justify-between px-4 py-3">
+        <p className="truncate text-sm font-semibold text-[var(--color-ink)]">{tenantName}</p>
       </div>
 
-      <NavigationTree groups={groups} />
+      <div className="flex-1 overflow-y-auto px-2 pb-6">
+        <NavigationTree groups={groups} />
+      </div>
     </aside>
   );
 }

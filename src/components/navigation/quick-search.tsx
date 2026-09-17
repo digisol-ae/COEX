@@ -83,13 +83,13 @@ export function QuickSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-9 w-full max-w-sm items-center gap-2 rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface-muted)] px-3 text-sm text-[var(--color-ink-subtle)] transition-colors hover:border-[var(--color-line-strong)]"
+        className="flex h-8 w-full max-w-md items-center gap-2 rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface-muted)] px-3 text-[13px] text-[var(--color-ink-subtle)] transition-colors hover:border-[var(--color-line-strong)]"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
           <circle cx="6.5" cy="6.5" r="4" stroke="currentColor" strokeWidth="1.5" />
           <path d="m9.5 9.5 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
-        <span className="flex-1 text-left">Search</span>
+        <span className="flex-1 text-left">Search tasks, projects, customers</span>
         <kbd className="hidden rounded border border-[var(--color-line)] px-1.5 py-0.5 text-[10px] sm:inline">
           ⌘K
         </kbd>

@@ -5,6 +5,7 @@ import { getProject } from '@/modules/tasks/services/project.service';
 import { listTasks } from '@/modules/tasks/services/task.service';
 import { progressPercent } from '@/modules/tasks/services/project.service';
 import { Progress } from '@/components/ui/progress';
+import { Monogram } from '@/components/ui/monogram';
 import { listUsers } from '@/modules/core/services/user.service';
 import { PageHeader } from '@/components/ui';
 import { Board } from './board';
@@ -43,6 +44,7 @@ export default async function ProjectPage({
 
       <div className="mt-3">
         <PageHeader
+          icon={<Monogram name={project.name} />}
           title={project.name}
           description={project.description ?? undefined}
           action={
