@@ -1,14 +1,14 @@
-# DigiSol ECO
+# COEX
 
 Standing context for every Claude session on this project. Read this first, then FEEDBACK.md.
 
 ## What this is
 
-DigiSol ECO is DigiSol's own multi tenant business platform. It replaces ClickUp and osTicket,
+COEX, short for Co-existence, is DigiSol's own multi tenant business platform. It replaces ClickUp and osTicket,
 adds a CRM foundation, and is built so that Contracts, full CRM and Payroll attach to it later.
 Zoho Books stays as the accounting system and is integrated with, never replaced.
 
-"ECO" is a working name. The final product name is decided before launch.
+Confirmed product name. The repository is COEX.
 
 ## Owner and team
 
@@ -23,7 +23,7 @@ M1 Foundation, M2 CRM foundation, M3 Tasks and dashboard, M4 Time tracking, M5 T
 M6 Channels, M7 osTicket migration, M8 Hardening and cutover. Fourteen weeks.
 
 The full scope document lives in the Claude project "ECHO System Development" as
-"DigiSol ECO Phase 1 Scope".
+"COEX Phase 1 Scope".
 
 ## Decisions already made
 
@@ -36,8 +36,8 @@ The full scope document lives in the Claude project "ECHO System Development" as
    exception and are compressed automatically on upload.
 6. No ClickUp data migration. osTicket migrates in full.
 7. No knowledge base, no automations builder, no whiteboards, no goals.
-8. Task terminology is ours, not ClickUp's: Portfolio, Project, Task, Step.
-9. XVERSE integration: ECO writes events to an outbox, a connector sends them. Both sides are ours.
+8. Task terminology is ours, not ClickUp's: Portfolio, Project, Task, Step. Confirmed by John.
+9. XVERSE integration: COEX writes events to an outbox, a connector sends them. Both sides are ours.
 10. Client tenants will be billed eventually. The model is undecided, so tenant settings carry an
     inert commercial block and nothing more.
 

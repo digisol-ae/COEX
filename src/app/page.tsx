@@ -20,7 +20,8 @@ export default function HomePage() {
         <p className="text-sm font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
           Phase 1, milestone 1
         </p>
-        <h1 className="mt-3 text-3xl font-bold text-[var(--color-ink)]">DigiSol ECO</h1>
+        <h1 className="mt-3 text-3xl font-bold text-[var(--color-ink)]">COEX</h1>
+        <p className="mt-1 text-sm text-[var(--color-ink-subtle)]">Co-existence</p>
         <p className="mt-3 max-w-xl text-[var(--color-ink-muted)]">
           Foundation in progress: tenancy, sign on, roles and the audit log. The dashboard replaces
           this screen in milestone three.

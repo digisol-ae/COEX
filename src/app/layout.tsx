@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'DigiSol ECO',
+  title: 'COEX',
   description: 'DigiSol business platform: CRM foundation, tasks, time and support tickets.',
 };
 

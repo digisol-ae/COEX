@@ -15,11 +15,11 @@ interface MongooseCache {
 
 declare global {
   // eslint-disable-next-line no-var
-  var __ecoMongoose: MongooseCache | undefined;
+  var __coexMongoose: MongooseCache | undefined;
 }
 
-const cache: MongooseCache = globalThis.__ecoMongoose ?? { connection: null, promise: null };
-globalThis.__ecoMongoose = cache;
+const cache: MongooseCache = globalThis.__coexMongoose ?? { connection: null, promise: null };
+globalThis.__coexMongoose = cache;
 
 export async function connectToDatabase(): Promise<typeof mongoose> {
   if (cache.connection) {

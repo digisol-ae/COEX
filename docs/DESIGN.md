@@ -1,10 +1,10 @@
-# DigiSol ECO design language
+# COEX design language
 
 ## Palette
 
 Source of truth is `DigiSol-Branding/digisol-color-scheme.txt`.
 
-| Brand colour | Hex       | Where it is used in ECO                                                            |
+| Brand colour | Hex       | Where it is used in COEX                                                           |
 | ------------ | --------- | ---------------------------------------------------------------------------------- |
 | Red          | `#ee3d51` | Overdue, SLA breach, destructive confirmation, focus ring, the logo. Nothing else. |
 | Black        | `#141414` | Body text, headings, primary buttons                                               |
