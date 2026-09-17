@@ -17,6 +17,11 @@ Confirmed product name. The repository is COEX.
 - A designer, a frontend developer and a backend developer join later. Readability and documentation
   are acceptance criteria on every milestone, not afterthoughts.
 
+## Where we are
+
+M1 Foundation is accepted. M2 CRM foundation is in progress: organisations, contacts, locations,
+products, custom fields and the single activity timeline.
+
 ## Phase 1 scope
 
 M1 Foundation, M2 CRM foundation, M3 Tasks and dashboard, M4 Time tracking, M5 Tickets,
