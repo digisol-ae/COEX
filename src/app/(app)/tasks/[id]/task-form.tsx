@@ -9,9 +9,11 @@ const initialState: TaskFormState = {};
 export function TaskForm({
   task,
   users,
+  phases,
   canManage,
 }: {
   canManage: boolean;
+  phases: string[];
   users: { id: string; name: string }[];
   task: {
     id: string;
@@ -23,6 +25,7 @@ export function TaskForm({
     startDate: string;
     estimateHours: string;
     tags: string;
+    phase: string;
   };
 }) {
   const [state, formAction, pending] = useActionState(updateTaskAction, initialState);
@@ -108,6 +111,19 @@ export function TaskForm({
             defaultValue={task.estimateHours}
           />
         </Field>
+
+        {phases.length > 0 ? (
+          <Field label="Phase" hint="Grouping inside the project, not a separate list">
+            <Select name="phase" defaultValue={task.phase}>
+              <option value="">No phase</option>
+              {phases.map((phase) => (
+                <option key={phase} value={phase}>
+                  {phase}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        ) : null}
 
         <Field label="Tags" hint="Separated by commas">
           <Input name="tags" defaultValue={task.tags} />

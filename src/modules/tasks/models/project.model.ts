@@ -1,11 +1,16 @@
 import { Schema, model, models, type InferSchemaType, type Model } from 'mongoose';
 
 /**
- * A body of work with a start, an end and an owner.
+ * A body of work with a start, an end and an owner. The top of the structure: a project holds
+ * tasks, and a task holds subtasks. Three levels, deliberately.
  *
  * Board columns are configured per project rather than globally, because an implementation project
  * and a support backlog do not move through the same stages. Exactly one column carries isClosed,
  * which is how the dashboard knows what counts as finished without guessing from names.
+ *
+ * Phases are the other per project list: Discovery, Design, Build and so on. A phase is a field on
+ * the task rather than a container around it, so work can move between phases without being moved
+ * between lists, and a phase can be added to a running project without reorganising anything.
  */
 
 const statusSchema = new Schema(
@@ -27,7 +32,6 @@ export const DEFAULT_STATUSES = [
 const projectSchema = new Schema(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
-    portfolioId: { type: Schema.Types.ObjectId, ref: 'Portfolio', required: true, index: true },
 
     name: { type: String, required: true, trim: true },
     description: { type: String, default: null },
@@ -47,6 +51,8 @@ const projectSchema = new Schema(
     dueDate: { type: Date, default: null },
 
     statuses: { type: [statusSchema], default: () => DEFAULT_STATUSES },
+    /** Optional. An empty list simply means this project does not think in phases. */
+    phases: { type: [String], default: [] },
 
     status: {
       type: String,
@@ -59,7 +65,7 @@ const projectSchema = new Schema(
   { timestamps: true },
 );
 
-projectSchema.index({ tenantId: 1, portfolioId: 1, name: 1 });
+projectSchema.index({ tenantId: 1, name: 1 });
 
 export type Project = InferSchemaType<typeof projectSchema>;
 

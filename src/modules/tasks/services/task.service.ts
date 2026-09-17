@@ -31,12 +31,11 @@ export interface TaskSummary {
   priority: Priority;
   projectId: string;
   projectName: string;
-  portfolioId: string;
   assigneeNames: string[];
   dueDate: Date | null;
   estimateMinutes: number | null;
-  stepCount: number;
-  stepsDone: number;
+  subtaskCount: number;
+  subtasksDone: number;
   documentCount: number;
   isClosed: boolean;
   isOverdue: boolean;
@@ -45,7 +44,7 @@ export interface TaskSummary {
 
 export interface TaskFilter {
   projectId?: string;
-  portfolioId?: string;
+  phase?: string;
   assigneeId?: string;
   status?: string;
   includeClosed?: boolean;
@@ -65,7 +64,7 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   const query: Record<string, unknown> = {};
 
   if (filter.projectId) query.projectId = toObjectId(filter.projectId);
-  if (filter.portfolioId) query.portfolioId = toObjectId(filter.portfolioId);
+  if (filter.phase) query.phase = filter.phase;
   if (filter.assigneeId) query.assigneeIds = toObjectId(filter.assigneeId);
   if (filter.status) query.status = filter.status;
   if (!filter.includeClosed) query.isClosed = false;
@@ -96,12 +95,11 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
     priority: task.priority as Priority,
     projectId: String(task.projectId),
     projectName: projectNames.get(String(task.projectId)) ?? 'Unknown',
-    portfolioId: String(task.portfolioId),
     assigneeNames: task.assigneeIds.map((id) => names.get(String(id)) ?? 'Unknown'),
     dueDate: task.dueDate ?? null,
     estimateMinutes: task.estimateMinutes ?? null,
-    stepCount: task.steps.length,
-    stepsDone: task.steps.filter((step) => step.done).length,
+    subtaskCount: task.subtasks.length,
+    subtasksDone: task.subtasks.filter((subtask) => subtask.done).length,
     documentCount: task.documentLinks.length,
     isClosed: task.isClosed ?? false,
     isOverdue: !task.isClosed && !!task.dueDate && task.dueDate < today,
@@ -123,6 +121,7 @@ export interface CreateTaskInput {
   dueDate?: string | null;
   estimateMinutes?: number | null;
   organisationId?: string | null;
+  phase?: string | null;
 }
 
 export async function createTask(input: CreateTaskInput): Promise<string> {
@@ -146,8 +145,8 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     number: await nextNumber('task'),
     title: input.title.trim(),
     description: input.description?.trim() || null,
-    portfolioId: project.portfolioId,
     projectId: project._id,
+    phase: input.phase?.trim() || null,
     status: firstColumn?.name ?? 'To do',
     priority: input.priority ?? 'normal',
     assigneeIds,
@@ -237,6 +236,7 @@ export interface UpdateTaskInput {
   startDate?: string | null;
   estimateMinutes?: number | null;
   tags?: string[];
+  phase?: string | null;
 }
 
 export async function updateTask(id: string, input: UpdateTaskInput): Promise<void> {
@@ -260,6 +260,7 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
         startDate: input.startDate ? new Date(input.startDate) : null,
         estimateMinutes: input.estimateMinutes ?? null,
         tags: input.tags ?? [],
+        phase: input.phase?.trim() || null,
         lastActivityAt: new Date(),
       },
     },
@@ -276,13 +277,13 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
   });
 }
 
-export async function addStep(taskId: string, title: string): Promise<void> {
+export async function addSubtask(taskId: string, title: string): Promise<void> {
   await connectToDatabase();
 
   const task = await tasks().updateOne(
     { _id: toObjectId(taskId) },
     {
-      $push: { steps: { title: title.trim(), done: false } },
+      $push: { subtasks: { title: title.trim(), done: false } },
       $set: { lastActivityAt: new Date() },
     },
   );
@@ -290,17 +291,22 @@ export async function addStep(taskId: string, title: string): Promise<void> {
   if (!task) throw new Error('Task not found.');
 }
 
-export async function toggleStep(taskId: string, stepId: string, done: boolean): Promise<void> {
+/** One level of breakdown only: a subtask that needs subtasks of its own is really a task. */
+export async function toggleSubtask(
+  taskId: string,
+  subtaskId: string,
+  done: boolean,
+): Promise<void> {
   await connectToDatabase();
 
   const task = await tasks().findById(taskId);
   if (!task) throw new Error('Task not found.');
 
-  const step = task.steps.find((candidate) => String(candidate._id) === stepId);
-  if (!step) throw new Error('Step not found.');
+  const subtask = task.subtasks.find((candidate) => String(candidate._id) === subtaskId);
+  if (!subtask) throw new Error('Subtask not found.');
 
-  step.done = done;
-  step.completedAt = done ? new Date() : null;
+  subtask.done = done;
+  subtask.completedAt = done ? new Date() : null;
   task.lastActivityAt = new Date();
 
   await task.save();

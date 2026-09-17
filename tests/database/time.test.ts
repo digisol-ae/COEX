@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
 import { TenantModel } from '@/modules/core/models/tenant.model';
-import { createPortfolio, createProject } from '@/modules/tasks/services/portfolio.service';
+import { createProject } from '@/modules/tasks/services/project.service';
 import { createTask } from '@/modules/tasks/services/task.service';
 import {
   addManualEntry,
@@ -29,10 +29,7 @@ const otherPerson = { tenantId, userId: otherUserId, isPlatformAdmin: false };
 const today = new Date().toISOString().slice(0, 10);
 
 async function aTask(title = 'A task'): Promise<string> {
-  const portfolioId = await runWithContext(context, () => createPortfolio({ name: 'Support' }));
-  const projectId = await runWithContext(context, () =>
-    createProject({ portfolioId, name: 'Implementation' }),
-  );
+  const projectId = await runWithContext(context, () => createProject({ name: 'Implementation' }));
 
   return runWithContext(context, () => createTask({ projectId, title }));
 }

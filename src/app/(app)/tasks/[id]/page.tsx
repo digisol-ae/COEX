@@ -2,14 +2,14 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
 import { getTask } from '@/modules/tasks/services/task.service';
-import { getProject } from '@/modules/tasks/services/portfolio.service';
+import { getProject } from '@/modules/tasks/services/project.service';
 import { listUsers } from '@/modules/core/services/user.service';
 import { Badge, Card, CardSection, PageHeader } from '@/components/ui';
 import { getRunningTimer, loggedMinutesForTask } from '@/modules/time/services/time.service';
 import { formatMinutes } from '@/modules/time/week';
 import { TimerButton } from '@/modules/time/components/timer-button';
 import { TaskForm } from './task-form';
-import { StepList } from './step-list';
+import { SubtaskList } from './subtask-list';
 import { DocumentLinks } from './document-links';
 
 export default async function TaskPage({ params }: { params: Promise<{ id: string }> }) {
@@ -40,7 +40,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
       <div className="mt-3">
         <PageHeader
           title={task.title}
-          description={`${task.number} · ${project?.name ?? ''}`}
+          description={`${task.number} · ${project?.name ?? ''}${task.phase ? ` · ${task.phase}` : ''}`}
           action={
             <div className="flex flex-wrap items-center gap-2">
               <TimerButton taskId={id} running={timer?.taskId === id} />
@@ -83,13 +83,13 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
             </CardSection>
           </Card>
 
-          <StepList
+          <SubtaskList
             taskId={id}
             canManage={canManage}
-            steps={task.steps.map((step) => ({
-              id: String(step._id),
-              title: step.title,
-              done: step.done ?? false,
+            subtasks={task.subtasks.map((subtask) => ({
+              id: String(subtask._id),
+              title: subtask.title,
+              done: subtask.done ?? false,
             }))}
           />
 
@@ -119,7 +119,9 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
                 startDate: task.startDate ? task.startDate.toISOString().slice(0, 10) : '',
                 estimateHours: task.estimateMinutes ? String(task.estimateMinutes / 60) : '',
                 tags: (task.tags ?? []).join(', '),
+                phase: task.phase ?? '',
               }}
+              phases={project?.phases ?? []}
             />
           </CardSection>
         </Card>

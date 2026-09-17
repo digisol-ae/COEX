@@ -2,77 +2,35 @@
 
 import { useActionState, useState } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
-import { createPortfolioAction, createProjectAction, type TaskFormState } from '../tasks/actions';
+import { createProjectAction, type TaskFormState } from '../tasks/actions';
 
 const initialState: TaskFormState = {};
 
-export function NewPortfolioPanel() {
-  const [open, setOpen] = useState(false);
-  const [state, formAction, pending] = useActionState(createPortfolioAction, initialState);
-
-  if (!open) {
-    return <Button onClick={() => setOpen(true)}>Add portfolio</Button>;
-  }
-
-  return (
-    <Card className="w-full sm:w-80">
-      <CardSection title="New portfolio">
-        <form action={formAction} className="space-y-3">
-          <Field label="Name" hint="A business area, for example Support">
-            <Input name="name" required autoFocus />
-          </Field>
-
-          <Field label="Description">
-            <Input name="description" />
-          </Field>
-
-          {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
-          {state.saved ? <Notice tone="ok">Created.</Notice> : null}
-
-          <div className="flex gap-2">
-            <Button type="submit" disabled={pending}>
-              {pending ? 'Creating' : 'Create'}
-            </Button>
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-              Close
-            </Button>
-          </div>
-        </form>
-      </CardSection>
-    </Card>
-  );
-}
-
-export function NewProjectPanel({
-  portfolioId,
-  customers,
-}: {
-  portfolioId: string;
-  customers: { id: string; name: string }[];
-}) {
+export function NewProjectPanel({ customers }: { customers: { id: string; name: string }[] }) {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(createProjectAction, initialState);
 
   if (!open) {
-    return (
-      <Button variant="secondary" onClick={() => setOpen(true)}>
-        Add project
-      </Button>
-    );
+    return <Button onClick={() => setOpen(true)}>Add project</Button>;
   }
 
   return (
-    <Card className="w-full sm:w-80">
+    <Card className="w-full sm:w-96">
       <CardSection title="New project">
         <form action={formAction} className="space-y-3">
-          <input type="hidden" name="portfolioId" value={portfolioId} />
-
-          <Field label="Name">
+          <Field label="Name" hint="For example dOne Platform or Project Management">
             <Input name="name" required autoFocus />
           </Field>
 
           <Field label="Description">
             <Input name="description" />
+          </Field>
+
+          <Field
+            label="Phases"
+            hint="Optional, separated by commas. For example Discovery, Design, Development, Testing"
+          >
+            <Input name="phases" placeholder="Discovery, Design, Development, Testing" />
           </Field>
 
           <Field label="Customer" hint="Optional. Work then shows on their timeline.">

@@ -3,12 +3,15 @@ import { Schema, model, models, type InferSchemaType, type Model } from 'mongoos
 /**
  * The unit of work that is assigned and tracked.
  *
- * Steps are embedded rather than a separate collection: one level of breakdown, always loaded with
- * the task, never queried on their own. Document links are pointers into Microsoft 365, never
- * copies, because documents belong where the company already keeps them.
+ * Subtasks are embedded rather than a separate collection: one level of breakdown, always loaded
+ * with the task, never queried on their own. A subtask that needs subtasks of its own is really a
+ * task, and allowing deeper nesting is how a plan becomes impossible to hold in the head.
+ *
+ * Document links are pointers into Microsoft 365, never copies, because documents belong where the
+ * company already keeps them.
  */
 
-const stepSchema = new Schema(
+const subtaskSchema = new Schema(
   {
     title: { type: String, required: true, trim: true },
     done: { type: Boolean, default: false },
@@ -38,8 +41,9 @@ const taskSchema = new Schema(
     title: { type: String, required: true, trim: true },
     description: { type: String, default: null },
 
-    portfolioId: { type: Schema.Types.ObjectId, ref: 'Portfolio', required: true, index: true },
     projectId: { type: Schema.Types.ObjectId, ref: 'Project', required: true, index: true },
+    /** One of the project's phases, or nothing. Grouping, not containment. */
+    phase: { type: String, default: null, index: true },
 
     /** Matches one of the project's configured column names. */
     status: { type: String, required: true, index: true },
@@ -59,7 +63,7 @@ const taskSchema = new Schema(
     estimateMinutes: { type: Number, default: null },
 
     tags: { type: [String], default: [] },
-    steps: { type: [stepSchema], default: [] },
+    subtasks: { type: [subtaskSchema], default: [] },
     documentLinks: { type: [documentLinkSchema], default: [] },
 
     blockedByIds: { type: [Schema.Types.ObjectId], ref: 'Task', default: [] },

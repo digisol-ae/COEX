@@ -50,7 +50,10 @@ The full scope document lives in the Claude project "ECHO System Development" as
    exception and are compressed automatically on upload.
 6. No ClickUp data migration. osTicket migrates in full.
 7. No knowledge base, no automations builder, no whiteboards, no goals.
-8. Task terminology is ours, not ClickUp's: Portfolio, Project, Task, Step. Confirmed by John.
+8. Task structure is three levels: Project, Task, Subtask. Confirmed by John on 17 Sep 2026 after
+   comparing against his ClickUp. Phases such as Discovery or Design are a field on the task, not a
+   container around it, so work moves between phases without being moved between lists and a phase
+   can be added to a running project. Portfolios were removed.
 9. XVERSE integration: COEX writes events to an outbox, a connector sends them. Both sides are ours.
 10. Client tenants will be billed eventually. The model is undecided, so tenant settings carry an
     inert commercial block and nothing more.

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
-import { getProject } from '@/modules/tasks/services/portfolio.service';
+import { getProject } from '@/modules/tasks/services/project.service';
 import { listTasks } from '@/modules/tasks/services/task.service';
 import { listUsers } from '@/modules/core/services/user.service';
 import { PageHeader } from '@/components/ui';
@@ -46,6 +46,7 @@ export default async function ProjectPage({
       <Board
         projectId={id}
         columns={columns}
+        phases={project.phases ?? []}
         tasks={tasks}
         users={users.map((user) => ({ id: user.id, name: user.name }))}
         canManage={actor.permissions.includes('task.manage')}

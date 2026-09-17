@@ -3,10 +3,10 @@ import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
 import { TenantModel } from '@/modules/core/models/tenant.model';
-import { createPortfolio, createProject } from '@/modules/tasks/services/portfolio.service';
+import { createProject } from '@/modules/tasks/services/project.service';
 import {
   addDocumentLink,
-  addStep,
+  addSubtask,
   createTask,
   getTask,
   listTasks,
@@ -26,8 +26,9 @@ const otherContext = {
 };
 
 async function aProject(scope = context): Promise<string> {
-  const portfolioId = await runWithContext(scope, () => createPortfolio({ name: 'Support' }));
-  return runWithContext(scope, () => createProject({ portfolioId, name: 'Implementation' }));
+  return runWithContext(scope, () =>
+    createProject({ name: 'Implementation', phases: ['Discovery', 'Design'] }),
+  );
 }
 
 beforeAll(async () => {
@@ -128,20 +129,20 @@ describe('tasks', () => {
     expect(theirs.map((task) => task.title)).toEqual(['Theirs']);
   });
 
-  it('counts steps and documents on the summary', async () => {
+  it('counts subtasks and documents on the summary', async () => {
     const projectId = await aProject();
     const id = await runWithContext(context, () => createTask({ projectId, title: 'A task' }));
 
     await runWithContext(context, async () => {
-      await addStep(id, 'Prepare the environment');
-      await addStep(id, 'Run the import');
+      await addSubtask(id, 'Prepare the environment');
+      await addSubtask(id, 'Run the import');
       await addDocumentLink(id, 'https://digisol.sharepoint.com/sites/ops/plan.docx');
     });
 
     const [summary] = await runWithContext(context, () => listTasks());
 
-    expect(summary.stepCount).toBe(2);
-    expect(summary.stepsDone).toBe(0);
+    expect(summary.subtaskCount).toBe(2);
+    expect(summary.subtasksDone).toBe(0);
     expect(summary.documentCount).toBe(1);
   });
 });

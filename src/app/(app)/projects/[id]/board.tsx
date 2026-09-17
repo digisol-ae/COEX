@@ -37,6 +37,7 @@ const PRIORITY_TONE = {
 export function Board({
   projectId,
   columns,
+  phases,
   tasks,
   users,
   canManage,
@@ -44,6 +45,7 @@ export function Board({
 }: {
   projectId: string;
   columns: { name: string; isClosed: boolean }[];
+  phases: string[];
   tasks: TaskSummary[];
   users: { id: string; name: string }[];
   canManage: boolean;
@@ -113,6 +115,19 @@ export function Board({
               <Field label="Due date">
                 <Input name="dueDate" type="date" />
               </Field>
+
+              {phases.length > 0 ? (
+                <Field label="Phase">
+                  <Select name="phase" defaultValue="">
+                    <option value="">No phase</option>
+                    {phases.map((phase) => (
+                      <option key={phase} value={phase}>
+                        {phase}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              ) : null}
 
               <Field label="Estimate" hint="Hours">
                 <Input name="estimateHours" type="number" step="0.5" min="0" />
@@ -255,9 +270,9 @@ function TaskCard({
 
         {task.isOverdue ? <Badge tone="alert">overdue</Badge> : null}
 
-        {task.stepCount > 0 ? (
+        {task.subtaskCount > 0 ? (
           <span className="text-xs text-[var(--color-ink-subtle)]">
-            {task.stepsDone}/{task.stepCount} steps
+            {task.subtasksDone}/{task.subtaskCount} subtasks
           </span>
         ) : null}
 

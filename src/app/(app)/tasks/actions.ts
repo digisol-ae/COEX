@@ -5,16 +5,16 @@ import { redirect } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
 import {
   addDocumentLink,
-  addStep,
+  addSubtask,
   archiveTask,
   createTask,
   moveTask,
   removeDocumentLink,
-  toggleStep,
+  toggleSubtask,
   updateTask,
   type Priority,
 } from '@/modules/tasks/services/task.service';
-import { createPortfolio, createProject } from '@/modules/tasks/services/portfolio.service';
+import { createProject, updateProjectPhases } from '@/modules/tasks/services/project.service';
 
 export interface TaskFormState {
   error?: string;
@@ -35,24 +35,6 @@ function assigneesFrom(formData: FormData): string[] {
   return formData.getAll('assigneeIds').map(String).filter(Boolean);
 }
 
-export async function createPortfolioAction(
-  _previous: TaskFormState,
-  formData: FormData,
-): Promise<TaskFormState> {
-  const actor = await requirePermission('task.manage');
-
-  try {
-    await asUser(actor, () =>
-      createPortfolio({ name: text(formData, 'name'), description: text(formData, 'description') }),
-    );
-  } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Could not create the portfolio.' };
-  }
-
-  revalidatePath('/projects');
-  return { saved: true };
-}
-
 export async function createProjectAction(
   _previous: TaskFormState,
   formData: FormData,
@@ -64,11 +46,14 @@ export async function createProjectAction(
   try {
     id = await asUser(actor, () =>
       createProject({
-        portfolioId: text(formData, 'portfolioId'),
         name: text(formData, 'name'),
         description: text(formData, 'description'),
         organisationId: text(formData, 'organisationId') || null,
         dueDate: text(formData, 'dueDate') || null,
+        phases: text(formData, 'phases')
+          .split(',')
+          .map((phase) => phase.trim())
+          .filter(Boolean),
       }),
     );
   } catch (error) {
@@ -95,6 +80,7 @@ export async function createTaskAction(
         priority: toPriority(text(formData, 'priority')),
         assigneeIds: assigneesFrom(formData),
         dueDate: text(formData, 'dueDate') || null,
+        phase: text(formData, 'phase') || null,
         estimateMinutes: text(formData, 'estimateHours')
           ? Math.round(Number(text(formData, 'estimateHours')) * 60)
           : null,
@@ -141,6 +127,7 @@ export async function updateTaskAction(
         estimateMinutes: text(formData, 'estimateHours')
           ? Math.round(Number(text(formData, 'estimateHours')) * 60)
           : null,
+        phase: text(formData, 'phase') || null,
         tags: text(formData, 'tags')
           .split(',')
           .map((tag) => tag.trim())
@@ -155,27 +142,43 @@ export async function updateTaskAction(
   return { saved: true };
 }
 
-export async function addStepAction(formData: FormData): Promise<void> {
+export async function addSubtaskAction(formData: FormData): Promise<void> {
   const actor = await requirePermission('task.manage');
   const id = text(formData, 'taskId');
   const title = text(formData, 'title');
 
   if (title) {
-    await asUser(actor, () => addStep(id, title));
+    await asUser(actor, () => addSubtask(id, title));
   }
 
   revalidatePath(`/tasks/${id}`);
 }
 
-export async function toggleStepAction(formData: FormData): Promise<void> {
+export async function toggleSubtaskAction(formData: FormData): Promise<void> {
   const actor = await requirePermission('task.manage');
   const id = text(formData, 'taskId');
 
   await asUser(actor, () =>
-    toggleStep(id, text(formData, 'stepId'), text(formData, 'done') !== 'true'),
+    toggleSubtask(id, text(formData, 'subtaskId'), text(formData, 'done') !== 'true'),
   );
 
   revalidatePath(`/tasks/${id}`);
+}
+
+export async function setPhasesAction(formData: FormData): Promise<void> {
+  const actor = await requirePermission('task.manage');
+  const id = text(formData, 'projectId');
+
+  await asUser(actor, () =>
+    updateProjectPhases(
+      id,
+      text(formData, 'phases')
+        .split(',')
+        .map((phase) => phase.trim()),
+    ),
+  );
+
+  revalidatePath(`/projects/${id}`);
 }
 
 export async function addDocumentAction(

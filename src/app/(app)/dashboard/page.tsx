@@ -97,12 +97,12 @@ export default async function DashboardPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
-          <CardSection title="Open work by portfolio">
-            {data.byPortfolio.length === 0 ? (
+          <CardSection title="Open work by project">
+            {data.byProject.length === 0 ? (
               <EmptyState message="Nothing open." />
             ) : (
               <ul className="space-y-2">
-                {data.byPortfolio.map((row) => (
+                {data.byProject.map((row) => (
                   <li key={row.label} className="flex items-center justify-between text-sm">
                     <span className="text-[var(--color-ink)]">{row.label}</span>
                     <span className="text-[var(--color-ink-muted)]">{row.count}</span>
