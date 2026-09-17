@@ -75,6 +75,13 @@ monolith from becoming a tangle.
   scripts, seeds, migrations or the dev server on John's machine.
 - Replies on this project in English only, whatever language the question is asked in.
 
+## Environment
+
+Node 22 LTS, pinned in .nvmrc and in the engines field. Node 23 is an odd numbered release, never
+became LTS and is already end of life; it also ships the npm build that throws
+"Cannot read properties of null (reading 'edgesOut')" during install. Mongoose 9 renamed
+FilterQuery to QueryFilter, so older examples found online will not compile here.
+
 ## Environment rule that bit us once
 
 Dependencies are installed on John's Mac, by John, with `npm install` in Terminal. Claude must
