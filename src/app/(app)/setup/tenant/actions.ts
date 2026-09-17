@@ -27,7 +27,7 @@ export async function saveTenantSettingsAction(
       }),
     );
 
-    revalidatePath('/admin/tenant');
+    revalidatePath('/setup/tenant');
 
     return { saved: true };
   } catch (error) {

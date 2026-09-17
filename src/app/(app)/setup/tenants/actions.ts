@@ -28,7 +28,7 @@ export async function createTenantAction(
       }),
     );
 
-    revalidatePath('/admin/tenants');
+    revalidatePath('/setup/tenants');
 
     return { password, email: adminEmail };
   } catch (error) {

@@ -45,7 +45,7 @@ export async function createUserAction(
       }),
     );
 
-    revalidatePath('/admin/users');
+    revalidatePath('/setup/users');
 
     return { createdPassword: password, createdEmail: email };
   } catch (error) {
@@ -60,7 +60,7 @@ export async function changeRoleAction(formData: FormData): Promise<void> {
     updateUserRole(String(formData.get('userId') ?? ''), toRole(formData.get('role'))),
   );
 
-  revalidatePath('/admin/users');
+  revalidatePath('/setup/users');
 }
 
 export async function toggleStatusAction(formData: FormData): Promise<void> {
@@ -69,7 +69,7 @@ export async function toggleStatusAction(formData: FormData): Promise<void> {
 
   await asUser(actor, () => setUserStatus(String(formData.get('userId') ?? ''), status));
 
-  revalidatePath('/admin/users');
+  revalidatePath('/setup/users');
 }
 
 export async function resetPasswordAction(
@@ -83,7 +83,7 @@ export async function resetPasswordAction(
       resetPassword(String(formData.get('userId') ?? '')),
     );
 
-    revalidatePath('/admin/users');
+    revalidatePath('/setup/users');
 
     return { createdPassword: password, createdEmail: String(formData.get('email') ?? '') };
   } catch (error) {

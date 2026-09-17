@@ -59,7 +59,7 @@ export async function createFieldAction(
     return { error: error instanceof Error ? error.message : 'Could not create the field.' };
   }
 
-  revalidatePath('/admin/fields');
+  revalidatePath('/setup/fields');
   return { saved: true };
 }
 
@@ -69,5 +69,5 @@ export async function toggleFieldAction(formData: FormData): Promise<void> {
 
   await asUser(actor, () => setFieldStatus(text(formData, 'id'), status));
 
-  revalidatePath('/admin/fields');
+  revalidatePath('/setup/fields');
 }
