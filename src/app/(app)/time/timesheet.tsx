@@ -14,27 +14,14 @@ import {
   Notice,
   Select,
   Table,
-  Td,
   Th,
 } from '@/components/ui';
 import { formatMinutes } from '@/modules/time/week';
-import { addTimeAction, lockWeekAction, removeTimeAction, type TimeFormState } from './actions';
+import { EntryRow, type Entry } from './entry-row';
+import { addTimeAction, lockWeekAction, type TimeFormState } from './actions';
+import { toDateKey } from '@/modules/time/week';
 
 const initialState: TimeFormState = {};
-
-interface Entry {
-  id: string;
-  taskNumber: string;
-  taskTitle: string;
-  spaceName: string;
-  organisationName: string | null;
-  workDate: string;
-  minutes: number;
-  note: string | null;
-  billable: boolean;
-  running: boolean;
-  locked: boolean;
-}
 
 export function Timesheet({
   timesheet,
@@ -43,6 +30,7 @@ export function Timesheet({
   canLock,
   canSeeOthers,
   viewingSelf,
+  canEditThisSheet,
 }: {
   timesheet: {
     weekStart: string;
@@ -58,6 +46,7 @@ export function Timesheet({
   canLock: boolean;
   canSeeOthers: boolean;
   viewingSelf: boolean;
+  canEditThisSheet: boolean;
 }) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(addTimeAction, initialState);
@@ -69,7 +58,7 @@ export function Timesheet({
     const target = new Date(weekStart);
     target.setDate(target.getDate() + offset * 7);
 
-    const params = new URLSearchParams({ week: target.toISOString().slice(0, 10) });
+    const params = new URLSearchParams({ week: toDateKey(target) });
     if (!viewingSelf) params.set('user', timesheet.userId);
 
     router.push(`/time?${params.toString()}`);
@@ -167,43 +156,13 @@ export function Timesheet({
             </thead>
             <tbody>
               {timesheet.entries.map((entry) => (
-                <tr key={entry.id}>
-                  <Td className="whitespace-nowrap text-[var(--color-ink-muted)]">
-                    {new Date(entry.workDate).toLocaleDateString('en-GB', {
-                      weekday: 'short',
-                      day: 'numeric',
-                    })}
-                  </Td>
-                  <Td>
-                    <span className="font-mono text-xs text-[var(--color-ink-subtle)]">
-                      {entry.taskNumber}
-                    </span>{' '}
-                    <span className="text-[var(--color-ink)]">{entry.taskTitle}</span>
-                    {entry.note ? (
-                      <div className="text-xs text-[var(--color-ink-subtle)]">{entry.note}</div>
-                    ) : null}
-                  </Td>
-                  <Td className="text-[var(--color-ink-muted)]">
-                    {entry.organisationName ?? entry.spaceName}
-                  </Td>
-                  <Td className="tabular-nums text-[var(--color-ink)]">
-                    {entry.running ? 'running' : formatMinutes(entry.minutes)}
-                  </Td>
-                  <Td>{entry.billable ? <Badge tone="ok">billable</Badge> : null}</Td>
-                  <Td>
-                    {!entry.locked && !entry.running ? (
-                      <form action={removeTimeAction}>
-                        <input type="hidden" name="id" value={entry.id} />
-                        <button
-                          type="submit"
-                          className="text-xs text-[var(--color-ink-subtle)] underline-offset-4 hover:underline"
-                        >
-                          Remove
-                        </button>
-                      </form>
-                    ) : null}
-                  </Td>
-                </tr>
+                <EntryRow
+                  key={entry.id}
+                  entry={entry}
+                  tasks={tasks}
+                  canEdit={canEditThisSheet && !timesheet.locked}
+                  columns={6}
+                />
               ))}
             </tbody>
           </Table>
@@ -232,7 +191,7 @@ export function Timesheet({
                     name="workDate"
                     type="date"
                     required
-                    defaultValue={new Date().toISOString().slice(0, 10)}
+                    defaultValue={toDateKey(new Date())}
                   />
                 </Field>
 

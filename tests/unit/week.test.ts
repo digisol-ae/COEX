@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { daysOfWeek, formatMinutes, parseDuration, startOfWeek } from '@/modules/time/week';
+import {
+  daysOfWeek,
+  formatMinutes,
+  parseDuration,
+  startOfWeek,
+  toDateKey,
+} from '@/modules/time/week';
 import { toCsv } from '@/modules/time/services/export.service';
 import { progressPercent } from '@/modules/tasks/services/space.service';
 
@@ -87,5 +93,23 @@ describe('project progress', () => {
 
   it('reads nothing as nothing rather than dividing by zero', () => {
     expect(progressPercent([])).toBe(0);
+  });
+});
+
+describe('writing a work date down', () => {
+  it('answers in the reader\u2019s own day, not in UTC', () => {
+    // Local midnight on the 18th is the evening of the 17th in UTC. Anyone east of Greenwich would
+    // otherwise see Friday's work reported as Thursday's, in the CSV their client is invoiced from.
+    const localMidnight = new Date(2026, 8, 18, 0, 0, 0, 0);
+
+    expect(toDateKey(localMidnight)).toBe('2026-09-18');
+  });
+
+  it('pads a single digit month and day', () => {
+    expect(toDateKey(new Date(2026, 0, 5, 12, 0, 0))).toBe('2026-01-05');
+  });
+
+  it('does not drift late in the evening', () => {
+    expect(toDateKey(new Date(2026, 8, 18, 23, 45, 0))).toBe('2026-09-18');
   });
 });

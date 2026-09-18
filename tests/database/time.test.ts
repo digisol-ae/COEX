@@ -8,16 +8,19 @@ import { createTask } from '@/modules/tasks/services/task.service';
 import {
   addManualEntry,
   getRunningTimer,
+  removeEntry,
   startTimer,
   stopTimer,
+  updateEntry,
 } from '@/modules/time/services/time.service';
+import { historyFor } from '@/modules/core/services/audit.service';
 import {
   loadTimesheet,
   loadTotals,
   lockWeek,
   unlockWeek,
 } from '@/modules/time/services/timesheet.service';
-import { endOfWeek, startOfWeek } from '@/modules/time/week';
+import { endOfWeek, startOfWeek, toDateKey } from '@/modules/time/week';
 
 const tenantId = new Types.ObjectId();
 const userId = new Types.ObjectId();
@@ -163,5 +166,180 @@ describe('totals', () => {
     expect(totals.billableMinutes).toBe(60);
     expect(totals.byPerson).toHaveLength(2);
     expect(totals.bySpace).toHaveLength(1);
+  });
+});
+
+describe('correcting an entry', () => {
+  it('changes the number and records what it was before', async () => {
+    const taskId = await aTask();
+
+    await runWithContext(context, () =>
+      addManualEntry({ taskId, workDate: today, duration: 90, note: 'First guess' }),
+    );
+
+    const before = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
+    const entryId = before.entries[0].id;
+
+    await runWithContext(context, () =>
+      updateEntry(entryId, { duration: 120, note: 'Checked the calendar', billable: true }),
+    );
+
+    const after = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
+
+    expect(after.entries[0].minutes).toBe(120);
+    expect(after.entries[0].note).toBe('Checked the calendar');
+    expect(after.entries[0].edited).toBe(true);
+
+    const history = await runWithContext(context, () => historyFor('TimeEntry', entryId));
+    const edit = history.find((row) => row.action === 'time.entry_edited');
+
+    expect(edit).toBeTruthy();
+    expect(edit?.changes.find((change) => change.field === 'minutes')).toEqual({
+      field: 'minutes',
+      from: 90,
+      to: 120,
+    });
+  });
+
+  it('moves an entry to another day', async () => {
+    const taskId = await aTask();
+
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 60 }));
+
+    const before = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    await runWithContext(context, () =>
+      updateEntry(before.entries[0].id, {
+        duration: 60,
+        billable: true,
+        workDate: toDateKey(yesterday),
+      }),
+    );
+
+    const after = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
+
+    expect(toDateKey(after.entries[0].workDate)).toBe(toDateKey(yesterday));
+  });
+
+  it('carries the space and the customer when the entry moves to another task', async () => {
+    const first = await aTask('First task');
+    const second = await aTask('Second task');
+
+    await runWithContext(context, () =>
+      addManualEntry({ taskId: first, workDate: today, duration: 60 }),
+    );
+
+    const before = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
+
+    await runWithContext(context, () =>
+      updateEntry(before.entries[0].id, { duration: 60, billable: true, taskId: second }),
+    );
+
+    const after = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
+
+    expect(after.entries[0].taskId).toBe(second);
+    expect(after.entries[0].taskTitle).toBe('Second task');
+  });
+
+  it('refuses to edit somebody else\u2019s entry without the authority to', async () => {
+    const taskId = await aTask();
+
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 60 }));
+
+    const sheet = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
+
+    await expect(
+      runWithContext(otherPerson, () =>
+        updateEntry(sheet.entries[0].id, { duration: 30, billable: true }),
+      ),
+    ).rejects.toThrow(/administrator/i);
+  });
+
+  it('allows an administrator to correct it, and says whose it was', async () => {
+    const taskId = await aTask();
+
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 60 }));
+
+    const sheet = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
+
+    await runWithContext(otherPerson, () =>
+      updateEntry(sheet.entries[0].id, { duration: 30, billable: true, mayEditOthers: true }),
+    );
+
+    const history = await runWithContext(context, () =>
+      historyFor('TimeEntry', sheet.entries[0].id),
+    );
+
+    const edit = history.find((row) => row.action === 'time.entry_edited');
+
+    expect(edit?.changes.some((change) => change.field === 'onBehalfOf')).toBe(true);
+  });
+
+  it('refuses to edit an entry in a locked week', async () => {
+    const taskId = await aTask();
+
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 60 }));
+
+    const sheet = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
+
+    await runWithContext(context, () => lockWeek(startOfWeek(new Date())));
+
+    await expect(
+      runWithContext(context, () =>
+        updateEntry(sheet.entries[0].id, { duration: 30, billable: true }),
+      ),
+    ).rejects.toThrow(/locked/i);
+  });
+
+  it('refuses to move an entry into a locked week', async () => {
+    const taskId = await aTask();
+
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 60 }));
+
+    const sheet = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
+
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+
+    await runWithContext(context, () => lockWeek(startOfWeek(lastWeek)));
+
+    await expect(
+      runWithContext(context, () =>
+        updateEntry(sheet.entries[0].id, {
+          duration: 60,
+          billable: true,
+          workDate: toDateKey(lastWeek),
+        }),
+      ),
+    ).rejects.toThrow(/locked/i);
+  });
+
+  it('refuses to edit a running timer, whose minutes nobody has typed yet', async () => {
+    const taskId = await aTask();
+
+    await runWithContext(context, () => startTimer(taskId));
+
+    const running = await runWithContext(context, () => getRunningTimer());
+
+    await expect(
+      runWithContext(context, () =>
+        updateEntry(running!.entryId, { duration: 60, billable: true }),
+      ),
+    ).rejects.toThrow(/timer/i);
+  });
+
+  it('refuses to remove somebody else\u2019s entry without the authority to', async () => {
+    const taskId = await aTask();
+
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 60 }));
+
+    const sheet = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
+
+    await expect(
+      runWithContext(otherPerson, () => removeEntry(sheet.entries[0].id)),
+    ).rejects.toThrow(/administrator/i);
   });
 });

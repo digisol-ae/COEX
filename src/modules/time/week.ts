@@ -28,6 +28,19 @@ export function startOfDay(date: Date): Date {
   return result;
 }
 
+/**
+ * A day as people write it: 2026-09-18, in the reader's own time.
+ *
+ * toISOString would answer in UTC, which for anyone east of Greenwich turns local midnight into
+ * the previous evening and reports Friday's work as Thursday's. Every place a work date is written
+ * down as text goes through here.
+ */
+export function toDateKey(date: Date): string {
+  const pad = (part: number) => String(part).padStart(2, '0');
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 export function daysOfWeek(weekStart: Date): Date[] {
   return Array.from({ length: 7 }, (_, index) => {
     const day = new Date(weekStart);

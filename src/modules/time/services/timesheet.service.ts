@@ -9,7 +9,9 @@ import { SpaceModel } from '@/modules/tasks/models/space.model';
 import { OrganisationModel } from '@/modules/crm/models/organisation.model';
 import { TimeEntryModel } from '../models/time-entry.model';
 import { WeekLockModel } from '../models/week-lock.model';
+import { AuditLogModel } from '@/modules/core/models/audit-log.model';
 import { endOfWeek, startOfWeek } from '../week';
+import { toDateKey } from '../week';
 
 /** Reading time back: one person's week, and totals by space, person and customer. */
 
@@ -28,6 +30,8 @@ export interface TimesheetEntry {
   billable: boolean;
   running: boolean;
   locked: boolean;
+  /** True once the entry has been corrected, so the row can offer its own history. */
+  edited: boolean;
 }
 
 export interface Timesheet {
@@ -52,7 +56,7 @@ export async function loadTimesheet(week: Date, userId?: string): Promise<Timesh
     .find({ userId: owner, workDate: { $gte: weekStart, $lt: endOfWeek(week) } })
     .sort({ workDate: 1, createdAt: 1 });
 
-  const [tasks, spaces, organisations, user, lock] = await Promise.all([
+  const [tasks, spaces, organisations, user, lock, edits] = await Promise.all([
     TaskModel.find({ _id: { $in: found.map((entry) => entry.taskId) } }).select('number title'),
     SpaceModel.find({ _id: { $in: found.map((entry) => entry.spaceId) } }).select('name'),
     OrganisationModel.find({
@@ -60,7 +64,17 @@ export async function loadTimesheet(week: Date, userId?: string): Promise<Timesh
     }).select('name'),
     UserModel.findOne({ _id: owner }).select('name'),
     WeekLockModel.findOne({ tenantId: context.tenantId, weekStart, unlockedAt: null }),
+    // One query for the whole week rather than one per row: the flag only decides whether a row
+    // offers its history, and forty extra reads for a marker would not be worth it.
+    AuditLogModel.find({
+      tenantId: context.tenantId,
+      entityType: 'TimeEntry',
+      action: 'time.entry_edited',
+      entityId: { $in: found.map((entry) => entry._id) },
+    }).select('entityId'),
   ]);
+
+  const editedIds = new Set(edits.map((row) => String(row.entityId)));
 
   const taskById = new Map(tasks.map((task) => [String(task._id), task]));
   const spaceById = new Map(spaces.map((space) => [String(space._id), space.name]));
@@ -83,11 +97,12 @@ export async function loadTimesheet(week: Date, userId?: string): Promise<Timesh
     billable: entry.billable ?? true,
     running: entry.running ?? false,
     locked: Boolean(lock),
+    edited: editedIds.has(String(entry._id)),
   }));
 
   const byDay = new Map<string, number>();
   for (const row of rows) {
-    const key = row.workDate.toISOString().slice(0, 10);
+    const key = toDateKey(row.workDate);
     byDay.set(key, (byDay.get(key) ?? 0) + row.minutes);
   }
 

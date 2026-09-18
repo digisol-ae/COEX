@@ -1,6 +1,8 @@
 import type { Types } from 'mongoose';
 import { AuditLogModel } from '../models/audit-log.model';
+import { UserModel } from '../models/user.model';
 import { getContext, peekContext } from '@/lib/tenant-context';
+import { toObjectId } from '@/lib/ids';
 
 /**
  * The single place an audit entry is written.
@@ -74,4 +76,62 @@ export function changedFields<T extends Record<string, unknown>>(
   }
 
   return { before: beforeChanges, after: afterChanges };
+}
+
+export interface AuditHistoryRow {
+  id: string;
+  action: string;
+  at: Date;
+  actorName: string;
+  changes: { field: string; from: unknown; to: unknown }[];
+}
+
+/**
+ * The history of one record, in the order it happened.
+ *
+ * A log nobody can find is a log nobody trusts. An audit trail that only exists on a separate
+ * administrative screen answers "what happened across the tenant" and never "why does this row say
+ * ninety minutes when I remember two hours", which is the question people actually ask. So the
+ * history of a single record is readable from the record itself.
+ *
+ * Reads only. Nothing in the product edits or deletes an audit entry.
+ */
+export async function historyFor(
+  entityType: string,
+  entityId: string,
+  limit = 20,
+): Promise<AuditHistoryRow[]> {
+  const { tenantId } = getContext();
+
+  const rows = await AuditLogModel.find({
+    tenantId,
+    entityType,
+    entityId: toObjectId(entityId),
+  })
+    .sort({ at: 1 })
+    .limit(limit);
+
+  const actorIds = [
+    ...new Set(rows.filter((row) => row.actorId).map((row) => String(row.actorId))),
+  ];
+
+  const actors = await UserModel.find({ _id: { $in: actorIds } }).select('name');
+  const names = new Map(actors.map((actor) => [String(actor._id), actor.name]));
+
+  return rows.map((row) => {
+    const before = (row.before ?? {}) as Record<string, unknown>;
+    const after = (row.after ?? {}) as Record<string, unknown>;
+
+    const fields = [...new Set([...Object.keys(before), ...Object.keys(after)])];
+
+    return {
+      id: String(row._id),
+      action: row.action,
+      at: row.at,
+      actorName: row.actorId
+        ? (names.get(String(row.actorId)) ?? row.actorEmail ?? 'Unknown')
+        : (row.actorEmail ?? 'The system'),
+      changes: fields.map((field) => ({ field, from: before[field], to: after[field] })),
+    };
+  });
 }

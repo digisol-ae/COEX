@@ -1,5 +1,6 @@
 import { asUser, getSignedInUser } from '@/lib/session';
 import { timesheetCsv } from '@/modules/time/services/export.service';
+import { toDateKey } from '@/modules/time/week';
 
 /**
  * Downloads a week as CSV.
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
   }
 
   const csv = await asUser(user, () => timesheetCsv(weekDate, subject));
-  const fileName = `timesheet-${weekDate.toISOString().slice(0, 10)}.csv`;
+  const fileName = `timesheet-${toDateKey(weekDate)}.csv`;
 
   return new Response(csv, {
     headers: {

@@ -1,5 +1,6 @@
 import { asUser, getSignedInUser } from '@/lib/session';
 import { totalsCsv } from '@/modules/time/services/export.service';
+import { toDateKey } from '@/modules/time/week';
 
 /** The time report as CSV. Only someone who can see all tasks may export the whole tenant. */
 export async function GET(request: Request) {
@@ -28,9 +29,7 @@ export async function GET(request: Request) {
   return new Response(csv, {
     headers: {
       'content-type': 'text/csv; charset=utf-8',
-      'content-disposition': `attachment; filename="time-${from.toISOString().slice(0, 10)}-to-${to
-        .toISOString()
-        .slice(0, 10)}.csv"`,
+      'content-disposition': `attachment; filename="time-${toDateKey(from)}-to-${toDateKey(to)}.csv"`,
       'cache-control': 'no-store',
     },
   });

@@ -4,6 +4,7 @@ import { loadTotals } from '@/modules/time/services/timesheet.service';
 import { formatMinutes, startOfWeek } from '@/modules/time/week';
 import { Card, CardSection, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { PeriodPicker } from './period-picker';
+import { toDateKey } from '@/modules/time/week';
 
 export const metadata = { title: 'Time report · COEX' };
 
@@ -28,9 +29,7 @@ export default async function TimeReportPage({
 
   const totals = await asUser(actor, () => loadTotals(from, toExclusive));
 
-  const exportHref = `/time/report/export?from=${from.toISOString().slice(0, 10)}&to=${to
-    .toISOString()
-    .slice(0, 10)}`;
+  const exportHref = `/time/report/export?from=${toDateKey(from)}&to=${toDateKey(to)}`;
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -47,7 +46,7 @@ export default async function TimeReportPage({
         }
       />
 
-      <PeriodPicker from={from.toISOString().slice(0, 10)} to={to.toISOString().slice(0, 10)} />
+      <PeriodPicker from={toDateKey(from)} to={toDateKey(to)} />
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Card className="px-4 py-3">

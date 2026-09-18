@@ -1,5 +1,6 @@
 import { loadTimesheet, loadTotals } from './timesheet.service';
 import { formatMinutes } from '../week';
+import { toDateKey } from '../week';
 
 /**
  * Exports.
@@ -32,7 +33,7 @@ export async function timesheetCsv(week: Date, userId?: string): Promise<string>
   const rows: (string | number | null)[][] = [
     ['Date', 'Person', 'Task', 'Title', 'Space', 'Customer', 'Hours', 'Billable', 'Note'],
     ...timesheet.entries.map((entry) => [
-      entry.workDate.toISOString().slice(0, 10),
+      toDateKey(entry.workDate),
       timesheet.userName,
       entry.taskNumber,
       entry.taskTitle,
@@ -67,7 +68,7 @@ export async function totalsCsv(from: Date, to: Date): Promise<string> {
   ];
 
   return toCsv([
-    ['Period', from.toISOString().slice(0, 10), to.toISOString().slice(0, 10)],
+    ['Period', toDateKey(from), toDateKey(to)],
     [],
     ...section('Person', totals.byPerson),
     ...section('Space', totals.bySpace),
@@ -79,7 +80,7 @@ export async function totalsCsv(from: Date, to: Date): Promise<string> {
 
 /** A readable file name, since people keep these in folders for years. */
 export function exportFileName(prefix: string, date: Date): string {
-  return `${prefix}-${date.toISOString().slice(0, 10)}.csv`;
+  return `${prefix}-${toDateKey(date)}.csv`;
 }
 
 export { formatMinutes };

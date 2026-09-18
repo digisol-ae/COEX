@@ -55,6 +55,7 @@ export default async function TimePage({
         canLock={actor.permissions.includes('tenant.manage')}
         canSeeOthers={canSeeOthers}
         viewingSelf={subject === actor.id}
+        canEditThisSheet={subject === actor.id || actor.permissions.includes('tenant.manage')}
       />
     </div>
   );

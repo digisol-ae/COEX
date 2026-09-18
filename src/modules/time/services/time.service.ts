@@ -6,7 +6,7 @@ import { recordAudit, changedFields } from '@/modules/core/services/audit.servic
 import { TaskModel } from '@/modules/tasks/models/task.model';
 import { TimeEntryModel } from '../models/time-entry.model';
 import { WeekLockModel } from '../models/week-lock.model';
-import { startOfDay, startOfWeek } from '../week';
+import { startOfDay, startOfWeek, toDateKey } from '../week';
 
 /**
  * Time tracking.
@@ -175,19 +175,46 @@ export async function addManualEntry(input: ManualEntryInput): Promise<void> {
     action: 'time.entry_added',
     entityType: 'TimeEntry',
     entityId: created._id,
-    after: { task: task.number, minutes: created.minutes, date: workDate.toISOString() },
+    after: { task: task.number, minutes: created.minutes, day: toDateKey(workDate) },
   });
 }
 
-export async function updateEntry(
-  entryId: string,
-  input: { duration: number; note?: string; billable: boolean },
-): Promise<void> {
+export interface UpdateEntryInput {
+  duration: number;
+  note?: string;
+  billable: boolean;
+  /** A correction often means the wrong day or the wrong task, not only the wrong number. */
+  workDate?: string;
+  taskId?: string;
+  /** Only a tenant administrator may correct somebody else's timesheet. */
+  mayEditOthers?: boolean;
+}
+
+/**
+ * Correcting an entry.
+ *
+ * Time is the basis of billing and of any claim about where effort went, so every correction is
+ * recorded with what it was before, what it became, and who made it. That is what makes the number
+ * worth quoting: not that it was never wrong, but that any change to it can be explained.
+ *
+ * A running timer is not editable. Its minutes are not a number anybody typed yet, and editing one
+ * mid flight would make the stop write over whatever was entered.
+ */
+export async function updateEntry(entryId: string, input: UpdateEntryInput): Promise<void> {
   await connectToDatabase();
+
+  const context = getContext();
 
   const before = await entries().findById(entryId);
   if (!before) throw new Error('Entry not found.');
   if (before.lockedAt) throw new Error('That week is locked, so the entry cannot be changed.');
+  if (before.running) throw new Error('Stop the timer before editing this entry.');
+
+  const isOwn = String(before.userId) === String(context.userId);
+
+  if (!isOwn && !input.mayEditOthers) {
+    throw new Error('Only an administrator can change somebody else\u2019s timesheet.');
+  }
 
   await assertWeekOpen(before.workDate);
 
@@ -195,35 +222,81 @@ export async function updateEntry(
     throw new Error('Enter how long the work took.');
   }
 
-  const after = await entries().updateOne(
-    { _id: before._id },
+  const set: Record<string, unknown> = {
+    minutes: input.duration,
+    note: input.note?.trim() || null,
+    billable: input.billable,
+  };
+
+  // Moving an entry to another day has to respect the lock on the day it is moving to, not only
+  // the one it came from, or a locked week could be edited through the back door.
+  if (input.workDate) {
+    const workDate = startOfDay(new Date(input.workDate));
+
+    if (Number.isNaN(workDate.getTime())) throw new Error('That is not a date.');
+
+    if (workDate.getTime() !== before.workDate.getTime()) {
+      await assertWeekOpen(workDate);
+      set.workDate = workDate;
+    }
+  }
+
+  // Moving an entry to another task carries the space and customer with it, because the report
+  // groups on those and a stale pair would quietly bill the wrong client.
+  if (input.taskId && input.taskId !== String(before.taskId)) {
+    const task = await TaskModel.findOne({
+      _id: toObjectId(input.taskId),
+      tenantId: context.tenantId,
+      deletedAt: null,
+    });
+
+    if (!task) throw new Error('Task not found.');
+
+    set.taskId = task._id;
+    set.spaceId = task.spaceId;
+    set.organisationId = task.organisationId ?? null;
+  }
+
+  const after = await entries().updateOne({ _id: before._id }, { $set: set });
+
+  const diff = changedFields(
     {
-      $set: {
-        minutes: input.duration,
-        note: input.note?.trim() || null,
-        billable: input.billable,
-      },
+      minutes: before.minutes,
+      note: before.note,
+      billable: before.billable,
+      day: toDateKey(before.workDate),
+      task: String(before.taskId),
+    },
+    {
+      minutes: after?.minutes,
+      note: after?.note,
+      billable: after?.billable,
+      day: after ? toDateKey(after.workDate) : undefined,
+      task: String(after?.taskId),
     },
   );
 
-  // Every edit is recorded, so a corrected timesheet can always be explained.
   await recordAudit({
     action: 'time.entry_edited',
     entityType: 'TimeEntry',
     entityId: before._id,
-    ...changedFields(
-      { minutes: before.minutes, note: before.note, billable: before.billable },
-      { minutes: after?.minutes, note: after?.note, billable: after?.billable },
-    ),
+    before: diff.before,
+    // Whose sheet this was is recorded even though it did not change, because "who was corrected"
+    // is the first question anybody asks of an edit they did not make themselves.
+    after: isOwn ? diff.after : { ...diff.after, onBehalfOf: String(before.userId) },
   });
 }
 
-export async function removeEntry(entryId: string): Promise<void> {
+export async function removeEntry(entryId: string, mayEditOthers = false): Promise<void> {
   await connectToDatabase();
 
   const entry = await entries().findById(entryId);
   if (!entry) throw new Error('Entry not found.');
   if (entry.lockedAt) throw new Error('That week is locked, so the entry cannot be removed.');
+
+  if (String(entry.userId) !== String(getContext().userId) && !mayEditOthers) {
+    throw new Error('Only an administrator can change somebody else\u2019s timesheet.');
+  }
 
   await assertWeekOpen(entry.workDate);
   await entries().softDelete({ _id: entry._id });
@@ -232,7 +305,7 @@ export async function removeEntry(entryId: string): Promise<void> {
     action: 'time.entry_removed',
     entityType: 'TimeEntry',
     entityId: entry._id,
-    before: { minutes: entry.minutes, date: entry.workDate.toISOString() },
+    before: { minutes: entry.minutes, day: toDateKey(entry.workDate) },
   });
 }
 
