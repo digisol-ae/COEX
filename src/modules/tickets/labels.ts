@@ -24,6 +24,19 @@ export const CHANNEL_LABELS: Record<string, string> = {
   system: 'System',
 };
 
+/**
+ * How a message arrived, in words that match who it came from.
+ *
+ * A message typed in by an agent on the customer's behalf is on the agent channel but came from
+ * the customer, and labelling it "Raised by us" beside "From the customer" reads as a
+ * contradiction. It was taken down by us, and that is what it should say.
+ */
+export function channelLabel(channel: string, direction: 'inbound' | 'outbound'): string {
+  if (channel === 'agent') return direction === 'inbound' ? 'Taken down by us' : 'Raised by us';
+
+  return CHANNEL_LABELS[channel] ?? channel;
+}
+
 export const SLA_LABELS: Record<SlaState, string> = {
   none: 'No target',
   met: 'Met',

@@ -2,7 +2,7 @@ import { clsx } from 'clsx';
 import { Card, CardSection, EmptyState } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
 import { formatDateTime } from '@/modules/tasks/dates';
-import { CHANNEL_LABELS } from '@/modules/tickets/labels';
+import { channelLabel } from '@/modules/tickets/labels';
 import type { TicketMessageView } from '@/modules/tickets/services/ticket.service';
 import { formatBytes } from '@/modules/tickets/services/attachment.service';
 
@@ -78,7 +78,7 @@ export function Conversation({
                     )}
 
                     <span className="ml-auto text-[11px] text-[var(--color-ink-subtle)]">
-                      {CHANNEL_LABELS[message.channel] ?? message.channel} ·{' '}
+                      {channelLabel(message.channel, message.direction)} ·{' '}
                       {formatDateTime(message.sentAt)}
                     </span>
                   </div>

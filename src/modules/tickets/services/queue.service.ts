@@ -48,13 +48,29 @@ export interface QueueSummary {
   openTicketCount: number;
 }
 
-/** A queue with no targets of its own still promises something, so the defaults stand in. */
+/**
+ * A queue with no targets of its own still promises something, so the defaults stand in.
+ *
+ * The result is plain objects, never the stored subdocuments. A Mongoose subdocument carries a
+ * reference back to its parent, and handing one to a client component sends the serialiser round
+ * that loop until the stack runs out: a five hundred error on a screen whose data is perfectly
+ * fine. Anything that crosses into a component is copied here.
+ */
 function targetsOf(stored: QueueTarget[] | undefined): QueueTarget[] {
-  const byPriority = new Map((stored ?? []).map((target) => [target.priority, target]));
-
-  return (DEFAULT_TARGETS as QueueTarget[]).map(
-    (fallback) => byPriority.get(fallback.priority) ?? fallback,
+  const byPriority = new Map(
+    (stored ?? []).map((target) => [
+      target.priority,
+      {
+        priority: target.priority,
+        firstResponseMinutes: target.firstResponseMinutes,
+        resolutionMinutes: target.resolutionMinutes,
+      },
+    ]),
   );
+
+  return (DEFAULT_TARGETS as QueueTarget[]).map((fallback) => ({
+    ...(byPriority.get(fallback.priority) ?? fallback),
+  }));
 }
 
 export async function listQueues(

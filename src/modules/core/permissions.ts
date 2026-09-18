@@ -79,11 +79,31 @@ export interface PermissionHolder {
   permissionDenials?: readonly string[];
 }
 
+/**
+ * Seeing everything implies seeing your own.
+ *
+ * Without this, a role list that grants task.read.all and forgets task.read.own locks a manager
+ * out of their own task list and their own timesheet, which is exactly what happened. Writing the
+ * pair into every role would work until somebody adds the next role and forgets again, so the
+ * implication lives here where it cannot be forgotten.
+ *
+ * A denial still wins: it is applied after the implication, so denying task.read.own denies it
+ * whatever else the role grants.
+ */
+const IMPLIES: Partial<Record<Permission, Permission[]>> = {
+  'task.read.all': ['task.read.own'],
+  'ticket.read.all': ['ticket.read.own'],
+};
+
 export function permissionsFor(holder: PermissionHolder): Set<Permission> {
   const granted = new Set<Permission>(ROLE_PERMISSIONS[holder.role]);
 
   for (const permission of holder.permissionGrants ?? []) {
     if (isPermission(permission)) granted.add(permission);
+  }
+
+  for (const permission of [...granted]) {
+    for (const implied of IMPLIES[permission] ?? []) granted.add(implied);
   }
 
   for (const permission of holder.permissionDenials ?? []) {

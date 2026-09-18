@@ -40,7 +40,6 @@ export interface SupportFormState {
 }
 
 const PRIORITIES = ['urgent', 'high', 'normal', 'low'] as const;
-const STATUSES = ['new', 'open', 'pending_customer', 'escalated', 'resolved', 'closed'] as const;
 
 function text(formData: FormData, field: string): string {
   return String(formData.get(field) ?? '').trim();
@@ -413,6 +412,3 @@ export async function restoreCannedReplyAction(formData: FormData): Promise<void
 
   revalidatePath('/setup/canned-replies');
 }
-
-/** Kept for the status list the ticket screen offers, so it cannot drift from the service. */
-export const TICKET_STATUSES = STATUSES;
