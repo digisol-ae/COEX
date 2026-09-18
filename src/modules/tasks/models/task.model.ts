@@ -3,9 +3,12 @@ import { Schema, model, models, type InferSchemaType, type Model } from 'mongoos
 /**
  * The unit of work that is assigned and tracked.
  *
+ * The third of four levels: space, folder, task, subtask.
+ *
  * Subtasks are embedded rather than a separate collection: one level of breakdown, always loaded
  * with the task, never queried on their own. A subtask that needs subtasks of its own is really a
- * task, and allowing deeper nesting is how a plan becomes impossible to hold in the head.
+ * task, and allowing deeper nesting is how a plan becomes impossible to hold in the head. A
+ * subtask carries its own owner, because half of a task is often done by someone else.
  *
  * Document links are pointers into Microsoft 365, never copies, because documents belong where the
  * company already keeps them.
@@ -41,11 +44,11 @@ const taskSchema = new Schema(
     title: { type: String, required: true, trim: true },
     description: { type: String, default: null },
 
-    projectId: { type: Schema.Types.ObjectId, ref: 'Project', required: true, index: true },
-    /** One of the project's phases, or nothing. Grouping, not containment. */
-    phase: { type: String, default: null, index: true },
+    spaceId: { type: Schema.Types.ObjectId, ref: 'Space', required: true, index: true },
+    /** The folder this task sits in, or nothing when it sits directly in the space. */
+    folderId: { type: Schema.Types.ObjectId, ref: 'Folder', default: null, index: true },
 
-    /** Matches one of the project's configured column names. */
+    /** Matches one of the space's configured column names. */
     status: { type: String, required: true, index: true },
     priority: {
       type: String,
@@ -97,7 +100,7 @@ const taskSchema = new Schema(
     /** Set when a support ticket is escalated into a task, keeping the two way link. */
     sourceTicketId: { type: Schema.Types.ObjectId, ref: 'Ticket', default: null, index: true },
 
-    /** Denormalised from the project's column so overdue and open counts stay cheap. */
+    /** Denormalised from the space's column so overdue and open counts stay cheap. */
     isClosed: { type: Boolean, default: false, index: true },
     closedAt: { type: Date, default: null },
 
@@ -111,9 +114,10 @@ const taskSchema = new Schema(
 );
 
 taskSchema.index({ tenantId: 1, number: 1 }, { unique: true });
-taskSchema.index({ tenantId: 1, projectId: 1, status: 1 });
+taskSchema.index({ tenantId: 1, spaceId: 1, status: 1 });
 taskSchema.index({ tenantId: 1, isClosed: 1, endAt: 1 });
-taskSchema.index({ tenantId: 1, projectId: 1, status: 1, sortOrder: 1 });
+taskSchema.index({ tenantId: 1, spaceId: 1, status: 1, sortOrder: 1 });
+taskSchema.index({ tenantId: 1, folderId: 1, isClosed: 1 });
 taskSchema.index({ tenantId: 1, primaryAssigneeId: 1, isClosed: 1 });
 
 export type Task = InferSchemaType<typeof taskSchema>;

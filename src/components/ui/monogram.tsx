@@ -1,10 +1,10 @@
 import { clsx } from 'clsx';
 
 /**
- * A coloured square carrying one or two letters, used for projects and tenants.
+ * A coloured square carrying one or two letters, used for spaces and tenants.
  *
  * The same trick as the person avatar: colour derived from the name, so it is stable everywhere
- * without a field to maintain. A list of projects then has landmarks rather than being sixteen
+ * without a field to maintain. A list of spaces then has landmarks rather than being sixteen
  * identical lines of text.
  */
 

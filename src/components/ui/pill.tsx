@@ -8,7 +8,7 @@ import { clsx } from 'clsx';
  * find the blocked work without reading a single line.
  *
  * The colour is chosen from the meaning of the column name rather than from its position, so a
- * project that renames "In progress" to "Working" keeps the same blue.
+ * space that renames "In progress" to "Working" keeps the same blue.
  */
 
 type PillTone = 'todo' | 'progress' | 'blocked' | 'done' | 'review';
@@ -132,7 +132,7 @@ export function PriorityFlag({ priority }: { priority: string }) {
   );
 }
 
-/** A small neutral chip for dates, phases and counts, so a row reads as objects not sentences. */
+/** A small neutral chip for dates, folders and counts, so a row reads as objects not sentences. */
 export function Chip({
   children,
   tone = 'neutral',

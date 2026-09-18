@@ -50,10 +50,14 @@ The full scope document lives in the Claude project "ECHO System Development" as
    exception and are compressed automatically on upload.
 6. No ClickUp data migration. osTicket migrates in full.
 7. No knowledge base, no automations builder, no whiteboards, no goals.
-8. Task structure is three levels: Project, Task, Subtask. Confirmed by John on 17 Sep 2026 after
-   comparing against his ClickUp. Phases such as Discovery or Design are a field on the task, not a
-   container around it, so work moves between phases without being moved between lists and a phase
-   can be added to a running project. Portfolios were removed.
+8. Task structure is four levels: Space, Folder, Task, Subtask. Set by John's team on 18 Sep 2026,
+   replacing the three level structure agreed the day before. A folder is the only place visibility
+   is decided: no members named on it means everyone who can open the space sees it; name members
+   and it is private to exactly those people, a tenant administrator excepted. Work in a private
+   folder can only be assigned to its members, and closing a folder around work assigned outside it
+   is refused. Phases were removed: a folder does everything a phase did and adds visibility, so
+   keeping both would give the team two ways to group the same work. Portfolios were removed
+   earlier. scripts/migrate-spaces.ts carries an older database across.
 9. XVERSE integration: COEX writes events to an outbox, a connector sends them. Both sides are ours.
 10. Client tenants will be billed eventually. The model is undecided, so tenant settings carry an
     inert commercial block and nothing more.

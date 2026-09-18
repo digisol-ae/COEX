@@ -4,7 +4,7 @@ import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
 import { TenantModel } from '@/modules/core/models/tenant.model';
 import { UserModel } from '@/modules/core/models/user.model';
-import { createProject } from '@/modules/tasks/services/project.service';
+import { createSpace } from '@/modules/tasks/services/space.service';
 import { getTask } from '@/modules/tasks/services/task.service';
 import {
   addReply,
@@ -384,10 +384,10 @@ describe('escalation', () => {
   it('creates a task, links both records and leaves the ticket with the customer', async () => {
     const queueId = await aQueue();
     const id = await aTicket(queueId);
-    const projectId = await runWithContext(context, () => createProject({ name: 'R4 platform' }));
+    const spaceId = await runWithContext(context, () => createSpace({ name: 'R4 platform' }));
 
     const taskId = await runWithContext(context, () =>
-      escalateToTask({ ticketId: id, projectId, assigneeIds: [String(colleagueId)] }),
+      escalateToTask({ ticketId: id, spaceId, assigneeIds: [String(colleagueId)] }),
     );
 
     const ticket = await runWithContext(context, () => getTicketDetail(id));
@@ -401,12 +401,12 @@ describe('escalation', () => {
   it('refuses to escalate the same ticket twice', async () => {
     const queueId = await aQueue();
     const id = await aTicket(queueId);
-    const projectId = await runWithContext(context, () => createProject({ name: 'R4 platform' }));
+    const spaceId = await runWithContext(context, () => createSpace({ name: 'R4 platform' }));
 
-    await runWithContext(context, () => escalateToTask({ ticketId: id, projectId }));
+    await runWithContext(context, () => escalateToTask({ ticketId: id, spaceId }));
 
     await expect(
-      runWithContext(context, () => escalateToTask({ ticketId: id, projectId })),
+      runWithContext(context, () => escalateToTask({ ticketId: id, spaceId })),
     ).rejects.toThrow(/already/i);
   });
 });

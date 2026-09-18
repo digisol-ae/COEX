@@ -2,7 +2,7 @@ import { connectToDatabase } from '@/lib/db';
 import { toObjectId } from '@/lib/ids';
 import { getContext } from '@/lib/tenant-context';
 import { TaskModel } from '../models/task.model';
-import { ProjectModel } from '../models/project.model';
+import { SpaceModel } from '../models/space.model';
 import { UserModel } from '@/modules/core/models/user.model';
 import { TimeEntryModel } from '@/modules/time/models/time-entry.model';
 import { endOfWeek, startOfWeek } from '@/modules/time/week';
@@ -31,7 +31,7 @@ export interface GroupCount {
 
 export interface DashboardData {
   tiles: DashboardTiles;
-  byProject: GroupCount[];
+  bySpace: GroupCount[];
   byAssignee: GroupCount[];
   ageing: { number: string; title: string; days: number; id: string }[];
   /** Time logged this week against the estimate on the same open work. */
@@ -69,13 +69,13 @@ export async function loadDashboard(scope: {
     TaskModel.countDocuments({ ...base, status: 'Blocked' }),
   ]);
 
-  const projects = await ProjectModel.find({ tenantId, deletedAt: null }).sort({ name: 1 });
+  const spaces = await SpaceModel.find({ tenantId, deletedAt: null }).sort({ name: 1 });
 
-  const byProject = await Promise.all(
-    projects.map(async (project) => ({
-      id: String(project._id),
-      label: project.name,
-      count: await TaskModel.countDocuments({ ...base, projectId: project._id }),
+  const bySpace = await Promise.all(
+    spaces.map(async (space) => ({
+      id: String(space._id),
+      label: space.name,
+      count: await TaskModel.countDocuments({ ...base, spaceId: space._id }),
     })),
   );
 
@@ -122,7 +122,7 @@ export async function loadDashboard(scope: {
       estimatedMinutes: estimated?.minutes ?? 0,
     },
     tiles: { open, overdue, dueToday, unassigned, blocked },
-    byProject: byProject.filter((row) => row.count > 0),
+    bySpace: bySpace.filter((row) => row.count > 0),
     byAssignee: byAssignee.filter((row) => row.count > 0).sort((a, b) => b.count - a.count),
     ageing: stale.map((task) => ({
       id: String(task._id),

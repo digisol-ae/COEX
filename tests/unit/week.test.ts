@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { daysOfWeek, formatMinutes, parseDuration, startOfWeek } from '@/modules/time/week';
 import { toCsv } from '@/modules/time/services/export.service';
-import { progressPercent } from '@/modules/tasks/services/project.service';
+import { progressPercent } from '@/modules/tasks/services/space.service';
 
 /** Pure functions, no database. These run on every push. */
 

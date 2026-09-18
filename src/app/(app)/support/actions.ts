@@ -75,6 +75,7 @@ export async function createTicketAction(
         contactId: text(formData, 'contactId') || null,
         productId: text(formData, 'productId') || null,
         channel: 'agent',
+        onBehalfOfCustomer: text(formData, 'onBehalf') !== 'no',
       }),
     );
   } catch (error) {
@@ -197,7 +198,7 @@ export async function escalateAction(
     await asUser(actor, () =>
       escalateToTask({
         ticketId: id,
-        projectId: text(formData, 'projectId'),
+        spaceId: text(formData, 'spaceId'),
         title: text(formData, 'title') || undefined,
         assigneeIds: formData.getAll('assigneeIds').map(String).filter(Boolean),
       }),
@@ -207,7 +208,7 @@ export async function escalateAction(
   }
 
   refreshTicket(id);
-  revalidatePath('/projects');
+  revalidatePath('/spaces');
   revalidatePath('/tasks');
   return { saved: true };
 }

@@ -206,9 +206,9 @@ export function TaskPanel({
               </span>
             </Row>
 
-            {task.phase ? (
-              <Row label="Phase">
-                <span className="text-[var(--color-ink-muted)]">{task.phase}</span>
+            {task.folderName ? (
+              <Row label="Folder">
+                <span className="text-[var(--color-ink-muted)]">{task.folderName}</span>
               </Row>
             ) : null}
 

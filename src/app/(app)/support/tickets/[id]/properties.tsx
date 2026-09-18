@@ -47,13 +47,13 @@ export function Properties({
   ticket,
   queues,
   users,
-  projects,
+  spaces,
   canManage,
 }: {
   ticket: TicketProperties;
   queues: { id: string; name: string }[];
   users: { id: string; name: string }[];
-  projects: { id: string; name: string }[];
+  spaces: { id: string; name: string }[];
   canManage: boolean;
 }) {
   const [error, setError] = useState<string | null>(null);
@@ -160,7 +160,7 @@ export function Properties({
       </Card>
 
       {canManage && !ticket.isMerged ? (
-        <EscalatePanel ticket={ticket} projects={projects} users={users} />
+        <EscalatePanel ticket={ticket} spaces={spaces} users={users} />
       ) : null}
 
       {canManage && !ticket.isMerged ? <RelatedPanel ticket={ticket} onError={setError} /> : null}
@@ -171,11 +171,11 @@ export function Properties({
 /** Support answers questions; engineering changes software. Escalation is where that line is. */
 function EscalatePanel({
   ticket,
-  projects,
+  spaces,
   users,
 }: {
   ticket: TicketProperties;
-  projects: { id: string; name: string }[];
+  spaces: { id: string; name: string }[];
   users: { id: string; name: string }[];
 }) {
   const [open, setOpen] = useState(false);
@@ -200,7 +200,7 @@ function EscalatePanel({
     );
   }
 
-  if (projects.length === 0) return null;
+  if (spaces.length === 0) return null;
 
   return (
     <Card>
@@ -209,11 +209,11 @@ function EscalatePanel({
           <form action={formAction} className="space-y-3">
             <input type="hidden" name="ticketId" value={ticket.id} />
 
-            <Field label="Project">
-              <Select name="projectId" required defaultValue={projects[0]?.id}>
-                {projects.map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.name}
+            <Field label="Space">
+              <Select name="spaceId" required defaultValue={spaces[0]?.id}>
+                {spaces.map((space) => (
+                  <option key={space.id} value={space.id}>
+                    {space.name}
                   </option>
                 ))}
               </Select>

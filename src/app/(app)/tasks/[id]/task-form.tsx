@@ -9,11 +9,11 @@ const initialState: TaskFormState = {};
 export function TaskForm({
   task,
   users,
-  phases,
+  folders,
   canManage,
 }: {
   canManage: boolean;
-  phases: string[];
+  folders: { id: string; name: string; isPrivate: boolean }[];
   users: { id: string; name: string }[];
   task: {
     id: string;
@@ -25,7 +25,7 @@ export function TaskForm({
     endAt: string;
     estimateHours: string;
     tags: string;
-    phase: string;
+    folderId: string;
   };
 }) {
   const [state, formAction, pending] = useActionState(updateTaskAction, initialState);
@@ -115,13 +115,13 @@ export function TaskForm({
           />
         </Field>
 
-        {phases.length > 0 ? (
-          <Field label="Phase" hint="Grouping inside the project, not a separate list">
-            <Select name="phase" defaultValue={task.phase}>
-              <option value="">No phase</option>
-              {phases.map((phase) => (
-                <option key={phase} value={phase}>
-                  {phase}
+        {folders.length > 0 ? (
+          <Field label="Folder" hint="Which folder inside the space this belongs to">
+            <Select name="folderId" defaultValue={task.folderId}>
+              <option value="">No folder</option>
+              {folders.map((folder) => (
+                <option key={folder.id} value={folder.id}>
+                  {folder.isPrivate ? `${folder.name} (private)` : folder.name}
                 </option>
               ))}
             </Select>

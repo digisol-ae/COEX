@@ -19,6 +19,7 @@ import { formatMinutes } from '@/modules/time/week';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
 import { Gantt } from './gantt';
 import { ViewTabs } from './view-tabs';
+import { FolderBar } from './folder-bar';
 import { Toolbar } from './toolbar';
 import {
   AssigneePicker,
@@ -57,7 +58,15 @@ interface DragState {
   fromStatus: string;
 }
 
-export type ProjectView = 'board' | 'list' | 'gantt';
+export type SpaceView = 'board' | 'list' | 'gantt';
+
+export interface FolderChoice {
+  id: string;
+  name: string;
+  isPrivate: boolean;
+  memberIds: string[];
+  memberNames: string[];
+}
 
 type OptimisticChange =
   | { kind: 'move'; taskId: string; status: string; index: number }
@@ -80,29 +89,32 @@ interface EditHandlers {
 }
 
 export function Board({
-  projectId,
+  spaceId,
   columns,
-  phases,
+  folders,
+  activeFolderId,
   tasks,
   users,
   canManage,
   initialView,
 }: {
-  projectId: string;
+  spaceId: string;
   columns: { name: string; isClosed: boolean }[];
-  phases: string[];
+  folders: FolderChoice[];
+  activeFolderId: string | null;
   tasks: TaskSummary[];
   users: { id: string; name: string }[];
   canManage: boolean;
-  initialView: ProjectView;
+  initialView: SpaceView;
 }) {
-  const [view, setView] = useState<ProjectView>(initialView);
+  const [view, setView] = useState<SpaceView>(initialView);
   const [adding, setAdding] = useState(false);
   const [assigneeFilter, setAssigneeFilter] = useState<string | null>(null);
   const [showClosed, setShowClosed] = useState(false);
   const [search, setSearch] = useState('');
   const [editError, setEditError] = useState<string | null>(null);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
+  const [folderId, setFolderId] = useState<string | null>(activeFolderId);
   const [state, formAction, pending] = useActionState(createTaskAction, initialState);
   const [, startTransition] = useTransition();
   const [dragging, setDragging] = useState<DragState | null>(null);
@@ -134,7 +146,16 @@ export function Board({
 
   const nameOf = new Map(users.map((user) => [user.id, user.name]));
 
-  const visible = ordered.filter((task) => {
+  const inFolder = folderId ? ordered.filter((task) => task.folderId === folderId) : ordered;
+
+  const folderCounts: Record<string, number> = { all: ordered.filter((t) => !t.isClosed).length };
+  for (const folder of folders) {
+    folderCounts[folder.id] = ordered.filter(
+      (task) => task.folderId === folder.id && !task.isClosed,
+    ).length;
+  }
+
+  const visible = inFolder.filter((task) => {
     if (!showClosed && task.isClosed) return false;
 
     if (assigneeFilter) {
@@ -143,7 +164,7 @@ export function Board({
     }
 
     if (search.trim()) {
-      const text = `${task.number} ${task.title} ${task.phase ?? ''}`.toLowerCase();
+      const text = `${task.number} ${task.title} ${task.folderName ?? ''}`.toLowerCase();
       if (!text.includes(search.trim().toLowerCase())) return false;
     }
 
@@ -176,7 +197,7 @@ export function Board({
     columns,
     canManage,
     onPriority: (task, priority) =>
-      patch(task.id, { priority }, { id: task.id, projectId, priority }),
+      patch(task.id, { priority }, { id: task.id, spaceId, priority }),
     onSchedule: (task, value) =>
       patch(
         task.id,
@@ -185,7 +206,7 @@ export function Board({
           endAt: value.endAt ? new Date(value.endAt) : null,
           isOverdue: !!value.endAt && new Date(value.endAt) < new Date() && !task.isClosed,
         },
-        { id: task.id, projectId, startAt: value.startAt, endAt: value.endAt },
+        { id: task.id, spaceId, startAt: value.startAt, endAt: value.endAt },
       ),
     onAssignees: (task, ids) =>
       patch(
@@ -194,7 +215,7 @@ export function Board({
           assigneeIds: ids,
           assigneeNames: ids.map((id) => nameOf.get(id) ?? 'Unknown'),
         },
-        { id: task.id, projectId, assigneeIds: ids },
+        { id: task.id, spaceId, assigneeIds: ids },
       ),
     onStatus: (task, status) => {
       const target = columnTasks(status).filter((candidate) => candidate.id !== task.id);
@@ -206,7 +227,7 @@ export function Board({
 
         await reorderTaskAction({
           id: task.id,
-          projectId,
+          spaceId,
           status,
           afterTaskId: target[target.length - 1]?.id ?? null,
           beforeTaskId: null,
@@ -216,17 +237,17 @@ export function Board({
     onQuickAdd: async (status, title) => {
       setEditError(null);
 
-      const result = await quickAddTaskAction({ projectId, title, status });
+      const result = await quickAddTaskAction({ spaceId, title, status, folderId });
       return result.error ?? null;
     },
-    onRename: (task, title) => patch(task.id, { title }, { id: task.id, projectId, title }),
+    onRename: (task, title) => patch(task.id, { title }, { id: task.id, spaceId, title }),
     onDescribe: (task, description) =>
-      patch(task.id, {}, { id: task.id, projectId, description: description || null }),
+      patch(task.id, {}, { id: task.id, spaceId, description: description || null }),
     onOpen: (task) => setOpenTaskId(task.id),
     onAddSubtask: async (task, title) => {
       setEditError(null);
 
-      const result = await addSubtaskInlineAction({ taskId: task.id, title, projectId });
+      const result = await addSubtaskInlineAction({ taskId: task.id, title, spaceId });
       return result.error ?? null;
     },
     onSubtask: (task, subtaskId, done) => {
@@ -244,7 +265,7 @@ export function Board({
           },
         });
 
-        await setSubtaskDoneAction({ taskId: task.id, subtaskId, done, projectId });
+        await setSubtaskDoneAction({ taskId: task.id, subtaskId, done, spaceId });
       });
     },
   };
@@ -264,12 +285,21 @@ export function Board({
     startTransition(async () => {
       applyChange({ kind: 'move', taskId, status, index });
 
-      await reorderTaskAction({ id: taskId, projectId, status, afterTaskId, beforeTaskId });
+      await reorderTaskAction({ id: taskId, spaceId, status, afterTaskId, beforeTaskId });
     });
   }
 
   return (
     <div className="space-y-4">
+      <FolderBar
+        spaceId={spaceId}
+        folders={folders}
+        activeFolderId={folderId}
+        onSelect={setFolderId}
+        canManage={canManage}
+        counts={folderCounts}
+      />
+
       <ViewTabs view={view} onChange={setView} />
 
       <Toolbar
@@ -293,7 +323,7 @@ export function Board({
         <Card>
           <CardSection title="New task">
             <form action={formAction} className="grid gap-3 sm:grid-cols-2">
-              <input type="hidden" name="projectId" value={projectId} />
+              <input type="hidden" name="spaceId" value={spaceId} />
 
               <div className="sm:col-span-2">
                 <Field label="Title">
@@ -329,13 +359,13 @@ export function Board({
                 <Input name="endAt" type="datetime-local" />
               </Field>
 
-              {phases.length > 0 ? (
-                <Field label="Phase">
-                  <Select name="phase" defaultValue="">
-                    <option value="">No phase</option>
-                    {phases.map((phase) => (
-                      <option key={phase} value={phase}>
-                        {phase}
+              {folders.length > 0 ? (
+                <Field label="Folder">
+                  <Select name="folderId" defaultValue={activeFolderId ?? ''}>
+                    <option value="">No folder</option>
+                    {folders.map((folder) => (
+                      <option key={folder.id} value={folder.id}>
+                        {folder.isPrivate ? `${folder.name} (private)` : folder.name}
                       </option>
                     ))}
                   </Select>
@@ -560,11 +590,11 @@ function TaskCard({
         </Link>
       </div>
 
-      {task.phase || task.isOverdue || task.subtaskCount > 0 || task.plannedMinutes ? (
+      {task.folderName || task.isOverdue || task.subtaskCount > 0 || task.plannedMinutes ? (
         <div className="mt-2 flex flex-wrap items-center gap-1 pl-4">
           {task.isOverdue ? <Chip tone="alert">overdue</Chip> : null}
 
-          {task.phase ? <Chip>{task.phase}</Chip> : null}
+          {task.folderName ? <Chip>{task.folderName}</Chip> : null}
 
           {task.subtaskCount > 0 ? (
             <Chip title="Subtasks done">
@@ -626,7 +656,7 @@ function TaskCard({
  * A task list is a table, and people read a table by column. Name, who, when and priority sit in
  * fixed positions so the eye runs down one of them rather than reading every row as a sentence.
  * Every one of those cells is editable in place, and a row with subtasks opens to show them, so a
- * whole project can be planned without leaving this screen.
+ * whole space can be planned without leaving this screen.
  */
 function ListView({
   tasks,
@@ -784,7 +814,7 @@ function ListView({
                                     </Chip>
                                   ) : null}
 
-                                  {task.phase ? <Chip>{task.phase}</Chip> : null}
+                                  {task.folderName ? <Chip>{task.folderName}</Chip> : null}
                                 </div>
                               </td>
 

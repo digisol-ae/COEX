@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
-import { getProject } from '@/modules/tasks/services/project.service';
+import { getSpace, progressPercent } from '@/modules/tasks/services/space.service';
+import { listFolders } from '@/modules/tasks/services/folder.service';
 import { listTasks } from '@/modules/tasks/services/task.service';
-import { progressPercent } from '@/modules/tasks/services/project.service';
 import { Progress } from '@/components/ui/progress';
 import { Monogram } from '@/components/ui/monogram';
 import { listUsers } from '@/modules/core/services/user.service';
@@ -10,26 +10,27 @@ import { PageHeader } from '@/components/ui';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Board } from './board';
 
-export default async function ProjectPage({
+export default async function SpacePage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ view?: string }>;
+  searchParams: Promise<{ view?: string; folder?: string }>;
 }) {
   const actor = await requirePermission('task.read.all');
   const { id } = await params;
-  const { view } = await searchParams;
+  const { view, folder } = await searchParams;
 
-  const project = await asUser(actor, () => getProject(id));
-  if (!project) notFound();
+  const space = await asUser(actor, () => getSpace(id));
+  if (!space) notFound();
 
-  const { tasks, users } = await asUser(actor, async () => ({
-    tasks: await listTasks({ projectId: id, includeClosed: true }),
+  const { tasks, users, folders } = await asUser(actor, async () => ({
+    tasks: await listTasks({ spaceId: id, includeClosed: true }),
     users: await listUsers(),
+    folders: await listFolders(id),
   }));
 
-  const columns = [...project.statuses]
+  const columns = [...space.statuses]
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
     .map((status) => ({ name: status.name, isClosed: status.isClosed ?? false }));
 
@@ -38,16 +39,16 @@ export default async function ProjectPage({
       <Breadcrumb
         trail={[
           { label: 'Tasks and planning', href: '/tasks' },
-          { label: 'Projects', href: '/projects' },
-          { label: project.name },
+          { label: 'Spaces', href: '/spaces' },
+          { label: space.name },
         ]}
       />
 
       <div className="mt-2">
         <PageHeader
-          icon={<Monogram name={project.name} />}
-          title={project.name}
-          description={project.description ?? undefined}
+          icon={<Monogram name={space.name} />}
+          title={space.name}
+          description={space.description ?? undefined}
           action={
             <div className="w-48">
               <Progress
@@ -57,7 +58,7 @@ export default async function ProjectPage({
                     estimateMinutes: task.estimateMinutes,
                   })),
                 )}
-                label={`${project.name} progress`}
+                label={`${space.name} progress`}
               />
               <p className="mt-1 text-right text-xs text-[var(--color-ink-subtle)]">
                 {tasks.filter((task) => task.isClosed).length} of {tasks.length} tasks done
@@ -68,9 +69,16 @@ export default async function ProjectPage({
       </div>
 
       <Board
-        projectId={id}
+        spaceId={id}
         columns={columns}
-        phases={project.phases ?? []}
+        folders={folders.map((row) => ({
+          id: row.id,
+          name: row.name,
+          isPrivate: row.isPrivate,
+          memberIds: row.memberIds,
+          memberNames: row.memberNames,
+        }))}
+        activeFolderId={folder ?? null}
         tasks={tasks}
         users={users.map((user) => ({ id: user.id, name: user.name }))}
         canManage={actor.permissions.includes('task.manage')}

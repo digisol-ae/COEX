@@ -1,14 +1,14 @@
 'use client';
 
 import { clsx } from 'clsx';
-import type { ProjectView } from './board';
+import type { SpaceView } from './board';
 
 /**
  * View tabs, the way every tool people already use presents them: one row, always visible, showing
- * what else this project can be looked at as. A dropdown would hide the fact that a Gantt exists.
+ * what else this space can be looked at as. A dropdown would hide the fact that a Gantt exists.
  */
 
-const VIEWS: { id: ProjectView; label: string; icon: 'board' | 'list' | 'gantt' }[] = [
+const VIEWS: { id: SpaceView; label: string; icon: 'board' | 'list' | 'gantt' }[] = [
   { id: 'list', label: 'List', icon: 'list' },
   { id: 'board', label: 'Board', icon: 'board' },
   { id: 'gantt', label: 'Gantt', icon: 'gantt' },
@@ -18,8 +18,8 @@ export function ViewTabs({
   view,
   onChange,
 }: {
-  view: ProjectView;
-  onChange: (view: ProjectView) => void;
+  view: SpaceView;
+  onChange: (view: SpaceView) => void;
 }) {
   return (
     <div className="flex items-center gap-0.5 border-b border-[var(--color-line)]">

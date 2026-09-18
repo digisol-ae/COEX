@@ -3,7 +3,7 @@ import Link from 'next/link';
 /**
  * Where you are, and one click back.
  *
- * A project screen reached from a tree in the sidebar loses its context the moment the tree
+ * A space screen reached from a tree in the sidebar loses its context the moment the tree
  * scrolls, so the trail repeats it above the title. It replaces a "Back" link because a trail
  * answers both questions at once: where am I, and what is this inside.
  */

@@ -1,7 +1,7 @@
 import { asUser, getSignedInUser } from '@/lib/session';
 import { listTasks } from '@/modules/tasks/services/task.service';
 import { listOrganisations } from '@/modules/crm/services/organisation.service';
-import { listProjects } from '@/modules/tasks/services/project.service';
+import { listSpaces } from '@/modules/tasks/services/space.service';
 import { searchTickets } from '@/modules/tickets/services/ticket.service';
 import { STATUS_LABELS } from '@/modules/tickets/labels';
 
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
           found.push({
             type: 'Task',
             label: task.title,
-            detail: `${task.number} · ${task.projectName}`,
+            detail: `${task.number} · ${task.spaceName}`,
             href: `/tasks/${task.id}`,
           });
         }
@@ -47,15 +47,15 @@ export async function GET(request: Request) {
     }
 
     if (user.permissions.includes('task.read.all')) {
-      const projects = await listProjects();
+      const spaces = await listSpaces();
 
-      for (const project of projects) {
-        if (project.name.toLowerCase().includes(query)) {
+      for (const space of spaces) {
+        if (space.name.toLowerCase().includes(query)) {
           found.push({
-            type: 'Project',
-            label: project.name,
-            detail: `${project.openTaskCount} open`,
-            href: `/projects/${project.id}`,
+            type: 'Space',
+            label: space.name,
+            detail: `${space.openTaskCount} open`,
+            href: `/spaces/${space.id}`,
           });
         }
       }

@@ -6,7 +6,7 @@ import { Avatar } from '@/components/ui/avatar';
 /**
  * The toolbar above a view.
  *
- * Filtering lives here rather than in a menu, because a manager opening a project wants their own
+ * Filtering lives here rather than in a menu, because a manager opening a space wants their own
  * work, or one person's work, in a single click. Everything filters what is already loaded, so it
  * is instant and the address bar stays clean for the views people bookmark.
  */

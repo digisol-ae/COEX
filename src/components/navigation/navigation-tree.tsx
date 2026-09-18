@@ -11,7 +11,7 @@ import {
   subscribe,
   toggleCollapsed,
 } from './collapsed-store';
-import { ProjectTree } from './project-tree';
+import { SpaceTree } from './space-tree';
 
 /**
  * The menu itself, shared by the panel and the phone drawer.
@@ -22,9 +22,11 @@ import { ProjectTree } from './project-tree';
 export function NavigationTree({
   groups,
   onNavigate,
+  canManageTasks,
 }: {
   groups: NavigationGroup[];
   onNavigate?: () => void;
+  canManageTasks: boolean;
 }) {
   const pathname = usePathname();
   const collapsed = useSyncExternalStore(subscribe, getCollapsedSnapshot, getServerSnapshot);
@@ -61,9 +63,9 @@ export function NavigationTree({
             {open ? (
               <div className="mt-0.5 space-y-0.5">
                 {group.items.map((item) =>
-                  // Projects carries a tree of its own: tasks, then subtasks, loaded on expand.
-                  item.href === '/projects' ? (
-                    <ProjectTree key={item.href} />
+                  // Spaces carries a tree of its own: folders, tasks, then subtasks, on expand.
+                  item.href === '/spaces' ? (
+                    <SpaceTree key={item.href} canManage={canManageTasks} />
                   ) : (
                     <NavigationLink
                       key={item.href}

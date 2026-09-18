@@ -17,7 +17,7 @@ const timeEntrySchema = new Schema(
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 
     taskId: { type: Schema.Types.ObjectId, ref: 'Task', required: true, index: true },
-    projectId: { type: Schema.Types.ObjectId, ref: 'Project', required: true, index: true },
+    spaceId: { type: Schema.Types.ObjectId, ref: 'Space', required: true, index: true },
     /** Copied from the task so time can be reported by customer without a join. */
     organisationId: {
       type: Schema.Types.ObjectId,

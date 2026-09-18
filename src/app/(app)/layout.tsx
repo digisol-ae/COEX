@@ -42,11 +42,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen">
       <IconRail permissions={user.permissions} counts={counts} />
-      <Sidebar groups={groups} tenantName={user.tenantName} />
+      <Sidebar
+        groups={groups}
+        tenantName={user.tenantName}
+        canManageTasks={user.permissions.includes('task.manage')}
+      />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-[var(--color-line)] bg-[var(--color-surface)]/95 px-4 py-2 backdrop-blur sm:px-6">
-          <MobileNavigation groups={groups} />
+          <MobileNavigation
+            groups={groups}
+            canManageTasks={user.permissions.includes('task.manage')}
+          />
 
           <p className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--color-ink)] sm:hidden">
             {user.tenantName}

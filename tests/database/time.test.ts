@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
 import { TenantModel } from '@/modules/core/models/tenant.model';
-import { createProject } from '@/modules/tasks/services/project.service';
+import { createSpace } from '@/modules/tasks/services/space.service';
 import { createTask } from '@/modules/tasks/services/task.service';
 import {
   addManualEntry,
@@ -29,9 +29,9 @@ const otherPerson = { tenantId, userId: otherUserId, isPlatformAdmin: false };
 const today = new Date().toISOString().slice(0, 10);
 
 async function aTask(title = 'A task'): Promise<string> {
-  const projectId = await runWithContext(context, () => createProject({ name: 'Implementation' }));
+  const spaceId = await runWithContext(context, () => createSpace({ name: 'Implementation' }));
 
-  return runWithContext(context, () => createTask({ projectId, title }));
+  return runWithContext(context, () => createTask({ spaceId, title }));
 }
 
 beforeAll(async () => {
@@ -162,6 +162,6 @@ describe('totals', () => {
     expect(totals.totalMinutes).toBe(180);
     expect(totals.billableMinutes).toBe(60);
     expect(totals.byPerson).toHaveLength(2);
-    expect(totals.byProject).toHaveLength(1);
+    expect(totals.bySpace).toHaveLength(1);
   });
 });

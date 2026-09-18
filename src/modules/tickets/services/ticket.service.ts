@@ -57,6 +57,16 @@ export interface CreateTicketInput {
   productId?: string | null;
   channel?: 'agent' | 'portal' | 'email' | 'whatsapp';
   authorName?: string;
+  /**
+   * Raising a ticket on the customer's behalf: a phone call, a corridor conversation, a WhatsApp
+   * an agent read on their own phone. The first message is then the customer's words, recorded by
+   * us, so it is stored as inbound and attributed to the contact rather than to the agent.
+   *
+   * This is not cosmetic. An inbound first message leaves the first reply clock running, which is
+   * correct: the customer is waiting for an answer. Recording it as our own outbound message would
+   * stop that clock the moment the ticket was created and make every such ticket look answered.
+   */
+  onBehalfOfCustomer?: boolean;
 }
 
 export async function createTicket(input: CreateTicketInput): Promise<string> {
@@ -99,14 +109,31 @@ export async function createTicket(input: CreateTicketInput): Promise<string> {
 
   const author = await UserModel.findOne({ _id: context.userId }).select('name');
 
+  const contact = created.contactId
+    ? await ContactModel.findOne({ _id: created.contactId }).select('name')
+    : null;
+
+  const onBehalf = input.onBehalfOfCustomer ?? false;
+
+  const customerName =
+    input.authorName ??
+    contact?.name ??
+    (created.organisationId
+      ? ((await OrganisationModel.findOne({ _id: created.organisationId }).select('name'))?.name ??
+        'The customer')
+      : 'The customer');
+
   await TicketMessageModel.create({
     tenantId: context.tenantId,
     ticketId: created._id,
     visibility: 'public',
-    direction: input.channel === 'agent' ? 'outbound' : 'inbound',
+    direction: onBehalf || input.channel !== 'agent' ? 'inbound' : 'outbound',
     body: input.body.trim(),
+    // A message recorded on someone's behalf still says who typed it in: authorName is the
+    // customer, authorUserId is the agent, and the audit trail keeps both.
     authorUserId: context.userId,
-    authorName: input.authorName ?? author?.name ?? 'Unknown',
+    authorContactId: onBehalf ? (created.contactId ?? null) : null,
+    authorName: onBehalf ? customerName : (input.authorName ?? author?.name ?? 'Unknown'),
     channel: input.channel ?? 'agent',
   });
 
@@ -678,7 +705,8 @@ function targetFor(targets: QueueTargets, priority: Priority) {
  */
 export async function escalateToTask(input: {
   ticketId: string;
-  projectId: string;
+  spaceId: string;
+  folderId?: string | null;
   title?: string;
   assigneeIds?: string[];
 }): Promise<string> {
@@ -691,7 +719,8 @@ export async function escalateToTask(input: {
   const { createTask } = await import('@/modules/tasks/services/task.service');
 
   const taskId = await createTask({
-    projectId: input.projectId,
+    spaceId: input.spaceId,
+    folderId: input.folderId ?? null,
     title: input.title?.trim() || `${ticket.number} ${ticket.subject}`,
     description: `Raised from support ticket ${ticket.number}.`,
     priority: ticket.priority as Priority,

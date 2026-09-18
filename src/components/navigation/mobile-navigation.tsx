@@ -13,7 +13,13 @@ import { NavigationTree } from './navigation-tree';
  * is followed, when the backdrop is tapped and when Escape is pressed, and the page behind it does
  * not scroll while it is open.
  */
-export function MobileNavigation({ groups }: { groups: NavigationGroup[] }) {
+export function MobileNavigation({
+  groups,
+  canManageTasks,
+}: {
+  groups: NavigationGroup[];
+  canManageTasks: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -87,7 +93,11 @@ export function MobileNavigation({ groups }: { groups: NavigationGroup[] }) {
               </button>
             </div>
 
-            <NavigationTree groups={groups} onNavigate={() => setOpen(false)} />
+            <NavigationTree
+              groups={groups}
+              canManageTasks={canManageTasks}
+              onNavigate={() => setOpen(false)}
+            />
           </div>
         </div>
       ) : null}

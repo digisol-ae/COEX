@@ -7,7 +7,9 @@ import { nextNumber } from '@/modules/core/services/numbering.service';
 import { recordActivity } from '@/modules/crm/services/activity.service';
 import { UserModel } from '@/modules/core/models/user.model';
 import { TaskModel } from '../models/task.model';
-import { ProjectModel } from '../models/project.model';
+import { SpaceModel } from '../models/space.model';
+import { FolderModel } from '../models/folder.model';
+import { assignableMemberIds, visibleFolderFilter } from './folder.service';
 import { parseDocumentLink } from '../document-links';
 import { TenantModel } from '@/modules/core/models/tenant.model';
 import {
@@ -19,8 +21,8 @@ import {
 /**
  * Tasks.
  *
- * isClosed is denormalised from the project's column configuration whenever the status changes, so
- * the dashboard counts open work with one indexed query rather than joining to the project on
+ * isClosed is denormalised from the space's column configuration whenever the status changes, so
+ * the dashboard counts open work with one indexed query rather than joining to the space on
  * every tile. lastActivityAt is touched on every meaningful change, which is what the ageing view
  * reads.
  */
@@ -63,9 +65,10 @@ export interface TaskSummary {
   title: string;
   status: string;
   priority: Priority;
-  projectId: string;
-  projectName: string;
-  phase: string | null;
+  spaceId: string;
+  spaceName: string;
+  folderId: string | null;
+  folderName: string | null;
   assigneeIds: string[];
   assigneeNames: string[];
   startAt: Date | null;
@@ -83,8 +86,8 @@ export interface TaskSummary {
 }
 
 export interface TaskFilter {
-  projectId?: string;
-  phase?: string;
+  spaceId?: string;
+  folderId?: string;
   assigneeId?: string;
   status?: string;
   includeClosed?: boolean;
@@ -97,20 +100,32 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
 
   const query: Record<string, unknown> = {};
 
-  if (filter.projectId) query.projectId = toObjectId(filter.projectId);
-  if (filter.phase) query.phase = filter.phase;
+  if (filter.spaceId) query.spaceId = toObjectId(filter.spaceId);
+  if (filter.folderId) query.folderId = toObjectId(filter.folderId);
   if (filter.assigneeId) query.assigneeIds = toObjectId(filter.assigneeId);
   if (filter.status) query.status = filter.status;
   if (!filter.includeClosed) query.isClosed = false;
   if (filter.overdueOnly) query.endAt = { $lt: new Date() };
   if (filter.unassignedOnly) query.assigneeIds = { $size: 0 };
 
-  const found = await tasks().find(query).sort({ sortOrder: 1, endAt: 1, createdAt: -1 });
+  // Private folders are filtered here rather than in a screen, so nothing that reads tasks can
+  // forget to apply it.
+  const found = await tasks()
+    .find({ ...query, ...(await visibleFolderFilter()) })
+    .sort({ sortOrder: 1, endAt: 1, createdAt: -1 });
 
-  const projectNames = new Map(
-    (await ProjectModel.find({ tenantId: getContext().tenantId, deletedAt: null })).map(
-      (project) => [String(project._id), project.name],
-    ),
+  const spaceNames = new Map(
+    (await SpaceModel.find({ tenantId: getContext().tenantId, deletedAt: null })).map((space) => [
+      String(space._id),
+      space.name,
+    ]),
+  );
+
+  const folderNames = new Map(
+    (await FolderModel.find({ tenantId: getContext().tenantId, deletedAt: null })).map((folder) => [
+      String(folder._id),
+      folder.name,
+    ]),
   );
 
   const assigneeIds = [
@@ -127,9 +142,10 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
     title: task.title,
     status: task.status,
     priority: task.priority as Priority,
-    projectId: String(task.projectId),
-    projectName: projectNames.get(String(task.projectId)) ?? 'Unknown',
-    phase: task.phase ?? null,
+    spaceId: String(task.spaceId),
+    spaceName: spaceNames.get(String(task.spaceId)) ?? 'Unknown',
+    folderId: task.folderId ? String(task.folderId) : null,
+    folderName: task.folderId ? (folderNames.get(String(task.folderId)) ?? null) : null,
     assigneeIds: task.assigneeIds.map((id) => String(id)),
     assigneeNames: task.assigneeIds.map((id) => names.get(String(id)) ?? 'Unknown'),
     startAt: task.startAt ?? null,
@@ -169,7 +185,7 @@ export async function getTask(id: string) {
 }
 
 export interface CreateTaskInput {
-  projectId: string;
+  spaceId: string;
   title: string;
   description?: string;
   priority?: Priority;
@@ -178,33 +194,54 @@ export interface CreateTaskInput {
   endAt?: string | null;
   estimateMinutes?: number | null;
   organisationId?: string | null;
-  phase?: string | null;
+  folderId?: string | null;
   /** Adding straight into a column, from the board. Anything else opens in the first column. */
   status?: string;
+}
+
+/**
+ * Work inside a private folder can only be given to that folder's members.
+ *
+ * The alternative is creating a task its own owner cannot open, which is a worse outcome than any
+ * refusal, and one nobody would think to look for.
+ */
+async function assertAssignable(folderId: string | null, assigneeIds: string[]): Promise<void> {
+  const allowed = await assignableMemberIds(folderId);
+  if (!allowed) return;
+
+  const outside = assigneeIds.filter((id) => !allowed.includes(id));
+
+  if (outside.length > 0) {
+    throw new Error(
+      'That folder is private, so work in it can only go to its members. Add them to the folder first.',
+    );
+  }
 }
 
 export async function createTask(input: CreateTaskInput): Promise<string> {
   await connectToDatabase();
 
-  const project = await ProjectModel.findOne({
-    _id: toObjectId(input.projectId),
+  const space = await SpaceModel.findOne({
+    _id: toObjectId(input.spaceId),
     tenantId: getContext().tenantId,
     deletedAt: null,
   });
 
-  if (!project) throw new Error('Project not found.');
+  if (!space) throw new Error('Space not found.');
 
-  const columns = [...project.statuses].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  const columns = [...space.statuses].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
   const column = input.status
     ? columns.find((candidate) => candidate.name === input.status)
     : columns[0];
 
   if (input.status && !column) {
-    throw new Error(`${project.name} has no column called ${input.status}.`);
+    throw new Error(`${space.name} has no column called ${input.status}.`);
   }
 
   const firstColumn = column ?? columns[0];
+
+  await assertAssignable(input.folderId ?? null, (input.assigneeIds ?? []).filter(Boolean));
 
   const assigneeIds = (input.assigneeIds ?? []).filter(Boolean).map((id) => toObjectId(id));
 
@@ -215,8 +252,8 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     number: await nextNumber('task'),
     title: input.title.trim(),
     description: input.description?.trim() || null,
-    projectId: project._id,
-    phase: input.phase?.trim() || null,
+    spaceId: space._id,
+    folderId: toOptionalObjectId(input.folderId),
     status: firstColumn?.name ?? 'To do',
     priority: input.priority ?? 'normal',
     assigneeIds,
@@ -226,7 +263,7 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     plannedMinutes: await plannedMinutesFor(startAt, endAt),
     estimateMinutes: input.estimateMinutes ?? null,
     sortOrder: Date.now(),
-    organisationId: toOptionalObjectId(input.organisationId ?? project.organisationId),
+    organisationId: toOptionalObjectId(input.organisationId ?? space.organisationId),
     isClosed: firstColumn?.isClosed ?? false,
     lastActivityAt: new Date(),
     createdById: getContext().userId,
@@ -236,7 +273,7 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     action: 'task.created',
     entityType: 'Task',
     entityId: created._id,
-    after: { number: created.number, title: created.title, project: project.name },
+    after: { number: created.number, title: created.title, space: space.name },
   });
 
   // A task against a customer belongs on that customer's timeline, which is the whole point of
@@ -260,13 +297,13 @@ export async function moveTask(id: string, status: string): Promise<void> {
   const task = await tasks().findById(id);
   if (!task) throw new Error('Task not found.');
 
-  const project = await ProjectModel.findOne({
-    _id: task.projectId,
+  const space = await SpaceModel.findOne({
+    _id: task.spaceId,
     tenantId: getContext().tenantId,
   });
 
-  const column = project?.statuses.find((candidate) => candidate.name === status);
-  if (!column) throw new Error('That column does not exist on this project.');
+  const column = space?.statuses.find((candidate) => candidate.name === status);
+  if (!column) throw new Error('That column does not exist on this space.');
 
   const wasClosed = task.isClosed ?? false;
 
@@ -309,7 +346,7 @@ export interface UpdateTaskInput {
   endAt?: string | null;
   estimateMinutes?: number | null;
   tags?: string[];
-  phase?: string | null;
+  folderId?: string | null;
 }
 
 export async function updateTask(id: string, input: UpdateTaskInput): Promise<void> {
@@ -317,6 +354,15 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
 
   const before = await tasks().findById(id);
   if (!before) throw new Error('Task not found.');
+
+  await assertAssignable(
+    input.folderId !== undefined
+      ? (input.folderId ?? null)
+      : before.folderId
+        ? String(before.folderId)
+        : null,
+    input.assigneeIds.filter(Boolean),
+  );
 
   const assigneeIds = input.assigneeIds.filter(Boolean).map((value) => toObjectId(value));
 
@@ -341,7 +387,7 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
         plannedMinutes: await plannedMinutesFor(startAt, endAt),
         estimateMinutes: input.estimateMinutes ?? null,
         tags: input.tags ?? [],
-        phase: input.phase?.trim() || null,
+        folderId: toOptionalObjectId(input.folderId),
         lastActivityAt: new Date(),
       },
     },
@@ -378,6 +424,7 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
 export interface TaskPatch {
   priority?: Priority;
   description?: string | null;
+  folderId?: string | null;
   startAt?: string | null;
   endAt?: string | null;
   assigneeIds?: string[];
@@ -396,6 +443,16 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
 
   if (patch.description !== undefined) set.description = patch.description?.trim() || null;
 
+  if (patch.folderId !== undefined) {
+    // Moving into a private folder has to respect the same rule as assigning into one.
+    await assertAssignable(
+      patch.folderId,
+      (patch.assigneeIds ?? before.assigneeIds.map(String)).filter(Boolean),
+    );
+
+    set.folderId = toOptionalObjectId(patch.folderId);
+  }
+
   if (patch.title !== undefined) {
     const title = patch.title.trim();
     if (!title) throw new Error('A task needs a title.');
@@ -403,6 +460,11 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
   }
 
   if (patch.assigneeIds) {
+    await assertAssignable(
+      before.folderId ? String(before.folderId) : null,
+      patch.assigneeIds.filter(Boolean),
+    );
+
     const assigneeIds = patch.assigneeIds.filter(Boolean).map((value) => toObjectId(value));
     set.assigneeIds = assigneeIds;
     set.primaryAssigneeId = assigneeIds[0] ?? null;

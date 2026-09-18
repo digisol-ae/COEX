@@ -26,7 +26,7 @@ interface Entry {
   id: string;
   taskNumber: string;
   taskTitle: string;
-  projectName: string;
+  spaceName: string;
   organisationName: string | null;
   workDate: string;
   minutes: number;
@@ -159,7 +159,7 @@ export function Timesheet({
               <tr>
                 <Th>Day</Th>
                 <Th>Task</Th>
-                <Th>Project</Th>
+                <Th>Space</Th>
                 <Th>Time</Th>
                 <Th>Billable</Th>
                 <Th>{''}</Th>
@@ -184,7 +184,7 @@ export function Timesheet({
                     ) : null}
                   </Td>
                   <Td className="text-[var(--color-ink-muted)]">
-                    {entry.organisationName ?? entry.projectName}
+                    {entry.organisationName ?? entry.spaceName}
                   </Td>
                   <Td className="tabular-nums text-[var(--color-ink)]">
                     {entry.running ? 'running' : formatMinutes(entry.minutes)}

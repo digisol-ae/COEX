@@ -30,13 +30,13 @@ export async function timesheetCsv(week: Date, userId?: string): Promise<string>
   const timesheet = await loadTimesheet(week, userId);
 
   const rows: (string | number | null)[][] = [
-    ['Date', 'Person', 'Task', 'Title', 'Project', 'Customer', 'Hours', 'Billable', 'Note'],
+    ['Date', 'Person', 'Task', 'Title', 'Space', 'Customer', 'Hours', 'Billable', 'Note'],
     ...timesheet.entries.map((entry) => [
       entry.workDate.toISOString().slice(0, 10),
       timesheet.userName,
       entry.taskNumber,
       entry.taskTitle,
-      entry.projectName,
+      entry.spaceName,
       entry.organisationName,
       (entry.minutes / 60).toFixed(2),
       entry.billable ? 'Yes' : 'No',
@@ -70,7 +70,7 @@ export async function totalsCsv(from: Date, to: Date): Promise<string> {
     ['Period', from.toISOString().slice(0, 10), to.toISOString().slice(0, 10)],
     [],
     ...section('Person', totals.byPerson),
-    ...section('Project', totals.byProject),
+    ...section('Space', totals.bySpace),
     ...section('Customer', totals.byCustomer),
     ['Total hours', (totals.totalMinutes / 60).toFixed(2)],
     ['Billable hours', (totals.billableMinutes / 60).toFixed(2)],

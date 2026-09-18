@@ -86,7 +86,7 @@ export async function startTimer(taskId: string): Promise<void> {
   await entries().create({
     userId: context.userId,
     taskId: task._id,
-    projectId: task.projectId,
+    spaceId: task.spaceId,
     organisationId: task.organisationId ?? null,
     workDate: startOfDay(now),
     startedAt: now,
@@ -161,7 +161,7 @@ export async function addManualEntry(input: ManualEntryInput): Promise<void> {
   const created = await entries().create({
     userId: context.userId,
     taskId: task._id,
-    projectId: task.projectId,
+    spaceId: task.spaceId,
     organisationId: task.organisationId ?? null,
     workDate,
     minutes: input.duration,

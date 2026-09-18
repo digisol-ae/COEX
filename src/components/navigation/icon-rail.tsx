@@ -15,14 +15,14 @@ import { clsx } from 'clsx';
 interface RailItem {
   href: string;
   label: string;
-  icon: 'home' | 'tasks' | 'projects' | 'support' | 'time' | 'customers' | 'settings';
+  icon: 'home' | 'tasks' | 'spaces' | 'support' | 'time' | 'customers' | 'settings';
   permission?: string;
 }
 
 const ITEMS: RailItem[] = [
   { href: '/dashboard', label: 'Home', icon: 'home' },
   { href: '/tasks', label: 'Tasks', icon: 'tasks', permission: 'task.read.own' },
-  { href: '/projects', label: 'Projects', icon: 'projects', permission: 'task.read.all' },
+  { href: '/spaces', label: 'Spaces', icon: 'spaces', permission: 'task.read.all' },
   { href: '/support/tickets', label: 'Support', icon: 'support', permission: 'ticket.read.own' },
   { href: '/time', label: 'Time', icon: 'time', permission: 'task.read.own' },
   { href: '/customers', label: 'CRM', icon: 'customers', permission: 'customer.read' },
@@ -113,7 +113,7 @@ function Icon({ name }: { name: RailItem['icon'] }) {
     );
   }
 
-  if (name === 'projects') {
+  if (name === 'spaces') {
     return (
       <svg {...common}>
         <path d="M2.5 5.5A1.5 1.5 0 0 1 4 4h3l1.5 2H14a1.5 1.5 0 0 1 1.5 1.5v5A1.5 1.5 0 0 1 14 14H4a1.5 1.5 0 0 1-1.5-1.5z" />

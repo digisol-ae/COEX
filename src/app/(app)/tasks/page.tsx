@@ -63,7 +63,7 @@ export default async function TasksPage({
                 <Th>{''}</Th>
                 <Th>Task</Th>
                 <Th>Status</Th>
-                <Th>Project</Th>
+                <Th>Space</Th>
                 <Th>Schedule</Th>
                 <Th>Who</Th>
               </tr>
@@ -97,10 +97,10 @@ export default async function TasksPage({
                   </Td>
 
                   <Td className="text-[var(--color-ink-muted)]">
-                    <span className="block truncate text-sm">{task.projectName}</span>
-                    {task.phase ? (
+                    <span className="block truncate text-sm">{task.spaceName}</span>
+                    {task.folderName ? (
                       <span className="text-[11px] text-[var(--color-ink-subtle)]">
-                        {task.phase}
+                        {task.folderName}
                       </span>
                     ) : null}
                   </Td>

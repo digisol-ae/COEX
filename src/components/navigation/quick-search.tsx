@@ -8,7 +8,7 @@ import { clsx } from 'clsx';
  * Search from anywhere, opened by clicking or by pressing the command key and K.
  *
  * People who live in a tool stop navigating and start typing what they want. Without this, finding
- * a task means remembering which project it is in, which is exactly the friction that sends
+ * a task means remembering which space it is in, which is exactly the friction that sends
  * someone back to the tool they were using before.
  */
 
@@ -89,7 +89,7 @@ export function QuickSearch() {
           <circle cx="6.5" cy="6.5" r="4" stroke="currentColor" strokeWidth="1.5" />
           <path d="m9.5 9.5 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
-        <span className="flex-1 text-left">Search tasks, projects, customers</span>
+        <span className="flex-1 text-left">Search tasks, spaces, customers</span>
         <kbd className="hidden rounded border border-[var(--color-line)] px-1.5 py-0.5 text-[10px] sm:inline">
           ⌘K
         </kbd>
@@ -123,7 +123,7 @@ export function QuickSearch() {
                   choose(results[active]);
                 }
               }}
-              placeholder="Search tasks, projects and customers"
+              placeholder="Search tasks, spaces and customers"
               className="w-full border-b border-[var(--color-line)] px-4 py-3 text-sm outline-none"
             />
 

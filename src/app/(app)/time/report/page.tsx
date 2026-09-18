@@ -36,7 +36,7 @@ export default async function TimeReportPage({
     <div className="mx-auto max-w-5xl">
       <PageHeader
         title="Time report"
-        description="Hours by person, project and customer for the period, with billable shown beside each total."
+        description="Hours by person, space and customer for the period, with billable shown beside each total."
         action={
           <Link
             href={exportHref}
@@ -71,7 +71,7 @@ export default async function TimeReportPage({
 
       <div className="mt-6 space-y-6">
         <Group title="By person" rows={totals.byPerson} />
-        <Group title="By project" rows={totals.byProject} />
+        <Group title="By space" rows={totals.bySpace} />
         <Group title="By customer" rows={totals.byCustomer} />
       </div>
     </div>

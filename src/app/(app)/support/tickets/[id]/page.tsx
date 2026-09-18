@@ -5,7 +5,7 @@ import { getTicketDetail } from '@/modules/tickets/services/ticket.service';
 import { listQueues } from '@/modules/tickets/services/queue.service';
 import { listCannedReplies } from '@/modules/tickets/services/canned-reply.service';
 import { listUsers } from '@/modules/core/services/user.service';
-import { listProjects } from '@/modules/tasks/services/project.service';
+import { listSpaces } from '@/modules/tasks/services/space.service';
 import { STATUS_LABELS, CHANNEL_LABELS } from '@/modules/tickets/labels';
 import { Card, CardSection, PageHeader } from '@/components/ui';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
@@ -28,10 +28,10 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
 
   const canManage = actor.permissions.includes('ticket.manage');
 
-  const { queues, users, projects, cannedReplies } = await asUser(actor, async () => ({
+  const { queues, users, spaces, cannedReplies } = await asUser(actor, async () => ({
     queues: await listQueues(),
     users: await listUsers(),
-    projects: actor.permissions.includes('task.manage') ? await listProjects() : [],
+    spaces: actor.permissions.includes('task.manage') ? await listSpaces() : [],
     cannedReplies: await listCannedReplies({ queueId: ticket.queueId }),
   }));
 
@@ -137,7 +137,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           }}
           queues={queues.map((queue) => ({ id: queue.id, name: queue.name }))}
           users={users.map((user) => ({ id: user.id, name: user.name }))}
-          projects={projects.map((project) => ({ id: project.id, name: project.name }))}
+          spaces={spaces.map((space) => ({ id: space.id, name: space.name }))}
           canManage={canManage}
         />
       </div>

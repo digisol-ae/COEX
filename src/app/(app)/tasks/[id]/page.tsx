@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
 import { getTask } from '@/modules/tasks/services/task.service';
-import { getProject } from '@/modules/tasks/services/project.service';
+import { getSpace } from '@/modules/tasks/services/space.service';
+import { listFolders } from '@/modules/tasks/services/folder.service';
 import { listUsers } from '@/modules/core/services/user.service';
 import { Badge, Card, CardSection, PageHeader } from '@/components/ui';
 import { getRunningTimer, loggedMinutesForTask } from '@/modules/time/services/time.service';
@@ -20,8 +21,9 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
   const task = await asUser(actor, () => getTask(id));
   if (!task) notFound();
 
-  const { project, users, timer, loggedMinutes } = await asUser(actor, async () => ({
-    project: await getProject(String(task.projectId)),
+  const { space, folders, users, timer, loggedMinutes } = await asUser(actor, async () => ({
+    space: await getSpace(String(task.spaceId)),
+    folders: await listFolders(String(task.spaceId)),
     users: await listUsers(),
     timer: await getRunningTimer(),
     loggedMinutes: await loggedMinutesForTask(id),
@@ -32,16 +34,16 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="mx-auto max-w-5xl">
       <Link
-        href={`/projects/${String(task.projectId)}`}
+        href={`/spaces/${String(task.spaceId)}`}
         className="text-sm text-[var(--color-ink-muted)] underline-offset-4 hover:underline"
       >
-        Back to {project?.name ?? 'project'}
+        Back to {space?.name ?? 'space'}
       </Link>
 
       <div className="mt-3">
         <PageHeader
           title={task.title}
-          description={`${task.number} · ${project?.name ?? ''}${task.phase ? ` · ${task.phase}` : ''}`}
+          description={`${task.number} · ${space?.name ?? ''}`}
           action={
             <div className="flex flex-wrap items-center gap-2">
               <TimerButton taskId={id} running={timer?.taskId === id} />
@@ -132,9 +134,13 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
                 endAt: toDateTimeInput(task.endAt),
                 estimateHours: task.estimateMinutes ? String(task.estimateMinutes / 60) : '',
                 tags: (task.tags ?? []).join(', '),
-                phase: task.phase ?? '',
+                folderId: task.folderId ? String(task.folderId) : '',
               }}
-              phases={project?.phases ?? []}
+              folders={folders.map((folder) => ({
+                id: folder.id,
+                name: folder.name,
+                isPrivate: folder.isPrivate,
+              }))}
             />
           </CardSection>
         </Card>
