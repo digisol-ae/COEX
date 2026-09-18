@@ -25,6 +25,7 @@ import {
   restoreCannedReply,
   updateCannedReply,
 } from '@/modules/tickets/services/canned-reply.service';
+import { attachToMessage, type IncomingFile } from '@/modules/tickets/services/attachment.service';
 import {
   archiveQueue,
   createQueue,
@@ -43,6 +44,29 @@ const STATUSES = ['new', 'open', 'pending_customer', 'escalated', 'resolved', 'c
 
 function text(formData: FormData, field: string): string {
   return String(formData.get(field) ?? '').trim();
+}
+
+/**
+ * Files off a form, read into memory once.
+ *
+ * A support attachment is a screenshot or a log, not a video, and the service refuses anything
+ * beyond its own limit, so reading the whole file is simpler than streaming and has a ceiling.
+ */
+async function incomingFiles(formData: FormData): Promise<IncomingFile[]> {
+  const files: IncomingFile[] = [];
+
+  for (const entry of formData.getAll('files')) {
+    if (typeof entry === 'string') continue;
+    if (entry.size === 0) continue;
+
+    files.push({
+      fileName: entry.name,
+      contentType: entry.type || 'application/octet-stream',
+      body: Buffer.from(await entry.arrayBuffer()),
+    });
+  }
+
+  return files;
 }
 
 function toPriority(value: string): Priority {
@@ -65,7 +89,7 @@ export async function createTicketAction(
   let id: string;
 
   try {
-    id = await asUser(actor, () =>
+    const created = await asUser(actor, () =>
       createTicket({
         subject: text(formData, 'subject'),
         body: text(formData, 'body'),
@@ -78,6 +102,13 @@ export async function createTicketAction(
         onBehalfOfCustomer: text(formData, 'onBehalf') !== 'no',
       }),
     );
+
+    id = created.id;
+
+    const files = await incomingFiles(formData);
+    if (files.length > 0) {
+      await asUser(actor, () => attachToMessage(created.firstMessageId, files));
+    }
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not raise the ticket.' };
   }
@@ -108,9 +139,13 @@ export async function replyAction(
   const body = text(formData, 'body');
   if (!body) return { error: 'There is nothing to send.' };
 
+  const files = await incomingFiles(formData);
+
   try {
     await asUser(actor, async () => {
-      await addReply({ ticketId: id, body, visibility });
+      const messageId = await addReply({ ticketId: id, body, visibility });
+
+      if (files.length > 0) await attachToMessage(messageId, files);
 
       const usedReplyId = text(formData, 'cannedReplyId');
       if (usedReplyId) await recordCannedReplyUse(usedReplyId);

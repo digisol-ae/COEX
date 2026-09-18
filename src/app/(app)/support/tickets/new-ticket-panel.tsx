@@ -171,6 +171,18 @@ export function NewTicketPanel({
             </Field>
           </div>
 
+          <label className="flex flex-wrap items-center gap-2 text-[12px] text-[var(--color-ink-muted)]">
+            <span className="rounded-[var(--radius-control)] border border-[var(--color-line)] px-2.5 py-1 transition-colors hover:text-[var(--color-ink)]">
+              Attach files
+            </span>
+            <input
+              type="file"
+              name="files"
+              multiple
+              className="text-[11px] text-[var(--color-ink-subtle)] file:hidden"
+            />
+          </label>
+
           {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
 
           <div className="flex gap-2 pt-1">

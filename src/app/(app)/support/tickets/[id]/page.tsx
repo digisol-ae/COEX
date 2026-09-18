@@ -102,7 +102,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             </CardSection>
           </Card>
 
-          <Conversation messages={ticket.messages} />
+          <Conversation ticketId={ticket.id} messages={ticket.messages} />
 
           {canManage && !ticket.mergedIntoId ? (
             <ReplyBox

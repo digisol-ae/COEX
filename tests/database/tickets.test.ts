@@ -56,9 +56,11 @@ async function aQueue(
 }
 
 async function aTicket(queueId: string, subject = 'Scanner will not connect'): Promise<string> {
-  return runWithContext(context, () =>
+  const created = await runWithContext(context, () =>
     createTicket({ subject, body: 'It stopped this morning.', queueId }),
   );
+
+  return created.id;
 }
 
 beforeAll(async () => {
@@ -511,5 +513,130 @@ describe('the badge on the rail', () => {
     const count = await runWithContext(context, () => countMyOpenTickets(String(userId)));
 
     expect(count).toBe(1);
+  });
+});
+
+describe('attachments', () => {
+  it('shrinks an oversized screenshot and keeps what it was', async () => {
+    const { attachToMessage, attachmentForDownload } =
+      await import('@/modules/tickets/services/attachment.service');
+    const sharp = (await import('sharp')).default;
+
+    const queueId = await aQueue();
+
+    const created = await runWithContext(context, () =>
+      createTicket({ subject: 'Screenshot', body: 'See attached.', queueId }),
+    );
+
+    // Noise rather than a flat colour, because a flat colour compresses to almost nothing and
+    // would prove the encoder works rather than that the resize does.
+    const width = 3200;
+    const height = 2400;
+    const noise = Buffer.alloc(width * height * 3);
+    for (let index = 0; index < noise.length; index += 1) noise[index] = (index * 37) % 251;
+
+    const original = await sharp(noise, { raw: { width, height, channels: 3 } })
+      .jpeg({ quality: 95 })
+      .toBuffer();
+
+    const [stored] = await runWithContext(context, () =>
+      attachToMessage(created.firstMessageId, [
+        { fileName: 'screenshot.jpg', contentType: 'image/jpeg', body: original },
+      ]),
+    );
+
+    expect(stored.bytes).toBeLessThan(original.byteLength);
+    expect(stored.originalBytes).toBe(original.byteLength);
+    expect(stored.processedAt).toBeInstanceOf(Date);
+
+    // What comes back is the smaller picture, and it is still a readable image.
+    const detail = await runWithContext(context, () => getTicketDetail(created.id));
+    const attachmentId = detail!.messages[0].attachments[0].id;
+
+    const back = await runWithContext(context, () =>
+      attachmentForDownload(created.id, attachmentId),
+    );
+
+    const shrunk = await sharp(back!.body).metadata();
+
+    expect(Math.max(shrunk.width ?? 0, shrunk.height ?? 0)).toBeLessThanOrEqual(2000);
+  });
+
+  it('stores a document exactly as it arrived, because evidence is not for improving', async () => {
+    const { attachToMessage } = await import('@/modules/tickets/services/attachment.service');
+
+    const queueId = await aQueue();
+
+    const created = await runWithContext(context, () =>
+      createTicket({ subject: 'Log file', body: 'See attached.', queueId }),
+    );
+
+    const body = Buffer.from('2026-09-18 10:00:00 ERROR scanner timed out\n'.repeat(200));
+
+    const [stored] = await runWithContext(context, () =>
+      attachToMessage(created.firstMessageId, [
+        { fileName: 'scanner.log', contentType: 'text/plain', body },
+      ]),
+    );
+
+    expect(stored.bytes).toBe(body.byteLength);
+    expect(stored.originalBytes).toBeNull();
+    expect(stored.processedAt).toBeNull();
+  });
+
+  it('refuses a file larger than the limit rather than filling the disk quietly', async () => {
+    const { attachToMessage, MAX_FILE_BYTES } =
+      await import('@/modules/tickets/services/attachment.service');
+
+    const queueId = await aQueue();
+
+    const created = await runWithContext(context, () =>
+      createTicket({ subject: 'Too big', body: 'See attached.', queueId }),
+    );
+
+    await expect(
+      runWithContext(context, () =>
+        attachToMessage(created.firstMessageId, [
+          {
+            fileName: 'dump.bin',
+            contentType: 'application/octet-stream',
+            body: Buffer.alloc(MAX_FILE_BYTES + 1),
+          },
+        ]),
+      ),
+    ).rejects.toThrow(/larger than/i);
+  });
+
+  it('hands the file back through the ticket it belongs to, and to nothing else', async () => {
+    const { attachToMessage, attachmentForDownload } =
+      await import('@/modules/tickets/services/attachment.service');
+
+    const queueId = await aQueue();
+
+    const created = await runWithContext(context, () =>
+      createTicket({ subject: 'With a file', body: 'See attached.', queueId }),
+    );
+
+    const other = await aTicket(queueId, 'Someone else');
+
+    await runWithContext(context, () =>
+      attachToMessage(created.firstMessageId, [
+        { fileName: 'notes.txt', contentType: 'text/plain', body: Buffer.from('hello') },
+      ]),
+    );
+
+    const detail = await runWithContext(context, () => getTicketDetail(created.id));
+    const attachmentId = detail!.messages[0].attachments[0].id;
+
+    const mine = await runWithContext(context, () =>
+      attachmentForDownload(created.id, attachmentId),
+    );
+
+    expect(mine?.body.toString()).toBe('hello');
+
+    // The same attachment id, asked for through a different ticket, is simply not found.
+    const theirs = await runWithContext(context, () => attachmentForDownload(other, attachmentId));
+
+    expect(theirs).toBeNull();
   });
 });

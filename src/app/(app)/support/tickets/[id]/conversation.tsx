@@ -4,6 +4,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { formatDateTime } from '@/modules/tasks/dates';
 import { CHANNEL_LABELS } from '@/modules/tickets/labels';
 import type { TicketMessageView } from '@/modules/tickets/services/ticket.service';
+import { formatBytes } from '@/modules/tickets/services/attachment.service';
 
 /**
  * The conversation.
@@ -14,7 +15,13 @@ import type { TicketMessageView } from '@/modules/tickets/services/ticket.servic
  * misreading which is which, once, in front of a client, is far higher than the cost of a screen
  * that looks slightly busier.
  */
-export function Conversation({ messages }: { messages: TicketMessageView[] }) {
+export function Conversation({
+  ticketId,
+  messages,
+}: {
+  ticketId: string;
+  messages: TicketMessageView[];
+}) {
   if (messages.length === 0) {
     return (
       <Card>
@@ -83,11 +90,20 @@ export function Conversation({ messages }: { messages: TicketMessageView[] }) {
                   {message.attachments.length > 0 ? (
                     <ul className="mt-2 flex flex-wrap gap-1.5">
                       {message.attachments.map((attachment) => (
-                        <li
-                          key={attachment.id}
-                          className="rounded-[var(--radius-control)] bg-[var(--color-surface-sunken)] px-2 py-1 text-[11px] text-[var(--color-ink-muted)]"
-                        >
-                          {attachment.fileName}
+                        <li key={attachment.id}>
+                          <a
+                            href={`/api/tickets/${ticketId}/attachments/${attachment.id}`}
+                            className="flex items-center gap-1.5 rounded-[var(--radius-control)] bg-[var(--color-surface-sunken)] px-2 py-1 text-[11px] text-[var(--color-ink-muted)] transition-colors hover:text-[var(--color-ink)]"
+                          >
+                            <Paperclip />
+                            {attachment.fileName}
+                            <span className="text-[var(--color-ink-subtle)]">
+                              {formatBytes(attachment.bytes)}
+                              {attachment.originalBytes
+                                ? `, from ${formatBytes(attachment.originalBytes)}`
+                                : ''}
+                            </span>
+                          </a>
                         </li>
                       ))}
                     </ul>
@@ -99,5 +115,19 @@ export function Conversation({ messages }: { messages: TicketMessageView[] }) {
         );
       })}
     </div>
+  );
+}
+
+function Paperclip() {
+  return (
+    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <path
+        d="M9 4.2 5.1 8.1a1.6 1.6 0 0 1-2.2-2.2l4.2-4.2a2.6 2.6 0 0 1 3.7 3.7L6.3 9.9a3.7 3.7 0 0 1-5.2-5.2"
+        stroke="currentColor"
+        strokeWidth="1.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

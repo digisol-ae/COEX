@@ -69,7 +69,12 @@ export interface CreateTicketInput {
   onBehalfOfCustomer?: boolean;
 }
 
-export async function createTicket(input: CreateTicketInput): Promise<string> {
+export interface CreatedTicket {
+  id: string;
+  firstMessageId: string;
+}
+
+export async function createTicket(input: CreateTicketInput): Promise<CreatedTicket> {
   await connectToDatabase();
 
   const context = getContext();
@@ -123,7 +128,7 @@ export async function createTicket(input: CreateTicketInput): Promise<string> {
         'The customer')
       : 'The customer');
 
-  await TicketMessageModel.create({
+  const firstMessage = await TicketMessageModel.create({
     tenantId: context.tenantId,
     ticketId: created._id,
     visibility: 'public',
@@ -156,7 +161,7 @@ export async function createTicket(input: CreateTicketInput): Promise<string> {
     });
   }
 
-  return String(created._id);
+  return { id: String(created._id), firstMessageId: String(firstMessage._id) };
 }
 
 export interface ReplyInput {
@@ -172,7 +177,7 @@ export interface ReplyInput {
  * because a note to a colleague is not an answer to the customer, and counting it as one is how
  * service level reports become flattering fiction.
  */
-export async function addReply(input: ReplyInput): Promise<void> {
+export async function addReply(input: ReplyInput): Promise<string> {
   await connectToDatabase();
 
   const context = getContext();
@@ -182,7 +187,7 @@ export async function addReply(input: ReplyInput): Promise<void> {
   const author = await UserModel.findOne({ _id: context.userId }).select('name');
   const now = new Date();
 
-  await TicketMessageModel.create({
+  const message = await TicketMessageModel.create({
     tenantId: context.tenantId,
     ticketId: ticket._id,
     visibility: input.visibility,
@@ -222,6 +227,8 @@ export async function addReply(input: ReplyInput): Promise<void> {
       direction: 'outbound',
     });
   }
+
+  return String(message._id);
 }
 
 const ALLOWED_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
@@ -298,7 +305,7 @@ export async function createFollowOn(ticketId: string): Promise<string> {
   const original = await tickets().findById(ticketId);
   if (!original) throw new Error('Ticket not found.');
 
-  const followOnId = await createTicket({
+  const followOn = await createTicket({
     subject: `${original.subject} (follow up)`,
     body: `Follow up to ${original.number}.`,
     queueId: String(original.queueId),
@@ -309,16 +316,16 @@ export async function createFollowOn(ticketId: string): Promise<string> {
   });
 
   await tickets().updateOne(
-    { _id: toObjectId(followOnId) },
+    { _id: toObjectId(followOn.id) },
     { $set: { followsOnFromId: original._id } },
   );
 
   await tickets().updateOne(
     { _id: original._id },
-    { $addToSet: { linkedTicketIds: toObjectId(followOnId) } },
+    { $addToSet: { linkedTicketIds: toObjectId(followOn.id) } },
   );
 
-  return followOnId;
+  return followOn.id;
 }
 
 /**

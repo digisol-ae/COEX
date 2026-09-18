@@ -40,3 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .agent/
+
+# Uploaded files in development. Production uses object storage.
+.storage/
+.storage-test/

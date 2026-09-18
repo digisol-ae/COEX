@@ -39,6 +39,9 @@ export default defineConfig({
     testTimeout: 30000,
     env: {
       MONGODB_URI: environment.MONGODB_URI ?? '',
+      // Uploads in the suite go to their own directory, so a test run can never write into the
+      // store a running development server is using.
+      STORAGE_DIR: path.resolve(import.meta.dirname, '.storage-test'),
     },
   },
   resolve: {
