@@ -1,0 +1,47 @@
+# COEX as a systemd service.
+#
+# systemd rather than a process manager: it is already on the machine, it starts the app on boot,
+# restarts it if it dies, and writes its output where the rest of the server's logs go. One less
+# thing installed is one less thing to keep patched.
+#
+# Install with:
+#   sudo cp deploy/coex.service /etc/systemd/system/coex.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now coex
+
+[Unit]
+Description=COEX
+After=network-online.target mongod.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=coex
+Group=coex
+WorkingDirectory=/srv/coex/current
+
+# The port is bound on loopback only. Nothing reaches the app except through the web server in
+# front of it, which is what terminates TLS and is the only thing the internet can see.
+Environment=NODE_ENV=production
+Environment=PORT=3100
+Environment=HOSTNAME=127.0.0.1
+EnvironmentFile=/srv/coex/shared/.env
+
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start --port 3100 --hostname 127.0.0.1
+
+Restart=always
+RestartSec=3
+
+# The app writes nothing outside its own uploads directory, so everything else is read only to it.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/coex/shared/storage /srv/coex/current/.next/cache
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=coex
+
+[Install]
+WantedBy=multi-user.target
