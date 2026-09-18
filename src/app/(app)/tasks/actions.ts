@@ -99,6 +99,37 @@ export async function createTaskAction(
   return { saved: true };
 }
 
+/**
+ * Adding a task from the foot of a column or a group.
+ *
+ * A title and nothing else, straight into the column it was typed under. Capture and detail are
+ * different moments: making someone fill a form to write down a thought is how thoughts stop
+ * getting written down, and everything else about the task can be set from the row afterwards.
+ */
+export async function quickAddTaskAction(input: {
+  projectId: string;
+  title: string;
+  status: string;
+}): Promise<TaskFormState> {
+  const actor = await requirePermission('task.manage');
+
+  const title = input.title.trim();
+  if (!title) return { error: 'A task needs a title.' };
+
+  try {
+    await asUser(actor, () =>
+      createTask({ projectId: input.projectId, title, status: input.status }),
+    );
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not add the task.' };
+  }
+
+  revalidatePath(`/projects/${input.projectId}`);
+  revalidatePath('/tasks');
+  revalidatePath('/dashboard');
+  return { saved: true };
+}
+
 /** Used by drag and drop, which sends the neighbours rather than an index. */
 export async function reorderTaskAction(input: {
   id: string;
@@ -177,6 +208,8 @@ export async function patchTaskAction(input: {
   startAt?: string | null;
   endAt?: string | null;
   assigneeIds?: string[];
+  title?: string;
+  description?: string | null;
 }): Promise<TaskFormState> {
   const actor = await requirePermission('task.manage');
 
@@ -187,6 +220,8 @@ export async function patchTaskAction(input: {
         startAt: input.startAt,
         endAt: input.endAt,
         assigneeIds: input.assigneeIds,
+        title: input.title,
+        description: input.description,
       }),
     );
   } catch (error) {
@@ -197,6 +232,28 @@ export async function patchTaskAction(input: {
   revalidatePath(`/tasks/${input.id}`);
   revalidatePath('/tasks');
   revalidatePath('/dashboard');
+  return { saved: true };
+}
+
+/** Adding a subtask from the panel, which has to refresh the project page too. */
+export async function addSubtaskInlineAction(input: {
+  taskId: string;
+  title: string;
+  projectId: string;
+}): Promise<TaskFormState> {
+  const actor = await requirePermission('task.manage');
+
+  const title = input.title.trim();
+  if (!title) return { error: 'A subtask needs a title.' };
+
+  try {
+    await asUser(actor, () => addSubtask(input.taskId, title));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not add the subtask.' };
+  }
+
+  revalidatePath(`/projects/${input.projectId}`);
+  revalidatePath(`/tasks/${input.taskId}`);
   return { saved: true };
 }
 

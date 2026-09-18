@@ -204,6 +204,17 @@ export function metPercent(met: number, missed: number): number | null {
   return total === 0 ? null : Math.round((met / total) * 100);
 }
 
+/** The same badge question for the support rail: how much open work is mine. */
+export async function countMyOpenTickets(userId: string): Promise<number> {
+  await connectToDatabase();
+
+  return tickets().count({
+    mergedIntoId: null,
+    status: { $in: OPEN_STATUSES },
+    assigneeId: toObjectId(userId),
+  });
+}
+
 export interface DeskSnapshot {
   mine: number;
   unassigned: number;

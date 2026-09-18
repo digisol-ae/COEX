@@ -151,6 +151,18 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   }));
 }
 
+/**
+ * How much open work is mine, for the badge on the rail.
+ *
+ * One counted query on an indexed field, because this runs on every page load and a badge is never
+ * worth a slow screen.
+ */
+export async function countMyOpenTasks(userId: string): Promise<number> {
+  await connectToDatabase();
+
+  return tasks().count({ assigneeIds: toObjectId(userId), isClosed: false });
+}
+
 export async function getTask(id: string) {
   await connectToDatabase();
   return tasks().findById(id);
@@ -167,6 +179,8 @@ export interface CreateTaskInput {
   estimateMinutes?: number | null;
   organisationId?: string | null;
   phase?: string | null;
+  /** Adding straight into a column, from the board. Anything else opens in the first column. */
+  status?: string;
 }
 
 export async function createTask(input: CreateTaskInput): Promise<string> {
@@ -180,9 +194,17 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
 
   if (!project) throw new Error('Project not found.');
 
-  const firstColumn = [...project.statuses].sort(
-    (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
-  )[0];
+  const columns = [...project.statuses].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
+  const column = input.status
+    ? columns.find((candidate) => candidate.name === input.status)
+    : columns[0];
+
+  if (input.status && !column) {
+    throw new Error(`${project.name} has no column called ${input.status}.`);
+  }
+
+  const firstColumn = column ?? columns[0];
 
   const assigneeIds = (input.assigneeIds ?? []).filter(Boolean).map((id) => toObjectId(id));
 
@@ -355,6 +377,7 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
  */
 export interface TaskPatch {
   priority?: Priority;
+  description?: string | null;
   startAt?: string | null;
   endAt?: string | null;
   assigneeIds?: string[];
@@ -370,6 +393,8 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
   const set: Record<string, unknown> = { lastActivityAt: new Date() };
 
   if (patch.priority) set.priority = patch.priority;
+
+  if (patch.description !== undefined) set.description = patch.description?.trim() || null;
 
   if (patch.title !== undefined) {
     const title = patch.title.trim();

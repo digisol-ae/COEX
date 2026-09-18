@@ -26,7 +26,11 @@ import {
   listQueues,
   updateQueue,
 } from '@/modules/tickets/services/queue.service';
-import { loadDeskMetrics, loadDeskSnapshot } from '@/modules/tickets/services/metrics.service';
+import {
+  countMyOpenTickets,
+  loadDeskMetrics,
+  loadDeskSnapshot,
+} from '@/modules/tickets/services/metrics.service';
 
 const tenantId = new Types.ObjectId();
 const otherTenantId = new Types.ObjectId();
@@ -487,5 +491,25 @@ describe('the desk report', () => {
     expect(snapshot.mine).toBe(1);
     expect(snapshot.unassigned).toBe(1);
     expect(snapshot.pressing.map((ticket) => ticket.subject)).toEqual(['Mine']);
+  });
+});
+
+describe('the badge on the rail', () => {
+  it('counts only my own open tickets', async () => {
+    const queueId = await aQueue();
+
+    const mine = await aTicket(queueId, 'Mine');
+    const alsoMine = await aTicket(queueId, 'Mine and resolved');
+    await aTicket(queueId, 'Nobody has this');
+
+    await runWithContext(context, async () => {
+      await assignTicket(mine, String(userId));
+      await assignTicket(alsoMine, String(userId));
+      await changeStatus(alsoMine, 'resolved');
+    });
+
+    const count = await runWithContext(context, () => countMyOpenTickets(String(userId)));
+
+    expect(count).toBe(1);
   });
 });

@@ -28,8 +28,12 @@ import {
   StatusPicker,
   type PriorityValue,
 } from './inline-edit';
+import { TaskPanel } from './task-panel';
+import { QuickAdd } from './quick-add';
 import {
+  addSubtaskInlineAction,
   createTaskAction,
+  quickAddTaskAction,
   patchTaskAction,
   setSubtaskDoneAction,
   reorderTaskAction,
@@ -63,11 +67,16 @@ interface EditHandlers {
   users: { id: string; name: string }[];
   columns: { name: string; isClosed: boolean }[];
   canManage: boolean;
+  onQuickAdd: (status: string, title: string) => Promise<string | null>;
   onPriority: (task: TaskSummary, priority: PriorityValue) => void;
   onSchedule: (task: TaskSummary, value: { startAt: string | null; endAt: string | null }) => void;
   onAssignees: (task: TaskSummary, ids: string[]) => void;
   onStatus: (task: TaskSummary, status: string) => void;
   onSubtask: (task: TaskSummary, subtaskId: string, done: boolean) => void;
+  onAddSubtask: (task: TaskSummary, title: string) => Promise<string | null>;
+  onRename: (task: TaskSummary, title: string) => void;
+  onDescribe: (task: TaskSummary, description: string) => void;
+  onOpen: (task: TaskSummary) => void;
 }
 
 export function Board({
@@ -93,6 +102,7 @@ export function Board({
   const [showClosed, setShowClosed] = useState(false);
   const [search, setSearch] = useState('');
   const [editError, setEditError] = useState<string | null>(null);
+  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState(createTaskAction, initialState);
   const [, startTransition] = useTransition();
   const [dragging, setDragging] = useState<DragState | null>(null);
@@ -141,6 +151,10 @@ export function Board({
   });
 
   const columnTasks = (status: string) => visible.filter((task) => task.status === status);
+
+  // Read from the optimistic list rather than held in state, so an edit made inside the panel is
+  // the same object the board is showing behind it.
+  const openTask = openTaskId ? (ordered.find((task) => task.id === openTaskId) ?? null) : null;
 
   function patch(
     taskId: string,
@@ -198,6 +212,22 @@ export function Board({
           beforeTaskId: null,
         });
       });
+    },
+    onQuickAdd: async (status, title) => {
+      setEditError(null);
+
+      const result = await quickAddTaskAction({ projectId, title, status });
+      return result.error ?? null;
+    },
+    onRename: (task, title) => patch(task.id, { title }, { id: task.id, projectId, title }),
+    onDescribe: (task, description) =>
+      patch(task.id, {}, { id: task.id, projectId, description: description || null }),
+    onOpen: (task) => setOpenTaskId(task.id),
+    onAddSubtask: async (task, title) => {
+      setEditError(null);
+
+      const result = await addSubtaskInlineAction({ taskId: task.id, title, projectId });
+      return result.error ?? null;
     },
     onSubtask: (task, subtaskId, done) => {
       setEditError(null);
@@ -428,10 +458,17 @@ export function Board({
                       </div>
                     ))}
 
-                    {inColumn.length === 0 ? (
+                    {inColumn.length === 0 && !canManage ? (
                       <p className="px-2 py-6 text-center text-xs text-[var(--color-ink-subtle)]">
-                        {canManage ? 'Drop a task here' : 'Nothing here'}
+                        Nothing here
                       </p>
+                    ) : null}
+
+                    {canManage ? (
+                      <QuickAdd
+                        status={column.name}
+                        onAdd={(title) => handlers.onQuickAdd(column.name, title)}
+                      />
                     ) : null}
                   </div>
                 </div>
@@ -447,6 +484,15 @@ export function Board({
           onDragStart={(taskId, status) => setDragging({ taskId, fromStatus: status })}
           onDragEnd={() => setDragging(null)}
           onDropOn={(status, index) => drop(status, index)}
+        />
+      ) : null}
+
+      {openTask ? (
+        <TaskPanel
+          key={openTask.id}
+          task={openTask}
+          handlers={handlers}
+          onClose={() => setOpenTaskId(null)}
         />
       ) : null}
     </div>
@@ -497,16 +543,21 @@ function TaskCard({
           trigger={<StatusDot status={task.status} isClosed={isClosedColumn} className="mt-0.5" />}
         />
 
-        <Link
-          href={`/tasks/${task.id}`}
-          className="block flex-1 text-sm font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
+        <button
+          type="button"
+          onClick={() => handlers.onOpen(task)}
+          className="block flex-1 text-left text-sm font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
         >
           {task.title}
-        </Link>
+        </button>
 
-        <span className="font-mono text-[10px] text-[var(--color-ink-subtle)] opacity-0 transition-opacity group-hover:opacity-100">
+        <Link
+          href={`/tasks/${task.id}`}
+          aria-label={`Open ${task.number} on its own page`}
+          className="font-mono text-[10px] text-[var(--color-ink-subtle)] opacity-0 transition-opacity group-hover:opacity-100 hover:text-[var(--color-ink)]"
+        >
           {task.number.split('-').pop()}
-        </span>
+        </Link>
       </div>
 
       {task.phase || task.isOverdue || task.subtaskCount > 0 || task.plannedMinutes ? (
@@ -697,9 +748,13 @@ function ListView({
                                     }
                                   />
                                 ) : (
-                                  <span className="font-mono text-[10px] text-[var(--color-ink-subtle)]">
+                                  <Link
+                                    href={`/tasks/${task.id}`}
+                                    aria-label={`Open ${task.number} on its own page`}
+                                    className="font-mono text-[10px] text-[var(--color-ink-subtle)] hover:text-[var(--color-ink)]"
+                                  >
                                     {task.number.split('-').pop()}
-                                  </span>
+                                  </Link>
                                 )}
                               </td>
 
@@ -715,12 +770,13 @@ function ListView({
                                     }
                                   />
 
-                                  <Link
-                                    href={`/tasks/${task.id}`}
-                                    className="truncate font-medium text-[var(--color-ink)] underline-offset-4 group-hover:underline"
+                                  <button
+                                    type="button"
+                                    onClick={() => handlers.onOpen(task)}
+                                    className="truncate text-left font-medium text-[var(--color-ink)] underline-offset-4 group-hover:underline"
                                   >
                                     {task.title}
-                                  </Link>
+                                  </button>
 
                                   {task.subtaskCount > 0 ? (
                                     <Chip title="Subtasks done">
@@ -822,15 +878,26 @@ function ListView({
                         );
                       })}
 
-                      {inColumn.length === 0 ? (
+                      {inColumn.length === 0 && !canManage ? (
                         <tr>
                           <td
                             colSpan={6}
                             className="px-3 py-3 text-center text-xs text-[var(--color-ink-subtle)]"
                           >
-                            {canManage
-                              ? 'Nothing here. Drop a task in, or add one.'
-                              : 'Nothing here'}
+                            Nothing here
+                          </td>
+                        </tr>
+                      ) : null}
+
+                      {canManage ? (
+                        <tr>
+                          <td />
+                          <td colSpan={5}>
+                            <QuickAdd
+                              status={column.name}
+                              variant="row"
+                              onAdd={(title) => handlers.onQuickAdd(column.name, title)}
+                            />
                           </td>
                         </tr>
                       ) : null}

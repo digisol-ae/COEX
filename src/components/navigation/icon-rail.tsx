@@ -15,7 +15,7 @@ import { clsx } from 'clsx';
 interface RailItem {
   href: string;
   label: string;
-  icon: 'home' | 'tasks' | 'projects' | 'time' | 'customers' | 'settings';
+  icon: 'home' | 'tasks' | 'projects' | 'support' | 'time' | 'customers' | 'settings';
   permission?: string;
 }
 
@@ -23,6 +23,7 @@ const ITEMS: RailItem[] = [
   { href: '/dashboard', label: 'Home', icon: 'home' },
   { href: '/tasks', label: 'Tasks', icon: 'tasks', permission: 'task.read.own' },
   { href: '/projects', label: 'Projects', icon: 'projects', permission: 'task.read.all' },
+  { href: '/support/tickets', label: 'Support', icon: 'support', permission: 'ticket.read.own' },
   { href: '/time', label: 'Time', icon: 'time', permission: 'task.read.own' },
   { href: '/customers', label: 'CRM', icon: 'customers', permission: 'customer.read' },
   { href: '/setup', label: 'Setup', icon: 'settings', permission: 'tenant.manage' },
@@ -116,6 +117,17 @@ function Icon({ name }: { name: RailItem['icon'] }) {
     return (
       <svg {...common}>
         <path d="M2.5 5.5A1.5 1.5 0 0 1 4 4h3l1.5 2H14a1.5 1.5 0 0 1 1.5 1.5v5A1.5 1.5 0 0 1 14 14H4a1.5 1.5 0 0 1-1.5-1.5z" />
+      </svg>
+    );
+  }
+
+  if (name === 'support') {
+    return (
+      <svg {...common}>
+        <path d="M3 12.5V9a6 6 0 0 1 12 0v3.5" />
+        <path d="M15 11.5v1.5a2 2 0 0 1-2 2h-2" />
+        <rect x="1.5" y="9.5" width="3" height="4" rx="1.5" />
+        <rect x="13.5" y="9.5" width="3" height="4" rx="1.5" />
       </svg>
     );
   }

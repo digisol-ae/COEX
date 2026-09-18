@@ -1,5 +1,7 @@
 import { asUser, requireUser } from '@/lib/session';
 import { getRunningTimer } from '@/modules/time/services/time.service';
+import { countMyOpenTasks } from '@/modules/tasks/services/task.service';
+import { countMyOpenTickets } from '@/modules/tickets/services/metrics.service';
 import { RunningTimer } from '@/modules/time/components/running-timer';
 import { IconRail } from '@/components/navigation/icon-rail';
 import { Sidebar } from '@/components/navigation/sidebar';
@@ -18,11 +20,28 @@ import { visibleGroups } from '@/components/navigation/navigation';
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
   const groups = visibleGroups(user.permissions);
-  const timer = await asUser(user, () => getRunningTimer());
+  /**
+   * The badges on the rail: how much open work is mine, in each place I might have some.
+   *
+   * Only my own work is counted, whatever the person can see. A manager who can read the whole
+   * tenant does not want a badge showing two hundred; a badge is a prompt to act, and a number
+   * nobody can act on is decoration that teaches people to ignore the rail.
+   */
+  const { timer, counts } = await asUser(user, async () => ({
+    timer: await getRunningTimer(),
+    counts: {
+      '/tasks': user.permissions.includes('task.read.own')
+        ? await countMyOpenTasks(user.id)
+        : undefined,
+      '/support/tickets': user.permissions.includes('ticket.read.own')
+        ? await countMyOpenTickets(user.id)
+        : undefined,
+    },
+  }));
 
   return (
     <div className="flex min-h-screen">
-      <IconRail permissions={user.permissions} />
+      <IconRail permissions={user.permissions} counts={counts} />
       <Sidebar groups={groups} tenantName={user.tenantName} />
 
       <div className="flex min-w-0 flex-1 flex-col">

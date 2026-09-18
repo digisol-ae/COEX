@@ -13,6 +13,7 @@ import {
   moveTask,
   moveTaskToPosition,
   patchTask,
+  countMyOpenTasks,
 } from '@/modules/tasks/services/task.service';
 import { loadDashboard } from '@/modules/tasks/services/dashboard.service';
 
@@ -351,5 +352,65 @@ describe('editing one task field from a row', () => {
     expect(summary.subtasks.map((subtask) => subtask.title)).toEqual(['First step', 'Second step']);
     expect(summary.subtasks.every((subtask) => subtask.id.length > 0)).toBe(true);
     expect(summary.assigneeIds).toEqual([]);
+  });
+});
+
+describe('adding a task straight into a column', () => {
+  it('opens it in the column it was typed under, not the first one', async () => {
+    const projectId = await aProject();
+
+    const id = await runWithContext(context, () =>
+      createTask({ projectId, title: 'Typed under In progress', status: 'In progress' }),
+    );
+
+    const task = await runWithContext(context, () => getTask(id));
+
+    expect(task?.status).toBe('In progress');
+  });
+
+  it('marks it closed when the column is a closed one, so the counts stay honest', async () => {
+    const projectId = await aProject();
+
+    const id = await runWithContext(context, () =>
+      createTask({ projectId, title: 'Typed under Done', status: 'Done' }),
+    );
+
+    const task = await runWithContext(context, () => getTask(id));
+
+    expect(task?.isClosed).toBe(true);
+  });
+
+  it('refuses a column the project does not have', async () => {
+    const projectId = await aProject();
+
+    await expect(
+      runWithContext(context, () =>
+        createTask({ projectId, title: 'Nowhere', status: 'Imaginary' }),
+      ),
+    ).rejects.toThrow(/no column/i);
+  });
+});
+
+describe('the badge on the rail', () => {
+  it('counts only my own open work', async () => {
+    const projectId = await aProject();
+
+    await runWithContext(context, async () => {
+      await createTask({ projectId, title: 'Mine and open', assigneeIds: [String(userId)] });
+      await createTask({ projectId, title: 'Someone else' });
+
+      const closed = await createTask({
+        projectId,
+        title: 'Mine and done',
+        assigneeIds: [String(userId)],
+        status: 'Done',
+      });
+
+      expect(closed).toBeTruthy();
+    });
+
+    const count = await runWithContext(context, () => countMyOpenTasks(String(userId)));
+
+    expect(count).toBe(1);
   });
 });
