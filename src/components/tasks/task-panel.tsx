@@ -17,6 +17,11 @@ import {
   type PriorityValue,
 } from './inline-edit';
 
+export interface TaskColumn {
+  name: string;
+  isClosed: boolean;
+}
+
 /**
  * A task, opened over the board rather than instead of it.
  *
@@ -39,7 +44,8 @@ interface PanelDetail {
 
 export interface PanelHandlers {
   users: { id: string; name: string }[];
-  columns: { name: string; isClosed: boolean }[];
+  /** Per task, because My tasks spans spaces and each space configures its own columns. */
+  columnsFor: (task: TaskSummary) => TaskColumn[];
   canManage: boolean;
   onPriority: (task: TaskSummary, priority: PriorityValue) => void;
   onSchedule: (task: TaskSummary, value: { startAt: string | null; endAt: string | null }) => void;
@@ -49,6 +55,8 @@ export interface PanelHandlers {
   onAddSubtask: (task: TaskSummary, title: string) => Promise<string | null>;
   onRename: (task: TaskSummary, title: string) => void;
   onDescribe: (task: TaskSummary, description: string) => void;
+  /** Opening a task over whatever list it was clicked in, rather than instead of it. */
+  onOpen: (task: TaskSummary) => void;
 }
 
 export function TaskPanel({
@@ -65,7 +73,8 @@ export function TaskPanel({
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
-  const { canManage, columns, users } = handlers;
+  const { canManage, users } = handlers;
+  const columns = handlers.columnsFor(task);
 
   // The panel is mounted per task by its key, so this runs once for each task opened and detail
   // starts empty on its own rather than being cleared here.

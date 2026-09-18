@@ -27,10 +27,9 @@ import {
   PriorityPicker,
   SchedulePicker,
   StatusPicker,
-  type PriorityValue,
-} from './inline-edit';
-import { TaskPanel } from './task-panel';
-import { QuickAdd } from './quick-add';
+} from '@/components/tasks/inline-edit';
+import { TaskPanel, type PanelHandlers } from '@/components/tasks/task-panel';
+import { QuickAdd } from '@/components/tasks/quick-add';
 import {
   addSubtaskInlineAction,
   createTaskAction,
@@ -72,20 +71,8 @@ type OptimisticChange =
   | { kind: 'move'; taskId: string; status: string; index: number }
   | { kind: 'patch'; taskId: string; patch: Partial<TaskSummary> };
 
-interface EditHandlers {
-  users: { id: string; name: string }[];
-  columns: { name: string; isClosed: boolean }[];
-  canManage: boolean;
+interface EditHandlers extends PanelHandlers {
   onQuickAdd: (status: string, title: string) => Promise<string | null>;
-  onPriority: (task: TaskSummary, priority: PriorityValue) => void;
-  onSchedule: (task: TaskSummary, value: { startAt: string | null; endAt: string | null }) => void;
-  onAssignees: (task: TaskSummary, ids: string[]) => void;
-  onStatus: (task: TaskSummary, status: string) => void;
-  onSubtask: (task: TaskSummary, subtaskId: string, done: boolean) => void;
-  onAddSubtask: (task: TaskSummary, title: string) => Promise<string | null>;
-  onRename: (task: TaskSummary, title: string) => void;
-  onDescribe: (task: TaskSummary, description: string) => void;
-  onOpen: (task: TaskSummary) => void;
 }
 
 export function Board({
@@ -194,7 +181,7 @@ export function Board({
 
   const handlers: EditHandlers = {
     users,
-    columns,
+    columnsFor: () => columns,
     canManage,
     onPriority: (task, priority) =>
       patch(task.id, { priority }, { id: task.id, spaceId, priority }),
@@ -509,6 +496,7 @@ export function Board({
       ) : view === 'list' ? (
         <ListView
           tasks={visible}
+          columns={columns}
           handlers={handlers}
           dragging={dragging}
           onDragStart={(taskId, status) => setDragging({ taskId, fromStatus: status })}
@@ -551,7 +539,8 @@ function TaskCard({
   onDragEnd: () => void;
   isDragging: boolean;
 }) {
-  const { canManage, columns, users } = handlers;
+  const { canManage, users } = handlers;
+  const columns = handlers.columnsFor(task);
 
   return (
     <Card
@@ -660,6 +649,7 @@ function TaskCard({
  */
 function ListView({
   tasks,
+  columns,
   handlers,
   dragging,
   onDragStart,
@@ -667,6 +657,7 @@ function ListView({
   onDropOn,
 }: {
   tasks: TaskSummary[];
+  columns: { name: string; isClosed: boolean }[];
   handlers: EditHandlers;
   dragging: DragState | null;
   onDragStart: (taskId: string, status: string) => void;
@@ -675,7 +666,7 @@ function ListView({
 }) {
   const [collapsed, setCollapsed] = useState<string[]>([]);
   const [expanded, setExpanded] = useState<string[]>([]);
-  const { canManage, columns, users } = handlers;
+  const { canManage, users } = handlers;
 
   if (tasks.length === 0) {
     return (
