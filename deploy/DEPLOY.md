@@ -1,7 +1,16 @@
 # Deploying COEX to a VPS
 
-Written for Ubuntu on a 4 vCPU, 8 GB machine that already runs something else. Everything here
-assumes COEX is a guest on that server and must not disturb what is there.
+Written for the Contabo VPS `zabbix-server` at 194.163.137.54: Ubuntu 24.04, 4 vCPU, 8 GB, already
+running Zabbix behind Apache. Everything here assumes COEX is a guest on that machine and must not
+disturb Zabbix.
+
+Sign in as `digisol` with the key:
+
+```bash
+ssh -i ~/Downloads/digisol-zabbix.pem digisol@194.163.137.54
+```
+
+To become root, `sudo -i`. Not `sudo -su`, which is a different flag and only prints the usage.
 
 MongoDB runs on the same machine. COEX listens on 127.0.0.1:3100 and is never exposed directly:
 whatever web server already owns ports 80 and 443 puts it on a subdomain.
@@ -19,15 +28,11 @@ node --version 2>/dev/null; mongod --version 2>/dev/null
 
 The first line decides the rest. The four cases:
 
-| What you see | What it means |
-|---|---|
-| `nginx` | Use `deploy/nginx-coex.conf`. Easiest case. |
-| `apache2` | Same idea, an Apache virtual host with `ProxyPass / http://127.0.0.1:3100/`. |
-| A control panel (CyberPanel, Plesk, CloudPanel, hPanel) | Do not edit its config files by hand; it will overwrite them. Add the subdomain in the panel, then use its own reverse proxy or "Node.js application" screen to point at 127.0.0.1:3100. |
-| `docker-proxy` | Something is published through Docker. Add COEX to that setup rather than beside it, or the two will fight over the port. |
+On this machine the answer is **Apache**, serving Zabbix. So COEX goes in as a second virtual host
+using `deploy/apache-coex.conf`, and `deploy/nginx-coex.conf` is not used.
 
-**Do not install Nginx if something else is already listening.** Two web servers cannot both hold
-port 80, and the one that loses is whichever restarts second, which may be the live one.
+**Do not install Nginx.** Two web servers cannot both hold port 80, and the one that loses is
+whichever restarts second, which here would be Zabbix.
 
 ## 1. A user and a place to live
 
@@ -109,15 +114,27 @@ If that curl works, COEX is running. Everything after this is about letting peop
 
 ## 8. The subdomain
 
-Point an A record for your chosen name, for example `coex.digisol.ae`, at the server's IPv4 address
-and wait for it to resolve. Then add the reverse proxy in whichever of the four cases you are in.
-For Nginx, `deploy/nginx-coex.conf` is ready; change the `server_name` if your subdomain differs.
+Point an A record for `coex.digisol.ae` at 194.163.137.54 and wait for it to resolve. Check with
+`dig +short coex.digisol.ae` before going further; a certificate cannot be issued until it answers.
+
+```bash
+sudo a2enmod proxy proxy_http headers
+sudo cp /srv/coex/current/deploy/apache-coex.conf /etc/apache2/sites-available/coex.conf
+sudo a2ensite coex
+sudo apache2ctl configtest
+sudo systemctl reload apache2
+```
+
+`configtest` before `reload`, every time. A reload with a broken file takes Zabbix down with it.
+Reload rather than restart, so the Zabbix site is never even briefly interrupted.
 
 Then the certificate:
 
 ```bash
-sudo certbot --nginx -d coex.digisol.ae
+sudo certbot --apache -d coex.digisol.ae
 ```
+
+certbot only touches the `coex` virtual host it was pointed at. The Zabbix host is untouched.
 
 **Do not skip this.** Sign in sends a password, and without a certificate it crosses the network in
 the clear and every browser tells your team the site cannot be trusted. Ten days of that teaches
