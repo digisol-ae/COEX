@@ -19,8 +19,8 @@ export default async function LoginPage() {
         <Image
           src="/brand/logo-long.png"
           alt="DigiSol"
-          width={180}
-          height={40}
+          width={296}
+          height={100}
           priority
           className="h-9 w-auto"
         />
@@ -43,8 +43,8 @@ export default async function LoginPage() {
           <Image
             src="/brand/logo-long.png"
             alt="DigiSol"
-            width={160}
-            height={36}
+            width={237}
+            height={80}
             priority
             className="mb-10 h-8 w-auto lg:hidden"
           />
