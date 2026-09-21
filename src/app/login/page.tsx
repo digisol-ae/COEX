@@ -20,9 +20,9 @@ export default async function LoginPage() {
           src="/brand/logo-long.png"
           alt="DigiSol"
           width={296}
-          height={100}
+          height={200}
           priority
-          className="h-9 w-auto"
+          className="h-12 w-auto object-contain"
         />
 
         <div>
