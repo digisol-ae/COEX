@@ -52,6 +52,7 @@ export interface PanelHandlers {
   onAssignees: (task: TaskSummary, ids: string[]) => void;
   onStatus: (task: TaskSummary, status: string) => void;
   onSubtask: (task: TaskSummary, subtaskId: string, done: boolean) => void;
+  onSubtaskAssignee: (task: TaskSummary, subtaskId: string, assigneeId: string | null) => void;
   onAddSubtask: (task: TaskSummary, title: string) => Promise<string | null>;
   onRename: (task: TaskSummary, title: string) => void;
   onDescribe: (task: TaskSummary, description: string) => void;
@@ -260,8 +261,8 @@ export function TaskPanel({
 
             <ul className="mt-1 space-y-1">
               {task.subtasks.map((subtask) => (
-                <li key={subtask.id}>
-                  <label className="flex items-center gap-2 text-[13px]">
+                <li key={subtask.id} className="flex items-center gap-2">
+                  <label className="flex flex-1 items-center gap-2 text-[13px]">
                     <input
                       type="checkbox"
                       checked={subtask.done}
@@ -281,6 +282,28 @@ export function TaskPanel({
                       {subtask.title}
                     </span>
                   </label>
+
+                  {canManage ? (
+                    <select
+                      aria-label={`Assign ${subtask.title}`}
+                      value={subtask.assigneeId ?? ''}
+                      onChange={(event) =>
+                        handlers.onSubtaskAssignee(task, subtask.id, event.target.value || null)
+                      }
+                      className="max-w-28 truncate rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-1.5 py-0.5 text-[12px] text-[var(--color-ink-muted)]"
+                    >
+                      <option value="">Unassigned</option>
+                      {handlers.users.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : subtask.assigneeId ? (
+                    <span className="text-[12px] text-[var(--color-ink-subtle)]">
+                      {handlers.users.find((user) => user.id === subtask.assigneeId)?.name ?? ''}
+                    </span>
+                  ) : null}
                 </li>
               ))}
             </ul>

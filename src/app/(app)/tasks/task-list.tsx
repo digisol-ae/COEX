@@ -22,6 +22,7 @@ import {
   patchTaskAction,
   reorderTaskAction,
   setSubtaskDoneAction,
+  setSubtaskAssigneeAction,
 } from './actions';
 
 /**
@@ -164,6 +165,27 @@ export function TaskList({
           taskId: task.id,
           subtaskId,
           done,
+          spaceId: task.spaceId,
+        });
+      });
+    },
+    onSubtaskAssignee: (task, subtaskId, assigneeId) => {
+      setError(null);
+
+      startTransition(async () => {
+        apply({
+          taskId: task.id,
+          patch: {
+            subtasks: task.subtasks.map((subtask) =>
+              subtask.id === subtaskId ? { ...subtask, assigneeId } : subtask,
+            ),
+          },
+        });
+
+        await setSubtaskAssigneeAction({
+          taskId: task.id,
+          subtaskId,
+          assigneeId,
           spaceId: task.spaceId,
         });
       });

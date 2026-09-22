@@ -12,6 +12,7 @@ import {
   moveTaskToPosition,
   patchTask,
   removeDocumentLink,
+  setSubtaskAssignee,
   toggleSubtask,
   updateTask,
   type Priority,
@@ -284,6 +285,28 @@ export async function setSubtaskDoneAction(input: {
 
   revalidatePath(`/spaces/${input.spaceId}`);
   revalidatePath(`/tasks/${input.taskId}`);
+}
+
+/** Give a subtask to a member (or clear it) from the board panel or the task page. */
+export async function setSubtaskAssigneeAction(input: {
+  taskId: string;
+  subtaskId: string;
+  assigneeId: string | null;
+  spaceId?: string;
+}): Promise<{ error?: string }> {
+  const actor = await requirePermission('task.manage');
+
+  try {
+    await asUser(actor, () =>
+      setSubtaskAssignee(input.taskId, input.subtaskId, input.assigneeId),
+    );
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not assign the subtask.' };
+  }
+
+  if (input.spaceId) revalidatePath(`/spaces/${input.spaceId}`);
+  revalidatePath(`/tasks/${input.taskId}`);
+  return {};
 }
 
 export async function addSubtaskAction(formData: FormData): Promise<void> {

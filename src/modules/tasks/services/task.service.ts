@@ -78,7 +78,7 @@ export interface TaskSummary {
   sortOrder: number;
   subtaskCount: number;
   subtasksDone: number;
-  subtasks: { id: string; title: string; done: boolean }[];
+  subtasks: { id: string; title: string; done: boolean; assigneeId: string | null }[];
   documentCount: number;
   isClosed: boolean;
   isOverdue: boolean;
@@ -159,6 +159,7 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
       id: String(subtask._id),
       title: subtask.title,
       done: subtask.done,
+      assigneeId: subtask.assigneeId ? String(subtask.assigneeId) : null,
     })),
     documentCount: task.documentLinks.length,
     isClosed: task.isClosed ?? false,
@@ -526,6 +527,29 @@ export async function toggleSubtask(
 
   subtask.done = done;
   subtask.completedAt = done ? new Date() : null;
+  task.lastActivityAt = new Date();
+
+  await task.save();
+}
+
+/**
+ * Give one subtask to one person, or clear it. A subtask is often the half of a task somebody else
+ * does, so it carries its own owner. Passing null unassigns it.
+ */
+export async function setSubtaskAssignee(
+  taskId: string,
+  subtaskId: string,
+  assigneeId: string | null,
+): Promise<void> {
+  await connectToDatabase();
+
+  const task = await tasks().findById(taskId);
+  if (!task) throw new Error('Task not found.');
+
+  const subtask = task.subtasks.find((candidate) => String(candidate._id) === subtaskId);
+  if (!subtask) throw new Error('Subtask not found.');
+
+  subtask.assigneeId = assigneeId ? toObjectId(assigneeId) : null;
   task.lastActivityAt = new Date();
 
   await task.save();

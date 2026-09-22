@@ -1,0 +1,472 @@
+diff --git a/src/app/(app)/spaces/[id]/board.tsx b/src/app/(app)/spaces/[id]/board.tsx
+index ea334d1..8dd9e07 100644
+--- a/src/app/(app)/spaces/[id]/board.tsx
++++ b/src/app/(app)/spaces/[id]/board.tsx
+@@ -36,6 +36,7 @@ import {
+   quickAddTaskAction,
+   patchTaskAction,
+   setSubtaskDoneAction,
++  setSubtaskAssigneeAction,
+   reorderTaskAction,
+   type TaskFormState,
+ } from '../../tasks/actions';
+@@ -255,6 +256,29 @@ export function Board({
+         await setSubtaskDoneAction({ taskId: task.id, subtaskId, done, spaceId });
+       });
+     },
++    onSubtaskAssignee: (task, subtaskId, assigneeId) => {
++      setEditError(null);
++
++      startTransition(async () => {
++        applyChange({
++          kind: 'patch',
++          taskId: task.id,
++          patch: {
++            subtasks: task.subtasks.map((subtask) =>
++              subtask.id === subtaskId ? { ...subtask, assigneeId } : subtask,
++            ),
++          },
++        });
++
++        const result = await setSubtaskAssigneeAction({
++          taskId: task.id,
++          subtaskId,
++          assigneeId,
++          spaceId,
++        });
++        if (result.error) setEditError(result.error);
++      });
++    },
+   };
+ 
+   function drop(status: string, index: number) {
+diff --git a/src/app/(app)/spaces/[id]/toolbar.tsx b/src/app/(app)/spaces/[id]/toolbar.tsx
+index 791722e..59c7795 100644
+--- a/src/app/(app)/spaces/[id]/toolbar.tsx
++++ b/src/app/(app)/spaces/[id]/toolbar.tsx
+@@ -49,7 +49,14 @@ export function Toolbar({
+         Closed
+       </button>
+ 
+-      <div className="flex items-center gap-1 rounded-[var(--radius-control)] border border-[var(--color-line)] py-0.5 pr-1 pl-1.5">
++      <div
++        className={clsx(
++          'flex items-center gap-1 rounded-[var(--radius-control)] border py-0.5 pr-1 pl-1.5 transition-colors',
++          assigneeId
++            ? 'border-[var(--color-line-strong)] bg-[var(--color-surface-muted)]'
++            : 'border-[var(--color-line)]',
++        )}
++      >
+         <span className="text-[12px] text-[var(--color-ink-subtle)]">Who</span>
+ 
+         <button
+@@ -73,8 +80,12 @@ export function Toolbar({
+               title={user.name}
+               onClick={() => onAssignee(assigneeId === user.id ? null : user.id)}
+               className={clsx(
+-                'rounded-full transition-opacity',
+-                assigneeId && assigneeId !== user.id ? 'opacity-35' : 'opacity-100',
++                'rounded-full transition-all',
++                assigneeId === user.id
++                  ? 'opacity-100 ring-2 ring-[var(--color-ink)] ring-offset-2 ring-offset-[var(--color-surface)]'
++                  : assigneeId
++                    ? 'opacity-35 hover:opacity-70'
++                    : 'opacity-100',
+               )}
+             >
+               <Avatar name={user.name} size="small" />
+diff --git a/src/app/(app)/tasks/[id]/page.tsx b/src/app/(app)/tasks/[id]/page.tsx
+index db8e8cb..ef0705c 100644
+--- a/src/app/(app)/tasks/[id]/page.tsx
++++ b/src/app/(app)/tasks/[id]/page.tsx
+@@ -101,10 +101,12 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
+           <SubtaskList
+             taskId={id}
+             canManage={canManage}
++            users={users.map((user) => ({ id: user.id, name: user.name }))}
+             subtasks={task.subtasks.map((subtask) => ({
+               id: String(subtask._id),
+               title: subtask.title,
+               done: subtask.done ?? false,
++              assigneeId: subtask.assigneeId ? String(subtask.assigneeId) : null,
+             }))}
+           />
+ 
+diff --git a/src/app/(app)/tasks/[id]/subtask-list.tsx b/src/app/(app)/tasks/[id]/subtask-list.tsx
+index 26e0703..fccf3f0 100644
+--- a/src/app/(app)/tasks/[id]/subtask-list.tsx
++++ b/src/app/(app)/tasks/[id]/subtask-list.tsx
+@@ -1,19 +1,23 @@
+ 'use client';
+ 
++import { useTransition } from 'react';
+ import { Button, Card, CardSection, EmptyState, Input } from '@/components/ui';
+-import { addSubtaskAction, toggleSubtaskAction } from '../actions';
++import { addSubtaskAction, setSubtaskAssigneeAction, toggleSubtaskAction } from '../actions';
+ 
+ /** One level of breakdown. A subtask that needs subtasks of its own is really a task. */
+ export function SubtaskList({
+   taskId,
+   subtasks,
++  users,
+   canManage,
+ }: {
+   taskId: string;
+-  subtasks: { id: string; title: string; done: boolean }[];
++  subtasks: { id: string; title: string; done: boolean; assigneeId: string | null }[];
++  users: { id: string; name: string }[];
+   canManage: boolean;
+ }) {
+   const done = subtasks.filter((subtask) => subtask.done).length;
++  const [, startTransition] = useTransition();
+ 
+   return (
+     <Card>
+@@ -25,8 +29,8 @@ export function SubtaskList({
+         ) : (
+           <ul className="space-y-2">
+             {subtasks.map((subtask) => (
+-              <li key={subtask.id}>
+-                <form action={toggleSubtaskAction} className="flex items-center gap-2">
++              <li key={subtask.id} className="flex items-center gap-2">
++                <form action={toggleSubtaskAction} className="flex flex-1 items-center gap-2">
+                   <input type="hidden" name="taskId" value={taskId} />
+                   <input type="hidden" name="subtaskId" value={subtask.id} />
+                   <input type="hidden" name="done" value={String(subtask.done)} />
+@@ -46,6 +50,31 @@ export function SubtaskList({
+                     {subtask.title}
+                   </span>
+                 </form>
++
++                {canManage ? (
++                  <select
++                    aria-label={`Assign ${subtask.title}`}
++                    value={subtask.assigneeId ?? ''}
++                    onChange={(event) => {
++                      const assigneeId = event.target.value || null;
++                      startTransition(async () => {
++                        await setSubtaskAssigneeAction({ taskId, subtaskId: subtask.id, assigneeId });
++                      });
++                    }}
++                    className="max-w-40 truncate rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2 py-1 text-xs text-[var(--color-ink-muted)]"
++                  >
++                    <option value="">Unassigned</option>
++                    {users.map((user) => (
++                      <option key={user.id} value={user.id}>
++                        {user.name}
++                      </option>
++                    ))}
++                  </select>
++                ) : subtask.assigneeId ? (
++                  <span className="text-xs text-[var(--color-ink-subtle)]">
++                    {users.find((user) => user.id === subtask.assigneeId)?.name ?? ''}
++                  </span>
++                ) : null}
+               </li>
+             ))}
+           </ul>
+diff --git a/src/app/(app)/tasks/actions.ts b/src/app/(app)/tasks/actions.ts
+index c440cca..0909696 100644
+--- a/src/app/(app)/tasks/actions.ts
++++ b/src/app/(app)/tasks/actions.ts
+@@ -12,6 +12,7 @@ import {
+   moveTaskToPosition,
+   patchTask,
+   removeDocumentLink,
++  setSubtaskAssignee,
+   toggleSubtask,
+   updateTask,
+   type Priority,
+@@ -286,6 +287,28 @@ export async function setSubtaskDoneAction(input: {
+   revalidatePath(`/tasks/${input.taskId}`);
+ }
+ 
++/** Give a subtask to a member (or clear it) from the board panel or the task page. */
++export async function setSubtaskAssigneeAction(input: {
++  taskId: string;
++  subtaskId: string;
++  assigneeId: string | null;
++  spaceId?: string;
++}): Promise<{ error?: string }> {
++  const actor = await requirePermission('task.manage');
++
++  try {
++    await asUser(actor, () =>
++      setSubtaskAssignee(input.taskId, input.subtaskId, input.assigneeId),
++    );
++  } catch (error) {
++    return { error: error instanceof Error ? error.message : 'Could not assign the subtask.' };
++  }
++
++  if (input.spaceId) revalidatePath(`/spaces/${input.spaceId}`);
++  revalidatePath(`/tasks/${input.taskId}`);
++  return {};
++}
++
+ export async function addSubtaskAction(formData: FormData): Promise<void> {
+   const actor = await requirePermission('task.manage');
+   const id = text(formData, 'taskId');
+diff --git a/src/app/(app)/tasks/task-list.tsx b/src/app/(app)/tasks/task-list.tsx
+index 8b34673..dfee453 100644
+--- a/src/app/(app)/tasks/task-list.tsx
++++ b/src/app/(app)/tasks/task-list.tsx
+@@ -22,6 +22,7 @@ import {
+   patchTaskAction,
+   reorderTaskAction,
+   setSubtaskDoneAction,
++  setSubtaskAssigneeAction,
+ } from './actions';
+ 
+ /**
+@@ -168,6 +169,27 @@ export function TaskList({
+         });
+       });
+     },
++    onSubtaskAssignee: (task, subtaskId, assigneeId) => {
++      setError(null);
++
++      startTransition(async () => {
++        apply({
++          taskId: task.id,
++          patch: {
++            subtasks: task.subtasks.map((subtask) =>
++              subtask.id === subtaskId ? { ...subtask, assigneeId } : subtask,
++            ),
++          },
++        });
++
++        await setSubtaskAssigneeAction({
++          taskId: task.id,
++          subtaskId,
++          assigneeId,
++          spaceId: task.spaceId,
++        });
++      });
++    },
+     onAddSubtask: async (task, title) => {
+       setError(null);
+ 
+diff --git a/src/components/tasks/inline-edit.tsx b/src/components/tasks/inline-edit.tsx
+index 284b094..16b42f1 100644
+--- a/src/components/tasks/inline-edit.tsx
++++ b/src/components/tasks/inline-edit.tsx
+@@ -1,6 +1,7 @@
+ 'use client';
+ 
+-import { useEffect, useId, useRef, useState } from 'react';
++import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
++import { createPortal } from 'react-dom';
+ import { clsx } from 'clsx';
+ import { Avatar } from '@/components/ui/avatar';
+ import { PriorityFlag } from '@/components/ui/pill';
+@@ -49,13 +50,52 @@ export function Popover({
+ }) {
+   const [open, setOpen] = useState(false);
+   const holder = useRef<HTMLSpanElement>(null);
++  const panel = useRef<HTMLDivElement>(null);
+   const panelId = useId();
++  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
++
++  /**
++   * The panel is rendered in a portal on the body with fixed positioning, not absolutely inside the
++   * card. A card sits in a column that scrolls sideways and clips its overflow, and the next card
++   * paints on top of this one, so an absolute menu is either clipped or hidden behind the card
++   * below. Anchored to the body and measured against the viewport, it escapes both, and it flips
++   * above the trigger when there is no room below, which is what a task at the foot of a column
++   * needs.
++   */
++  const place = useCallback(() => {
++    const trigger = holder.current?.getBoundingClientRect();
++    const box = panel.current;
++    if (!trigger || !box) return;
++
++    const gap = 4;
++    const margin = 8;
++    const width = box.offsetWidth;
++    const height = box.offsetHeight;
++
++    let left = align === 'right' ? trigger.right - width : trigger.left;
++    left = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
++
++    let top = trigger.bottom + gap;
++    if (top + height > window.innerHeight - margin) {
++      const above = trigger.top - height - gap;
++      top = above >= margin ? above : Math.max(margin, window.innerHeight - height - margin);
++    }
++
++    setCoords({ top, left });
++  }, [align]);
++
++  useLayoutEffect(() => {
++    if (open) place();
++    else setCoords(null);
++  }, [open, place]);
+ 
+   useEffect(() => {
+     if (!open) return;
+ 
+     function onPointerDown(event: MouseEvent) {
+-      if (holder.current && !holder.current.contains(event.target as Node)) setOpen(false);
++      const target = event.target as Node;
++      if (holder.current?.contains(target) || panel.current?.contains(target)) return;
++      setOpen(false);
+     }
+ 
+     function onKeyDown(event: KeyboardEvent) {
+@@ -64,12 +104,16 @@ export function Popover({
+ 
+     document.addEventListener('mousedown', onPointerDown);
+     document.addEventListener('keydown', onKeyDown);
++    window.addEventListener('resize', place);
++    window.addEventListener('scroll', place, true);
+ 
+     return () => {
+       document.removeEventListener('mousedown', onPointerDown);
+       document.removeEventListener('keydown', onKeyDown);
++      window.removeEventListener('resize', place);
++      window.removeEventListener('scroll', place, true);
+     };
+-  }, [open]);
++  }, [open, place]);
+ 
+   if (disabled) return <span className={className}>{trigger}</span>;
+ 
+@@ -86,17 +130,24 @@ export function Popover({
+         {trigger}
+       </button>
+ 
+-      {open ? (
+-        <div
+-          id={panelId}
+-          className={clsx(
+-            'absolute top-full z-30 mt-1 min-w-44 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)] p-1 shadow-[var(--shadow-pop)]',
+-            align === 'right' ? 'right-0' : 'left-0',
+-          )}
+-        >
+-          {children(() => setOpen(false))}
+-        </div>
+-      ) : null}
++      {open && typeof document !== 'undefined'
++        ? createPortal(
++            <div
++              id={panelId}
++              ref={panel}
++              style={{
++                position: 'fixed',
++                top: coords?.top ?? 0,
++                left: coords?.left ?? 0,
++                visibility: coords ? 'visible' : 'hidden',
++              }}
++              className="z-50 max-h-[min(20rem,80vh)] min-w-44 overflow-y-auto rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)] p-1 shadow-[var(--shadow-pop)]"
++            >
++              {children(() => setOpen(false))}
++            </div>,
++            document.body,
++          )
++        : null}
+     </span>
+   );
+ }
+diff --git a/src/components/tasks/task-panel.tsx b/src/components/tasks/task-panel.tsx
+index 72b6d94..e9a6198 100644
+--- a/src/components/tasks/task-panel.tsx
++++ b/src/components/tasks/task-panel.tsx
+@@ -52,6 +52,7 @@ export interface PanelHandlers {
+   onAssignees: (task: TaskSummary, ids: string[]) => void;
+   onStatus: (task: TaskSummary, status: string) => void;
+   onSubtask: (task: TaskSummary, subtaskId: string, done: boolean) => void;
++  onSubtaskAssignee: (task: TaskSummary, subtaskId: string, assigneeId: string | null) => void;
+   onAddSubtask: (task: TaskSummary, title: string) => Promise<string | null>;
+   onRename: (task: TaskSummary, title: string) => void;
+   onDescribe: (task: TaskSummary, description: string) => void;
+@@ -260,8 +261,8 @@ export function TaskPanel({
+ 
+             <ul className="mt-1 space-y-1">
+               {task.subtasks.map((subtask) => (
+-                <li key={subtask.id}>
+-                  <label className="flex items-center gap-2 text-[13px]">
++                <li key={subtask.id} className="flex items-center gap-2">
++                  <label className="flex flex-1 items-center gap-2 text-[13px]">
+                     <input
+                       type="checkbox"
+                       checked={subtask.done}
+@@ -281,6 +282,28 @@ export function TaskPanel({
+                       {subtask.title}
+                     </span>
+                   </label>
++
++                  {canManage ? (
++                    <select
++                      aria-label={`Assign ${subtask.title}`}
++                      value={subtask.assigneeId ?? ''}
++                      onChange={(event) =>
++                        handlers.onSubtaskAssignee(task, subtask.id, event.target.value || null)
++                      }
++                      className="max-w-28 truncate rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-1.5 py-0.5 text-[12px] text-[var(--color-ink-muted)]"
++                    >
++                      <option value="">Unassigned</option>
++                      {handlers.users.map((user) => (
++                        <option key={user.id} value={user.id}>
++                          {user.name}
++                        </option>
++                      ))}
++                    </select>
++                  ) : subtask.assigneeId ? (
++                    <span className="text-[12px] text-[var(--color-ink-subtle)]">
++                      {handlers.users.find((user) => user.id === subtask.assigneeId)?.name ?? ''}
++                    </span>
++                  ) : null}
+                 </li>
+               ))}
+             </ul>
+diff --git a/src/modules/tasks/services/task.service.ts b/src/modules/tasks/services/task.service.ts
+index 62d1f0e..c140282 100644
+--- a/src/modules/tasks/services/task.service.ts
++++ b/src/modules/tasks/services/task.service.ts
+@@ -78,7 +78,7 @@ export interface TaskSummary {
+   sortOrder: number;
+   subtaskCount: number;
+   subtasksDone: number;
+-  subtasks: { id: string; title: string; done: boolean }[];
++  subtasks: { id: string; title: string; done: boolean; assigneeId: string | null }[];
+   documentCount: number;
+   isClosed: boolean;
+   isOverdue: boolean;
+@@ -159,6 +159,7 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
+       id: String(subtask._id),
+       title: subtask.title,
+       done: subtask.done,
++      assigneeId: subtask.assigneeId ? String(subtask.assigneeId) : null,
+     })),
+     documentCount: task.documentLinks.length,
+     isClosed: task.isClosed ?? false,
+@@ -531,6 +532,29 @@ export async function toggleSubtask(
+   await task.save();
+ }
+ 
++/**
++ * Give one subtask to one person, or clear it. A subtask is often the half of a task somebody else
++ * does, so it carries its own owner. Passing null unassigns it.
++ */
++export async function setSubtaskAssignee(
++  taskId: string,
++  subtaskId: string,
++  assigneeId: string | null,
++): Promise<void> {
++  await connectToDatabase();
++
++  const task = await tasks().findById(taskId);
++  if (!task) throw new Error('Task not found.');
++
++  const subtask = task.subtasks.find((candidate) => String(candidate._id) === subtaskId);
++  if (!subtask) throw new Error('Subtask not found.');
++
++  subtask.assigneeId = assigneeId ? toObjectId(assigneeId) : null;
++  task.lastActivityAt = new Date();
++
++  await task.save();
++}
++
+ export async function addDocumentLink(
+   taskId: string,
+   rawUrl: string,

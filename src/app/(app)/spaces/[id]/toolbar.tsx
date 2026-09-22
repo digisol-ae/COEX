@@ -49,7 +49,14 @@ export function Toolbar({
         Closed
       </button>
 
-      <div className="flex items-center gap-1 rounded-[var(--radius-control)] border border-[var(--color-line)] py-0.5 pr-1 pl-1.5">
+      <div
+        className={clsx(
+          'flex items-center gap-1 rounded-[var(--radius-control)] border py-0.5 pr-1 pl-1.5 transition-colors',
+          assigneeId
+            ? 'border-[var(--color-line-strong)] bg-[var(--color-surface-muted)]'
+            : 'border-[var(--color-line)]',
+        )}
+      >
         <span className="text-[12px] text-[var(--color-ink-subtle)]">Who</span>
 
         <button
@@ -73,8 +80,12 @@ export function Toolbar({
               title={user.name}
               onClick={() => onAssignee(assigneeId === user.id ? null : user.id)}
               className={clsx(
-                'rounded-full transition-opacity',
-                assigneeId && assigneeId !== user.id ? 'opacity-35' : 'opacity-100',
+                'rounded-full transition-all',
+                assigneeId === user.id
+                  ? 'opacity-100 ring-2 ring-[var(--color-ink)] ring-offset-2 ring-offset-[var(--color-surface)]'
+                  : assigneeId
+                    ? 'opacity-35 hover:opacity-70'
+                    : 'opacity-100',
               )}
             >
               <Avatar name={user.name} size="small" />

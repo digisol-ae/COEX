@@ -36,6 +36,7 @@ import {
   quickAddTaskAction,
   patchTaskAction,
   setSubtaskDoneAction,
+  setSubtaskAssigneeAction,
   reorderTaskAction,
   type TaskFormState,
 } from '../../tasks/actions';
@@ -253,6 +254,29 @@ export function Board({
         });
 
         await setSubtaskDoneAction({ taskId: task.id, subtaskId, done, spaceId });
+      });
+    },
+    onSubtaskAssignee: (task, subtaskId, assigneeId) => {
+      setEditError(null);
+
+      startTransition(async () => {
+        applyChange({
+          kind: 'patch',
+          taskId: task.id,
+          patch: {
+            subtasks: task.subtasks.map((subtask) =>
+              subtask.id === subtaskId ? { ...subtask, assigneeId } : subtask,
+            ),
+          },
+        });
+
+        const result = await setSubtaskAssigneeAction({
+          taskId: task.id,
+          subtaskId,
+          assigneeId,
+          spaceId,
+        });
+        if (result.error) setEditError(result.error);
       });
     },
   };

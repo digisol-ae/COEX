@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
 import { Avatar } from '@/components/ui/avatar';
 import { PriorityFlag } from '@/components/ui/pill';
@@ -49,13 +50,52 @@ export function Popover({
 }) {
   const [open, setOpen] = useState(false);
   const holder = useRef<HTMLSpanElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
   const panelId = useId();
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+
+  /**
+   * The panel is rendered in a portal on the body with fixed positioning, not absolutely inside the
+   * card. A card sits in a column that scrolls sideways and clips its overflow, and the next card
+   * paints on top of this one, so an absolute menu is either clipped or hidden behind the card
+   * below. Anchored to the body and measured against the viewport, it escapes both, and it flips
+   * above the trigger when there is no room below, which is what a task at the foot of a column
+   * needs.
+   */
+  const place = useCallback(() => {
+    const trigger = holder.current?.getBoundingClientRect();
+    const box = panel.current;
+    if (!trigger || !box) return;
+
+    const gap = 4;
+    const margin = 8;
+    const width = box.offsetWidth;
+    const height = box.offsetHeight;
+
+    let left = align === 'right' ? trigger.right - width : trigger.left;
+    left = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
+
+    let top = trigger.bottom + gap;
+    if (top + height > window.innerHeight - margin) {
+      const above = trigger.top - height - gap;
+      top = above >= margin ? above : Math.max(margin, window.innerHeight - height - margin);
+    }
+
+    setCoords({ top, left });
+  }, [align]);
+
+  useLayoutEffect(() => {
+    if (open) place();
+    else setCoords(null);
+  }, [open, place]);
 
   useEffect(() => {
     if (!open) return;
 
     function onPointerDown(event: MouseEvent) {
-      if (holder.current && !holder.current.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (holder.current?.contains(target) || panel.current?.contains(target)) return;
+      setOpen(false);
     }
 
     function onKeyDown(event: KeyboardEvent) {
@@ -64,12 +104,16 @@ export function Popover({
 
     document.addEventListener('mousedown', onPointerDown);
     document.addEventListener('keydown', onKeyDown);
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
 
     return () => {
       document.removeEventListener('mousedown', onPointerDown);
       document.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
     };
-  }, [open]);
+  }, [open, place]);
 
   if (disabled) return <span className={className}>{trigger}</span>;
 
@@ -86,17 +130,24 @@ export function Popover({
         {trigger}
       </button>
 
-      {open ? (
-        <div
-          id={panelId}
-          className={clsx(
-            'absolute top-full z-30 mt-1 min-w-44 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)] p-1 shadow-[var(--shadow-pop)]',
-            align === 'right' ? 'right-0' : 'left-0',
-          )}
-        >
-          {children(() => setOpen(false))}
-        </div>
-      ) : null}
+      {open && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              id={panelId}
+              ref={panel}
+              style={{
+                position: 'fixed',
+                top: coords?.top ?? 0,
+                left: coords?.left ?? 0,
+                visibility: coords ? 'visible' : 'hidden',
+              }}
+              className="z-50 max-h-[min(20rem,80vh)] min-w-44 overflow-y-auto rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)] p-1 shadow-[var(--shadow-pop)]"
+            >
+              {children(() => setOpen(false))}
+            </div>,
+            document.body,
+          )
+        : null}
     </span>
   );
 }

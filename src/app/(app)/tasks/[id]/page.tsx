@@ -101,10 +101,12 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
           <SubtaskList
             taskId={id}
             canManage={canManage}
+            users={users.map((user) => ({ id: user.id, name: user.name }))}
             subtasks={task.subtasks.map((subtask) => ({
               id: String(subtask._id),
               title: subtask.title,
               done: subtask.done ?? false,
+              assigneeId: subtask.assigneeId ? String(subtask.assigneeId) : null,
             }))}
           />
 
