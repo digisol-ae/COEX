@@ -1,0 +1,251 @@
+# COEX — Shared AI Project State
+
+## Purpose
+
+This is the shared working memory for AI agents collaborating on COEX.
+
+Claude and ChatGPT must read this before significant project work.
+
+Permanent project rules and architecture belong in `CLAUDE.md`.
+Product feedback and acceptance history belong in `FEEDBACK.md`.
+
+---
+
+## Product
+
+COEX (Co-existence) is DigiSol's multi-tenant business platform.
+
+It replaces ClickUp and osTicket, provides the CRM foundation, and is designed so Contracts,
+full CRM and Payroll can attach later.
+
+Zoho Books remains the accounting system and will be integrated rather than replaced.
+
+---
+
+## Current Phase
+
+M3 Tasks and Dashboard is substantially built.
+
+Completed major areas:
+
+- M1 Foundation
+- M2 CRM foundation
+- M3 Tasks and dashboard
+- M4 Time tracking
+- M5 Support desk
+
+Batch A code is merged and deployed.
+
+---
+
+## Git State
+
+Branch: `main`
+
+Remote: `origin/main`
+
+Latest commit:
+
+`bf3421d` — board: portal task pickers, highlight active filter, assign subtasks
+
+Current working tree:
+
+- `CLAUDE.md` modified by the AI collaboration setup
+- `batch-a-board-fixes.patch` deleted
+- `ai/` contains shared AI collaboration files
+
+Important:
+
+`batch-a-board-fixes.patch` was added in commit `bf3421d` and its changes are already merged.
+Its current deletion has not been explicitly approved by John.
+
+Do not restore or commit that deletion without John's direction.
+
+---
+
+## Deployment
+
+Documented production environment:
+
+- Contabo VPS
+- Ubuntu 24.04
+- MongoDB 8 with authentication
+- PM2
+- Apache reverse proxy
+- Production URL: `coex.digisol.ae`
+- Production application port: `3001`
+
+Detailed deployment information is in:
+
+`deploy/DEPLOYMENT-STATUS.md`
+
+Claude reports that Batch A was redeployed on 22 Sep 2026 and John confirmed the deployed
+Batch A behaviour during testing.
+
+That deployment confirmation is not yet recorded in the repository documentation.
+
+---
+
+## Batch A
+
+Merged in:
+
+`bf3421d`
+
+Commit:
+
+`board: portal task pickers, highlight active filter, assign subtasks`
+
+Scope included:
+
+- portal task pickers
+- active filter highlighting
+- subtask assignment
+- related board/list/task UI changes
+
+Known limitation:
+
+The subtask assignee dropdown currently lists every member rather than restricting the list
+to private-folder members.
+
+This limitation is not yet formally recorded in `FEEDBACK.md`.
+
+---
+
+## Batch B — Proposed / Not Started
+
+The next proposed work is space visibility.
+
+Existing folder visibility rule:
+
+- no named members = open to the space
+- named members = private
+- tenant administrator is excepted
+- private-folder work can only be assigned to its members
+
+Proposed extension to spaces:
+
+- no named space members = visible to the tenant
+- named space members = private
+- tenant administrator is excepted
+
+Proposed implementation:
+
+- `visibleSpaceFilter`
+- enforce visibility in `listSpaces`
+- enforce visibility in `getSpace`
+- enforce visibility in navigation
+- member picker on space create/edit
+- members backfill for existing spaces
+- B2 private personal task place
+- restrict subtask assignees to valid folder members
+
+Status:
+
+**Not started.**
+
+Claude reports that this space-visibility approach was selected by John on 22 Sep 2026,
+but the implementation has not started.
+
+---
+
+## Batch C — Proposed / Not Started
+
+Proposed feature:
+
+A right-side collapsible timer tray allowing a user to:
+
+- see today's timers
+- pause a timer
+- switch to another task
+- resume a previous timer
+- stop a timer
+
+Existing backend already has:
+
+- one running timer per person
+- starting a new timer stops the existing running timer
+- a partial unique index enforcing one running timer
+- existing running timer display
+
+Proposed scope:
+
+- timer tray UI
+- "my timers today" query
+- resume action
+
+Status:
+
+**Not started.**
+
+Claude suggested ChatGPT could handle Batch C while Claude handles Batch B.
+John has not yet confirmed that division of work.
+
+---
+
+## Other Outstanding Work
+
+- Gantt export as image/PDF.
+- Production attachment storage decision.
+- Entra app registration.
+- Production backup strategy.
+- Figma design adoption.
+
+See `FEEDBACK.md` for the authoritative product backlog.
+
+---
+
+## Context Requiring Reconciliation
+
+The following information exists in prior Claude conversation context but is not yet fully
+recorded in the repository:
+
+1. The permission for Claude to control John's Mac was turned off on 19 Sep 2026.
+   The current `CLAUDE.md` wording still reflects the older permission.
+2. A mobile navigation logo sizing issue was identified.
+3. The proposed mobile navigation logo correction was 148x50.
+4. That mobile navigation logo correction has not been merged.
+5. Batch A deployment and acceptance on 22 Sep has not yet been recorded in remote documentation.
+6. Batch B space visibility and Batch C timer tray scope need to be formally recorded.
+
+These must not be treated as permanent decisions unless confirmed by John.
+
+---
+
+## AI Collaboration Rules
+
+Before significant work:
+
+1. Read this file.
+2. Read `CURRENT_TASK.md`.
+3. Read `HANDOFF.md`.
+4. Read `CLAUDE.md`.
+5. Read `FEEDBACK.md` when product history or acceptance status matters.
+6. Inspect the actual repository before making assumptions.
+
+During work:
+
+- The repository is the implementation source of truth.
+- The `ai/` files are the shared AI collaboration source of truth.
+- AI conversation history is not a substitute for project documentation.
+- Never assume another AI completed work; verify it.
+- Do not overwrite or discard another AI's uncommitted changes without John's direction.
+
+After significant work:
+
+1. Update `PROJECT_STATE.md`.
+2. Update `CURRENT_TASK.md` when the active task changes.
+3. Update `HANDOFF.md` when handing work to another AI.
+4. Record permanent architectural decisions in `CLAUDE.md`.
+5. Record product feedback and acceptance information in `FEEDBACK.md`.
+6. Record what changed, what was tested, and what remains.
+
+---
+
+## Last Updated
+
+2026-09-22
+
+Updated by:
+
+ChatGPT, based on repository inspection and Claude's read-only reconciliation.

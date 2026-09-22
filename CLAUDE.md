@@ -108,6 +108,42 @@ monolith from becoming a tangle.
   GitHub account.
 - Replies on this project in English only, whatever language the question is asked in.
 
+## AI collaboration
+
+Claude and ChatGPT share project context through the files in `ai/`.
+
+Before significant work:
+1. Read `ai/PROJECT_STATE.md`.
+2. Read `ai/CURRENT_TASK.md`.
+3. Read `ai/HANDOFF.md`.
+4. Follow `CLAUDE.md` as the permanent project authority.
+5. Read `FEEDBACK.md` when product history or acceptance status is relevant.
+6. Inspect the actual code before making assumptions.
+
+During work:
+- Treat the repository and shared AI files as the source of truth, not another AI's conversation history.
+- Do not assume that work mentioned in chat was completed; verify it in the repository.
+- Do not overwrite or discard another AI's uncommitted work without John's direction.
+- Do not restore `batch-a-board-fixes.patch` unless John explicitly decides what should happen to it.
+
+After significant work:
+1. Update `ai/PROJECT_STATE.md` with the new project state.
+2. Update `ai/CURRENT_TASK.md` if the active task changed.
+3. Update `ai/HANDOFF.md` when work is being handed to another AI.
+4. Record permanent architectural or product decisions in `CLAUDE.md` or `FEEDBACK.md`, as appropriate.
+5. State what was changed, what was tested, and what remains.
+
+When handing work to ChatGPT:
+- Write a concise handoff in `ai/HANDOFF.md`.
+- Identify changed files, tests run, unresolved issues, and the recommended next step.
+
+When continuing work started by ChatGPT:
+- Read the shared AI files first.
+- Verify ChatGPT's reported work against the repository before continuing.
+
+When handing work to Claude:
+- ChatGPT will update `ai/HANDOFF.md` with the current state and recommended next step.
+
 ## Environment
 
 COEX runs on port 3100, not 3000, because the CIBO accounts program already uses 3000 on John's
