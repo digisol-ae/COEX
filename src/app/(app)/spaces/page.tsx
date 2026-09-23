@@ -108,13 +108,14 @@ export default async function SpacesPage() {
                         </span>
                       )}
                     </Td>
-                    <Td>{space.memberIds.length ? <span className="flex -space-x-1.5">{space.memberIds.map((id) => <Avatar key={id} name={userNames.get(id) ?? 'Unknown'} size="small" />)}</span> : <span className="text-xs text-[var(--color-ink-subtle)]">Everyone</span>}</Td>
-
                     <Td className="text-[var(--color-ink-muted)]">
                       {space.organisationId
                         ? (customerNames.get(space.organisationId) ?? 'Unknown')
                         : '—'}
                     </Td>
+
+                    <Td>{space.memberIds.length ? <span className="flex -space-x-1.5">{space.memberIds.map((id) => <Avatar key={id} name={userNames.get(id) ?? 'Unknown'} size="small" />)}</span> : <span className="text-xs text-[var(--color-ink-subtle)]">Everyone</span>}</Td>
+
 
                     <Td className="w-48">
                       <Progress percent={space.progressPercent} label={`${space.name} progress`} />
