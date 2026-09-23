@@ -6,7 +6,7 @@ import { createSpaceAction, type TaskFormState } from '../tasks/actions';
 
 const initialState: TaskFormState = {};
 
-export function NewSpacePanel({ customers }: { customers: { id: string; name: string }[] }) {
+export function NewSpacePanel({ customers, users }: { customers: { id: string; name: string }[]; users: { id: string; name: string }[] }) {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(createSpaceAction, initialState);
 
@@ -46,6 +46,12 @@ export function NewSpacePanel({ customers }: { customers: { id: string; name: st
 
           <Field label="Due date">
             <Input name="dueDate" type="date" />
+          </Field>
+
+          <Field label="Private members" hint="Leave empty for a tenant-wide space. Hold command to select several.">
+            <select name="memberIds" multiple className="h-28 w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2 py-1.5 text-sm text-[var(--color-ink)]">
+              {users.map((user) => <option key={user.id} value={user.id}>{user.name}</option>)}
+            </select>
           </Field>
 
           {state.error ? <Notice tone="alert">{state.error}</Notice> : null}

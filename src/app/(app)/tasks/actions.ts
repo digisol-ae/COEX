@@ -17,7 +17,7 @@ import {
   updateTask,
   type Priority,
 } from '@/modules/tasks/services/task.service';
-import { createSpace } from '@/modules/tasks/services/space.service';
+import { createSpace, updateSpace } from '@/modules/tasks/services/space.service';
 import { archiveFolder, createFolder, updateFolder } from '@/modules/tasks/services/folder.service';
 
 export interface TaskFormState {
@@ -54,6 +54,7 @@ export async function createSpaceAction(
         description: text(formData, 'description'),
         organisationId: text(formData, 'organisationId') || null,
         dueDate: text(formData, 'dueDate') || null,
+        memberIds: formData.getAll('memberIds').map(String).filter(Boolean),
       }),
     );
 
@@ -73,6 +74,15 @@ export async function createSpaceAction(
 
   revalidatePath('/spaces');
   redirect(`/spaces/${id}`);
+}
+
+export async function updateSpaceAction(_previous: TaskFormState, formData: FormData): Promise<TaskFormState> {
+  const actor = await requirePermission('task.manage');
+  const id = text(formData, 'id');
+  try {
+    await asUser(actor, () => updateSpace(id, { name: text(formData, 'name'), description: text(formData, 'description'), organisationId: text(formData, 'organisationId') || null, dueDate: text(formData, 'dueDate') || null, memberIds: formData.getAll('memberIds').map(String).filter(Boolean) }));
+  } catch (error) { return { error: error instanceof Error ? error.message : 'Could not update the space.' }; }
+  revalidatePath(`/spaces/${id}`); revalidatePath('/spaces'); return { saved: true };
 }
 
 export async function createTaskAction(
@@ -403,6 +413,7 @@ export async function saveFolderAction(
 export async function quickAddFolderAction(input: {
   spaceId: string;
   name: string;
+  privateToMe?: boolean;
 }): Promise<TaskFormState> {
   const actor = await requirePermission('task.manage');
 
@@ -410,7 +421,7 @@ export async function quickAddFolderAction(input: {
   if (!name) return { error: 'A folder needs a name.' };
 
   try {
-    await asUser(actor, () => createFolder({ spaceId: input.spaceId, name }));
+    await asUser(actor, () => createFolder({ spaceId: input.spaceId, name, memberIds: input.privateToMe ? [actor.id] : [] }));
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not add the folder.' };
   }

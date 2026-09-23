@@ -31,6 +31,7 @@ export function FolderBar({
 }) {
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');
+  const [privateToMe, setPrivateToMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
@@ -89,7 +90,7 @@ export function FolderBar({
               setError(null);
 
               startTransition(async () => {
-                const result = await quickAddFolderAction({ spaceId, name: value });
+                const result = await quickAddFolderAction({ spaceId, name: value, privateToMe });
                 if (result.error) setError(result.error);
               });
             }}
@@ -111,6 +112,7 @@ export function FolderBar({
               aria-label="New folder name"
               className="w-36 rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-2 py-1 text-[12px] text-[var(--color-ink)] focus:outline-none"
             />
+            <label className="ml-2 text-[11px] text-[var(--color-ink-muted)]"><input type="checkbox" checked={privateToMe} onChange={(event) => setPrivateToMe(event.target.checked)} /> private to me</label>
           </form>
         ) : null}
       </div>

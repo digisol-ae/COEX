@@ -342,15 +342,14 @@ export function Board({
                 </Field>
               </div>
 
-              <Field label="Assign to">
-                <Select name="assigneeIds" defaultValue="">
-                  <option value="">Unassigned</option>
+              <Field label="Assign to" hint="Hold command to choose more than one">
+                <select name="assigneeIds" multiple className="h-28 w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2 py-1.5 text-sm text-[var(--color-ink)]">
                   {users.map((user) => (
                     <option key={user.id} value={user.id}>
                       {user.name}
                     </option>
                   ))}
-                </Select>
+                </select>
               </Field>
 
               <Field label="Priority">

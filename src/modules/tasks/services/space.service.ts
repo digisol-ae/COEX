@@ -5,6 +5,8 @@ import { recordAudit } from '@/modules/core/services/audit.service';
 import { SpaceModel } from '../models/space.model';
 import { TaskModel } from '../models/task.model';
 import { visibleFolderFilter } from './folder.service';
+import { getContext } from '@/lib/tenant-context';
+import { actorIsAdministrator } from './access.service';
 
 /**
  * Spaces.
@@ -49,12 +51,40 @@ export interface SpaceSummary {
   totalTaskCount: number;
   progressPercent: number;
   status: string;
+  isPrivate: boolean;
+  memberIds: string[];
+}
+
+export async function visibleSpaceIds(): Promise<import('mongoose').Types.ObjectId[] | null> {
+  await connectToDatabase();
+  if (await actorIsAdministrator()) return null;
+  const open = await spaces().find({ memberIds: { $size: 0 } }).select('_id');
+  const mine = await spaces().find({ memberIds: getContext().userId }).select('_id');
+  return [...open, ...mine].map((space) => space._id);
+}
+
+export async function visibleSpaceFilter(field = '_id'): Promise<Record<string, unknown>> {
+  const ids = await visibleSpaceIds();
+  return ids === null ? {} : { [field]: { $in: ids } };
+}
+
+export async function canOpenSpace(id: string): Promise<boolean> {
+  await connectToDatabase();
+  const space = await spaces().findById(id);
+  if (!space) return false;
+  return space.memberIds.length === 0 || (await actorIsAdministrator()) || space.memberIds.some((member) => String(member) === String(getContext().userId));
+}
+
+export async function assignableSpaceMemberIds(id: string): Promise<string[] | null> {
+  const space = await spaces().findById(id);
+  if (!space || space.memberIds.length === 0) return null;
+  return space.memberIds.map(String);
 }
 
 export async function listSpaces(): Promise<SpaceSummary[]> {
   await connectToDatabase();
 
-  const found = await spaces().find().sort({ name: 1 });
+  const found = await spaces().find(await visibleSpaceFilter()).sort({ name: 1 });
 
   // Counts respect folder privacy, so a space does not advertise the size of work the person
   // cannot open. A count that does not match the list is how people conclude a tool is lying.
@@ -89,6 +119,8 @@ export async function listSpaces(): Promise<SpaceSummary[]> {
           })),
         ),
         status: space.status,
+        isPrivate: space.memberIds.length > 0,
+        memberIds: space.memberIds.map(String),
       };
     }),
   );
@@ -96,6 +128,7 @@ export async function listSpaces(): Promise<SpaceSummary[]> {
 
 export async function getSpace(id: string) {
   await connectToDatabase();
+  if (!(await canOpenSpace(id))) return null;
   return spaces().findById(id);
 }
 
@@ -104,6 +137,7 @@ export interface SpaceInput {
   description?: string;
   organisationId?: string | null;
   dueDate?: string | null;
+  memberIds?: string[];
 }
 
 export async function createSpace(input: SpaceInput): Promise<string> {
@@ -117,6 +151,7 @@ export async function createSpace(input: SpaceInput): Promise<string> {
     description: input.description?.trim() || null,
     organisationId: toOptionalObjectId(input.organisationId),
     dueDate: input.dueDate ? new Date(input.dueDate) : null,
+    memberIds: (input.memberIds ?? []).filter(Boolean).map(toObjectId),
   });
 
   await recordAudit({
@@ -144,6 +179,22 @@ export async function renameSpace(id: string, name: string): Promise<void> {
     entityId: space._id,
     after: { name: trimmed },
   });
+}
+
+export async function updateSpace(id: string, input: SpaceInput): Promise<void> {
+  await connectToDatabase();
+  const space = await spaces().findById(id);
+  if (!space) throw new Error('Space not found.');
+  const name = input.name.trim();
+  if (!name) throw new Error('A space needs a name.');
+  const memberIds = (input.memberIds ?? []).filter(Boolean).map(toObjectId);
+  await spaces().updateOne({ _id: space._id }, { $set: {
+    name, description: input.description?.trim() || null,
+    organisationId: toOptionalObjectId(input.organisationId),
+    dueDate: input.dueDate ? new Date(input.dueDate) : null, memberIds,
+  }});
+  await recordAudit({ action: 'space.updated', entityType: 'Space', entityId: space._id,
+    before: { name: space.name, private: space.memberIds.length > 0 }, after: { name, private: memberIds.length > 0 } });
 }
 
 export async function archiveSpace(id: string): Promise<void> {

@@ -14,18 +14,20 @@ export function PageHeader({
   description,
   action,
   icon,
+  titleExtra,
 }: {
   title: string;
   description?: string;
   action?: ReactNode;
   icon?: ReactNode;
+  titleExtra?: ReactNode;
 }) {
   return (
     <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div className="flex items-start gap-3">
         {icon ? <span className="mt-1">{icon}</span> : null}
         <div>
-          <h1 className="text-xl font-bold text-[var(--color-ink)]">{title}</h1>
+          <div className="flex items-center gap-2"><h1 className="text-xl font-bold text-[var(--color-ink)]">{title}</h1>{titleExtra}</div>
           {description ? (
             <p className="mt-1 max-w-2xl text-sm text-[var(--color-ink-muted)]">{description}</p>
           ) : null}

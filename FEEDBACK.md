@@ -12,29 +12,28 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
    deadline with the same editing.
    Not built yet from that walkthrough:
    a. Exporting a Gantt as an image or PDF.
-   Note: once John works live, the deferred backup decision stops being optional, because the data
-   stops being disposable.
+   John is unsure whether this review and the Gantt export are already complete; verify the
+   repository and deployed product before changing this item's status.
 
-0b. Where uploaded files live in production. Attachments are built and working on local disk
-   behind a one file adapter, so the only open decision is the cloud one: object storage such as
-   S3 or Spaces, or a disk on the same server with the backup that implies. It arrives behind the
-   same interface and nothing outside src/lib/storage.ts changes. It also decides where osTicket's
-   existing attachments land at M7. PDF downsampling stays deferred: it needs Ghostscript on the
-   server and we do not yet know whether customers send large PDFs at all.
+0b. Production attachment storage decision: use DigiSol's own cloud server. Attachments are built
+   and working on local disk behind a one-file adapter. Verify the production configuration before
+   M7, when osTicket's existing attachments land there. PDF downsampling stays deferred: it needs
+   Ghostscript on the server and we do not yet know whether customers send large PDFs at all.
 
 0c. Four levels landed on 18 Sep 2026: Space, Folder, Task, Subtask, with folder level visibility.
-   Run `npm run migrate:spaces` once against any database written before it.
+   John is unsure whether `npm run migrate:spaces` has been run for databases written before this
+   change. Verify migration history before marking this complete.
 
-1. Entra app registration. Deferred by John on 17 Sep 2026. Password sign on covers the gap.
-   Revisit before the team starts signing in daily, since it also unlocks Graph document titles.
-2. Backups. Deferred by John on 17 Sep 2026. Atlas free tier has none. This stops being optional at
-   M7, when real osTicket history lands in the database: either a paid tier with continuous backups
-   or a scheduled mongodump to object storage, decided before the dry run.
-3. Figma design. John may share a file to adopt. Tokens live in one place, so adopting it is mostly
-   rewriting globals.css and the component library rather than touching screens. State: awaiting
-   John.
+1. Batch C — Entra app registration. Password sign-on covers the gap. Revisit when Batch C is
+   scheduled; it also unlocks Graph document titles.
+2. Figma design. Defer to the next version, approximately 3–8 Oct 2026. Tokens live in one place,
+   so adoption is mostly rewriting globals.css and the component library rather than touching
+   screens.
 
 ## Done
+
+0. Backups are already implemented by John's team. No COEX backup implementation work is required
+   at present; verify operational ownership and recovery testing before the M7 import.
 
 1. Timesheet entries are correctable in place on 18 Sep 2026, with the history of each entry on its
    own row: number, day, task, note and billable. Only an administrator may correct somebody

@@ -7,6 +7,7 @@ import { recordAudit } from '@/modules/core/services/audit.service';
 import { UserModel } from '@/modules/core/models/user.model';
 import { FolderModel } from '../models/folder.model';
 import { TaskModel } from '../models/task.model';
+import { actorIsAdministrator } from './access.service';
 
 /**
  * Folders, and the one visibility rule in the task module.
@@ -41,16 +42,6 @@ export interface FolderSummary {
 }
 
 /** A tenant administrator sees everything; anyone else sees open folders and their own. */
-async function actorIsAdministrator(): Promise<boolean> {
-  const context = getContext();
-
-  if (context.isPlatformAdmin) return true;
-
-  const user = await UserModel.findOne({ _id: context.userId }).select('role');
-
-  return user?.role === 'tenant_admin';
-}
-
 /** The ids of every folder this person may open, or null meaning no restriction applies. */
 export async function visibleFolderIds(): Promise<Types.ObjectId[] | null> {
   await connectToDatabase();

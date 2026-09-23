@@ -5,10 +5,12 @@ import { listFolders } from '@/modules/tasks/services/folder.service';
 import { listTasks } from '@/modules/tasks/services/task.service';
 import { Progress } from '@/components/ui/progress';
 import { Monogram } from '@/components/ui/monogram';
+import { Avatar } from '@/components/ui/avatar';
 import { listUsers } from '@/modules/core/services/user.service';
 import { PageHeader } from '@/components/ui';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Board } from './board';
+import { SpaceSettings } from './space-settings';
 
 export default async function SpacePage({
   params,
@@ -48,6 +50,7 @@ export default async function SpacePage({
         <PageHeader
           icon={<Monogram name={space.name} />}
           title={space.name}
+          titleExtra={<span className="flex -space-x-1.5">{space.memberIds.map((memberId) => <Avatar key={String(memberId)} name={users.find((user) => user.id === String(memberId))?.name ?? 'Unknown'} size="small" />)}{actor.permissions.includes('task.manage') ? <SpaceSettings space={{ id, name: space.name, description: space.description ?? null, memberIds: space.memberIds.map(String) }} users={users.map((user) => ({ id: user.id, name: user.name }))} /> : null}</span>}
           description={space.description ?? undefined}
           action={
             <div className="w-48">

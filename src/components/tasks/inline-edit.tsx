@@ -86,7 +86,6 @@ export function Popover({
 
   useLayoutEffect(() => {
     if (open) place();
-    else setCoords(null);
   }, [open, place]);
 
   useEffect(() => {

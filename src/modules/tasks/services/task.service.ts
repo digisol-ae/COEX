@@ -9,7 +9,8 @@ import { UserModel } from '@/modules/core/models/user.model';
 import { TaskModel } from '../models/task.model';
 import { SpaceModel } from '../models/space.model';
 import { FolderModel } from '../models/folder.model';
-import { assignableMemberIds, visibleFolderFilter } from './folder.service';
+import { assignableMemberIds, canOpenFolder, visibleFolderFilter } from './folder.service';
+import { assignableSpaceMemberIds, canOpenSpace, visibleSpaceFilter } from './space.service';
 import { parseDocumentLink } from '../document-links';
 import { TenantModel } from '@/modules/core/models/tenant.model';
 import {
@@ -111,7 +112,7 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   // Private folders are filtered here rather than in a screen, so nothing that reads tasks can
   // forget to apply it.
   const found = await tasks()
-    .find({ ...query, ...(await visibleFolderFilter()) })
+    .find({ ...query, ...(await visibleFolderFilter()), ...(await visibleSpaceFilter('spaceId')) })
     .sort({ sortOrder: 1, endAt: 1, createdAt: -1 });
 
   const spaceNames = new Map(
@@ -182,7 +183,10 @@ export async function countMyOpenTasks(userId: string): Promise<number> {
 
 export async function getTask(id: string) {
   await connectToDatabase();
-  return tasks().findById(id);
+  const task = await tasks().findById(id);
+  if (!task || !(await canOpenSpace(String(task.spaceId)))) return null;
+  if (task.folderId && !(await canOpenFolder(String(task.folderId)))) return null;
+  return task;
 }
 
 export interface CreateTaskInput {
@@ -206,7 +210,11 @@ export interface CreateTaskInput {
  * The alternative is creating a task its own owner cannot open, which is a worse outcome than any
  * refusal, and one nobody would think to look for.
  */
-async function assertAssignable(folderId: string | null, assigneeIds: string[]): Promise<void> {
+async function assertAssignable(folderId: string | null, assigneeIds: string[], spaceId?: string): Promise<void> {
+  const spaceAllowed = spaceId ? await assignableSpaceMemberIds(spaceId) : null;
+  if (spaceAllowed && assigneeIds.some((id) => !spaceAllowed.includes(id))) {
+    throw new Error('That space is private, so work in it can only be assigned to its members.');
+  }
   const allowed = await assignableMemberIds(folderId);
   if (!allowed) return;
 
@@ -242,7 +250,7 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
 
   const firstColumn = column ?? columns[0];
 
-  await assertAssignable(input.folderId ?? null, (input.assigneeIds ?? []).filter(Boolean));
+  await assertAssignable(input.folderId ?? null, (input.assigneeIds ?? []).filter(Boolean), input.spaceId);
 
   const assigneeIds = (input.assigneeIds ?? []).filter(Boolean).map((id) => toObjectId(id));
 
@@ -363,6 +371,7 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
         ? String(before.folderId)
         : null,
     input.assigneeIds.filter(Boolean),
+    String(before.spaceId),
   );
 
   const assigneeIds = input.assigneeIds.filter(Boolean).map((value) => toObjectId(value));

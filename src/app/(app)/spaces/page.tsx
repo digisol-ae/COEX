@@ -6,7 +6,9 @@ import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { Progress } from '@/components/ui/progress';
 import { Monogram } from '@/components/ui/monogram';
+import { Avatar } from '@/components/ui/avatar';
 import { NewSpacePanel } from './panels';
+import { listUsers } from '@/modules/core/services/user.service';
 
 export const metadata = { title: 'Spaces · COEX' };
 
@@ -19,13 +21,15 @@ export const metadata = { title: 'Spaces · COEX' };
 export default async function SpacesPage() {
   const actor = await requirePermission('task.read.all');
 
-  const { spaces, folders, customers } = await asUser(actor, async () => ({
+  const { spaces, folders, customers, users } = await asUser(actor, async () => ({
     spaces: await listSpaces(),
     folders: await listFolders(),
     customers: await listOrganisations(),
+    users: await listUsers(),
   }));
 
   const customerNames = new Map(customers.map((customer) => [customer.id, customer.name]));
+  const userNames = new Map(users.map((user) => [user.id, user.name]));
   const canManage = actor.permissions.includes('task.manage');
 
   return (
@@ -37,6 +41,7 @@ export default async function SpacesPage() {
           canManage ? (
             <NewSpacePanel
               customers={customers.map((customer) => ({ id: customer.id, name: customer.name }))}
+              users={users.map((user) => ({ id: user.id, name: user.name }))}
             />
           ) : undefined
         }
@@ -52,6 +57,7 @@ export default async function SpacesPage() {
                 <Th>Space</Th>
                 <Th>Folders</Th>
                 <Th>Customer</Th>
+                <Th>Members</Th>
                 <Th>Progress</Th>
                 <Th>Open</Th>
                 <Th>Due</Th>
@@ -102,6 +108,7 @@ export default async function SpacesPage() {
                         </span>
                       )}
                     </Td>
+                    <Td>{space.memberIds.length ? <span className="flex -space-x-1.5">{space.memberIds.map((id) => <Avatar key={id} name={userNames.get(id) ?? 'Unknown'} size="small" />)}</span> : <span className="text-xs text-[var(--color-ink-subtle)]">Everyone</span>}</Td>
 
                     <Td className="text-[var(--color-ink-muted)]">
                       {space.organisationId
