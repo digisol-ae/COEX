@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { clsx } from 'clsx';
 import { Avatar } from '@/components/ui/avatar';
 import { quickAddFolderAction } from '../../tasks/actions';
+import { FolderSettings } from './folder-settings';
 import type { FolderChoice } from './board';
 
 /**
@@ -21,6 +22,7 @@ export function FolderBar({
   onSelect,
   canManage,
   counts,
+  users,
 }: {
   spaceId: string;
   folders: FolderChoice[];
@@ -28,6 +30,7 @@ export function FolderBar({
   onSelect: (folderId: string | null) => void;
   canManage: boolean;
   counts: Record<string, number>;
+  users: { id: string; name: string }[];
 }) {
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');
@@ -57,6 +60,10 @@ export function FolderBar({
             onClick={() => onSelect(folder.id)}
           />
         ))}
+
+        {canManage && active ? (
+          <FolderSettings spaceId={spaceId} folder={active} users={users} />
+        ) : null}
 
         {canManage && !adding ? (
           <button

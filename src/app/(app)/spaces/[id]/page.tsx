@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Monogram } from '@/components/ui/monogram';
 import { Avatar } from '@/components/ui/avatar';
 import { listUsers } from '@/modules/core/services/user.service';
+import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { PageHeader } from '@/components/ui';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Board } from './board';
@@ -26,10 +27,11 @@ export default async function SpacePage({
   const space = await asUser(actor, () => getSpace(id));
   if (!space) notFound();
 
-  const { tasks, users, folders } = await asUser(actor, async () => ({
+  const { tasks, users, folders, customers } = await asUser(actor, async () => ({
     tasks: await listTasks({ spaceId: id, includeClosed: true }),
     users: await listUsers(),
     folders: await listFolders(id),
+    customers: await listOrganisations(),
   }));
 
   const columns = [...space.statuses]
@@ -50,7 +52,7 @@ export default async function SpacePage({
         <PageHeader
           icon={<Monogram name={space.name} />}
           title={space.name}
-          titleExtra={<span className="flex -space-x-1.5">{space.memberIds.map((memberId) => <Avatar key={String(memberId)} name={users.find((user) => user.id === String(memberId))?.name ?? 'Unknown'} size="small" />)}{actor.permissions.includes('task.manage') ? <SpaceSettings space={{ id, name: space.name, description: space.description ?? null, memberIds: space.memberIds.map(String) }} users={users.map((user) => ({ id: user.id, name: user.name }))} /> : null}</span>}
+          titleExtra={<span className="flex -space-x-1.5">{space.memberIds.map((memberId) => <Avatar key={String(memberId)} name={users.find((user) => user.id === String(memberId))?.name ?? 'Unknown'} size="small" />)}{actor.permissions.includes('task.manage') ? <SpaceSettings space={{ id, name: space.name, description: space.description ?? null, memberIds: space.memberIds.map(String), organisationId: space.organisationId ? String(space.organisationId) : null }} users={users.map((user) => ({ id: user.id, name: user.name }))} customers={customers.map((customer) => ({ id: customer.id, name: customer.name }))} /> : null}</span>}
           description={space.description ?? undefined}
           action={
             <div className="w-48">
@@ -77,6 +79,7 @@ export default async function SpacePage({
         folders={folders.map((row) => ({
           id: row.id,
           name: row.name,
+          description: row.description,
           isPrivate: row.isPrivate,
           memberIds: row.memberIds,
           memberNames: row.memberNames,

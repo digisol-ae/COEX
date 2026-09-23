@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState, useOptimistic, useState, useTransition } from 'react';
+import { useActionState, useEffect, useOptimistic, useState, useTransition } from 'react';
 import { clsx } from 'clsx';
 import {
   Button,
@@ -63,6 +63,7 @@ export type SpaceView = 'board' | 'list' | 'gantt';
 export interface FolderChoice {
   id: string;
   name: string;
+  description: string | null;
   isPrivate: boolean;
   memberIds: string[];
   memberNames: string[];
@@ -103,6 +104,18 @@ export function Board({
   const [editError, setEditError] = useState<string | null>(null);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [folderId, setFolderId] = useState<string | null>(activeFolderId);
+
+  /**
+   * The sidebar tree links to `?folder=<id>` on the same route, so this component never unmounts
+   * between one folder and the next: only the `activeFolderId` prop changes. `useState`'s initial
+   * value is read once, on mount, so without this the board would keep showing whatever folder was
+   * selected first and silently ignore every later click from the sidebar. The folder tabs above
+   * the board call `setFolderId` directly and already work without this, since they never leave
+   * the page.
+   */
+  useEffect(() => {
+    setFolderId(activeFolderId);
+  }, [activeFolderId]);
   const [state, formAction, pending] = useActionState(createTaskAction, initialState);
   const [, startTransition] = useTransition();
   const [dragging, setDragging] = useState<DragState | null>(null);
@@ -309,6 +322,7 @@ export function Board({
         onSelect={setFolderId}
         canManage={canManage}
         counts={folderCounts}
+        users={users}
       />
 
       <ViewTabs view={view} onChange={setView} />
