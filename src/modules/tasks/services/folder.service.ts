@@ -223,6 +223,25 @@ export async function updateFolder(
  * The work inside comes out into the space rather than disappearing with the folder, because a
  * folder is a way of grouping and removing it should not remove what was grouped.
  */
+/**
+ * Setting a manual order on the folders of one space, from a drag in the sidebar tree.
+ *
+ * Scoped to spaceId so a dragged order in one space can never touch another space's folders, even
+ * if a bad id somehow ended up in the list sent from the client.
+ */
+export async function reorderFolders(spaceId: string, orderedIds: string[]): Promise<void> {
+  await connectToDatabase();
+
+  await Promise.all(
+    orderedIds.map((id, index) =>
+      folders().updateOne(
+        { _id: toObjectId(id), spaceId: toObjectId(spaceId) },
+        { $set: { sortOrder: (index + 1) * 10 } },
+      ),
+    ),
+  );
+}
+
 export async function archiveFolder(id: string): Promise<void> {
   await connectToDatabase();
 

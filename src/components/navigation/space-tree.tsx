@@ -5,7 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { clsx } from 'clsx';
 import { Monogram } from '@/components/ui/monogram';
-import { quickAddFolderAction, quickAddSpaceAction } from '@/app/(app)/tasks/actions';
+import { DocumentBadge } from '@/components/ui/task-badges';
+import { quickAddFolderAction, quickAddSpaceAction, reorderFoldersAction, reorderSpacesAction } from '@/app/(app)/tasks/actions';
 
 /**
  * The tree in the sidebar: space, folder, task, subtask. Four levels, the same four the data has.
@@ -31,6 +32,7 @@ interface TreeTask {
   number: string;
   title: string;
   isClosed: boolean;
+  documentCount: number;
   subtasks: { id: string; title: string; done: boolean }[];
 }
 
@@ -52,6 +54,8 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
   const [expandedFolders, setExpandedFolders] = useState<string[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
   const [adding, setAdding] = useState<string | null>(null);
+  const [draggingSpaceId, setDraggingSpaceId] = useState<string | null>(null);
+  const [draggingFolderKey, setDraggingFolderKey] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   async function loadSpaces() {
@@ -123,9 +127,65 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
     });
   }
 
-  return (
-    <div>
-      <div className="flex items-center">
+  function moveSpaceTo(targetId: string) {
+    if (!draggingSpaceId || draggingSpaceId === targetId) return;
+
+    setSpaces((current) => {
+      if (!current) return current;
+      const from = current.findIndex((row) => row.id === draggingSpaceId);
+      const to = current.findIndex((row) => row.id === targetId);
+      if (from === -1 || to === -1) return current;
+
+      const next = current.slice();
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  }
+
+  function commitSpaceOrder() {
+    if (!draggingSpaceId || !spaces) return;
+    setDraggingSpaceId(null);
+
+    startTransition(async () => {
+      await reorderSpacesAction(spaces.map((row) => row.id));
+    });
+  }
+
+  function moveFolderTo(spaceId: string, targetId: string) {
+    if (!draggingFolderKey || draggingFolderKey === targetId) return;
+
+    setFoldersBySpace((current) => {
+      const list = current[spaceId];
+      if (!list) return current;
+
+      const from = list.findIndex((folder) => folder.id === draggingFolderKey);
+      const to = list.findIndex((folder) => folder.id === targetId);
+      if (from === -1 || to === -1) return current;
+
+      const next = list.slice();
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return { ...current, [spaceId]: next };
+    });
+  }
+
+  function commitFolderOrder(spaceId: string) {
+    if (!draggingFolderKey) return;
+    setDraggingFolderKey(null);
+
+    const list = foldersBySpace[spaceId];
+    if (!list) return;
+
+    const orderedIds = list.map((folder) => folder.id).filter((id): id is string => id !== null);
+    if (orderedIds.length === 0) return;
+
+    startTransition(async () => {
+      await reorderFoldersAction(spaceId, orderedIds);
+    });
+  }
+
+
         <Link
           href="/spaces"
           className={clsx(
@@ -184,8 +244,29 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
             const folders = foldersBySpace[space.id];
 
             return (
-              <div key={space.id}>
+              <div
+                key={space.id}
+                draggable={canManage}
+                onDragStart={() => setDraggingSpaceId(space.id)}
+                onDragOver={(event) => {
+                  if (!draggingSpaceId) return;
+                  event.preventDefault();
+                  moveSpaceTo(space.id);
+                }}
+                onDragEnd={commitSpaceOrder}
+                onDrop={(event) => event.preventDefault()}
+                className={clsx(draggingSpaceId === space.id && 'opacity-50')}
+              >
                 <div className="flex items-center">
+                  <span
+                    className={clsx(
+                      'flex h-6 w-3 shrink-0 items-center justify-center text-[var(--color-ink-subtle)]',
+                      canManage ? 'cursor-grab active:cursor-grabbing' : 'invisible',
+                    )}
+                  >
+                    <DragDots />
+                  </span>
+
                   <Link
                     href={`/spaces/${space.id}`}
                     className={clsx(
@@ -257,8 +338,28 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
                       const folderOpen = expandedFolders.includes(key);
 
                       return (
-                        <div key={key}>
+                        <div
+                          key={key}
+                          draggable={canManage && folder.id !== null}
+                          onDragStart={() => {
+                            if (folder.id) setDraggingFolderKey(folder.id);
+                          }}
+                          onDragOver={(event) => {
+                            if (!draggingFolderKey || !folder.id) return;
+                            event.preventDefault();
+                            moveFolderTo(space.id, folder.id);
+                          }}
+                          onDragEnd={() => commitFolderOrder(space.id)}
+                          onDrop={(event) => event.preventDefault()}
+                          className={clsx(draggingFolderKey === folder.id && 'opacity-50')}
+                        >
                           <div className="flex items-center">
+                            {canManage && folder.id !== null ? (
+                              <span className="flex h-5 w-2.5 shrink-0 cursor-grab items-center justify-center text-[var(--color-ink-subtle)] active:cursor-grabbing">
+                                <DragDots small />
+                              </span>
+                            ) : null}
+
                             <Link
                               href={
                                 folder.id
@@ -294,19 +395,25 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
                             <div className="ml-2 border-l border-[var(--color-line)] pl-2">
                               {folder.tasks.map((task) => (
                                 <div key={task.id}>
-                                  <Link
-                                    href={`/tasks/${task.id}`}
-                                    className={clsx(
-                                      'block truncate rounded-[var(--radius-control)] px-2 py-1 text-[11px] transition-colors hover:text-[var(--color-ink)]',
-                                      task.isClosed
-                                        ? 'text-[var(--color-ink-subtle)] line-through'
-                                        : 'text-[var(--color-ink-muted)]',
-                                      pathname === `/tasks/${task.id}` &&
-                                        'bg-[var(--color-surface-muted)] text-[var(--color-ink)]',
-                                    )}
-                                  >
-                                    {task.title}
-                                  </Link>
+                                  <div className="flex min-w-0 items-center gap-1">
+                                    <Link
+                                      href={`/tasks/${task.id}`}
+                                      className={clsx(
+                                        'block min-w-0 flex-1 truncate rounded-[var(--radius-control)] px-2 py-1 text-[11px] transition-colors hover:text-[var(--color-ink)]',
+                                        task.isClosed
+                                          ? 'text-[var(--color-ink-subtle)] line-through'
+                                          : 'text-[var(--color-ink-muted)]',
+                                        pathname === `/tasks/${task.id}` &&
+                                          'bg-[var(--color-surface-muted)] text-[var(--color-ink)]',
+                                      )}
+                                    >
+                                      {task.title}
+                                    </Link>
+
+                                    {task.documentCount > 0 ? (
+                                      <DocumentBadge count={task.documentCount} />
+                                    ) : null}
+                                  </div>
 
                                   {task.subtasks.length > 0 ? (
                                     <div className="ml-2 border-l border-[var(--color-line)] pl-2">
@@ -413,6 +520,21 @@ function PlusButton({
         <path d="M6 2.5v7M2.5 6h7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     </button>
+  );
+}
+
+function DragDots({ small }: { small?: boolean }) {
+  const size = small ? 8 : 10;
+
+  return (
+    <svg width={size} height={size * 1.4} viewBox="0 0 8 12" fill="none" aria-hidden="true">
+      <circle cx="2" cy="2" r="1" fill="currentColor" />
+      <circle cx="6" cy="2" r="1" fill="currentColor" />
+      <circle cx="2" cy="6" r="1" fill="currentColor" />
+      <circle cx="6" cy="6" r="1" fill="currentColor" />
+      <circle cx="2" cy="10" r="1" fill="currentColor" />
+      <circle cx="6" cy="10" r="1" fill="currentColor" />
+    </svg>
   );
 }
 

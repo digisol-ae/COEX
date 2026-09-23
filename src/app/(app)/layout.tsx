@@ -3,6 +3,7 @@ import { getRunningTimer } from '@/modules/time/services/time.service';
 import { countMyOpenTasks } from '@/modules/tasks/services/task.service';
 import { countMyOpenTickets } from '@/modules/tickets/services/metrics.service';
 import { RunningTimer } from '@/modules/time/components/running-timer';
+import { TimerTray } from '@/modules/time/components/timer-tray';
 import { IconRail } from '@/components/navigation/icon-rail';
 import { Sidebar } from '@/components/navigation/sidebar';
 import { MobileNavigation } from '@/components/navigation/mobile-navigation';
@@ -71,6 +72,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               startedAt={timer.startedAt.toISOString()}
             />
           ) : null}
+
+          {user.permissions.includes('task.read.own') ? <TimerTray /> : null}
 
           <UserMenu name={user.name} role={user.role} tenantName={user.tenantName} />
         </header>

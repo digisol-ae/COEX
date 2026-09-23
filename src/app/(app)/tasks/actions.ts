@@ -18,7 +18,7 @@ import {
   type Priority,
 } from '@/modules/tasks/services/task.service';
 import { createSpace, reorderSpaces, updateSpace } from '@/modules/tasks/services/space.service';
-import { archiveFolder, createFolder, updateFolder } from '@/modules/tasks/services/folder.service';
+import { archiveFolder, createFolder, reorderFolders, updateFolder } from '@/modules/tasks/services/folder.service';
 
 export interface TaskFormState {
   error?: string;
@@ -96,6 +96,23 @@ export async function reorderSpacesAction(orderedIds: string[]): Promise<{ error
   }
 
   revalidatePath('/spaces');
+  return {};
+}
+
+/** Persisting a drag reorder of one space's folders, from the sidebar tree. */
+export async function reorderFoldersAction(
+  spaceId: string,
+  orderedIds: string[],
+): Promise<{ error?: string }> {
+  const actor = await requirePermission('task.manage');
+
+  try {
+    await asUser(actor, () => reorderFolders(spaceId, orderedIds));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not save the new order.' };
+  }
+
+  revalidatePath(`/spaces/${spaceId}`);
   return {};
 }
 

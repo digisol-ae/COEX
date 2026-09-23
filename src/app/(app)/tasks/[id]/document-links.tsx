@@ -34,7 +34,7 @@ export function DocumentLinks({
                   href={link.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="truncate text-sm text-[var(--color-ink)] underline-offset-4 hover:underline"
+                  className="min-w-0 flex-1 truncate rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-1.5 text-sm text-[var(--color-ink)] shadow-sm transition-shadow duration-150 cursor-pointer hover:border-[var(--color-line-strong)] hover:shadow-md"
                 >
                   {link.title}
                 </a>

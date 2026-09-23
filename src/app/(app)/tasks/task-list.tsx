@@ -5,6 +5,8 @@ import { useOptimistic, useState, useTransition } from 'react';
 import { clsx } from 'clsx';
 import { Card, EmptyState, Notice } from '@/components/ui';
 import { StatusDot } from '@/components/ui/pill';
+import { DocumentBadge } from '@/components/ui/task-badges';
+import { CardTimerButton } from '@/modules/time/components/card-timer-button';
 import { formatDateTime } from '@/modules/tasks/dates';
 import { formatMinutes } from '@/modules/time/week';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
@@ -282,6 +284,8 @@ export function TaskList({
                               {task.subtasksDone}/{task.subtaskCount} subtasks
                             </span>
                           ) : null}
+                          <DocumentBadge count={task.documentCount} />
+                          <CardTimerButton taskId={task.id} />
                           <Link
                             href={`/tasks/${task.id}`}
                             className="font-mono opacity-0 transition-opacity group-hover:opacity-100 hover:text-[var(--color-ink)]"

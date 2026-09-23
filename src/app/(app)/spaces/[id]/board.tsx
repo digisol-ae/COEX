@@ -29,6 +29,8 @@ import {
   StatusPicker,
 } from '@/components/tasks/inline-edit';
 import { TaskPanel, type PanelHandlers } from '@/components/tasks/task-panel';
+import { DocumentBadge } from '@/components/ui/task-badges';
+import { CardTimerButton } from '@/modules/time/components/card-timer-button';
 import { QuickAdd } from '@/components/tasks/quick-add';
 import {
   addSubtaskInlineAction,
@@ -616,7 +618,11 @@ function TaskCard({
         </Link>
       </div>
 
-      {task.folderName || task.isOverdue || task.subtaskCount > 0 || task.plannedMinutes ? (
+      {task.folderName ||
+      task.isOverdue ||
+      task.subtaskCount > 0 ||
+      task.plannedMinutes ||
+      task.documentCount > 0 ? (
         <div className="mt-2 flex flex-wrap items-center gap-1 pl-4">
           {task.isOverdue ? <Chip tone="alert">overdue</Chip> : null}
 
@@ -631,10 +637,13 @@ function TaskCard({
           {task.plannedMinutes ? (
             <Chip title="Planned working hours">{formatMinutes(task.plannedMinutes)}</Chip>
           ) : null}
+
+          <DocumentBadge count={task.documentCount} />
         </div>
       ) : null}
 
       <div className="mt-2 flex items-center gap-1 pl-3">
+        <CardTimerButton taskId={task.id} />
         <AssigneePicker
           users={users}
           selectedIds={task.assigneeIds}
@@ -843,6 +852,10 @@ function ListView({
                                   ) : null}
 
                                   {task.folderName ? <Chip>{task.folderName}</Chip> : null}
+
+                                  <DocumentBadge count={task.documentCount} />
+
+                                  <CardTimerButton taskId={task.id} />
                                 </div>
                               </td>
 

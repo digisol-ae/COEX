@@ -60,6 +60,56 @@ export async function loggedMinutesForTask(taskId: string): Promise<number> {
   return found.reduce((sum, entry) => sum + (entry.minutes ?? 0), 0);
 }
 
+/**
+ * Every timer this person has started today, running or already stopped.
+ *
+ * Point of this is switching between more than one task in a day: pause the one in hand by
+ * starting another, then come back and resume the first later. Since starting one timer always
+ * stops whatever else is running, "resume" here just means starting that task's timer again;
+ * the row that is still running is the one whose minutes are computed live rather than stored.
+ */
+export interface TodayTimer {
+  entryId: string;
+  taskId: string;
+  taskNumber: string;
+  taskTitle: string;
+  minutes: number;
+  running: boolean;
+}
+
+export async function listTodaysTimers(): Promise<TodayTimer[]> {
+  await connectToDatabase();
+
+  const context = getContext();
+  const today = startOfDay(new Date());
+
+  const found = await entries()
+    .find({ userId: context.userId, workDate: today, source: 'timer' })
+    .sort({ running: -1, startedAt: -1 });
+
+  const tasks = await TaskModel.find({
+    _id: { $in: found.map((entry) => entry.taskId) },
+  }).select('number title');
+
+  const taskById = new Map(tasks.map((task) => [String(task._id), task]));
+
+  return found.map((entry) => {
+    const startedAt = entry.startedAt ?? entry.createdAt;
+    const minutes = entry.running
+      ? Math.max(0, Math.floor((Date.now() - startedAt.getTime()) / 60000))
+      : (entry.minutes ?? 0);
+
+    return {
+      entryId: String(entry._id),
+      taskId: String(entry.taskId),
+      taskNumber: taskById.get(String(entry.taskId))?.number ?? '',
+      taskTitle: taskById.get(String(entry.taskId))?.title ?? 'Unknown task',
+      minutes,
+      running: entry.running ?? false,
+    };
+  });
+}
+
 export async function startTimer(taskId: string): Promise<void> {
   await connectToDatabase();
 
