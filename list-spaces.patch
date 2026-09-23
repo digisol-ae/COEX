@@ -1,0 +1,21 @@
+--- a/scripts/check-tasks.ts
++++ b/scripts/check-tasks.ts
+@@ -47,10 +47,15 @@
+         });
+ 
+     if (!space) {
++      if (fixSpaceId) {
++        throw new Error(`No space ${fixSpaceId} in this task's tenant.`);
++      }
++
++      const all = await SpaceModel.find({ tenantId: task.tenantId }).select('name');
++      const list = all.map((s) => `  - ${s.name}`).join('\n');
++
+       throw new Error(
+-        fixSpaceId
+-          ? `No space ${fixSpaceId} in this task's tenant.`
+-          : `No space named "${fixSpaceName}" in this task's tenant.`,
++        `No space named "${fixSpaceName}" in this task's tenant. Spaces that do exist:\n${list}`,
+       );
+     }
+ 

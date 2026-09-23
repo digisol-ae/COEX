@@ -30,6 +30,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       title: task.title,
       isClosed: task.isClosed,
       documentCount: task.documentCount,
+      documentLinks: task.documentLinks,
       subtasks: task.subtasks,
     });
 

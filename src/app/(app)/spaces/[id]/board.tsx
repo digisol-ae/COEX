@@ -88,6 +88,7 @@ export function Board({
   users,
   canManage,
   initialView,
+  runningTaskId,
 }: {
   spaceId: string;
   columns: { name: string; isClosed: boolean }[];
@@ -97,6 +98,7 @@ export function Board({
   users: { id: string; name: string }[];
   canManage: boolean;
   initialView: SpaceView;
+  runningTaskId: string | null;
 }) {
   const [view, setView] = useState<SpaceView>(initialView);
   const [adding, setAdding] = useState(false);
@@ -199,6 +201,7 @@ export function Board({
     users,
     columnsFor: () => columns,
     canManage,
+    runningTaskId,
     onPriority: (task, priority) =>
       patch(task.id, { priority }, { id: task.id, spaceId, priority }),
     onSchedule: (task, value) =>
@@ -246,6 +249,7 @@ export function Board({
     onRename: (task, title) => patch(task.id, { title }, { id: task.id, spaceId, title }),
     onDescribe: (task, description) =>
       patch(task.id, {}, { id: task.id, spaceId, description: description || null }),
+    onTags: (task, tags) => patch(task.id, {}, { id: task.id, spaceId, tags }),
     onOpen: (task) => setOpenTaskId(task.id),
     onAddSubtask: async (task, title) => {
       setEditError(null);
@@ -578,7 +582,7 @@ function TaskCard({
   onDragEnd: () => void;
   isDragging: boolean;
 }) {
-  const { canManage, users } = handlers;
+  const { canManage, users, runningTaskId } = handlers;
   const columns = handlers.columnsFor(task);
 
   return (
@@ -638,12 +642,12 @@ function TaskCard({
             <Chip title="Planned working hours">{formatMinutes(task.plannedMinutes)}</Chip>
           ) : null}
 
-          <DocumentBadge count={task.documentCount} />
+          <DocumentBadge links={task.documentLinks} />
         </div>
       ) : null}
 
       <div className="mt-2 flex items-center gap-1 pl-3">
-        <CardTimerButton taskId={task.id} />
+        <CardTimerButton taskId={task.id} running={runningTaskId === task.id} loggedMinutes={task.loggedMinutes} />
         <AssigneePicker
           users={users}
           selectedIds={task.assigneeIds}
@@ -712,7 +716,7 @@ function ListView({
 }) {
   const [collapsed, setCollapsed] = useState<string[]>([]);
   const [expanded, setExpanded] = useState<string[]>([]);
-  const { canManage, users } = handlers;
+  const { canManage, users, runningTaskId } = handlers;
 
   if (tasks.length === 0) {
     return (
@@ -853,9 +857,9 @@ function ListView({
 
                                   {task.folderName ? <Chip>{task.folderName}</Chip> : null}
 
-                                  <DocumentBadge count={task.documentCount} />
+                                  <DocumentBadge links={task.documentLinks} />
 
-                                  <CardTimerButton taskId={task.id} />
+                                  <CardTimerButton taskId={task.id} running={runningTaskId === task.id} loggedMinutes={task.loggedMinutes} />
                                 </div>
                               </td>
 

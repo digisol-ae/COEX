@@ -71,11 +71,13 @@ export function TaskList({
   users,
   columnsBySpace,
   canManage,
+  runningTaskId,
 }: {
   tasks: TaskSummary[];
   users: { id: string; name: string }[];
   columnsBySpace: Record<string, TaskColumn[]>;
   canManage: boolean;
+  runningTaskId: string | null;
 }) {
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -107,6 +109,7 @@ export function TaskList({
   const handlers: PanelHandlers = {
     users,
     canManage,
+    runningTaskId,
     columnsFor: (task) => columnsBySpace[task.spaceId] ?? [{ name: task.status, isClosed: false }],
     onOpen: (task) => setOpenTaskId(task.id),
     onPriority: (task, priority: PriorityValue) =>
@@ -131,6 +134,7 @@ export function TaskList({
       patch(task, { title }, { id: task.id, spaceId: task.spaceId, title }),
     onDescribe: (task, description) =>
       patch(task, {}, { id: task.id, spaceId: task.spaceId, description: description || null }),
+    onTags: (task, tags) => patch(task, {}, { id: task.id, spaceId: task.spaceId, tags }),
     onStatus: (task, status) => {
       setError(null);
 
@@ -284,8 +288,12 @@ export function TaskList({
                               {task.subtasksDone}/{task.subtaskCount} subtasks
                             </span>
                           ) : null}
-                          <DocumentBadge count={task.documentCount} />
-                          <CardTimerButton taskId={task.id} />
+                          <DocumentBadge links={task.documentLinks} />
+                          <CardTimerButton
+                            taskId={task.id}
+                            running={handlers.runningTaskId === task.id}
+                            loggedMinutes={task.loggedMinutes}
+                          />
                           <Link
                             href={`/tasks/${task.id}`}
                             className="font-mono opacity-0 transition-opacity group-hover:opacity-100 hover:text-[var(--color-ink)]"

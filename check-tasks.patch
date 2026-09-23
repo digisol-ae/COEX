@@ -1,0 +1,101 @@
+diff --git a/package.json b/package.json
+index c8310c3..d01242d 100644
+--- a/package.json
++++ b/package.json
+@@ -10,6 +10,7 @@
+     "check:db": "node scripts/check-db.mjs",
+     "seed": "tsx --env-file=.env.local scripts/seed.ts",
+     "reset:password": "tsx --env-file=.env.local scripts/reset-password.ts",
++    "check:tasks": "tsx --env-file=.env.local scripts/check-tasks.ts",
+     "migrate:spaces": "tsx --env-file=.env.local scripts/migrate-spaces.ts",
+     "test": "vitest run",
+     "test:watch": "vitest",
+diff --git a/scripts/check-tasks.ts b/scripts/check-tasks.ts
+new file mode 100644
+index 0000000..a4c0959
+--- /dev/null
++++ b/scripts/check-tasks.ts
+@@ -0,0 +1,83 @@
++/**
++ * Finds tasks whose space is missing, and optionally fixes one.
++ *
++ * A task's space is required by its own schema, so this should be impossible for a task created
++ * normally; a task like this got into the database some other way. Connects straight to Mongo the
++ * same way scripts/seed.ts does.
++ *
++ * Report only:
++ *   npm run check:tasks
++ *
++ * Fix one task by giving it a space (look up the space id from the Spaces page URL, /spaces/<id>):
++ *   FIX_TASK_NUMBER=<task number, e.g. TASK-123> FIX_SPACE_ID=<space id> npm run check:tasks
++ */
++
++import mongoose from 'mongoose';
++import { TaskModel } from '../src/modules/tasks/models/task.model';
++import { SpaceModel } from '../src/modules/tasks/models/space.model';
++
++async function main() {
++  const uri = process.env.MONGODB_URI;
++
++  if (!uri) {
++    throw new Error('MONGODB_URI is not set. Run this with npm run check:tasks so .env.local is loaded.');
++  }
++
++  await mongoose.connect(uri);
++  console.log('Connected to', mongoose.connection.name);
++
++  const fixNumber = process.env.FIX_TASK_NUMBER;
++  const fixSpaceId = process.env.FIX_SPACE_ID;
++
++  if (fixNumber) {
++    if (!fixSpaceId) {
++      throw new Error('FIX_TASK_NUMBER was set without FIX_SPACE_ID. Both are needed to fix a task.');
++    }
++
++    const task = await TaskModel.findOne({ number: fixNumber });
++    if (!task) throw new Error(`No task numbered ${fixNumber}.`);
++
++    const space = await SpaceModel.findOne({ _id: fixSpaceId, tenantId: task.tenantId });
++    if (!space) throw new Error(`No space ${fixSpaceId} in this task's tenant.`);
++
++    await TaskModel.updateOne({ _id: task._id }, { $set: { spaceId: space._id } });
++
++    console.log('');
++    console.log(`Fixed: ${task.number} "${task.title}" now belongs to space "${space.name}".`);
++    await mongoose.disconnect();
++    return;
++  }
++
++  const broken = await TaskModel.find({
++    $or: [{ spaceId: null }, { spaceId: { $exists: false } }],
++  }).select('number title tenantId createdAt deletedAt');
++
++  console.log('');
++
++  if (broken.length === 0) {
++    console.log('No tasks are missing a space.');
++  } else {
++    console.log(`${broken.length} task${broken.length === 1 ? '' : 's'} missing a space:`);
++    console.log('');
++
++    for (const task of broken) {
++      console.log(`  ${task.number}  "${task.title}"`);
++      console.log(
++        `    tenant ${task.tenantId}, created ${task.createdAt?.toISOString() ?? 'unknown'}${task.deletedAt ? ', already archived' : ''}`,
++      );
++    }
++
++    console.log('');
++    console.log('To give one a space:');
++    console.log(
++      '  FIX_TASK_NUMBER=<number> FIX_SPACE_ID=<space id from the Spaces page URL> npm run check:tasks',
++    );
++  }
++
++  await mongoose.disconnect();
++}
++
++main().catch((error) => {
++  console.error(error);
++  process.exit(1);
++});

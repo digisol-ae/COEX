@@ -83,9 +83,7 @@ export async function listTodaysTimers(): Promise<TodayTimer[]> {
   const context = getContext();
   const today = startOfDay(new Date());
 
-  const found = await entries()
-    .find({ userId: context.userId, workDate: today, source: 'timer' })
-    .sort({ running: -1, startedAt: -1 });
+  const found = await entries().find({ userId: context.userId, workDate: today, source: 'timer' });
 
   const tasks = await TaskModel.find({
     _id: { $in: found.map((entry) => entry.taskId) },
@@ -93,21 +91,38 @@ export async function listTodaysTimers(): Promise<TodayTimer[]> {
 
   const taskById = new Map(tasks.map((task) => [String(task._id), task]));
 
-  return found.map((entry) => {
+  // Grouped by task, not one row per start-and-stop segment, so switching between two tasks a
+  // dozen times today shows as two rows with their totals, not a dozen. The one-timer-at-a-time
+  // design means at most one task is ever "running"; every stopped segment for a task, today's
+  // total, and today's total only, folds into that task's single row.
+  const byTask = new Map<string, { number: string; title: string; minutes: number; running: boolean }>();
+
+  for (const entry of found) {
+    const taskId = String(entry.taskId);
     const startedAt = entry.startedAt ?? entry.createdAt;
     const minutes = entry.running
       ? Math.max(0, Math.floor((Date.now() - startedAt.getTime()) / 60000))
       : (entry.minutes ?? 0);
 
-    return {
-      entryId: String(entry._id),
-      taskId: String(entry.taskId),
-      taskNumber: taskById.get(String(entry.taskId))?.number ?? '',
-      taskTitle: taskById.get(String(entry.taskId))?.title ?? 'Unknown task',
-      minutes,
-      running: entry.running ?? false,
-    };
-  });
+    const existing = byTask.get(taskId);
+    byTask.set(taskId, {
+      number: taskById.get(taskId)?.number ?? '',
+      title: taskById.get(taskId)?.title ?? 'Unknown task',
+      minutes: (existing?.minutes ?? 0) + minutes,
+      running: (existing?.running ?? false) || (entry.running ?? false),
+    });
+  }
+
+  return Array.from(byTask.entries())
+    .map(([taskId, row]) => ({
+      entryId: taskId,
+      taskId,
+      taskNumber: row.number,
+      taskTitle: row.title,
+      minutes: row.minutes,
+      running: row.running,
+    }))
+    .sort((a, b) => Number(b.running) - Number(a.running) || b.minutes - a.minutes);
 }
 
 export async function startTimer(taskId: string): Promise<void> {
@@ -122,6 +137,13 @@ export async function startTimer(taskId: string): Promise<void> {
   });
 
   if (!task) throw new Error('Task not found.');
+
+  // A task's space is required by its own schema, so this should never trigger for a task created
+  // normally. It exists only to turn a data problem into a clear message instead of a raw crash if
+  // one ever slips through.
+  if (!task.spaceId) {
+    throw new Error('This task has no space, so a timer cannot be recorded for it.');
+  }
 
   // Starting a second timer stops the first rather than refusing, because that is what the person
   // means: they have moved on to something else.
@@ -204,6 +226,10 @@ export async function addManualEntry(input: ManualEntryInput): Promise<void> {
   });
 
   if (!task) throw new Error('Task not found.');
+
+  if (!task.spaceId) {
+    throw new Error('This task has no space, so time cannot be recorded against it.');
+  }
 
   const workDate = startOfDay(new Date(input.workDate));
   await assertWeekOpen(workDate);
@@ -301,6 +327,10 @@ export async function updateEntry(entryId: string, input: UpdateEntryInput): Pro
     });
 
     if (!task) throw new Error('Task not found.');
+
+    if (!task.spaceId) {
+      throw new Error('This task has no space, so time cannot be moved to it.');
+    }
 
     set.taskId = task._id;
     set.spaceId = task.spaceId;

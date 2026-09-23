@@ -51,9 +51,24 @@ export function parseDocumentLink(input: string): ParsedDocumentLink {
 
 /** A usable name before Graph is available to give the real one. */
 function suggestTitle(url: URL): string {
-  const fromQuery = url.searchParams.get('file') ?? url.searchParams.get('id');
-  const candidate = fromQuery ?? url.pathname.split('/').filter(Boolean).pop() ?? 'Document';
+  const fileParam = url.searchParams.get('file');
+  if (fileParam && looksLikeFilename(fileParam)) return clean(fileParam);
 
+  const pathSegment = url.pathname.split('/').filter(Boolean).pop();
+  if (pathSegment && looksLikeFilename(pathSegment)) return clean(pathSegment);
+
+  // Share links often carry only an opaque item id or token, with no real filename anywhere in
+  // the URL, until Graph can resolve one. Showing that token as the name reads as a bug, not a
+  // document, so a plain, honest placeholder is the better default until then.
+  return 'Document';
+}
+
+/** A real filename has an extension; a driveitem id or share token generally does not. */
+function looksLikeFilename(candidate: string): boolean {
+  return /\.[a-z0-9]{2,5}$/i.test(candidate) && candidate.length <= 120;
+}
+
+function clean(candidate: string): string {
   try {
     return decodeURIComponent(candidate).replace(/[+_]/g, ' ').slice(0, 120);
   } catch {

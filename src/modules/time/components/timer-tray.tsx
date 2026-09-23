@@ -174,11 +174,21 @@ export function TimerTray() {
 function ListIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M6.2 1.5h3.6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M8 1.5v1.7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
       <path
-        d="M2.5 4h11M2.5 8h11M2.5 12h7"
+        d="m12.3 2.7 1 1"
         stroke="currentColor"
-        strokeWidth="1.4"
+        strokeWidth="1.3"
         strokeLinecap="round"
+      />
+      <circle cx="8" cy="9" r="5.3" stroke="currentColor" strokeWidth="1.3" />
+      <path
+        d="M8 6.3v2.7l2 1.6"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

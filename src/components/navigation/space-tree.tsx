@@ -33,6 +33,7 @@ interface TreeTask {
   title: string;
   isClosed: boolean;
   documentCount: number;
+  documentLinks: { id: string; title: string; url: string }[];
   subtasks: { id: string; title: string; done: boolean }[];
 }
 
@@ -186,6 +187,9 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
   }
 
 
+  return (
+    <div>
+      <div className="flex items-center">
         <Link
           href="/spaces"
           className={clsx(
@@ -411,7 +415,7 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
                                     </Link>
 
                                     {task.documentCount > 0 ? (
-                                      <DocumentBadge count={task.documentCount} />
+                                      <DocumentBadge links={task.documentLinks} />
                                     ) : null}
                                   </div>
 

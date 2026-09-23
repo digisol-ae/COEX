@@ -10,6 +10,7 @@
     "check:db": "node scripts/check-db.mjs",
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
     "reset:password": "tsx --env-file=.env.local scripts/reset-password.ts",
+    "check:tasks": "tsx --env-file=.env.local scripts/check-tasks.ts",
     "migrate:spaces": "tsx --env-file=.env.local scripts/migrate-spaces.ts",
     "test": "vitest run",
     "test:watch": "vitest",

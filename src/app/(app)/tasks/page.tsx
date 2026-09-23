@@ -1,6 +1,7 @@
 import { asUser, requirePermission } from '@/lib/session';
 import { listTasks } from '@/modules/tasks/services/task.service';
 import { listSpaces } from '@/modules/tasks/services/space.service';
+import { getRunningTimer } from '@/modules/time/services/time.service';
 import { listUsers } from '@/modules/core/services/user.service';
 import { PageHeader } from '@/components/ui';
 import { TaskFilters } from './filters';
@@ -25,7 +26,7 @@ export default async function TasksPage({
   const seesEverything = actor.permissions.includes('task.read.all');
   const mine = params.mine === '1' || !seesEverything;
 
-  const { tasks, spaces, users } = await asUser(actor, async () => ({
+  const { tasks, spaces, users, runningTimer } = await asUser(actor, async () => ({
     tasks: await listTasks({
       assigneeId: mine ? actor.id : undefined,
       overdueOnly: params.overdue === '1',
@@ -36,6 +37,7 @@ export default async function TasksPage({
     // picker needs to know which columns belong to the space the task is in.
     spaces: await listSpaces(),
     users: await listUsers(),
+    runningTimer: await getRunningTimer(),
   }));
 
   const columnsBySpace = Object.fromEntries(spaces.map((space) => [space.id, space.statuses]));
@@ -65,6 +67,7 @@ export default async function TasksPage({
           users={users.map((user) => ({ id: user.id, name: user.name }))}
           columnsBySpace={columnsBySpace}
           canManage={actor.permissions.includes('task.manage')}
+          runningTaskId={runningTimer?.taskId ?? null}
         />
       </div>
     </div>

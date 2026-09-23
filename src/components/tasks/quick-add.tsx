@@ -23,6 +23,7 @@ export function QuickAdd({
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [justAdded, setJustAdded] = useState(false);
   const [, startTransition] = useTransition();
 
   function submit() {
@@ -34,7 +35,20 @@ export function QuickAdd({
 
     startTransition(async () => {
       const failure = await onAdd(value);
-      if (failure) setError(failure);
+
+      if (failure) {
+        setError(failure);
+        return;
+      }
+
+      // A field that just clears with no signal reads as "did that work?", which is exactly what
+      // led to duplicate test tasks earlier. A beat of confirmation, then closing, answers that
+      // without needing a whole dialog for one line of text.
+      setJustAdded(true);
+      window.setTimeout(() => {
+        setJustAdded(false);
+        setOpen(false);
+      }, 900);
     });
   }
 
@@ -73,9 +87,10 @@ export function QuickAdd({
         <input
           autoFocus
           value={title}
+          disabled={justAdded}
           onChange={(event) => setTitle(event.target.value)}
           onBlur={() => {
-            if (!title.trim()) setOpen(false);
+            if (!title.trim() && !justAdded) setOpen(false);
           }}
           onKeyDown={(event) => {
             if (event.key === 'Escape') {
@@ -85,11 +100,13 @@ export function QuickAdd({
           }}
           placeholder={`New task in ${status}`}
           aria-label={`New task in ${status}`}
-          className="w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-2.5 py-1.5 text-[13px] text-[var(--color-ink)] focus:outline-none"
+          className="w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-2.5 py-1.5 text-[13px] text-[var(--color-ink)] focus:outline-none disabled:opacity-70"
         />
       </form>
 
-      {error ? (
+      {justAdded ? (
+        <p className="mt-1 text-[11px] text-[var(--color-status-ok)]">✓ Task created</p>
+      ) : error ? (
         <p className="mt-1 text-[11px] text-[var(--color-status-alert)]">{error}</p>
       ) : (
         <p className="mt-1 text-[11px] text-[var(--color-ink-subtle)]">

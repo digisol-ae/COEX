@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, useTransition } from 'react';
+import { useActionState, useEffect, useState, useTransition } from 'react';
 import { clsx } from 'clsx';
-import { Button, Notice } from '@/components/ui';
+import { Button, Field, Input, Notice } from '@/components/ui';
 import { StatusDot } from '@/components/ui/pill';
 import { formatMinutes } from '@/modules/time/week';
 import { formatDateTime } from '@/modules/tasks/dates';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
+import { addDocumentAction, removeDocumentAction, type TaskFormState } from '@/app/(app)/tasks/actions';
 import {
   AssigneePicker,
   CalendarIcon,
@@ -47,6 +48,9 @@ export interface PanelHandlers {
   /** Per task, because My tasks spans spaces and each space configures its own columns. */
   columnsFor: (task: TaskSummary) => TaskColumn[];
   canManage: boolean;
+  /** The task whose timer is currently running for this person, so a card can show it and offer
+   * to stop it rather than start a second one. */
+  runningTaskId: string | null;
   onPriority: (task: TaskSummary, priority: PriorityValue) => void;
   onSchedule: (task: TaskSummary, value: { startAt: string | null; endAt: string | null }) => void;
   onAssignees: (task: TaskSummary, ids: string[]) => void;
@@ -56,6 +60,7 @@ export interface PanelHandlers {
   onAddSubtask: (task: TaskSummary, title: string) => Promise<string | null>;
   onRename: (task: TaskSummary, title: string) => void;
   onDescribe: (task: TaskSummary, description: string) => void;
+  onTags: (task: TaskSummary, tags: string[]) => void;
   /** Opening a task over whatever list it was clicked in, rather than instead of it. */
   onOpen: (task: TaskSummary) => void;
 }
@@ -73,13 +78,15 @@ export function TaskPanel({
   const [subtaskTitle, setSubtaskTitle] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const [docState, docFormAction, docPending] = useActionState<TaskFormState, FormData>(
+    addDocumentAction,
+    {},
+  );
 
   const { canManage, users } = handlers;
   const columns = handlers.columnsFor(task);
 
-  // The panel is mounted per task by its key, so this runs once for each task opened and detail
-  // starts empty on its own rather than being cleared here.
-  useEffect(() => {
+  function loadDetail() {
     let live = true;
 
     fetch(`/api/tasks/${task.id}/panel`)
@@ -94,6 +101,12 @@ export function TaskPanel({
     return () => {
       live = false;
     };
+  }
+
+  // The panel is mounted per task by its key, so this runs once for each task opened and detail
+  // starts empty on its own rather than being cleared here.
+  useEffect(() => {
+    return loadDetail();
   }, [task.id]);
 
   useEffect(() => {
@@ -104,6 +117,21 @@ export function TaskPanel({
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
+
+  useEffect(() => {
+    if (docState.saved) loadDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docState.saved]);
+
+  function removeLink(linkId: string) {
+    startTransition(async () => {
+      const form = new FormData();
+      form.set('taskId', task.id);
+      form.set('linkId', linkId);
+      await removeDocumentAction(form);
+      loadDetail();
+    });
+  }
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end">
@@ -135,7 +163,7 @@ export function TaskPanel({
             href={`/tasks/${task.id}`}
             className="ml-auto text-[12px] text-[var(--color-ink-muted)] underline-offset-4 hover:underline"
           >
-            Open full task
+            Open full window
           </Link>
 
           <button
@@ -228,6 +256,27 @@ export function TaskPanel({
                 {task.plannedMinutes ? ` · ${formatMinutes(task.plannedMinutes)} planned` : ''}
                 {task.estimateMinutes ? ` · ${formatMinutes(task.estimateMinutes)} estimated` : ''}
               </span>
+            </Row>
+
+            <Row label="Tags">
+              {detail ? (
+                <input
+                  key={`tags-${task.id}`}
+                  defaultValue={detail.tags.join(', ')}
+                  readOnly={!canManage}
+                  placeholder={canManage ? 'Separated by commas' : '—'}
+                  onBlur={(event) => {
+                    const next = event.target.value
+                      .split(',')
+                      .map((tag) => tag.trim())
+                      .filter(Boolean);
+                    handlers.onTags(task, next);
+                  }}
+                  className="w-full rounded-[var(--radius-control)] border border-transparent bg-transparent px-1 py-0.5 text-[13px] text-[var(--color-ink-muted)] hover:border-[var(--color-line)] focus:border-[var(--color-line-strong)] focus:outline-none"
+                />
+              ) : (
+                <span className="text-[var(--color-ink-subtle)]">…</span>
+              )}
             </Row>
           </dl>
 
@@ -338,26 +387,56 @@ export function TaskPanel({
             ) : null}
           </section>
 
-          {detail && detail.documentLinks.length > 0 ? (
+          {detail ? (
             <section>
               <h3 className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
                 Documents
               </h3>
 
-              <ul className="mt-1 space-y-1">
-                {detail.documentLinks.map((link) => (
-                  <li key={link.id}>
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[13px] text-[var(--color-ink)] underline-offset-4 hover:underline"
-                    >
-                      {link.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              {detail.documentLinks.length > 0 ? (
+                <ul className="mt-1 space-y-1">
+                  {detail.documentLinks.map((link) => (
+                    <li key={link.id} className="flex items-center justify-between gap-2">
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="min-w-0 flex-1 truncate text-[13px] text-[var(--color-ink)] underline-offset-4 hover:underline"
+                      >
+                        {link.title}
+                      </a>
+
+                      {canManage ? (
+                        <button
+                          type="button"
+                          onClick={() => removeLink(link.id)}
+                          className="shrink-0 text-[11px] text-[var(--color-ink-subtle)] underline-offset-4 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-1 text-[13px] text-[var(--color-ink-subtle)]">None linked.</p>
+              )}
+
+              {canManage ? (
+                <form action={docFormAction} className="mt-2 flex gap-2">
+                  <input type="hidden" name="taskId" value={task.id} />
+                  <Input
+                    name="url"
+                    placeholder="https://digisol.sharepoint.com/..."
+                    className="flex-1 text-[13px]"
+                  />
+                  <Button type="submit" variant="secondary" disabled={docPending}>
+                    {docPending ? 'Adding' : 'Add'}
+                  </Button>
+                </form>
+              ) : null}
+
+              {docState.error ? <Notice tone="alert">{docState.error}</Notice> : null}
             </section>
           ) : null}
         </div>

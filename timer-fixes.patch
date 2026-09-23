@@ -1,0 +1,399 @@
+diff --git a/src/app/(app)/spaces/[id]/board.tsx b/src/app/(app)/spaces/[id]/board.tsx
+index 6dc9d3e..f9e73b3 100644
+--- a/src/app/(app)/spaces/[id]/board.tsx
++++ b/src/app/(app)/spaces/[id]/board.tsx
+@@ -88,6 +88,7 @@ export function Board({
+   users,
+   canManage,
+   initialView,
++  runningTaskId,
+ }: {
+   spaceId: string;
+   columns: { name: string; isClosed: boolean }[];
+@@ -97,6 +98,7 @@ export function Board({
+   users: { id: string; name: string }[];
+   canManage: boolean;
+   initialView: SpaceView;
++  runningTaskId: string | null;
+ }) {
+   const [view, setView] = useState<SpaceView>(initialView);
+   const [adding, setAdding] = useState(false);
+@@ -199,6 +201,7 @@ export function Board({
+     users,
+     columnsFor: () => columns,
+     canManage,
++    runningTaskId,
+     onPriority: (task, priority) =>
+       patch(task.id, { priority }, { id: task.id, spaceId, priority }),
+     onSchedule: (task, value) =>
+@@ -578,7 +581,7 @@ function TaskCard({
+   onDragEnd: () => void;
+   isDragging: boolean;
+ }) {
+-  const { canManage, users } = handlers;
++  const { canManage, users, runningTaskId } = handlers;
+   const columns = handlers.columnsFor(task);
+ 
+   return (
+@@ -643,7 +646,7 @@ function TaskCard({
+       ) : null}
+ 
+       <div className="mt-2 flex items-center gap-1 pl-3">
+-        <CardTimerButton taskId={task.id} />
++        <CardTimerButton taskId={task.id} running={runningTaskId === task.id} loggedMinutes={task.loggedMinutes} />
+         <AssigneePicker
+           users={users}
+           selectedIds={task.assigneeIds}
+@@ -712,7 +715,7 @@ function ListView({
+ }) {
+   const [collapsed, setCollapsed] = useState<string[]>([]);
+   const [expanded, setExpanded] = useState<string[]>([]);
+-  const { canManage, users } = handlers;
++  const { canManage, users, runningTaskId } = handlers;
+ 
+   if (tasks.length === 0) {
+     return (
+@@ -855,7 +858,7 @@ function ListView({
+ 
+                                   <DocumentBadge count={task.documentCount} />
+ 
+-                                  <CardTimerButton taskId={task.id} />
++                                  <CardTimerButton taskId={task.id} running={runningTaskId === task.id} loggedMinutes={task.loggedMinutes} />
+                                 </div>
+                               </td>
+ 
+diff --git a/src/app/(app)/spaces/[id]/page.tsx b/src/app/(app)/spaces/[id]/page.tsx
+index 45c1d17..d00f84b 100644
+--- a/src/app/(app)/spaces/[id]/page.tsx
++++ b/src/app/(app)/spaces/[id]/page.tsx
+@@ -3,6 +3,7 @@ import { asUser, requirePermission } from '@/lib/session';
+ import { getSpace, progressPercent } from '@/modules/tasks/services/space.service';
+ import { listFolders } from '@/modules/tasks/services/folder.service';
+ import { listTasks } from '@/modules/tasks/services/task.service';
++import { getRunningTimer } from '@/modules/time/services/time.service';
+ import { Progress } from '@/components/ui/progress';
+ import { Monogram } from '@/components/ui/monogram';
+ import { Avatar } from '@/components/ui/avatar';
+@@ -27,11 +28,12 @@ export default async function SpacePage({
+   const space = await asUser(actor, () => getSpace(id));
+   if (!space) notFound();
+ 
+-  const { tasks, users, folders, customers } = await asUser(actor, async () => ({
++  const { tasks, users, folders, customers, runningTimer } = await asUser(actor, async () => ({
+     tasks: await listTasks({ spaceId: id, includeClosed: true }),
+     users: await listUsers(),
+     folders: await listFolders(id),
+     customers: await listOrganisations(),
++    runningTimer: await getRunningTimer(),
+   }));
+ 
+   const columns = [...space.statuses]
+@@ -89,6 +91,7 @@ export default async function SpacePage({
+         users={users.map((user) => ({ id: user.id, name: user.name }))}
+         canManage={actor.permissions.includes('task.manage')}
+         initialView={view === 'list' ? 'list' : view === 'gantt' ? 'gantt' : 'board'}
++        runningTaskId={runningTimer?.taskId ?? null}
+       />
+     </div>
+   );
+diff --git a/src/app/(app)/tasks/page.tsx b/src/app/(app)/tasks/page.tsx
+index 7d98b89..c4ce83d 100644
+--- a/src/app/(app)/tasks/page.tsx
++++ b/src/app/(app)/tasks/page.tsx
+@@ -1,6 +1,7 @@
+ import { asUser, requirePermission } from '@/lib/session';
+ import { listTasks } from '@/modules/tasks/services/task.service';
+ import { listSpaces } from '@/modules/tasks/services/space.service';
++import { getRunningTimer } from '@/modules/time/services/time.service';
+ import { listUsers } from '@/modules/core/services/user.service';
+ import { PageHeader } from '@/components/ui';
+ import { TaskFilters } from './filters';
+@@ -25,7 +26,7 @@ export default async function TasksPage({
+   const seesEverything = actor.permissions.includes('task.read.all');
+   const mine = params.mine === '1' || !seesEverything;
+ 
+-  const { tasks, spaces, users } = await asUser(actor, async () => ({
++  const { tasks, spaces, users, runningTimer } = await asUser(actor, async () => ({
+     tasks: await listTasks({
+       assigneeId: mine ? actor.id : undefined,
+       overdueOnly: params.overdue === '1',
+@@ -36,6 +37,7 @@ export default async function TasksPage({
+     // picker needs to know which columns belong to the space the task is in.
+     spaces: await listSpaces(),
+     users: await listUsers(),
++    runningTimer: await getRunningTimer(),
+   }));
+ 
+   const columnsBySpace = Object.fromEntries(spaces.map((space) => [space.id, space.statuses]));
+@@ -65,6 +67,7 @@ export default async function TasksPage({
+           users={users.map((user) => ({ id: user.id, name: user.name }))}
+           columnsBySpace={columnsBySpace}
+           canManage={actor.permissions.includes('task.manage')}
++          runningTaskId={runningTimer?.taskId ?? null}
+         />
+       </div>
+     </div>
+diff --git a/src/app/(app)/tasks/task-list.tsx b/src/app/(app)/tasks/task-list.tsx
+index 5be0094..06bfaaf 100644
+--- a/src/app/(app)/tasks/task-list.tsx
++++ b/src/app/(app)/tasks/task-list.tsx
+@@ -71,11 +71,13 @@ export function TaskList({
+   users,
+   columnsBySpace,
+   canManage,
++  runningTaskId,
+ }: {
+   tasks: TaskSummary[];
+   users: { id: string; name: string }[];
+   columnsBySpace: Record<string, TaskColumn[]>;
+   canManage: boolean;
++  runningTaskId: string | null;
+ }) {
+   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
+   const [error, setError] = useState<string | null>(null);
+@@ -107,6 +109,7 @@ export function TaskList({
+   const handlers: PanelHandlers = {
+     users,
+     canManage,
++    runningTaskId,
+     columnsFor: (task) => columnsBySpace[task.spaceId] ?? [{ name: task.status, isClosed: false }],
+     onOpen: (task) => setOpenTaskId(task.id),
+     onPriority: (task, priority: PriorityValue) =>
+@@ -285,7 +288,11 @@ export function TaskList({
+                             </span>
+                           ) : null}
+                           <DocumentBadge count={task.documentCount} />
+-                          <CardTimerButton taskId={task.id} />
++                          <CardTimerButton
++                            taskId={task.id}
++                            running={handlers.runningTaskId === task.id}
++                            loggedMinutes={task.loggedMinutes}
++                          />
+                           <Link
+                             href={`/tasks/${task.id}`}
+                             className="font-mono opacity-0 transition-opacity group-hover:opacity-100 hover:text-[var(--color-ink)]"
+diff --git a/src/components/navigation/space-tree.tsx b/src/components/navigation/space-tree.tsx
+index 7771398..62f25af 100644
+--- a/src/components/navigation/space-tree.tsx
++++ b/src/components/navigation/space-tree.tsx
+@@ -186,6 +186,9 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
+   }
+ 
+ 
++  return (
++    <div>
++      <div className="flex items-center">
+         <Link
+           href="/spaces"
+           className={clsx(
+diff --git a/src/components/tasks/task-panel.tsx b/src/components/tasks/task-panel.tsx
+index e9a6198..b4571c7 100644
+--- a/src/components/tasks/task-panel.tsx
++++ b/src/components/tasks/task-panel.tsx
+@@ -47,6 +47,9 @@ export interface PanelHandlers {
+   /** Per task, because My tasks spans spaces and each space configures its own columns. */
+   columnsFor: (task: TaskSummary) => TaskColumn[];
+   canManage: boolean;
++  /** The task whose timer is currently running for this person, so a card can show it and offer
++   * to stop it rather than start a second one. */
++  runningTaskId: string | null;
+   onPriority: (task: TaskSummary, priority: PriorityValue) => void;
+   onSchedule: (task: TaskSummary, value: { startAt: string | null; endAt: string | null }) => void;
+   onAssignees: (task: TaskSummary, ids: string[]) => void;
+diff --git a/src/modules/tasks/services/task.service.ts b/src/modules/tasks/services/task.service.ts
+index 7c06d60..535a98b 100644
+--- a/src/modules/tasks/services/task.service.ts
++++ b/src/modules/tasks/services/task.service.ts
+@@ -9,6 +9,7 @@ import { UserModel } from '@/modules/core/models/user.model';
+ import { TaskModel } from '../models/task.model';
+ import { SpaceModel } from '../models/space.model';
+ import { FolderModel } from '../models/folder.model';
++import { TimeEntryModel } from '@/modules/time/models/time-entry.model';
+ import { assignableMemberIds, canOpenFolder, visibleFolderFilter } from './folder.service';
+ import { assignableSpaceMemberIds, canOpenSpace, visibleSpaceFilter } from './space.service';
+ import { parseDocumentLink } from '../document-links';
+@@ -81,6 +82,7 @@ export interface TaskSummary {
+   subtasksDone: number;
+   subtasks: { id: string; title: string; done: boolean; assigneeId: string | null }[];
+   documentCount: number;
++  loggedMinutes: number;
+   isClosed: boolean;
+   isOverdue: boolean;
+   lastActivityAt: Date;
+@@ -135,6 +137,28 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
+   const users = await UserModel.find({ _id: { $in: assigneeIds } }).select('name');
+   const names = new Map(users.map((user) => [String(user._id), user.name]));
+ 
++  // Batched the same way documentCount and subtaskCount are, so a list of a hundred tasks costs
++  // one extra query rather than one per task. A running entry has not yet had its minutes written,
++  // so its live elapsed time is added in here rather than waiting for it to stop.
++  const timeEntries = await TimeEntryModel.find({
++    tenantId: getContext().tenantId,
++    taskId: { $in: found.map((task) => task._id) },
++    deletedAt: null,
++  }).select('taskId minutes running startedAt createdAt');
++
++  const nowMs = Date.now();
++  const loggedByTask = new Map<string, number>();
++
++  for (const entry of timeEntries) {
++    const key = String(entry.taskId);
++    const startedAt = entry.startedAt ?? entry.createdAt;
++    const minutes = entry.running
++      ? Math.max(0, Math.floor((nowMs - startedAt.getTime()) / 60000))
++      : (entry.minutes ?? 0);
++
++    loggedByTask.set(key, (loggedByTask.get(key) ?? 0) + minutes);
++  }
++
+   const now = new Date();
+ 
+   return found.map((task) => ({
+@@ -163,6 +187,7 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
+       assigneeId: subtask.assigneeId ? String(subtask.assigneeId) : null,
+     })),
+     documentCount: task.documentLinks.length,
++    loggedMinutes: loggedByTask.get(String(task._id)) ?? 0,
+     isClosed: task.isClosed ?? false,
+     isOverdue: !task.isClosed && !!task.endAt && task.endAt < now,
+     lastActivityAt: task.lastActivityAt ?? task.updatedAt,
+diff --git a/src/modules/time/components/card-timer-button.tsx b/src/modules/time/components/card-timer-button.tsx
+index 3a87f5a..4f5b38d 100644
+--- a/src/modules/time/components/card-timer-button.tsx
++++ b/src/modules/time/components/card-timer-button.tsx
+@@ -1,28 +1,77 @@
+ 'use client';
+ 
+-import { startTimerAction } from '@/app/(app)/time/actions';
++import { startTimerAction, stopTimerAction } from '@/app/(app)/time/actions';
+ 
+ /**
+- * Start the timer straight from wherever the task is shown, not only from its own page.
++ * Start or stop the timer straight from wherever the task is shown, not only from its own page.
+  *
+- * Always just starts this task's timer; the backend already stops whatever else is running, and
+- * the header's running timer is the one place that says which task is currently timed. A card does
+- * not need to track that itself.
++ * Whether this button starts or stops depends on `running`, whether this specific task is the one
++ * currently being timed, passed down from the page (the header's running timer is the single
++ * source of truth for that). The accumulated total beside it sums every segment logged against the
++ * task so far, today's stop-and-restart cycles included, plus the live elapsed time while it is the
++ * one running; it is not reset by pausing and resuming.
+  */
+-export function CardTimerButton({ taskId }: { taskId: string }) {
++export function CardTimerButton({
++  taskId,
++  running,
++  loggedMinutes,
++}: {
++  taskId: string;
++  running: boolean;
++  loggedMinutes: number;
++}) {
++  const showTime = running || loggedMinutes > 0;
++
+   return (
+-    <form action={startTimerAction} onClick={(event) => event.stopPropagation()}>
+-      <input type="hidden" name="taskId" value={taskId} />
+-      <button
+-        type="submit"
+-        title="Start timer"
+-        aria-label="Start timer for this task"
+-        className="flex h-5 w-5 items-center justify-center rounded-full text-[var(--color-ink-subtle)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-status-ok)]"
++    <span className="inline-flex items-center gap-1">
++      <form
++        action={running ? stopTimerAction : startTimerAction}
++        onClick={(event) => event.stopPropagation()}
+       >
+-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+-          <path d="M2.2 1.6v6.8l5.6-3.4-5.6-3.4Z" fill="currentColor" />
+-        </svg>
+-      </button>
+-    </form>
++        {running ? null : <input type="hidden" name="taskId" value={taskId} />}
++        <button
++          type="submit"
++          title={running ? 'Stop timer' : 'Start timer'}
++          aria-label={running ? 'Stop the timer for this task' : 'Start timer for this task'}
++          className={
++            running
++              ? 'flex h-4 w-4 items-center justify-center rounded-full text-[var(--color-status-alert)] transition-colors hover:bg-[var(--color-status-alert-soft)]'
++              : 'flex h-4 w-4 items-center justify-center rounded-full text-[var(--color-ink-subtle)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-status-ok)]'
++          }
++        >
++          {running ? <PauseIcon /> : <PlayIcon />}
++        </button>
++      </form>
++
++      {showTime ? (
++        <span
++          title={running ? 'Running, plus time already logged today' : 'Time already logged'}
++          className={
++            running
++              ? 'text-[11px] tabular-nums text-[var(--color-status-alert)]'
++              : 'text-[11px] tabular-nums text-[var(--color-ink-subtle)]'
++          }
++        >
++          {Math.floor(loggedMinutes / 60)}:{String(loggedMinutes % 60).padStart(2, '0')}
++        </span>
++      ) : null}
++    </span>
++  );
++}
++
++function PlayIcon() {
++  return (
++    <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
++      <path d="M1.6 1.2v5.6l4.8-2.8-4.8-2.8Z" fill="currentColor" />
++    </svg>
++  );
++}
++
++function PauseIcon() {
++  return (
++    <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
++      <rect x="0.5" y="0.5" width="2.6" height="7" rx="0.5" fill="currentColor" />
++      <rect x="4.9" y="0.5" width="2.6" height="7" rx="0.5" fill="currentColor" />
++    </svg>
+   );
+ }
+diff --git a/src/modules/time/services/time.service.ts b/src/modules/time/services/time.service.ts
+index 48ed5bb..dce70a7 100644
+--- a/src/modules/time/services/time.service.ts
++++ b/src/modules/time/services/time.service.ts
+@@ -123,6 +123,13 @@ export async function startTimer(taskId: string): Promise<void> {
+ 
+   if (!task) throw new Error('Task not found.');
+ 
++  // A task's space is required by its own schema, so this should never trigger for a task created
++  // normally. It exists only to turn a data problem into a clear message instead of a raw crash if
++  // one ever slips through.
++  if (!task.spaceId) {
++    throw new Error('This task has no space, so a timer cannot be recorded for it.');
++  }
++
+   // Starting a second timer stops the first rather than refusing, because that is what the person
+   // means: they have moved on to something else.
+   const running = await entries().findOne({ userId: context.userId, running: true });
+@@ -205,6 +212,10 @@ export async function addManualEntry(input: ManualEntryInput): Promise<void> {
+ 
+   if (!task) throw new Error('Task not found.');
+ 
++  if (!task.spaceId) {
++    throw new Error('This task has no space, so time cannot be recorded against it.');
++  }
++
+   const workDate = startOfDay(new Date(input.workDate));
+   await assertWeekOpen(workDate);
+ 
+@@ -302,6 +313,10 @@ export async function updateEntry(entryId: string, input: UpdateEntryInput): Pro
+ 
+     if (!task) throw new Error('Task not found.');
+ 
++    if (!task.spaceId) {
++      throw new Error('This task has no space, so time cannot be moved to it.');
++    }
++
+     set.taskId = task._id;
+     set.spaceId = task.spaceId;
+     set.organisationId = task.organisationId ?? null;

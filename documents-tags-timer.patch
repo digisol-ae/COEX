@@ -1,0 +1,595 @@
+diff --git a/src/app/(app)/spaces/[id]/board.tsx b/src/app/(app)/spaces/[id]/board.tsx
+index f9e73b3..fc0ba3d 100644
+--- a/src/app/(app)/spaces/[id]/board.tsx
++++ b/src/app/(app)/spaces/[id]/board.tsx
+@@ -249,6 +249,7 @@ export function Board({
+     onRename: (task, title) => patch(task.id, { title }, { id: task.id, spaceId, title }),
+     onDescribe: (task, description) =>
+       patch(task.id, {}, { id: task.id, spaceId, description: description || null }),
++    onTags: (task, tags) => patch(task.id, {}, { id: task.id, spaceId, tags }),
+     onOpen: (task) => setOpenTaskId(task.id),
+     onAddSubtask: async (task, title) => {
+       setEditError(null);
+@@ -641,7 +642,7 @@ function TaskCard({
+             <Chip title="Planned working hours">{formatMinutes(task.plannedMinutes)}</Chip>
+           ) : null}
+ 
+-          <DocumentBadge count={task.documentCount} />
++          <DocumentBadge links={task.documentLinks} />
+         </div>
+       ) : null}
+ 
+@@ -856,7 +857,7 @@ function ListView({
+ 
+                                   {task.folderName ? <Chip>{task.folderName}</Chip> : null}
+ 
+-                                  <DocumentBadge count={task.documentCount} />
++                                  <DocumentBadge links={task.documentLinks} />
+ 
+                                   <CardTimerButton taskId={task.id} running={runningTaskId === task.id} loggedMinutes={task.loggedMinutes} />
+                                 </div>
+diff --git a/src/app/(app)/tasks/actions.ts b/src/app/(app)/tasks/actions.ts
+index 74653f7..359f74b 100644
+--- a/src/app/(app)/tasks/actions.ts
++++ b/src/app/(app)/tasks/actions.ts
+@@ -266,6 +266,7 @@ export async function patchTaskAction(input: {
+   assigneeIds?: string[];
+   title?: string;
+   description?: string | null;
++  tags?: string[];
+ }): Promise<TaskFormState> {
+   const actor = await requirePermission('task.manage');
+ 
+@@ -278,6 +279,7 @@ export async function patchTaskAction(input: {
+         assigneeIds: input.assigneeIds,
+         title: input.title,
+         description: input.description,
++        tags: input.tags,
+       }),
+     );
+   } catch (error) {
+diff --git a/src/app/(app)/tasks/task-list.tsx b/src/app/(app)/tasks/task-list.tsx
+index 06bfaaf..93d5c56 100644
+--- a/src/app/(app)/tasks/task-list.tsx
++++ b/src/app/(app)/tasks/task-list.tsx
+@@ -134,6 +134,7 @@ export function TaskList({
+       patch(task, { title }, { id: task.id, spaceId: task.spaceId, title }),
+     onDescribe: (task, description) =>
+       patch(task, {}, { id: task.id, spaceId: task.spaceId, description: description || null }),
++    onTags: (task, tags) => patch(task, {}, { id: task.id, spaceId: task.spaceId, tags }),
+     onStatus: (task, status) => {
+       setError(null);
+ 
+@@ -287,7 +288,7 @@ export function TaskList({
+                               {task.subtasksDone}/{task.subtaskCount} subtasks
+                             </span>
+                           ) : null}
+-                          <DocumentBadge count={task.documentCount} />
++                          <DocumentBadge links={task.documentLinks} />
+                           <CardTimerButton
+                             taskId={task.id}
+                             running={handlers.runningTaskId === task.id}
+diff --git a/src/app/api/navigation/spaces/[id]/folders/route.ts b/src/app/api/navigation/spaces/[id]/folders/route.ts
+index b211acc..66c9ce2 100644
+--- a/src/app/api/navigation/spaces/[id]/folders/route.ts
++++ b/src/app/api/navigation/spaces/[id]/folders/route.ts
+@@ -30,6 +30,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
+       title: task.title,
+       isClosed: task.isClosed,
+       documentCount: task.documentCount,
++      documentLinks: task.documentLinks,
+       subtasks: task.subtasks,
+     });
+ 
+diff --git a/src/components/navigation/space-tree.tsx b/src/components/navigation/space-tree.tsx
+index 62f25af..07ba529 100644
+--- a/src/components/navigation/space-tree.tsx
++++ b/src/components/navigation/space-tree.tsx
+@@ -33,6 +33,7 @@ interface TreeTask {
+   title: string;
+   isClosed: boolean;
+   documentCount: number;
++  documentLinks: { id: string; title: string; url: string }[];
+   subtasks: { id: string; title: string; done: boolean }[];
+ }
+ 
+@@ -414,7 +415,7 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
+                                     </Link>
+ 
+                                     {task.documentCount > 0 ? (
+-                                      <DocumentBadge count={task.documentCount} />
++                                      <DocumentBadge links={task.documentLinks} />
+                                     ) : null}
+                                   </div>
+ 
+diff --git a/src/components/tasks/quick-add.tsx b/src/components/tasks/quick-add.tsx
+index 85569fa..b6fab00 100644
+--- a/src/components/tasks/quick-add.tsx
++++ b/src/components/tasks/quick-add.tsx
+@@ -23,6 +23,7 @@ export function QuickAdd({
+   const [open, setOpen] = useState(false);
+   const [title, setTitle] = useState('');
+   const [error, setError] = useState<string | null>(null);
++  const [justAdded, setJustAdded] = useState(false);
+   const [, startTransition] = useTransition();
+ 
+   function submit() {
+@@ -34,7 +35,20 @@ export function QuickAdd({
+ 
+     startTransition(async () => {
+       const failure = await onAdd(value);
+-      if (failure) setError(failure);
++
++      if (failure) {
++        setError(failure);
++        return;
++      }
++
++      // A field that just clears with no signal reads as "did that work?", which is exactly what
++      // led to duplicate test tasks earlier. A beat of confirmation, then closing, answers that
++      // without needing a whole dialog for one line of text.
++      setJustAdded(true);
++      window.setTimeout(() => {
++        setJustAdded(false);
++        setOpen(false);
++      }, 900);
+     });
+   }
+ 
+@@ -73,9 +87,10 @@ export function QuickAdd({
+         <input
+           autoFocus
+           value={title}
++          disabled={justAdded}
+           onChange={(event) => setTitle(event.target.value)}
+           onBlur={() => {
+-            if (!title.trim()) setOpen(false);
++            if (!title.trim() && !justAdded) setOpen(false);
+           }}
+           onKeyDown={(event) => {
+             if (event.key === 'Escape') {
+@@ -85,11 +100,13 @@ export function QuickAdd({
+           }}
+           placeholder={`New task in ${status}`}
+           aria-label={`New task in ${status}`}
+-          className="w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-2.5 py-1.5 text-[13px] text-[var(--color-ink)] focus:outline-none"
++          className="w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-2.5 py-1.5 text-[13px] text-[var(--color-ink)] focus:outline-none disabled:opacity-70"
+         />
+       </form>
+ 
+-      {error ? (
++      {justAdded ? (
++        <p className="mt-1 text-[11px] text-[var(--color-status-ok)]">✓ Task created</p>
++      ) : error ? (
+         <p className="mt-1 text-[11px] text-[var(--color-status-alert)]">{error}</p>
+       ) : (
+         <p className="mt-1 text-[11px] text-[var(--color-ink-subtle)]">
+diff --git a/src/components/tasks/task-panel.tsx b/src/components/tasks/task-panel.tsx
+index b4571c7..5f3c639 100644
+--- a/src/components/tasks/task-panel.tsx
++++ b/src/components/tasks/task-panel.tsx
+@@ -1,13 +1,14 @@
+ 'use client';
+ 
+ import Link from 'next/link';
+-import { useEffect, useState, useTransition } from 'react';
++import { useActionState, useEffect, useState, useTransition } from 'react';
+ import { clsx } from 'clsx';
+-import { Button, Notice } from '@/components/ui';
++import { Button, Field, Input, Notice } from '@/components/ui';
+ import { StatusDot } from '@/components/ui/pill';
+ import { formatMinutes } from '@/modules/time/week';
+ import { formatDateTime } from '@/modules/tasks/dates';
+ import type { TaskSummary } from '@/modules/tasks/services/task.service';
++import { addDocumentAction, removeDocumentAction, type TaskFormState } from '@/app/(app)/tasks/actions';
+ import {
+   AssigneePicker,
+   CalendarIcon,
+@@ -59,6 +60,7 @@ export interface PanelHandlers {
+   onAddSubtask: (task: TaskSummary, title: string) => Promise<string | null>;
+   onRename: (task: TaskSummary, title: string) => void;
+   onDescribe: (task: TaskSummary, description: string) => void;
++  onTags: (task: TaskSummary, tags: string[]) => void;
+   /** Opening a task over whatever list it was clicked in, rather than instead of it. */
+   onOpen: (task: TaskSummary) => void;
+ }
+@@ -76,13 +78,15 @@ export function TaskPanel({
+   const [subtaskTitle, setSubtaskTitle] = useState('');
+   const [error, setError] = useState<string | null>(null);
+   const [, startTransition] = useTransition();
++  const [docState, docFormAction, docPending] = useActionState<TaskFormState, FormData>(
++    addDocumentAction,
++    {},
++  );
+ 
+   const { canManage, users } = handlers;
+   const columns = handlers.columnsFor(task);
+ 
+-  // The panel is mounted per task by its key, so this runs once for each task opened and detail
+-  // starts empty on its own rather than being cleared here.
+-  useEffect(() => {
++  function loadDetail() {
+     let live = true;
+ 
+     fetch(`/api/tasks/${task.id}/panel`)
+@@ -97,6 +101,12 @@ export function TaskPanel({
+     return () => {
+       live = false;
+     };
++  }
++
++  // The panel is mounted per task by its key, so this runs once for each task opened and detail
++  // starts empty on its own rather than being cleared here.
++  useEffect(() => {
++    return loadDetail();
+   }, [task.id]);
+ 
+   useEffect(() => {
+@@ -108,6 +118,21 @@ export function TaskPanel({
+     return () => document.removeEventListener('keydown', onKeyDown);
+   }, [onClose]);
+ 
++  useEffect(() => {
++    if (docState.saved) loadDetail();
++    // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [docState.saved]);
++
++  function removeLink(linkId: string) {
++    startTransition(async () => {
++      const form = new FormData();
++      form.set('taskId', task.id);
++      form.set('linkId', linkId);
++      await removeDocumentAction(form);
++      loadDetail();
++    });
++  }
++
+   return (
+     <div className="fixed inset-0 z-40 flex justify-end">
+       <button
+@@ -138,7 +163,7 @@ export function TaskPanel({
+             href={`/tasks/${task.id}`}
+             className="ml-auto text-[12px] text-[var(--color-ink-muted)] underline-offset-4 hover:underline"
+           >
+-            Open full task
++            Open full window
+           </Link>
+ 
+           <button
+@@ -232,6 +257,27 @@ export function TaskPanel({
+                 {task.estimateMinutes ? ` · ${formatMinutes(task.estimateMinutes)} estimated` : ''}
+               </span>
+             </Row>
++
++            <Row label="Tags">
++              {detail ? (
++                <input
++                  key={`tags-${task.id}`}
++                  defaultValue={detail.tags.join(', ')}
++                  readOnly={!canManage}
++                  placeholder={canManage ? 'Separated by commas' : '—'}
++                  onBlur={(event) => {
++                    const next = event.target.value
++                      .split(',')
++                      .map((tag) => tag.trim())
++                      .filter(Boolean);
++                    handlers.onTags(task, next);
++                  }}
++                  className="w-full rounded-[var(--radius-control)] border border-transparent bg-transparent px-1 py-0.5 text-[13px] text-[var(--color-ink-muted)] hover:border-[var(--color-line)] focus:border-[var(--color-line-strong)] focus:outline-none"
++                />
++              ) : (
++                <span className="text-[var(--color-ink-subtle)]">…</span>
++              )}
++            </Row>
+           </dl>
+ 
+           <section>
+@@ -341,26 +387,56 @@ export function TaskPanel({
+             ) : null}
+           </section>
+ 
+-          {detail && detail.documentLinks.length > 0 ? (
++          {detail ? (
+             <section>
+               <h3 className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                 Documents
+               </h3>
+ 
+-              <ul className="mt-1 space-y-1">
+-                {detail.documentLinks.map((link) => (
+-                  <li key={link.id}>
+-                    <a
+-                      href={link.url}
+-                      target="_blank"
+-                      rel="noreferrer"
+-                      className="text-[13px] text-[var(--color-ink)] underline-offset-4 hover:underline"
+-                    >
+-                      {link.title}
+-                    </a>
+-                  </li>
+-                ))}
+-              </ul>
++              {detail.documentLinks.length > 0 ? (
++                <ul className="mt-1 space-y-1">
++                  {detail.documentLinks.map((link) => (
++                    <li key={link.id} className="flex items-center justify-between gap-2">
++                      <a
++                        href={link.url}
++                        target="_blank"
++                        rel="noreferrer"
++                        className="min-w-0 flex-1 truncate text-[13px] text-[var(--color-ink)] underline-offset-4 hover:underline"
++                      >
++                        {link.title}
++                      </a>
++
++                      {canManage ? (
++                        <button
++                          type="button"
++                          onClick={() => removeLink(link.id)}
++                          className="shrink-0 text-[11px] text-[var(--color-ink-subtle)] underline-offset-4 hover:underline"
++                        >
++                          Remove
++                        </button>
++                      ) : null}
++                    </li>
++                  ))}
++                </ul>
++              ) : (
++                <p className="mt-1 text-[13px] text-[var(--color-ink-subtle)]">None linked.</p>
++              )}
++
++              {canManage ? (
++                <form action={docFormAction} className="mt-2 flex gap-2">
++                  <input type="hidden" name="taskId" value={task.id} />
++                  <Input
++                    name="url"
++                    placeholder="https://digisol.sharepoint.com/..."
++                    className="flex-1 text-[13px]"
++                  />
++                  <Button type="submit" variant="secondary" disabled={docPending}>
++                    {docPending ? 'Adding' : 'Add'}
++                  </Button>
++                </form>
++              ) : null}
++
++              {docState.error ? <Notice tone="alert">{docState.error}</Notice> : null}
+             </section>
+           ) : null}
+         </div>
+diff --git a/src/components/ui/task-badges.tsx b/src/components/ui/task-badges.tsx
+index 3599752..9ac3a3c 100644
+--- a/src/components/ui/task-badges.tsx
++++ b/src/components/ui/task-badges.tsx
+@@ -1,15 +1,86 @@
+-/** A paperclip badge, shown on a task wherever it appears, when it carries a linked document. */
+-export function DocumentBadge({ count }: { count: number }) {
+-  if (count <= 0) return null;
++'use client';
++
++import { useEffect, useRef, useState } from 'react';
++
++/**
++ * A paperclip badge, shown on a task wherever it appears, when it carries a linked document.
++ *
++ * One document opens directly on click; more than one opens a small list to choose from, since a
++ * single click can only mean one thing. Either way this used to be a plain icon with no way to
++ * reach the document itself, which is the point of showing it in the first place.
++ */
++export function DocumentBadge({
++  links,
++}: {
++  links: { id: string; title: string; url: string }[];
++}) {
++  const [open, setOpen] = useState(false);
++  const holder = useRef<HTMLDivElement>(null);
++
++  useEffect(() => {
++    if (!open) return;
++
++    function onPointerDown(event: MouseEvent) {
++      if (holder.current && !holder.current.contains(event.target as Node)) setOpen(false);
++    }
++
++    document.addEventListener('mousedown', onPointerDown);
++    return () => document.removeEventListener('mousedown', onPointerDown);
++  }, [open]);
++
++  if (links.length === 0) return null;
++
++  if (links.length === 1) {
++    return (
++      <a
++        href={links[0].url}
++        target="_blank"
++        rel="noreferrer"
++        onClick={(event) => event.stopPropagation()}
++        title={links[0].title}
++        className="inline-flex items-center gap-0.5 rounded-[var(--radius-control)] bg-[var(--color-surface-sunken)] px-1.5 py-0.5 text-[11px] text-[var(--color-ink-muted)] transition-colors hover:text-[var(--color-ink)]"
++      >
++        <ClipIcon />
++      </a>
++    );
++  }
+ 
+   return (
+-    <span
+-      title={count === 1 ? '1 document linked' : `${count} documents linked`}
+-      className="inline-flex items-center gap-0.5 rounded-[var(--radius-control)] bg-[var(--color-surface-sunken)] px-1.5 py-0.5 text-[11px] text-[var(--color-ink-muted)]"
+-    >
+-      <ClipIcon />
+-      {count > 1 ? count : null}
+-    </span>
++    <div ref={holder} className="relative inline-flex">
++      <button
++        type="button"
++        onClick={(event) => {
++          event.stopPropagation();
++          setOpen((value) => !value);
++        }}
++        title={`${links.length} documents linked`}
++        aria-expanded={open}
++        className="inline-flex items-center gap-0.5 rounded-[var(--radius-control)] bg-[var(--color-surface-sunken)] px-1.5 py-0.5 text-[11px] text-[var(--color-ink-muted)] transition-colors hover:text-[var(--color-ink)]"
++      >
++        <ClipIcon />
++        {links.length}
++      </button>
++
++      {open ? (
++        <div
++          onClick={(event) => event.stopPropagation()}
++          className="absolute top-full left-0 z-40 mt-1 w-56 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)] p-1 shadow-[var(--shadow-pop)]"
++        >
++          {links.map((link) => (
++            <a
++              key={link.id}
++              href={link.url}
++              target="_blank"
++              rel="noreferrer"
++              onClick={() => setOpen(false)}
++              className="block truncate rounded-[var(--radius-control)] px-2 py-1.5 text-sm text-[var(--color-ink)] hover:bg-[var(--color-surface-muted)]"
++            >
++              {link.title}
++            </a>
++          ))}
++        </div>
++      ) : null}
++    </div>
+   );
+ }
+ 
+diff --git a/src/modules/tasks/document-links.ts b/src/modules/tasks/document-links.ts
+index 6b087f3..45c388f 100644
+--- a/src/modules/tasks/document-links.ts
++++ b/src/modules/tasks/document-links.ts
+@@ -51,9 +51,24 @@ export function parseDocumentLink(input: string): ParsedDocumentLink {
+ 
+ /** A usable name before Graph is available to give the real one. */
+ function suggestTitle(url: URL): string {
+-  const fromQuery = url.searchParams.get('file') ?? url.searchParams.get('id');
+-  const candidate = fromQuery ?? url.pathname.split('/').filter(Boolean).pop() ?? 'Document';
++  const fileParam = url.searchParams.get('file');
++  if (fileParam && looksLikeFilename(fileParam)) return clean(fileParam);
+ 
++  const pathSegment = url.pathname.split('/').filter(Boolean).pop();
++  if (pathSegment && looksLikeFilename(pathSegment)) return clean(pathSegment);
++
++  // Share links often carry only an opaque item id or token, with no real filename anywhere in
++  // the URL, until Graph can resolve one. Showing that token as the name reads as a bug, not a
++  // document, so a plain, honest placeholder is the better default until then.
++  return 'Document';
++}
++
++/** A real filename has an extension; a driveitem id or share token generally does not. */
++function looksLikeFilename(candidate: string): boolean {
++  return /\.[a-z0-9]{2,5}$/i.test(candidate) && candidate.length <= 120;
++}
++
++function clean(candidate: string): string {
+   try {
+     return decodeURIComponent(candidate).replace(/[+_]/g, ' ').slice(0, 120);
+   } catch {
+diff --git a/src/modules/tasks/services/task.service.ts b/src/modules/tasks/services/task.service.ts
+index 535a98b..8c92ac1 100644
+--- a/src/modules/tasks/services/task.service.ts
++++ b/src/modules/tasks/services/task.service.ts
+@@ -82,6 +82,7 @@ export interface TaskSummary {
+   subtasksDone: number;
+   subtasks: { id: string; title: string; done: boolean; assigneeId: string | null }[];
+   documentCount: number;
++  documentLinks: { id: string; title: string; url: string }[];
+   loggedMinutes: number;
+   isClosed: boolean;
+   isOverdue: boolean;
+@@ -187,6 +188,11 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
+       assigneeId: subtask.assigneeId ? String(subtask.assigneeId) : null,
+     })),
+     documentCount: task.documentLinks.length,
++    documentLinks: task.documentLinks.map((link) => ({
++      id: String(link._id),
++      title: link.title,
++      url: link.url,
++    })),
+     loggedMinutes: loggedByTask.get(String(task._id)) ?? 0,
+     isClosed: task.isClosed ?? false,
+     isOverdue: !task.isClosed && !!task.endAt && task.endAt < now,
+@@ -464,6 +470,7 @@ export interface TaskPatch {
+   endAt?: string | null;
+   assigneeIds?: string[];
+   title?: string;
++  tags?: string[];
+ }
+ 
+ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
+@@ -478,6 +485,8 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
+ 
+   if (patch.description !== undefined) set.description = patch.description?.trim() || null;
+ 
++  if (patch.tags !== undefined) set.tags = patch.tags;
++
+   if (patch.folderId !== undefined) {
+     // Moving into a private folder has to respect the same rule as assigning into one.
+     await assertAssignable(
+diff --git a/src/modules/time/services/time.service.ts b/src/modules/time/services/time.service.ts
+index dce70a7..0d6a82f 100644
+--- a/src/modules/time/services/time.service.ts
++++ b/src/modules/time/services/time.service.ts
+@@ -83,9 +83,7 @@ export async function listTodaysTimers(): Promise<TodayTimer[]> {
+   const context = getContext();
+   const today = startOfDay(new Date());
+ 
+-  const found = await entries()
+-    .find({ userId: context.userId, workDate: today, source: 'timer' })
+-    .sort({ running: -1, startedAt: -1 });
++  const found = await entries().find({ userId: context.userId, workDate: today, source: 'timer' });
+ 
+   const tasks = await TaskModel.find({
+     _id: { $in: found.map((entry) => entry.taskId) },
+@@ -93,21 +91,38 @@ export async function listTodaysTimers(): Promise<TodayTimer[]> {
+ 
+   const taskById = new Map(tasks.map((task) => [String(task._id), task]));
+ 
+-  return found.map((entry) => {
++  // Grouped by task, not one row per start-and-stop segment, so switching between two tasks a
++  // dozen times today shows as two rows with their totals, not a dozen. The one-timer-at-a-time
++  // design means at most one task is ever "running"; every stopped segment for a task, today's
++  // total, and today's total only, folds into that task's single row.
++  const byTask = new Map<string, { number: string; title: string; minutes: number; running: boolean }>();
++
++  for (const entry of found) {
++    const taskId = String(entry.taskId);
+     const startedAt = entry.startedAt ?? entry.createdAt;
+     const minutes = entry.running
+       ? Math.max(0, Math.floor((Date.now() - startedAt.getTime()) / 60000))
+       : (entry.minutes ?? 0);
+ 
+-    return {
+-      entryId: String(entry._id),
+-      taskId: String(entry.taskId),
+-      taskNumber: taskById.get(String(entry.taskId))?.number ?? '',
+-      taskTitle: taskById.get(String(entry.taskId))?.title ?? 'Unknown task',
+-      minutes,
+-      running: entry.running ?? false,
+-    };
+-  });
++    const existing = byTask.get(taskId);
++    byTask.set(taskId, {
++      number: taskById.get(taskId)?.number ?? '',
++      title: taskById.get(taskId)?.title ?? 'Unknown task',
++      minutes: (existing?.minutes ?? 0) + minutes,
++      running: (existing?.running ?? false) || (entry.running ?? false),
++    });
++  }
++
++  return Array.from(byTask.entries())
++    .map(([taskId, row]) => ({
++      entryId: taskId,
++      taskId,
++      taskNumber: row.number,
++      taskTitle: row.title,
++      minutes: row.minutes,
++      running: row.running,
++    }))
++    .sort((a, b) => Number(b.running) - Number(a.running) || b.minutes - a.minutes);
+ }
+ 
+ export async function startTimer(taskId: string): Promise<void> {

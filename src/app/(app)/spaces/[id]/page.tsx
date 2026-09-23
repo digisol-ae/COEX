@@ -3,6 +3,7 @@ import { asUser, requirePermission } from '@/lib/session';
 import { getSpace, progressPercent } from '@/modules/tasks/services/space.service';
 import { listFolders } from '@/modules/tasks/services/folder.service';
 import { listTasks } from '@/modules/tasks/services/task.service';
+import { getRunningTimer } from '@/modules/time/services/time.service';
 import { Progress } from '@/components/ui/progress';
 import { Monogram } from '@/components/ui/monogram';
 import { Avatar } from '@/components/ui/avatar';
@@ -27,11 +28,12 @@ export default async function SpacePage({
   const space = await asUser(actor, () => getSpace(id));
   if (!space) notFound();
 
-  const { tasks, users, folders, customers } = await asUser(actor, async () => ({
+  const { tasks, users, folders, customers, runningTimer } = await asUser(actor, async () => ({
     tasks: await listTasks({ spaceId: id, includeClosed: true }),
     users: await listUsers(),
     folders: await listFolders(id),
     customers: await listOrganisations(),
+    runningTimer: await getRunningTimer(),
   }));
 
   const columns = [...space.statuses]
@@ -89,6 +91,7 @@ export default async function SpacePage({
         users={users.map((user) => ({ id: user.id, name: user.name }))}
         canManage={actor.permissions.includes('task.manage')}
         initialView={view === 'list' ? 'list' : view === 'gantt' ? 'gantt' : 'board'}
+        runningTaskId={runningTimer?.taskId ?? null}
       />
     </div>
   );

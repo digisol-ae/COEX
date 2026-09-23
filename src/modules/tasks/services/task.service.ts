@@ -9,6 +9,7 @@ import { UserModel } from '@/modules/core/models/user.model';
 import { TaskModel } from '../models/task.model';
 import { SpaceModel } from '../models/space.model';
 import { FolderModel } from '../models/folder.model';
+import { TimeEntryModel } from '@/modules/time/models/time-entry.model';
 import { assignableMemberIds, canOpenFolder, visibleFolderFilter } from './folder.service';
 import { assignableSpaceMemberIds, canOpenSpace, visibleSpaceFilter } from './space.service';
 import { parseDocumentLink } from '../document-links';
@@ -81,6 +82,8 @@ export interface TaskSummary {
   subtasksDone: number;
   subtasks: { id: string; title: string; done: boolean; assigneeId: string | null }[];
   documentCount: number;
+  documentLinks: { id: string; title: string; url: string }[];
+  loggedMinutes: number;
   isClosed: boolean;
   isOverdue: boolean;
   lastActivityAt: Date;
@@ -135,6 +138,28 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   const users = await UserModel.find({ _id: { $in: assigneeIds } }).select('name');
   const names = new Map(users.map((user) => [String(user._id), user.name]));
 
+  // Batched the same way documentCount and subtaskCount are, so a list of a hundred tasks costs
+  // one extra query rather than one per task. A running entry has not yet had its minutes written,
+  // so its live elapsed time is added in here rather than waiting for it to stop.
+  const timeEntries = await TimeEntryModel.find({
+    tenantId: getContext().tenantId,
+    taskId: { $in: found.map((task) => task._id) },
+    deletedAt: null,
+  }).select('taskId minutes running startedAt createdAt');
+
+  const nowMs = Date.now();
+  const loggedByTask = new Map<string, number>();
+
+  for (const entry of timeEntries) {
+    const key = String(entry.taskId);
+    const startedAt = entry.startedAt ?? entry.createdAt;
+    const minutes = entry.running
+      ? Math.max(0, Math.floor((nowMs - startedAt.getTime()) / 60000))
+      : (entry.minutes ?? 0);
+
+    loggedByTask.set(key, (loggedByTask.get(key) ?? 0) + minutes);
+  }
+
   const now = new Date();
 
   return found.map((task) => ({
@@ -163,6 +188,12 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
       assigneeId: subtask.assigneeId ? String(subtask.assigneeId) : null,
     })),
     documentCount: task.documentLinks.length,
+    documentLinks: task.documentLinks.map((link) => ({
+      id: String(link._id),
+      title: link.title,
+      url: link.url,
+    })),
+    loggedMinutes: loggedByTask.get(String(task._id)) ?? 0,
     isClosed: task.isClosed ?? false,
     isOverdue: !task.isClosed && !!task.endAt && task.endAt < now,
     lastActivityAt: task.lastActivityAt ?? task.updatedAt,
@@ -439,6 +470,7 @@ export interface TaskPatch {
   endAt?: string | null;
   assigneeIds?: string[];
   title?: string;
+  tags?: string[];
 }
 
 export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
@@ -452,6 +484,8 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
   if (patch.priority) set.priority = patch.priority;
 
   if (patch.description !== undefined) set.description = patch.description?.trim() || null;
+
+  if (patch.tags !== undefined) set.tags = patch.tags;
 
   if (patch.folderId !== undefined) {
     // Moving into a private folder has to respect the same rule as assigning into one.

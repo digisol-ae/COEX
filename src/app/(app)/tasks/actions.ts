@@ -266,6 +266,7 @@ export async function patchTaskAction(input: {
   assigneeIds?: string[];
   title?: string;
   description?: string | null;
+  tags?: string[];
 }): Promise<TaskFormState> {
   const actor = await requirePermission('task.manage');
 
@@ -278,6 +279,7 @@ export async function patchTaskAction(input: {
         assigneeIds: input.assigneeIds,
         title: input.title,
         description: input.description,
+        tags: input.tags,
       }),
     );
   } catch (error) {
