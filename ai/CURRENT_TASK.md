@@ -2,53 +2,59 @@
 
 ## Task
 
-Establish and validate the shared Claude ↔ ChatGPT collaboration workflow.
+Batch B: space visibility (option B, chosen by John on 22 Sep 2026) and the matching
+private-folder / private-space assignment rules. Reference: `FEEDBACK.md`, items B1 and B2.
 
 ## Objective
 
-Allow Claude and ChatGPT to work on the same COEX codebase without losing project context when
-John switches between them.
+A space with no members named on it is open to the whole tenant. Name members and it becomes
+private to exactly those people, a tenant administrator excepted, the same rule already governing
+folders one level down. This must be enforced everywhere a space or its tasks can be read or
+written, not just on the spaces list page.
 
 ## Current Stage
 
-Shared AI state is being reconciled from Claude's existing project knowledge.
+Service layer complete and verified for internal consistency. Actions layer and all UI not yet
+started. See `ai/HANDOFF.md` for the full, current, line by line state.
 
-## Completed
+## Important: nothing below is committed or pushed
 
-- Inspected the COEX repository.
-- Reviewed `CLAUDE.md`.
-- Reviewed `AGENTS.md`.
-- Reviewed `FEEDBACK.md`.
-- Confirmed Git repository and current branch.
-- Created the shared `ai/` directory.
-- Created `ai/PROJECT_STATE.md`.
-- Created `ai/CURRENT_TASK.md`.
-- Created `ai/HANDOFF.md`.
-- Added AI collaboration rules to `CLAUDE.md`.
-- Performed a read-only Claude reconciliation of project state.
-- Updated `ai/PROJECT_STATE.md` with the reconciled state.
+`origin/main` is at `4b1104d`. Everything under "Completed" below exists only as uncommitted code
+in Claude's working sandbox for this conversation. It is not retrievable from GitHub.
 
-## In Progress
+## Completed (uncommitted, local only)
 
-- Finalise `CURRENT_TASK.md`.
-- Finalise `HANDOFF.md`.
-- Review all collaboration changes.
-- Verify that Claude can read and correctly use the shared state.
-- Commit and push the collaboration setup after John reviews it.
+- `src/modules/tasks/services/access.service.ts` (new): shared `actorIsAdministrator()`.
+- `folder.service.ts`: refactored to use the shared helper. Behaviour unchanged.
+- `space.service.ts`: `visibleSpaceIds`, `visibleSpaceFilter`, `canOpenSpace`,
+  `assignableSpaceMemberIds` added. `listSpaces` and `getSpace` now enforce visibility.
+  `createSpace` accepts `memberIds`. The dead `renameSpace` (zero callers, no UI) replaced with a
+  full `updateSpace`, including the same stranded-assignee guard `updateFolder` already has.
+- `task.service.ts`: `listTasks` and `getTask` now also respect space visibility, not just folder
+  visibility. `assertAssignable` now checks space membership too, at all four call sites.
+
+## In Progress / Not Started
+
+- `actions.ts`: `createSpaceAction` needs `memberIds`; a new `updateSpaceAction`; a "private to
+  me" flag on `quickAddFolderAction` for B2.
+- UI: members field on `NewSpacePanel`; a new space settings panel (none existed before); a
+  "private to me" toggle on the folder quick-add bar; a minimal manage-access panel for existing
+  folders (none existed before either).
+- Deferred, documented, not silently dropped: the subtask assignee dropdown is not yet restricted
+  by space membership, only by folder membership. Not a visibility leak, only a cosmetic gap.
 
 ## Important Safety State
 
-No application code is being changed as part of this collaboration setup.
+No code has been committed or pushed as part of Batch B. Do not assume it exists in the repository
+without checking; verify against `git log` and `git status` first.
 
-The stray files `batch-a-board-fixes.patch` and `readme.txt` that `bf3421d` committed by accident
-were removed in `770eead`. Nothing is pending on them.
-
-Do not modify application code until the collaboration setup is complete.
+The Batch A cleanup (`batch-a-board-fixes.patch`, `readme.txt`) is long finished and needs no
+further attention.
 
 ## Next Step
 
-Complete `HANDOFF.md`, review the complete collaboration diff/status, then commit and push the
-shared collaboration files and `CLAUDE.md`.
+Finish the actions layer, then the UI, in the order listed above, then produce a verified patch
+for John to apply, build, commit, and push.
 
 ## Owner
 
@@ -56,4 +62,4 @@ John
 
 ## Active AI
 
-ChatGPT — collaboration setup and coordination
+Claude — Batch B implementation
