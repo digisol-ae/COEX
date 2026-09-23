@@ -44,14 +44,9 @@ Establish and validate the shared Claude ↔ ChatGPT collaboration workflow.
 
 ### Current Repository State
 
-Expected working tree:
-
-- Modified: `CLAUDE.md`
-- Deleted: `batch-a-board-fixes.patch`
-- Untracked: `ai/`
-
-The deletion of `batch-a-board-fixes.patch` predates the collaboration setup and must not be
-restored or committed without John's direction.
+Working tree: clean. The collaboration files are committed (`2f8e238`), and the stray
+`batch-a-board-fixes.patch` and `readme.txt` that `bf3421d` had committed by accident were
+removed in `770eead`.
 
 No application code has been changed as part of this collaboration setup.
 
@@ -74,8 +69,7 @@ No application code has been changed as part of this collaboration setup.
 5. Read `FEEDBACK.md` when relevant.
 6. Inspect the actual repository before making assumptions.
 7. Do not modify application code during this collaboration-setup handoff.
-8. Do not restore `batch-a-board-fixes.patch`.
-9. Do not commit or push unless John explicitly asks for it.
+8. Do not commit or push unless John explicitly asks for it.
 
 ### Next Step
 

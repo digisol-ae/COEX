@@ -40,11 +40,8 @@ Shared AI state is being reconciled from Claude's existing project knowledge.
 
 No application code is being changed as part of this collaboration setup.
 
-The existing deletion of:
-
-`batch-a-board-fixes.patch`
-
-must not be restored or committed without John's direction.
+The stray files `batch-a-board-fixes.patch` and `readme.txt` that `bf3421d` committed by accident
+were removed in `770eead`. Nothing is pending on them.
 
 Do not modify application code until the collaboration setup is complete.
 

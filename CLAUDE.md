@@ -98,8 +98,10 @@ monolith from becoming a tangle.
 - A fresh Claude session per working day.
 - Feedback raised in chat as numbered items, then written into FEEDBACK.md.
 - Anything decided in conversation is written into CLAUDE.md or FEEDBACK.md, never left in chat.
-- Claude may run commands on John's Mac and may push to GitHub. Granted 17 Sep 2026. Installs still
-  happen natively on macOS, never from the Linux sandbox, or the binaries come out wrong.
+- John runs the commands himself and pastes the output back. Standing permission for Claude to
+  drive the Mac was granted 17 Sep 2026 and turned off again on 19 Sep 2026 because it spent credits
+  too fast, so Claude proposes the exact command and John runs it. Installs still happen natively on
+  macOS, never from the Linux sandbox, or the binaries come out wrong.
 - Claude still hands over the command when the point is for John to see it run, and always says what
   it ran and what came back.
 - Pushing works only from macOS: the GitHub credentials live in the Mac keychain, and the sandbox
@@ -124,7 +126,6 @@ During work:
 - Treat the repository and shared AI files as the source of truth, not another AI's conversation history.
 - Do not assume that work mentioned in chat was completed; verify it in the repository.
 - Do not overwrite or discard another AI's uncommitted work without John's direction.
-- Do not restore `batch-a-board-fixes.patch` unless John explicitly decides what should happen to it.
 
 After significant work:
 1. Update `ai/PROJECT_STATE.md` with the new project state.

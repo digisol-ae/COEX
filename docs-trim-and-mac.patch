@@ -1,0 +1,132 @@
+diff --git a/CLAUDE.md b/CLAUDE.md
+index 3556ca2..42c9ecc 100644
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -98,8 +98,10 @@ monolith from becoming a tangle.
+ - A fresh Claude session per working day.
+ - Feedback raised in chat as numbered items, then written into FEEDBACK.md.
+ - Anything decided in conversation is written into CLAUDE.md or FEEDBACK.md, never left in chat.
+-- Claude may run commands on John's Mac and may push to GitHub. Granted 17 Sep 2026. Installs still
+-  happen natively on macOS, never from the Linux sandbox, or the binaries come out wrong.
++- John runs the commands himself and pastes the output back. Standing permission for Claude to
++  drive the Mac was granted 17 Sep 2026 and turned off again on 19 Sep 2026 because it spent credits
++  too fast, so Claude proposes the exact command and John runs it. Installs still happen natively on
++  macOS, never from the Linux sandbox, or the binaries come out wrong.
+ - Claude still hands over the command when the point is for John to see it run, and always says what
+   it ran and what came back.
+ - Pushing works only from macOS: the GitHub credentials live in the Mac keychain, and the sandbox
+@@ -124,7 +126,6 @@ During work:
+ - Treat the repository and shared AI files as the source of truth, not another AI's conversation history.
+ - Do not assume that work mentioned in chat was completed; verify it in the repository.
+ - Do not overwrite or discard another AI's uncommitted work without John's direction.
+-- Do not restore `batch-a-board-fixes.patch` unless John explicitly decides what should happen to it.
+ 
+ After significant work:
+ 1. Update `ai/PROJECT_STATE.md` with the new project state.
+diff --git a/ai/CURRENT_TASK.md b/ai/CURRENT_TASK.md
+index 4f3980a..9b21636 100644
+--- a/ai/CURRENT_TASK.md
++++ b/ai/CURRENT_TASK.md
+@@ -40,11 +40,8 @@ Shared AI state is being reconciled from Claude's existing project knowledge.
+ 
+ No application code is being changed as part of this collaboration setup.
+ 
+-The existing deletion of:
+-
+-`batch-a-board-fixes.patch`
+-
+-must not be restored or committed without John's direction.
++The stray files `batch-a-board-fixes.patch` and `readme.txt` that `bf3421d` committed by accident
++were removed in `770eead`. Nothing is pending on them.
+ 
+ Do not modify application code until the collaboration setup is complete.
+ 
+diff --git a/ai/HANDOFF.md b/ai/HANDOFF.md
+index a5e1bfd..301cb1b 100644
+--- a/ai/HANDOFF.md
++++ b/ai/HANDOFF.md
+@@ -44,14 +44,9 @@ Establish and validate the shared Claude ↔ ChatGPT collaboration workflow.
+ 
+ ### Current Repository State
+ 
+-Expected working tree:
+-
+-- Modified: `CLAUDE.md`
+-- Deleted: `batch-a-board-fixes.patch`
+-- Untracked: `ai/`
+-
+-The deletion of `batch-a-board-fixes.patch` predates the collaboration setup and must not be
+-restored or committed without John's direction.
++Working tree: clean. The collaboration files are committed (`2f8e238`), and the stray
++`batch-a-board-fixes.patch` and `readme.txt` that `bf3421d` had committed by accident were
++removed in `770eead`.
+ 
+ No application code has been changed as part of this collaboration setup.
+ 
+@@ -74,8 +69,7 @@ No application code has been changed as part of this collaboration setup.
+ 5. Read `FEEDBACK.md` when relevant.
+ 6. Inspect the actual repository before making assumptions.
+ 7. Do not modify application code during this collaboration-setup handoff.
+-8. Do not restore `batch-a-board-fixes.patch`.
+-9. Do not commit or push unless John explicitly asks for it.
++8. Do not commit or push unless John explicitly asks for it.
+ 
+ ### Next Step
+ 
+diff --git a/ai/PROJECT_STATE.md b/ai/PROJECT_STATE.md
+index 82ba02c..209cc8d 100644
+--- a/ai/PROJECT_STATE.md
++++ b/ai/PROJECT_STATE.md
+@@ -46,20 +46,16 @@ Remote: `origin/main`
+ 
+ Latest commit:
+ 
+-`bf3421d` — board: portal task pickers, highlight active filter, assign subtasks
++`770eead` — chore: remove stray Batch A patch and scratch readme committed in bf3421d
+ 
+-Current working tree:
++Recent chain:
+ 
+-- `CLAUDE.md` modified by the AI collaboration setup
+-- `batch-a-board-fixes.patch` deleted
+-- `ai/` contains shared AI collaboration files
++- `770eead` removed the stray `batch-a-board-fixes.patch` and `readme.txt` that `bf3421d` had
++  committed by accident.
++- `2f8e238` established the AI collaboration workflow.
++- `bf3421d` merged Batch A.
+ 
+-Important:
+-
+-`batch-a-board-fixes.patch` was added in commit `bf3421d` and its changes are already merged.
+-Its current deletion has not been explicitly approved by John.
+-
+-Do not restore or commit that deletion without John's direction.
++Working tree: clean.
+ 
+ ---
+ 
+@@ -200,8 +196,8 @@ See `FEEDBACK.md` for the authoritative product backlog.
+ The following information exists in prior Claude conversation context but is not yet fully
+ recorded in the repository:
+ 
+-1. The permission for Claude to control John's Mac was turned off on 19 Sep 2026.
+-   The current `CLAUDE.md` wording still reflects the older permission.
++1. Resolved. The permission for Claude to control John's Mac was turned off on 19 Sep 2026, and
++   `CLAUDE.md` now records this.
+ 2. A mobile navigation logo sizing issue was identified.
+ 3. The proposed mobile navigation logo correction was 148x50.
+ 4. That mobile navigation logo correction has not been merged.
+@@ -244,8 +240,9 @@ After significant work:
+ 
+ ## Last Updated
+ 
+-2026-09-22
++2026-09-23
+ 
+ Updated by:
+ 
+-ChatGPT, based on repository inspection and Claude's read-only reconciliation.
+\ No newline at end of file
++Claude, docs pass: removed the obsolete patch-guard references after `770eead` deleted the file,
++and recorded the 19 Sep Mac permission change in `CLAUDE.md`.
+\ No newline at end of file

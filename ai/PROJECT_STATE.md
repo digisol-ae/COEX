@@ -46,20 +46,16 @@ Remote: `origin/main`
 
 Latest commit:
 
-`bf3421d` — board: portal task pickers, highlight active filter, assign subtasks
+`770eead` — chore: remove stray Batch A patch and scratch readme committed in bf3421d
 
-Current working tree:
+Recent chain:
 
-- `CLAUDE.md` modified by the AI collaboration setup
-- `batch-a-board-fixes.patch` deleted
-- `ai/` contains shared AI collaboration files
+- `770eead` removed the stray `batch-a-board-fixes.patch` and `readme.txt` that `bf3421d` had
+  committed by accident.
+- `2f8e238` established the AI collaboration workflow.
+- `bf3421d` merged Batch A.
 
-Important:
-
-`batch-a-board-fixes.patch` was added in commit `bf3421d` and its changes are already merged.
-Its current deletion has not been explicitly approved by John.
-
-Do not restore or commit that deletion without John's direction.
+Working tree: clean.
 
 ---
 
@@ -200,8 +196,8 @@ See `FEEDBACK.md` for the authoritative product backlog.
 The following information exists in prior Claude conversation context but is not yet fully
 recorded in the repository:
 
-1. The permission for Claude to control John's Mac was turned off on 19 Sep 2026.
-   The current `CLAUDE.md` wording still reflects the older permission.
+1. Resolved. The permission for Claude to control John's Mac was turned off on 19 Sep 2026, and
+   `CLAUDE.md` now records this.
 2. A mobile navigation logo sizing issue was identified.
 3. The proposed mobile navigation logo correction was 148x50.
 4. That mobile navigation logo correction has not been merged.
@@ -244,8 +240,9 @@ After significant work:
 
 ## Last Updated
 
-2026-09-22
+2026-09-23
 
 Updated by:
 
-ChatGPT, based on repository inspection and Claude's read-only reconciliation.
+Claude, docs pass: removed the obsolete patch-guard references after `770eead` deleted the file,
+and recorded the 19 Sep Mac permission change in `CLAUDE.md`.
