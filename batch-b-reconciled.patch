@@ -1,0 +1,1188 @@
+diff --git a/FEEDBACK.md b/FEEDBACK.md
+index 15019b1..b3af628 100644
+--- a/FEEDBACK.md
++++ b/FEEDBACK.md
+@@ -12,30 +12,29 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
+    deadline with the same editing.
+    Not built yet from that walkthrough:
+    a. Exporting a Gantt as an image or PDF.
+-   Note: once John works live, the deferred backup decision stops being optional, because the data
+-   stops being disposable.
++   John is unsure whether this review and the Gantt export are already complete; verify the
++   repository and deployed product before changing this item's status.
+ 
+-0b. Where uploaded files live in production. Attachments are built and working on local disk
+-   behind a one file adapter, so the only open decision is the cloud one: object storage such as
+-   S3 or Spaces, or a disk on the same server with the backup that implies. It arrives behind the
+-   same interface and nothing outside src/lib/storage.ts changes. It also decides where osTicket's
+-   existing attachments land at M7. PDF downsampling stays deferred: it needs Ghostscript on the
+-   server and we do not yet know whether customers send large PDFs at all.
++0b. Production attachment storage decision: use DigiSol's own cloud server. Attachments are built
++   and working on local disk behind a one-file adapter. Verify the production configuration before
++   M7, when osTicket's existing attachments land there. PDF downsampling stays deferred: it needs
++   Ghostscript on the server and we do not yet know whether customers send large PDFs at all.
+ 
+ 0c. Four levels landed on 18 Sep 2026: Space, Folder, Task, Subtask, with folder level visibility.
+-   Run `npm run migrate:spaces` once against any database written before it.
++   John is unsure whether `npm run migrate:spaces` has been run for databases written before this
++   change. Verify migration history before marking this complete.
+ 
+-1. Entra app registration. Deferred by John on 17 Sep 2026. Password sign on covers the gap.
+-   Revisit before the team starts signing in daily, since it also unlocks Graph document titles.
+-2. Backups. Deferred by John on 17 Sep 2026. Atlas free tier has none. This stops being optional at
+-   M7, when real osTicket history lands in the database: either a paid tier with continuous backups
+-   or a scheduled mongodump to object storage, decided before the dry run.
+-3. Figma design. John may share a file to adopt. Tokens live in one place, so adopting it is mostly
+-   rewriting globals.css and the component library rather than touching screens. State: awaiting
+-   John.
++1. Batch C — Entra app registration. Password sign-on covers the gap. Revisit when Batch C is
++   scheduled; it also unlocks Graph document titles.
++2. Figma design. Defer to the next version, approximately 3–8 Oct 2026. Tokens live in one place,
++   so adoption is mostly rewriting globals.css and the component library rather than touching
++   screens.
+ 
+ ## Done
+ 
++0. Backups are already implemented by John's team. No COEX backup implementation work is required
++   at present; verify operational ownership and recovery testing before the M7 import.
++
+ 1. Timesheet entries are correctable in place on 18 Sep 2026, with the history of each entry on its
+    own row: number, day, task, note and billable. Only an administrator may correct somebody
+    else's, and the audit records whose it was. Fixed a real defect found while testing: every work
+diff --git a/ai/CURRENT_TASK.md b/ai/CURRENT_TASK.md
+index b749c35..6362907 100644
+--- a/ai/CURRENT_TASK.md
++++ b/ai/CURRENT_TASK.md
+@@ -9,52 +9,42 @@ private-folder / private-space assignment rules. Reference: `FEEDBACK.md`, items
+ 
+ A space with no members named on it is open to the whole tenant. Name members and it becomes
+ private to exactly those people, a tenant administrator excepted, the same rule already governing
+-folders one level down. This must be enforced everywhere a space or its tasks can be read or
+-written, not just on the spaces list page.
++folders one level down, enforced everywhere a space or its tasks can be read or written.
+ 
+ ## Current Stage
+ 
+-Service layer complete and verified for internal consistency. Actions layer and all UI not yet
+-started. See `ai/HANDOFF.md` for the full, current, line by line state.
++Reconciled and pushed. See `ai/HANDOFF.md` for the full account: ChatGPT built the UI and actions
++layer directly on John's Mac, in a live session John confirmed piece by piece; Claude compared that
++work against its own independently-built service layer, fixed one real access-control gap and one
++missing safeguard, and pushed the combined result to `main`.
+ 
+-## Important: nothing below is committed or pushed
++## Completed
+ 
+-`origin/main` is at `4b1104d`. Everything under "Completed" below exists only as uncommitted code
+-in Claude's working sandbox for this conversation. It is not retrievable from GitHub.
++- Space visibility enforced end to end: `listSpaces`, `getSpace`, `listTasks`, `getTask`, and task
++  assignment (`createTask`, `updateTask`, both branches of `patchTask`) all respect a space's
++  member list the same way folders already did.
++- Settings popup on the space page (gear icon, centered modal, multi-select members, closes on
++  save). Members field on space creation. Member avatars on the Spaces list and the space header.
++- "Private to me" quick toggle on the folder quick-add bar (B2's fast path).
++- Multiple assignees on task creation and the existing per-task picker.
++- `updateSpace` refuses to go private while it would strand an open task assigned to a
++  non-member, the same guard `updateFolder` already has.
+ 
+-## Completed (uncommitted, local only)
++## Not Started
+ 
+-- `src/modules/tasks/services/access.service.ts` (new): shared `actorIsAdministrator()`.
+-- `folder.service.ts`: refactored to use the shared helper. Behaviour unchanged.
+-- `space.service.ts`: `visibleSpaceIds`, `visibleSpaceFilter`, `canOpenSpace`,
+-  `assignableSpaceMemberIds` added. `listSpaces` and `getSpace` now enforce visibility.
+-  `createSpace` accepts `memberIds`. The dead `renameSpace` (zero callers, no UI) replaced with a
+-  full `updateSpace`, including the same stranded-assignee guard `updateFolder` already has.
+-- `task.service.ts`: `listTasks` and `getTask` now also respect space visibility, not just folder
+-  visibility. `assertAssignable` now checks space membership too, at all four call sites.
+-
+-## In Progress / Not Started
+-
+-- `actions.ts`: `createSpaceAction` needs `memberIds`; a new `updateSpaceAction`; a "private to
+-  me" flag on `quickAddFolderAction` for B2.
+-- UI: members field on `NewSpacePanel`; a new space settings panel (none existed before); a
+-  "private to me" toggle on the folder quick-add bar; a minimal manage-access panel for existing
+-  folders (none existed before either).
+-- Deferred, documented, not silently dropped: the subtask assignee dropdown is not yet restricted
+-  by space membership, only by folder membership. Not a visibility leak, only a cosmetic gap.
++- **Folder rename.** Where ChatGPT's session was cut off (a declined `actions.ts` change, then a
++  usage-limit stop). No folder-rename code exists yet anywhere in the repository. Next up.
++- Restricting the subtask-assignee dropdown by space membership (folder-level restriction already
++  exists from Batch A). Cosmetic gap only, not a visibility leak.
+ 
+ ## Important Safety State
+ 
+-No code has been committed or pushed as part of Batch B. Do not assume it exists in the repository
+-without checking; verify against `git log` and `git status` first.
+-
+-The Batch A cleanup (`batch-a-board-fixes.patch`, `readme.txt`) is long finished and needs no
+-further attention.
++No database migration was needed for this work: `space.memberIds` already existed in the schema
++with a `[]` default, so every existing space document already read as open under the new rule.
+ 
+ ## Next Step
+ 
+-Finish the actions layer, then the UI, in the order listed above, then produce a verified patch
+-for John to apply, build, commit, and push.
++Folder rename.
+ 
+ ## Owner
+ 
+@@ -62,4 +52,4 @@ John
+ 
+ ## Active AI
+ 
+-Claude — Batch B implementation
++Open — folder rename is unclaimed
+diff --git a/ai/HANDOFF.md b/ai/HANDOFF.md
+index 8b90a64..da33fde 100644
+--- a/ai/HANDOFF.md
++++ b/ai/HANDOFF.md
+@@ -14,7 +14,7 @@ Claude
+ 
+ ### To
+ 
+-Whoever continues Batch B (Claude, ChatGPT, or John reviewing)
++Whoever continues Batch B next (folder rename is the open item)
+ 
+ ### Date
+ 
+@@ -22,93 +22,120 @@ Whoever continues Batch B (Claude, ChatGPT, or John reviewing)
+ 
+ ### Task
+ 
+-Batch B: space visibility (option B, chosen by John on 22 Sep) plus the private-folder and
+-private-space assignment rules that go with it. Reference: `FEEDBACK.md`, items B1 and B2.
+-
+-### Important: nothing below is on GitHub yet
+-
+-`origin/main` is still at `4b1104d` (the docs trim commit). Everything in this handoff is
+-**uncommitted, local-only code sitting in Claude's working sandbox for this conversation**. It has
+-not been committed, not been pushed, and does not exist anywhere else. If work continues in a
+-different session or a different AI, this code must be re-created from this description or handed
+-across as a patch file; do not assume it is retrievable from GitHub.
+-
+-### What Has Been Done (uncommitted, local only)
+-
+-Service layer, mirroring the existing folder-visibility pattern exactly:
+-
+-- New file `src/modules/tasks/services/access.service.ts`: a shared `actorIsAdministrator()`,
+-  moved out of `folder.service.ts` so both folders and spaces use the same check.
+-- `folder.service.ts`: refactored to import the shared helper instead of its own copy. Behaviour
+-  unchanged; verified brace-balanced.
+-- `space.service.ts`, the core of Batch B:
+-  - Added `visibleSpaceIds()`, `visibleSpaceFilter(field)`, `canOpenSpace(id)`,
+-    `assignableSpaceMemberIds(id)`, mirroring the folder functions of the same shape.
+-  - `listSpaces()` now enforces visibility and returns `isPrivate` / `memberIds` on each summary.
+-  - `getSpace(id)` now returns `null` if the space exists but the caller may not open it (the space
+-    page already does `if (!space) notFound()`, so no page change was needed there).
+-  - `createSpace` now accepts `memberIds`.
+-  - Replaced the dead `renameSpace` (verified zero callers anywhere in the app; there was no space
+-    edit UI at all before this) with a full `updateSpace(id, { name, description, organisationId,
+-    dueDate, memberIds })`, including the same "cannot go private while it strands an open task
+-    assigned to a non-member" guard that `updateFolder` already has.
+-- `task.service.ts`:
+-  - `listTasks` now composes `visibleSpaceFilter('spaceId')` together with the existing
+-    `visibleFolderFilter()`, so a private space's tasks no longer leak through "My tasks" or any
+-    other task listing.
+-  - `getTask(id)` is now gated by `canOpenSpace` and, when the task has a folder, `canOpenFolder`
+-    too, so a direct task URL can no longer bypass either rule.
+-  - `assertAssignable` now takes a `spaceId` and checks `assignableSpaceMemberIds` alongside the
+-    existing folder check, so a private space's tasks can only be assigned to its members, the same
+-    way a private folder already worked. All four call sites updated: `createTask`, `updateTask`,
+-    and both branches inside `patchTask` (the folderId-change branch and the assigneeIds branch).
+-
+-### What Remains
+-
+-- `actions.ts`: `createSpaceAction` needs a `memberIds` param; a new `updateSpaceAction` is needed
+-  to back the settings panel below; `quickAddFolderAction` needs a "private to me" flag for B2.
+-- UI, all of it still to build:
+-  - A members checkbox field on `NewSpacePanel` (space creation).
+-  - A space settings panel reachable from the space page header. None exists today; `renameSpace`
+-    had no UI, so this is new, not an edit.
+-  - A "private to me" toggle on the folder quick-add bar (`FolderBar`), the fast path for B2.
+-  - A minimal manage-access panel for existing folders. None exists today either; `updateFolder`'s
+-    member-editing was never wired to a screen.
+-- Deferred, not started, and should stay explicit rather than silently dropped: the subtask
+-  assignee dropdown (added in Batch A) is not yet restricted by space membership, only by folder
+-  membership. Cosmetic risk only, not a visibility leak, since the assignee still cannot open a
+-  space or folder they are not a member of even if the dropdown lets it be selected.
++Batch B: space visibility (option B) and the matching private-folder / private-space assignment
++rules. Reference: `FEEDBACK.md`, items B1 and B2.
++
++### Status: reconciled and pushed
++
++Two independent implementations of the Batch B service layer were built in parallel this session,
++without either side knowing about the other: ChatGPT built one directly against John's Mac working
++copy (never committed until John pushed it to the `chatgpt-batch-b-wip` branch on request), and
++Claude built a second one, kept uncommitted in its own sandbox. Both were compared line by line
++against each other and against the actual repository before anything was merged. This section
++records the result.
++
++### What Shipped (reconciled, on `main`)
++
++**UI and actions, all ChatGPT's work, kept as-is because it already runs and John confirmed each
++piece in a live session (6:25 to 6:41am, 23 Sep 2026):**
++
++- A Settings popup on the space page: a small gear icon beside the space name opens a centered
++  modal (not a full-page form) with name, description, and a multi-select member list. Saving
++  closes the popup automatically.
++- `NewSpacePanel` (space creation) gained the same multi-select member field.
++- The Spaces list page shows each space's member avatars, or "Everyone" for an open space.
++- The space page header shows the same member avatars beside the space name.
++- `FolderBar`'s quick-add form gained a "private to me" checkbox: the fast path for B2, a private
++  list any member can make for themselves without hand-picking their own name from a list.
++- Task creation (`Add task`) and the existing per-task assignee picker both support multiple
++  assignees; this was already partly true for the existing picker and is now true for the creation
++  form too.
++- `FEEDBACK.md` gained updates from conversations John had directly with ChatGPT: backups are
++  already handled by John's team (no COEX backup work needed at present), Figma adoption deferred
++  to early October, and a few items marked for verification rather than asserted as done, since
++  neither AI had independently confirmed them against the repository.
++
++**Service layer: ChatGPT's version adopted as the base, with three corrections made after
++comparing it against Claude's independent version:**
++
++1. **Fixed a real access-control gap.** ChatGPT's `assertAssignable` correctly checked space
++   membership in `createTask` and `updateTask`, but the check was never wired into either branch of
++   `patchTask`, which is what the board's drag-and-drop and the task panel's inline assignee picker
++   actually call. A private space's membership rule could be silently bypassed through those two
++   paths. Both branches now pass `spaceId` through, and the parameter is required rather than
++   optional, so a future caller cannot silently omit it and reintroduce the same gap.
++2. **Restored the stranded-assignee guard on `updateSpace`.** Making a space private while it still
++   has an open task assigned to someone outside the new member list now refuses, the same way
++   `updateFolder` already refuses for folders, rather than quietly creating work its owner cannot
++   see.
++3. **Removed the dead `renameSpace`.** It had zero callers before this session (there was no space
++   edit UI at all until ChatGPT built the Settings popup), and `updateSpace` fully replaces it.
++   Also added the one missing `connectToDatabase()` call in `assignableSpaceMemberIds`, matching
++   every sibling function.
++
++`access.service.ts`, the visibility functions in `space.service.ts` (`visibleSpaceIds`,
++`visibleSpaceFilter`, `canOpenSpace`), and the folder.service.ts refactor were functionally
++identical between the two versions and needed no reconciliation.
++
++### Not Yet Done
++
++- **Folder rename.** This is exactly where ChatGPT's session was cut off: it proposed a change to
++  `actions.ts`, that change was declined by an auto-review step, and then the session hit its usage
++  limit before retrying. No folder-rename code exists anywhere in the repository. This is the next
++  open item.
++- The subtask-assignee dropdown (Batch A) is still only restricted by folder membership, not space
++  membership. Not a visibility leak, since a non-member still cannot open the space or folder even
++  if the dropdown lets them be selected; a cosmetic gap only, and still deferred on purpose.
++- One unexplained change surfaced during reconciliation and was left as-is rather than reverted:
++  ChatGPT's session removed a line (`else setCoords(null)`) from the Batch A popup-positioning code
++  in `inline-edit.tsx`. It is not obviously connected to anything John asked for. It has not caused
++  a visible problem, so it was not reverted blind; flag it to John if the task/date pickers ever
++  show a stale position on reopen.
+ 
+ ### Findings Worth Keeping
+ 
+-- `renameSpace` had zero callers anywhere before this change: there was no space-editing UI at all.
+-- There was no folder-editing UI either: `updateFolder`'s member list was never reachable from a
+-  screen, only set at folder creation.
+-- No database migration is needed for B1. `space.memberIds` already existed in the schema with a
+-  `[]` default before this work started, so every existing space document already reads as open
+-  under the new rule without a backfill script.
++- `renameSpace` had zero callers anywhere before this session: there was no space-editing UI at
++  all before ChatGPT built the Settings popup.
++- No database migration was needed for B1. `space.memberIds` already existed in the schema with a
++  `[]` default before any of this work started, so every existing space document already read as
++  open under the new rule without a backfill script.
++- Two AIs independently building the same access-control layer in parallel, without either knowing
++  about the other, is a direct illustration of why this `ai/` collaboration setup exists. It worked
++  as intended this time: nothing was silently overwritten, the two versions were compared line by
++  line before merging, and a real bug in one version was caught by the existence of the other.
+ 
+ ### What Whoever Continues Must Do
+ 
+-1. Read `ai/PROJECT_STATE.md`, `ai/CURRENT_TASK.md`, this file, `CLAUDE.md`, and `FEEDBACK.md`
+-   (items B1/B2).
+-2. Do not assume the service-layer changes above exist in the repository; they do not, per the
+-   note above. Ask for the diff or re-implement from this description.
+-3. Finish the actions layer, then the UI, in the order listed under "What Remains".
++1. Read `ai/PROJECT_STATE.md`, `ai/CURRENT_TASK.md`, this file, `CLAUDE.md`, and `FEEDBACK.md`.
++2. Build folder rename next. Check what ChatGPT's declined `actions.ts` change was trying to do
++   before starting from scratch, if that context is still visible in ChatGPT's own session.
++3. Verify the `FEEDBACK.md` items marked "verify before treating as complete" against the actual
++   repository or deployment before changing their status.
+ 4. Do not touch Batch C (the timer tray); it is a separate, unstarted piece.
+-5. Update this file again when the code is committed and pushed, and remove the "nothing below is
+-   on GitHub yet" warning once that is true.
+ 
+ ### Next Step
+ 
+-Continue the actions layer (`createSpaceAction`, new `updateSpaceAction`, `quickAddFolderAction`),
+-then the UI, then produce a verified patch for John to apply, build, commit, and push, the same
+-way Batch A shipped.
++Folder rename, then a pass on the deferred subtask-assignee space restriction, then Batch C.
+ 
+ ---
+ 
+ ## Handoff History
+ 
++### 2026-09-23 — ChatGPT (Mac session) + Claude → reconciled and pushed
++
++ChatGPT built the Batch B UI and actions layer directly against John's Mac working copy, in a live
++session from 6:25 to 6:41am, confirmed piece by piece by John. It stopped mid-task on folder
++rename: an `actions.ts` change was declined by an auto-review step, then the session hit its usage
++limit before retrying.
++
++That work was never committed until John, on request, committed and pushed it to a side branch,
++`chatgpt-batch-b-wip`, rather than `main`, so it could be reviewed safely.
++
++Claude then read it file by file against its own independently-built, still-uncommitted version of
++the same service layer, found one real access-control gap (`patchTask` did not check space
++membership) and one missing safeguard (`updateSpace` had no stranded-assignee guard), fixed both,
++verified the combined patch on a fresh clone of `origin/main`, and pushed the result to `main`.
++
+ ### 2026-09-22 — ChatGPT → Claude
+ 
+ Initial collaboration setup.
+@@ -131,5 +158,5 @@ Claude performed a read-only reconciliation of project state.
+ 
+ Updated by:
+ 
+-Claude, mid Batch B. Code described above is local and uncommitted; origin/main is unchanged at
+-`4b1104d`.
+\ No newline at end of file
++Claude, after reconciling ChatGPT's Batch B session with its own, fixing the issues found, and
++pushing the combined result to `main`.
+\ No newline at end of file
+diff --git a/handoff-snapshot.patch b/handoff-snapshot.patch
+deleted file mode 100644
+index e6b3ca0..0000000
+--- a/handoff-snapshot.patch
++++ /dev/null
+@@ -1,276 +0,0 @@
+-diff --git a/ai/CURRENT_TASK.md b/ai/CURRENT_TASK.md
+-index 9b21636..b749c35 100644
+---- a/ai/CURRENT_TASK.md
+-+++ b/ai/CURRENT_TASK.md
+-@@ -2,53 +2,59 @@
+- 
+- ## Task
+- 
+--Establish and validate the shared Claude ↔ ChatGPT collaboration workflow.
+-+Batch B: space visibility (option B, chosen by John on 22 Sep 2026) and the matching
+-+private-folder / private-space assignment rules. Reference: `FEEDBACK.md`, items B1 and B2.
+- 
+- ## Objective
+- 
+--Allow Claude and ChatGPT to work on the same COEX codebase without losing project context when
+--John switches between them.
+-+A space with no members named on it is open to the whole tenant. Name members and it becomes
+-+private to exactly those people, a tenant administrator excepted, the same rule already governing
+-+folders one level down. This must be enforced everywhere a space or its tasks can be read or
+-+written, not just on the spaces list page.
+- 
+- ## Current Stage
+- 
+--Shared AI state is being reconciled from Claude's existing project knowledge.
+-+Service layer complete and verified for internal consistency. Actions layer and all UI not yet
+-+started. See `ai/HANDOFF.md` for the full, current, line by line state.
+- 
+--## Completed
+-+## Important: nothing below is committed or pushed
+- 
+--- Inspected the COEX repository.
+--- Reviewed `CLAUDE.md`.
+--- Reviewed `AGENTS.md`.
+--- Reviewed `FEEDBACK.md`.
+--- Confirmed Git repository and current branch.
+--- Created the shared `ai/` directory.
+--- Created `ai/PROJECT_STATE.md`.
+--- Created `ai/CURRENT_TASK.md`.
+--- Created `ai/HANDOFF.md`.
+--- Added AI collaboration rules to `CLAUDE.md`.
+--- Performed a read-only Claude reconciliation of project state.
+--- Updated `ai/PROJECT_STATE.md` with the reconciled state.
+-+`origin/main` is at `4b1104d`. Everything under "Completed" below exists only as uncommitted code
+-+in Claude's working sandbox for this conversation. It is not retrievable from GitHub.
+- 
+--## In Progress
+-+## Completed (uncommitted, local only)
+- 
+--- Finalise `CURRENT_TASK.md`.
+--- Finalise `HANDOFF.md`.
+--- Review all collaboration changes.
+--- Verify that Claude can read and correctly use the shared state.
+--- Commit and push the collaboration setup after John reviews it.
+-+- `src/modules/tasks/services/access.service.ts` (new): shared `actorIsAdministrator()`.
+-+- `folder.service.ts`: refactored to use the shared helper. Behaviour unchanged.
+-+- `space.service.ts`: `visibleSpaceIds`, `visibleSpaceFilter`, `canOpenSpace`,
+-+  `assignableSpaceMemberIds` added. `listSpaces` and `getSpace` now enforce visibility.
+-+  `createSpace` accepts `memberIds`. The dead `renameSpace` (zero callers, no UI) replaced with a
+-+  full `updateSpace`, including the same stranded-assignee guard `updateFolder` already has.
+-+- `task.service.ts`: `listTasks` and `getTask` now also respect space visibility, not just folder
+-+  visibility. `assertAssignable` now checks space membership too, at all four call sites.
+- 
+--## Important Safety State
+-+## In Progress / Not Started
+-+
+-+- `actions.ts`: `createSpaceAction` needs `memberIds`; a new `updateSpaceAction`; a "private to
+-+  me" flag on `quickAddFolderAction` for B2.
+-+- UI: members field on `NewSpacePanel`; a new space settings panel (none existed before); a
+-+  "private to me" toggle on the folder quick-add bar; a minimal manage-access panel for existing
+-+  folders (none existed before either).
+-+- Deferred, documented, not silently dropped: the subtask assignee dropdown is not yet restricted
+-+  by space membership, only by folder membership. Not a visibility leak, only a cosmetic gap.
+- 
+--No application code is being changed as part of this collaboration setup.
+-+## Important Safety State
+- 
+--The stray files `batch-a-board-fixes.patch` and `readme.txt` that `bf3421d` committed by accident
+--were removed in `770eead`. Nothing is pending on them.
+-+No code has been committed or pushed as part of Batch B. Do not assume it exists in the repository
+-+without checking; verify against `git log` and `git status` first.
+- 
+--Do not modify application code until the collaboration setup is complete.
+-+The Batch A cleanup (`batch-a-board-fixes.patch`, `readme.txt`) is long finished and needs no
+-+further attention.
+- 
+- ## Next Step
+- 
+--Complete `HANDOFF.md`, review the complete collaboration diff/status, then commit and push the
+--shared collaboration files and `CLAUDE.md`.
+-+Finish the actions layer, then the UI, in the order listed above, then produce a verified patch
+-+for John to apply, build, commit, and push.
+- 
+- ## Owner
+- 
+-@@ -56,4 +62,4 @@ John
+- 
+- ## Active AI
+- 
+--ChatGPT — collaboration setup and coordination
+-\ No newline at end of file
+-+Claude — Batch B implementation
+-diff --git a/ai/HANDOFF.md b/ai/HANDOFF.md
+-index 301cb1b..8b90a64 100644
+---- a/ai/HANDOFF.md
+-+++ b/ai/HANDOFF.md
+-@@ -10,74 +10,100 @@ The active AI must update this file when handing work to another AI.
+- 
+- ### From
+- 
+--ChatGPT
+-+Claude
+- 
+- ### To
+- 
+--Claude
+-+Whoever continues Batch B (Claude, ChatGPT, or John reviewing)
+- 
+- ### Date
+- 
+--2026-09-22
+-+2026-09-23
+- 
+- ### Task
+- 
+--Establish and validate the shared Claude ↔ ChatGPT collaboration workflow.
+--
+--### What Has Been Done
+--
+--- Inspected the COEX repository.
+--- Reviewed `CLAUDE.md`.
+--- Reviewed `AGENTS.md`.
+--- Reviewed `FEEDBACK.md`.
+--- Confirmed the Git repository and current branch.
+--- Confirmed latest commit is `bf3421d`.
+--- Confirmed the existing deletion of `batch-a-board-fixes.patch`.
+--- Created the shared `ai/` directory.
+--- Created `ai/PROJECT_STATE.md`.
+--- Created `ai/CURRENT_TASK.md`.
+--- Created `ai/HANDOFF.md`.
+--- Added shared AI collaboration rules to `CLAUDE.md`.
+--- Performed a read-only reconciliation with Claude.
+--- Updated `PROJECT_STATE.md` using the reconciled project information.
+--- Updated `CURRENT_TASK.md` to reflect the collaboration setup.
+--
+--### Current Repository State
+--
+--Working tree: clean. The collaboration files are committed (`2f8e238`), and the stray
+--`batch-a-board-fixes.patch` and `readme.txt` that `bf3421d` had committed by accident were
+--removed in `770eead`.
+--
+--No application code has been changed as part of this collaboration setup.
+--
+--### Important Reconciled Context
+--
+--- Batch A is merged as `bf3421d`.
+--- Claude reports Batch A was deployed on 22 Sep 2026 and tested by John.
+--- Batch B space visibility is proposed but not implemented.
+--- Batch C timer tray is proposed but not implemented.
+--- The split of Batch B to Claude and Batch C to ChatGPT has not yet been confirmed by John.
+--- Several recent project decisions and deployment details are not yet fully recorded in the
+--  permanent project documentation.
+--
+--### What Claude Must Do When Continuing
+--
+--1. Read `ai/PROJECT_STATE.md`.
+--2. Read `ai/CURRENT_TASK.md`.
+--3. Read `ai/HANDOFF.md`.
+--4. Read `CLAUDE.md`.
+--5. Read `FEEDBACK.md` when relevant.
+--6. Inspect the actual repository before making assumptions.
+--7. Do not modify application code during this collaboration-setup handoff.
+--8. Do not commit or push unless John explicitly asks for it.
+-+Batch B: space visibility (option B, chosen by John on 22 Sep) plus the private-folder and
+-+private-space assignment rules that go with it. Reference: `FEEDBACK.md`, items B1 and B2.
+-+
+-+### Important: nothing below is on GitHub yet
+-+
+-+`origin/main` is still at `4b1104d` (the docs trim commit). Everything in this handoff is
+-+**uncommitted, local-only code sitting in Claude's working sandbox for this conversation**. It has
+-+not been committed, not been pushed, and does not exist anywhere else. If work continues in a
+-+different session or a different AI, this code must be re-created from this description or handed
+-+across as a patch file; do not assume it is retrievable from GitHub.
+-+
+-+### What Has Been Done (uncommitted, local only)
+-+
+-+Service layer, mirroring the existing folder-visibility pattern exactly:
+-+
+-+- New file `src/modules/tasks/services/access.service.ts`: a shared `actorIsAdministrator()`,
+-+  moved out of `folder.service.ts` so both folders and spaces use the same check.
+-+- `folder.service.ts`: refactored to import the shared helper instead of its own copy. Behaviour
+-+  unchanged; verified brace-balanced.
+-+- `space.service.ts`, the core of Batch B:
+-+  - Added `visibleSpaceIds()`, `visibleSpaceFilter(field)`, `canOpenSpace(id)`,
+-+    `assignableSpaceMemberIds(id)`, mirroring the folder functions of the same shape.
+-+  - `listSpaces()` now enforces visibility and returns `isPrivate` / `memberIds` on each summary.
+-+  - `getSpace(id)` now returns `null` if the space exists but the caller may not open it (the space
+-+    page already does `if (!space) notFound()`, so no page change was needed there).
+-+  - `createSpace` now accepts `memberIds`.
+-+  - Replaced the dead `renameSpace` (verified zero callers anywhere in the app; there was no space
+-+    edit UI at all before this) with a full `updateSpace(id, { name, description, organisationId,
+-+    dueDate, memberIds })`, including the same "cannot go private while it strands an open task
+-+    assigned to a non-member" guard that `updateFolder` already has.
+-+- `task.service.ts`:
+-+  - `listTasks` now composes `visibleSpaceFilter('spaceId')` together with the existing
+-+    `visibleFolderFilter()`, so a private space's tasks no longer leak through "My tasks" or any
+-+    other task listing.
+-+  - `getTask(id)` is now gated by `canOpenSpace` and, when the task has a folder, `canOpenFolder`
+-+    too, so a direct task URL can no longer bypass either rule.
+-+  - `assertAssignable` now takes a `spaceId` and checks `assignableSpaceMemberIds` alongside the
+-+    existing folder check, so a private space's tasks can only be assigned to its members, the same
+-+    way a private folder already worked. All four call sites updated: `createTask`, `updateTask`,
+-+    and both branches inside `patchTask` (the folderId-change branch and the assigneeIds branch).
+-+
+-+### What Remains
+-+
+-+- `actions.ts`: `createSpaceAction` needs a `memberIds` param; a new `updateSpaceAction` is needed
+-+  to back the settings panel below; `quickAddFolderAction` needs a "private to me" flag for B2.
+-+- UI, all of it still to build:
+-+  - A members checkbox field on `NewSpacePanel` (space creation).
+-+  - A space settings panel reachable from the space page header. None exists today; `renameSpace`
+-+    had no UI, so this is new, not an edit.
+-+  - A "private to me" toggle on the folder quick-add bar (`FolderBar`), the fast path for B2.
+-+  - A minimal manage-access panel for existing folders. None exists today either; `updateFolder`'s
+-+    member-editing was never wired to a screen.
+-+- Deferred, not started, and should stay explicit rather than silently dropped: the subtask
+-+  assignee dropdown (added in Batch A) is not yet restricted by space membership, only by folder
+-+  membership. Cosmetic risk only, not a visibility leak, since the assignee still cannot open a
+-+  space or folder they are not a member of even if the dropdown lets it be selected.
+-+
+-+### Findings Worth Keeping
+-+
+-+- `renameSpace` had zero callers anywhere before this change: there was no space-editing UI at all.
+-+- There was no folder-editing UI either: `updateFolder`'s member list was never reachable from a
+-+  screen, only set at folder creation.
+-+- No database migration is needed for B1. `space.memberIds` already existed in the schema with a
+-+  `[]` default before this work started, so every existing space document already reads as open
+-+  under the new rule without a backfill script.
+-+
+-+### What Whoever Continues Must Do
+-+
+-+1. Read `ai/PROJECT_STATE.md`, `ai/CURRENT_TASK.md`, this file, `CLAUDE.md`, and `FEEDBACK.md`
+-+   (items B1/B2).
+-+2. Do not assume the service-layer changes above exist in the repository; they do not, per the
+-+   note above. Ask for the diff or re-implement from this description.
+-+3. Finish the actions layer, then the UI, in the order listed under "What Remains".
+-+4. Do not touch Batch C (the timer tray); it is a separate, unstarted piece.
+-+5. Update this file again when the code is committed and pushed, and remove the "nothing below is
+-+   on GitHub yet" warning once that is true.
+- 
+- ### Next Step
+- 
+--Review the three shared AI files and confirm that the information is understood.
+--
+--After confirmation, review the complete Git diff/status with John.
+--
+--Only after John approves should the collaboration setup be committed and pushed.
+-+Continue the actions layer (`createSpaceAction`, new `updateSpaceAction`, `quickAddFolderAction`),
+-+then the UI, then produce a verified patch for John to apply, build, commit, and push, the same
+-+way Batch A shipped.
+- 
+- ---
+- 
+-@@ -101,8 +127,9 @@ Claude performed a read-only reconciliation of project state.
+- 
+- ## Last Updated
+- 
+--2026-09-22
+-+2026-09-23
+- 
+- Updated by:
+- 
+--ChatGPT
+-\ No newline at end of file
+-+Claude, mid Batch B. Code described above is local and uncommitted; origin/main is unchanged at
+-+`4b1104d`.
+-\ No newline at end of file
+diff --git a/src/app/(app)/spaces/[id]/board.tsx b/src/app/(app)/spaces/[id]/board.tsx
+index 8dd9e07..dddd3ae 100644
+--- a/src/app/(app)/spaces/[id]/board.tsx
++++ b/src/app/(app)/spaces/[id]/board.tsx
+@@ -342,15 +342,14 @@ export function Board({
+                 </Field>
+               </div>
+ 
+-              <Field label="Assign to">
+-                <Select name="assigneeIds" defaultValue="">
+-                  <option value="">Unassigned</option>
++              <Field label="Assign to" hint="Hold command to choose more than one">
++                <select name="assigneeIds" multiple className="h-28 w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2 py-1.5 text-sm text-[var(--color-ink)]">
+                   {users.map((user) => (
+                     <option key={user.id} value={user.id}>
+                       {user.name}
+                     </option>
+                   ))}
+-                </Select>
++                </select>
+               </Field>
+ 
+               <Field label="Priority">
+diff --git a/src/app/(app)/spaces/[id]/folder-bar.tsx b/src/app/(app)/spaces/[id]/folder-bar.tsx
+index a62d23d..5876de5 100644
+--- a/src/app/(app)/spaces/[id]/folder-bar.tsx
++++ b/src/app/(app)/spaces/[id]/folder-bar.tsx
+@@ -31,6 +31,7 @@ export function FolderBar({
+ }) {
+   const [adding, setAdding] = useState(false);
+   const [name, setName] = useState('');
++  const [privateToMe, setPrivateToMe] = useState(false);
+   const [error, setError] = useState<string | null>(null);
+   const [, startTransition] = useTransition();
+ 
+@@ -89,7 +90,7 @@ export function FolderBar({
+               setError(null);
+ 
+               startTransition(async () => {
+-                const result = await quickAddFolderAction({ spaceId, name: value });
++                const result = await quickAddFolderAction({ spaceId, name: value, privateToMe });
+                 if (result.error) setError(result.error);
+               });
+             }}
+@@ -111,6 +112,7 @@ export function FolderBar({
+               aria-label="New folder name"
+               className="w-36 rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-2 py-1 text-[12px] text-[var(--color-ink)] focus:outline-none"
+             />
++            <label className="ml-2 text-[11px] text-[var(--color-ink-muted)]"><input type="checkbox" checked={privateToMe} onChange={(event) => setPrivateToMe(event.target.checked)} /> private to me</label>
+           </form>
+         ) : null}
+       </div>
+diff --git a/src/app/(app)/spaces/[id]/page.tsx b/src/app/(app)/spaces/[id]/page.tsx
+index 94a2a82..1486b5a 100644
+--- a/src/app/(app)/spaces/[id]/page.tsx
++++ b/src/app/(app)/spaces/[id]/page.tsx
+@@ -5,10 +5,12 @@ import { listFolders } from '@/modules/tasks/services/folder.service';
+ import { listTasks } from '@/modules/tasks/services/task.service';
+ import { Progress } from '@/components/ui/progress';
+ import { Monogram } from '@/components/ui/monogram';
++import { Avatar } from '@/components/ui/avatar';
+ import { listUsers } from '@/modules/core/services/user.service';
+ import { PageHeader } from '@/components/ui';
+ import { Breadcrumb } from '@/components/ui/breadcrumb';
+ import { Board } from './board';
++import { SpaceSettings } from './space-settings';
+ 
+ export default async function SpacePage({
+   params,
+@@ -48,6 +50,7 @@ export default async function SpacePage({
+         <PageHeader
+           icon={<Monogram name={space.name} />}
+           title={space.name}
++          titleExtra={<span className="flex -space-x-1.5">{space.memberIds.map((memberId) => <Avatar key={String(memberId)} name={users.find((user) => user.id === String(memberId))?.name ?? 'Unknown'} size="small" />)}{actor.permissions.includes('task.manage') ? <SpaceSettings space={{ id, name: space.name, description: space.description ?? null, memberIds: space.memberIds.map(String) }} users={users.map((user) => ({ id: user.id, name: user.name }))} /> : null}</span>}
+           description={space.description ?? undefined}
+           action={
+             <div className="w-48">
+diff --git a/src/app/(app)/spaces/[id]/space-settings.tsx b/src/app/(app)/spaces/[id]/space-settings.tsx
+new file mode 100644
+index 0000000..6370953
+--- /dev/null
++++ b/src/app/(app)/spaces/[id]/space-settings.tsx
+@@ -0,0 +1,15 @@
++'use client';
++
++import { useActionState, useEffect, useState } from 'react';
++import { Button, Field, Input, Notice } from '@/components/ui';
++import { updateSpaceAction, type TaskFormState } from '../../tasks/actions';
++
++const initialState: TaskFormState = {};
++
++export function SpaceSettings({ space, users }: { space: { id: string; name: string; description: string | null; memberIds: string[] }; users: { id: string; name: string }[] }) {
++  const [open, setOpen] = useState(false);
++  const [state, action, pending] = useActionState(updateSpaceAction, initialState);
++  useEffect(() => { if (state.saved) { const timer = window.setTimeout(() => setOpen(false), 0); return () => window.clearTimeout(timer); } }, [state.saved]);
++  if (!open) return <button type="button" onClick={() => setOpen(true)} title="Space settings" aria-label="Space settings" className="ml-2 flex h-7 w-7 items-center justify-center rounded-full text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15.25a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5Z" stroke="currentColor" strokeWidth="1.8"/><path d="m19.4 15 .1-1.2 1.7-1.3-1.8-3.1-2 .8-1-.6-.3-2.1H12.5l-.3 2.1-1 .6-2-.8-1.8 3.1 1.7 1.3.1 1.2-1.7 1.3 1.8 3.1 2-.8 1 .6.3 2.1h3.6l.3-2.1 1-.6 2 .8 1.8-3.1-1.7-1.3Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/></svg></button>;
++  return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4" role="dialog" aria-modal="true" aria-label="Space settings"><form action={action} className="w-full max-w-lg rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)] p-5 text-left shadow-xl"><div className="mb-4 flex items-center justify-between"><h2 className="text-base font-semibold text-[var(--color-ink)]">Space settings</h2><button type="button" onClick={() => setOpen(false)} className="text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]" aria-label="Close settings">✕</button></div><input type="hidden" name="id" value={space.id} /><Field label="Space name"><Input name="name" defaultValue={space.name} required /></Field><Field label="Description"><Input name="description" defaultValue={space.description ?? ''} /></Field><Field label="Private members" hint="Leave empty so everyone in the tenant can see this space. Hold command to select several."><select name="memberIds" multiple defaultValue={space.memberIds} className="h-28 w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2 py-1.5 text-sm">{users.map((user) => <option key={user.id} value={user.id}>{user.name}</option>)}</select></Field>{state.error ? <Notice tone="alert">{state.error}</Notice> : null}<div className="mt-4 flex justify-end gap-2"><Button type="button" variant="secondary" onClick={() => setOpen(false)}>Cancel</Button><Button type="submit" disabled={pending}>{pending ? 'Saving' : 'Save access'}</Button></div></form></div>;
++}
+diff --git a/src/app/(app)/spaces/page.tsx b/src/app/(app)/spaces/page.tsx
+index f4cb369..08e87b0 100644
+--- a/src/app/(app)/spaces/page.tsx
++++ b/src/app/(app)/spaces/page.tsx
+@@ -6,7 +6,9 @@ import { listOrganisations } from '@/modules/crm/services/organisation.service';
+ import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
+ import { Progress } from '@/components/ui/progress';
+ import { Monogram } from '@/components/ui/monogram';
++import { Avatar } from '@/components/ui/avatar';
+ import { NewSpacePanel } from './panels';
++import { listUsers } from '@/modules/core/services/user.service';
+ 
+ export const metadata = { title: 'Spaces · COEX' };
+ 
+@@ -19,13 +21,15 @@ export const metadata = { title: 'Spaces · COEX' };
+ export default async function SpacesPage() {
+   const actor = await requirePermission('task.read.all');
+ 
+-  const { spaces, folders, customers } = await asUser(actor, async () => ({
++  const { spaces, folders, customers, users } = await asUser(actor, async () => ({
+     spaces: await listSpaces(),
+     folders: await listFolders(),
+     customers: await listOrganisations(),
++    users: await listUsers(),
+   }));
+ 
+   const customerNames = new Map(customers.map((customer) => [customer.id, customer.name]));
++  const userNames = new Map(users.map((user) => [user.id, user.name]));
+   const canManage = actor.permissions.includes('task.manage');
+ 
+   return (
+@@ -37,6 +41,7 @@ export default async function SpacesPage() {
+           canManage ? (
+             <NewSpacePanel
+               customers={customers.map((customer) => ({ id: customer.id, name: customer.name }))}
++              users={users.map((user) => ({ id: user.id, name: user.name }))}
+             />
+           ) : undefined
+         }
+@@ -52,6 +57,7 @@ export default async function SpacesPage() {
+                 <Th>Space</Th>
+                 <Th>Folders</Th>
+                 <Th>Customer</Th>
++                <Th>Members</Th>
+                 <Th>Progress</Th>
+                 <Th>Open</Th>
+                 <Th>Due</Th>
+@@ -102,6 +108,7 @@ export default async function SpacesPage() {
+                         </span>
+                       )}
+                     </Td>
++                    <Td>{space.memberIds.length ? <span className="flex -space-x-1.5">{space.memberIds.map((id) => <Avatar key={id} name={userNames.get(id) ?? 'Unknown'} size="small" />)}</span> : <span className="text-xs text-[var(--color-ink-subtle)]">Everyone</span>}</Td>
+ 
+                     <Td className="text-[var(--color-ink-muted)]">
+                       {space.organisationId
+diff --git a/src/app/(app)/spaces/panels.tsx b/src/app/(app)/spaces/panels.tsx
+index 120737e..4ce0a6f 100644
+--- a/src/app/(app)/spaces/panels.tsx
++++ b/src/app/(app)/spaces/panels.tsx
+@@ -6,7 +6,7 @@ import { createSpaceAction, type TaskFormState } from '../tasks/actions';
+ 
+ const initialState: TaskFormState = {};
+ 
+-export function NewSpacePanel({ customers }: { customers: { id: string; name: string }[] }) {
++export function NewSpacePanel({ customers, users }: { customers: { id: string; name: string }[]; users: { id: string; name: string }[] }) {
+   const [open, setOpen] = useState(false);
+   const [state, formAction, pending] = useActionState(createSpaceAction, initialState);
+ 
+@@ -48,6 +48,12 @@ export function NewSpacePanel({ customers }: { customers: { id: string; name: st
+             <Input name="dueDate" type="date" />
+           </Field>
+ 
++          <Field label="Private members" hint="Leave empty for a tenant-wide space. Hold command to select several.">
++            <select name="memberIds" multiple className="h-28 w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2 py-1.5 text-sm text-[var(--color-ink)]">
++              {users.map((user) => <option key={user.id} value={user.id}>{user.name}</option>)}
++            </select>
++          </Field>
++
+           {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
+ 
+           <div className="flex gap-2">
+diff --git a/src/app/(app)/tasks/actions.ts b/src/app/(app)/tasks/actions.ts
+index 0909696..ca8d74d 100644
+--- a/src/app/(app)/tasks/actions.ts
++++ b/src/app/(app)/tasks/actions.ts
+@@ -17,7 +17,7 @@ import {
+   updateTask,
+   type Priority,
+ } from '@/modules/tasks/services/task.service';
+-import { createSpace } from '@/modules/tasks/services/space.service';
++import { createSpace, updateSpace } from '@/modules/tasks/services/space.service';
+ import { archiveFolder, createFolder, updateFolder } from '@/modules/tasks/services/folder.service';
+ 
+ export interface TaskFormState {
+@@ -54,6 +54,7 @@ export async function createSpaceAction(
+         description: text(formData, 'description'),
+         organisationId: text(formData, 'organisationId') || null,
+         dueDate: text(formData, 'dueDate') || null,
++        memberIds: formData.getAll('memberIds').map(String).filter(Boolean),
+       }),
+     );
+ 
+@@ -75,6 +76,15 @@ export async function createSpaceAction(
+   redirect(`/spaces/${id}`);
+ }
+ 
++export async function updateSpaceAction(_previous: TaskFormState, formData: FormData): Promise<TaskFormState> {
++  const actor = await requirePermission('task.manage');
++  const id = text(formData, 'id');
++  try {
++    await asUser(actor, () => updateSpace(id, { name: text(formData, 'name'), description: text(formData, 'description'), organisationId: text(formData, 'organisationId') || null, dueDate: text(formData, 'dueDate') || null, memberIds: formData.getAll('memberIds').map(String).filter(Boolean) }));
++  } catch (error) { return { error: error instanceof Error ? error.message : 'Could not update the space.' }; }
++  revalidatePath(`/spaces/${id}`); revalidatePath('/spaces'); return { saved: true };
++}
++
+ export async function createTaskAction(
+   _previous: TaskFormState,
+   formData: FormData,
+@@ -403,6 +413,7 @@ export async function saveFolderAction(
+ export async function quickAddFolderAction(input: {
+   spaceId: string;
+   name: string;
++  privateToMe?: boolean;
+ }): Promise<TaskFormState> {
+   const actor = await requirePermission('task.manage');
+ 
+@@ -410,7 +421,7 @@ export async function quickAddFolderAction(input: {
+   if (!name) return { error: 'A folder needs a name.' };
+ 
+   try {
+-    await asUser(actor, () => createFolder({ spaceId: input.spaceId, name }));
++    await asUser(actor, () => createFolder({ spaceId: input.spaceId, name, memberIds: input.privateToMe ? [actor.id] : [] }));
+   } catch (error) {
+     return { error: error instanceof Error ? error.message : 'Could not add the folder.' };
+   }
+diff --git a/src/components/tasks/inline-edit.tsx b/src/components/tasks/inline-edit.tsx
+index 16b42f1..120f1ef 100644
+--- a/src/components/tasks/inline-edit.tsx
++++ b/src/components/tasks/inline-edit.tsx
+@@ -86,7 +86,6 @@ export function Popover({
+ 
+   useLayoutEffect(() => {
+     if (open) place();
+-    else setCoords(null);
+   }, [open, place]);
+ 
+   useEffect(() => {
+diff --git a/src/components/ui/index.tsx b/src/components/ui/index.tsx
+index 673ca80..e5bc911 100644
+--- a/src/components/ui/index.tsx
++++ b/src/components/ui/index.tsx
+@@ -14,18 +14,20 @@ export function PageHeader({
+   description,
+   action,
+   icon,
++  titleExtra,
+ }: {
+   title: string;
+   description?: string;
+   action?: ReactNode;
+   icon?: ReactNode;
++  titleExtra?: ReactNode;
+ }) {
+   return (
+     <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+       <div className="flex items-start gap-3">
+         {icon ? <span className="mt-1">{icon}</span> : null}
+         <div>
+-          <h1 className="text-xl font-bold text-[var(--color-ink)]">{title}</h1>
++          <div className="flex items-center gap-2"><h1 className="text-xl font-bold text-[var(--color-ink)]">{title}</h1>{titleExtra}</div>
+           {description ? (
+             <p className="mt-1 max-w-2xl text-sm text-[var(--color-ink-muted)]">{description}</p>
+           ) : null}
+diff --git a/src/modules/tasks/services/access.service.ts b/src/modules/tasks/services/access.service.ts
+new file mode 100644
+index 0000000..c92f5e2
+--- /dev/null
++++ b/src/modules/tasks/services/access.service.ts
+@@ -0,0 +1,10 @@
++import { getContext } from '@/lib/tenant-context';
++import { UserModel } from '@/modules/core/models/user.model';
++
++/** Tenant administrators remain able to administer private task areas. */
++export async function actorIsAdministrator(): Promise<boolean> {
++  const context = getContext();
++  if (context.isPlatformAdmin) return true;
++  const user = await UserModel.findOne({ _id: context.userId }).select('role');
++  return user?.role === 'tenant_admin';
++}
+diff --git a/src/modules/tasks/services/folder.service.ts b/src/modules/tasks/services/folder.service.ts
+index 7d360a2..5a2a836 100644
+--- a/src/modules/tasks/services/folder.service.ts
++++ b/src/modules/tasks/services/folder.service.ts
+@@ -7,6 +7,7 @@ import { recordAudit } from '@/modules/core/services/audit.service';
+ import { UserModel } from '@/modules/core/models/user.model';
+ import { FolderModel } from '../models/folder.model';
+ import { TaskModel } from '../models/task.model';
++import { actorIsAdministrator } from './access.service';
+ 
+ /**
+  * Folders, and the one visibility rule in the task module.
+@@ -41,16 +42,6 @@ export interface FolderSummary {
+ }
+ 
+ /** A tenant administrator sees everything; anyone else sees open folders and their own. */
+-async function actorIsAdministrator(): Promise<boolean> {
+-  const context = getContext();
+-
+-  if (context.isPlatformAdmin) return true;
+-
+-  const user = await UserModel.findOne({ _id: context.userId }).select('role');
+-
+-  return user?.role === 'tenant_admin';
+-}
+-
+ /** The ids of every folder this person may open, or null meaning no restriction applies. */
+ export async function visibleFolderIds(): Promise<Types.ObjectId[] | null> {
+   await connectToDatabase();
+diff --git a/src/modules/tasks/services/space.service.ts b/src/modules/tasks/services/space.service.ts
+index 9a18958..9f35a86 100644
+--- a/src/modules/tasks/services/space.service.ts
++++ b/src/modules/tasks/services/space.service.ts
+@@ -5,6 +5,8 @@ import { recordAudit } from '@/modules/core/services/audit.service';
+ import { SpaceModel } from '../models/space.model';
+ import { TaskModel } from '../models/task.model';
+ import { visibleFolderFilter } from './folder.service';
++import { getContext } from '@/lib/tenant-context';
++import { actorIsAdministrator } from './access.service';
+ 
+ /**
+  * Spaces.
+@@ -49,12 +51,41 @@ export interface SpaceSummary {
+   totalTaskCount: number;
+   progressPercent: number;
+   status: string;
++  isPrivate: boolean;
++  memberIds: string[];
++}
++
++export async function visibleSpaceIds(): Promise<import('mongoose').Types.ObjectId[] | null> {
++  await connectToDatabase();
++  if (await actorIsAdministrator()) return null;
++  const open = await spaces().find({ memberIds: { $size: 0 } }).select('_id');
++  const mine = await spaces().find({ memberIds: getContext().userId }).select('_id');
++  return [...open, ...mine].map((space) => space._id);
++}
++
++export async function visibleSpaceFilter(field = '_id'): Promise<Record<string, unknown>> {
++  const ids = await visibleSpaceIds();
++  return ids === null ? {} : { [field]: { $in: ids } };
++}
++
++export async function canOpenSpace(id: string): Promise<boolean> {
++  await connectToDatabase();
++  const space = await spaces().findById(id);
++  if (!space) return false;
++  return space.memberIds.length === 0 || (await actorIsAdministrator()) || space.memberIds.some((member) => String(member) === String(getContext().userId));
++}
++
++export async function assignableSpaceMemberIds(id: string): Promise<string[] | null> {
++  await connectToDatabase();
++  const space = await spaces().findById(id);
++  if (!space || space.memberIds.length === 0) return null;
++  return space.memberIds.map(String);
+ }
+ 
+ export async function listSpaces(): Promise<SpaceSummary[]> {
+   await connectToDatabase();
+ 
+-  const found = await spaces().find().sort({ name: 1 });
++  const found = await spaces().find(await visibleSpaceFilter()).sort({ name: 1 });
+ 
+   // Counts respect folder privacy, so a space does not advertise the size of work the person
+   // cannot open. A count that does not match the list is how people conclude a tool is lying.
+@@ -89,6 +120,8 @@ export async function listSpaces(): Promise<SpaceSummary[]> {
+           })),
+         ),
+         status: space.status,
++        isPrivate: space.memberIds.length > 0,
++        memberIds: space.memberIds.map(String),
+       };
+     }),
+   );
+@@ -96,6 +129,7 @@ export async function listSpaces(): Promise<SpaceSummary[]> {
+ 
+ export async function getSpace(id: string) {
+   await connectToDatabase();
++  if (!(await canOpenSpace(id))) return null;
+   return spaces().findById(id);
+ }
+ 
+@@ -104,6 +138,7 @@ export interface SpaceInput {
+   description?: string;
+   organisationId?: string | null;
+   dueDate?: string | null;
++  memberIds?: string[];
+ }
+ 
+ export async function createSpace(input: SpaceInput): Promise<string> {
+@@ -117,6 +152,7 @@ export async function createSpace(input: SpaceInput): Promise<string> {
+     description: input.description?.trim() || null,
+     organisationId: toOptionalObjectId(input.organisationId),
+     dueDate: input.dueDate ? new Date(input.dueDate) : null,
++    memberIds: (input.memberIds ?? []).filter(Boolean).map(toObjectId),
+   });
+ 
+   await recordAudit({
+@@ -129,21 +165,49 @@ export async function createSpace(input: SpaceInput): Promise<string> {
+   return String(created._id);
+ }
+ 
+-export async function renameSpace(id: string, name: string): Promise<void> {
++/**
++ * Editing a space, name and privacy together.
++ *
++ * Closing a space around work already assigned elsewhere would hide that work from the people
++ * doing it, exactly the same problem `updateFolder` refuses lower down, so the change is refused
++ * here the same way rather than guessed at.
++ */
++export async function updateSpace(id: string, input: SpaceInput): Promise<void> {
+   await connectToDatabase();
+-
+-  const trimmed = name.trim();
+-  if (!trimmed) throw new Error('A space needs a name.');
+-
+-  const space = await spaces().updateOne({ _id: toObjectId(id) }, { $set: { name: trimmed } });
++  const space = await spaces().findById(id);
+   if (!space) throw new Error('Space not found.');
+-
+-  await recordAudit({
+-    action: 'space.renamed',
+-    entityType: 'Space',
+-    entityId: space._id,
+-    after: { name: trimmed },
+-  });
++  const name = input.name.trim();
++  if (!name) throw new Error('A space needs a name.');
++  const memberIds = (input.memberIds ?? []).filter(Boolean).map(toObjectId);
++
++  if (memberIds.length > 0) {
++    const inside = await TaskModel.find({
++      tenantId: space.tenantId,
++      spaceId: space._id,
++      deletedAt: null,
++      isClosed: false,
++    }).select('assigneeIds number');
++
++    const allowed = new Set(memberIds.map(String));
++
++    const stranded = inside.filter((task) =>
++      task.assigneeIds.some((assignee) => !allowed.has(String(assignee))),
++    );
++
++    if (stranded.length > 0) {
++      throw new Error(
++        `${stranded.length} open ${stranded.length === 1 ? 'task is' : 'tasks are'} assigned to people outside this list, starting with ${stranded[0].number}. Add them, or reassign the work first.`,
++      );
++    }
++  }
++
++  await spaces().updateOne({ _id: space._id }, { $set: {
++    name, description: input.description?.trim() || null,
++    organisationId: toOptionalObjectId(input.organisationId),
++    dueDate: input.dueDate ? new Date(input.dueDate) : null, memberIds,
++  }});
++  await recordAudit({ action: 'space.updated', entityType: 'Space', entityId: space._id,
++    before: { name: space.name, private: space.memberIds.length > 0 }, after: { name, private: memberIds.length > 0 } });
+ }
+ 
+ export async function archiveSpace(id: string): Promise<void> {
+diff --git a/src/modules/tasks/services/task.service.ts b/src/modules/tasks/services/task.service.ts
+index c140282..9e9bbd6 100644
+--- a/src/modules/tasks/services/task.service.ts
++++ b/src/modules/tasks/services/task.service.ts
+@@ -9,7 +9,8 @@ import { UserModel } from '@/modules/core/models/user.model';
+ import { TaskModel } from '../models/task.model';
+ import { SpaceModel } from '../models/space.model';
+ import { FolderModel } from '../models/folder.model';
+-import { assignableMemberIds, visibleFolderFilter } from './folder.service';
++import { assignableMemberIds, canOpenFolder, visibleFolderFilter } from './folder.service';
++import { assignableSpaceMemberIds, canOpenSpace, visibleSpaceFilter } from './space.service';
+ import { parseDocumentLink } from '../document-links';
+ import { TenantModel } from '@/modules/core/models/tenant.model';
+ import {
+@@ -111,7 +112,7 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
+   // Private folders are filtered here rather than in a screen, so nothing that reads tasks can
+   // forget to apply it.
+   const found = await tasks()
+-    .find({ ...query, ...(await visibleFolderFilter()) })
++    .find({ ...query, ...(await visibleFolderFilter()), ...(await visibleSpaceFilter('spaceId')) })
+     .sort({ sortOrder: 1, endAt: 1, createdAt: -1 });
+ 
+   const spaceNames = new Map(
+@@ -182,7 +183,10 @@ export async function countMyOpenTasks(userId: string): Promise<number> {
+ 
+ export async function getTask(id: string) {
+   await connectToDatabase();
+-  return tasks().findById(id);
++  const task = await tasks().findById(id);
++  if (!task || !(await canOpenSpace(String(task.spaceId)))) return null;
++  if (task.folderId && !(await canOpenFolder(String(task.folderId)))) return null;
++  return task;
+ }
+ 
+ export interface CreateTaskInput {
+@@ -206,7 +210,15 @@ export interface CreateTaskInput {
+  * The alternative is creating a task its own owner cannot open, which is a worse outcome than any
+  * refusal, and one nobody would think to look for.
+  */
+-async function assertAssignable(folderId: string | null, assigneeIds: string[]): Promise<void> {
++async function assertAssignable(
++  folderId: string | null,
++  assigneeIds: string[],
++  spaceId: string,
++): Promise<void> {
++  const spaceAllowed = spaceId ? await assignableSpaceMemberIds(spaceId) : null;
++  if (spaceAllowed && assigneeIds.some((id) => !spaceAllowed.includes(id))) {
++    throw new Error('That space is private, so work in it can only be assigned to its members.');
++  }
+   const allowed = await assignableMemberIds(folderId);
+   if (!allowed) return;
+ 
+@@ -242,7 +254,7 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
+ 
+   const firstColumn = column ?? columns[0];
+ 
+-  await assertAssignable(input.folderId ?? null, (input.assigneeIds ?? []).filter(Boolean));
++  await assertAssignable(input.folderId ?? null, (input.assigneeIds ?? []).filter(Boolean), input.spaceId);
+ 
+   const assigneeIds = (input.assigneeIds ?? []).filter(Boolean).map((id) => toObjectId(id));
+ 
+@@ -363,6 +375,7 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
+         ? String(before.folderId)
+         : null,
+     input.assigneeIds.filter(Boolean),
++    String(before.spaceId),
+   );
+ 
+   const assigneeIds = input.assigneeIds.filter(Boolean).map((value) => toObjectId(value));
+@@ -449,6 +462,7 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
+     await assertAssignable(
+       patch.folderId,
+       (patch.assigneeIds ?? before.assigneeIds.map(String)).filter(Boolean),
++      String(before.spaceId),
+     );
+ 
+     set.folderId = toOptionalObjectId(patch.folderId);
+@@ -464,6 +478,7 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
+     await assertAssignable(
+       before.folderId ? String(before.folderId) : null,
+       patch.assigneeIds.filter(Boolean),
++      String(before.spaceId),
+     );
+ 
+     const assigneeIds = patch.assigneeIds.filter(Boolean).map((value) => toObjectId(value));
