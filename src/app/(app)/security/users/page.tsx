@@ -3,12 +3,12 @@ import { listUsers } from '@/modules/core/services/user.service';
 import { Badge, Card, PageHeader, Table, Td, Th } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
 import { CreateUserPanel } from './create-user-panel';
-import { RoleSelect, StatusButton } from './row-actions';
+import { RoleSelect, StatusButton, ResetPasswordButton } from './row-actions';
 
 export const metadata = { title: 'Users · COEX' };
 
 export default async function UsersPage() {
-  const actor = await requirePermission('user.read');
+  const actor = await requirePermission('user.manage');
   const users = await asUser(actor, listUsers);
 
   return (
@@ -59,7 +59,10 @@ export default async function UsersPage() {
                 </Td>
                 <Td>
                   {actor.permissions.includes('user.manage') && user.id !== actor.id ? (
-                    <StatusButton userId={user.id} status={user.status} />
+                    <div className="flex justify-end gap-2">
+                      <ResetPasswordButton userId={user.id} email={user.email} />
+                      <StatusButton userId={user.id} status={user.status} />
+                    </div>
                   ) : null}
                 </Td>
               </tr>

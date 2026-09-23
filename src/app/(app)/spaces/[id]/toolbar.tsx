@@ -36,10 +36,10 @@ export function Toolbar({
         type="button"
         onClick={() => onShowClosed(!showClosed)}
         className={clsx(
-          'flex items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 py-1 text-[12px] transition-colors',
+          'flex items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 py-1 text-[12px] font-medium transition-colors',
           showClosed
-            ? 'border-[var(--color-line-strong)] bg-[var(--color-surface-muted)] text-[var(--color-ink)]'
-            : 'border-[var(--color-line)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]',
+            ? 'border-[var(--color-ink)] bg-[var(--color-ink)] text-[var(--color-surface)]'
+            : 'border-[var(--color-line)] font-normal text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]',
         )}
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">

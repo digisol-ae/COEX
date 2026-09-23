@@ -84,7 +84,9 @@ export async function assignableSpaceMemberIds(id: string): Promise<string[] | n
 export async function listSpaces(): Promise<SpaceSummary[]> {
   await connectToDatabase();
 
-  const found = await spaces().find(await visibleSpaceFilter()).sort({ name: 1 });
+  const found = await spaces()
+    .find(await visibleSpaceFilter())
+    .sort({ sortOrder: 1, name: 1 });
 
   // Counts respect folder privacy, so a space does not advertise the size of work the person
   // cannot open. A count that does not match the list is how people conclude a tool is lying.
@@ -195,6 +197,28 @@ export async function updateSpace(id: string, input: SpaceInput): Promise<void> 
   }});
   await recordAudit({ action: 'space.updated', entityType: 'Space', entityId: space._id,
     before: { name: space.name, private: space.memberIds.length > 0 }, after: { name, private: memberIds.length > 0 } });
+}
+
+/**
+ * Setting a manual order on the Spaces list, from a drag.
+ *
+ * The client sends the full list in its new order; this just writes a sortOrder that matches it,
+ * spaced by ten so a later single-item reorder never needs to touch every row again. Only ids the
+ * caller may actually see are written, so dragging cannot be used to reorder a space nobody showed
+ * the person in the first place.
+ */
+export async function reorderSpaces(orderedIds: string[]): Promise<void> {
+  await connectToDatabase();
+
+  const visible = await visibleSpaceIds();
+  const allowed = visible === null ? null : new Set(visible.map(String));
+
+  await Promise.all(
+    orderedIds.map((id, index) => {
+      if (allowed && !allowed.has(id)) return Promise.resolve();
+      return spaces().updateOne({ _id: toObjectId(id) }, { $set: { sortOrder: (index + 1) * 10 } });
+    }),
+  );
 }
 
 export async function archiveSpace(id: string): Promise<void> {

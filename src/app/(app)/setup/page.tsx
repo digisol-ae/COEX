@@ -29,7 +29,7 @@ const SECTIONS: { href: string; label: string; description: string; permission: 
     href: '/security/users',
     label: 'Users and roles',
     description: 'Who can sign in and what they may do. Lives under Security.',
-    permission: 'user.read',
+    permission: 'user.manage',
   },
   {
     href: '/security/audit',

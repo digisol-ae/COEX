@@ -1,0 +1,847 @@
+diff --git a/src/app/(app)/security/users/page.tsx b/src/app/(app)/security/users/page.tsx
+index ef93506..800cc58 100644
+--- a/src/app/(app)/security/users/page.tsx
++++ b/src/app/(app)/security/users/page.tsx
+@@ -3,12 +3,12 @@ import { listUsers } from '@/modules/core/services/user.service';
+ import { Badge, Card, PageHeader, Table, Td, Th } from '@/components/ui';
+ import { Avatar } from '@/components/ui/avatar';
+ import { CreateUserPanel } from './create-user-panel';
+-import { RoleSelect, StatusButton } from './row-actions';
++import { RoleSelect, StatusButton, ResetPasswordButton } from './row-actions';
+ 
+ export const metadata = { title: 'Users · COEX' };
+ 
+ export default async function UsersPage() {
+-  const actor = await requirePermission('user.read');
++  const actor = await requirePermission('user.manage');
+   const users = await asUser(actor, listUsers);
+ 
+   return (
+@@ -59,7 +59,10 @@ export default async function UsersPage() {
+                 </Td>
+                 <Td>
+                   {actor.permissions.includes('user.manage') && user.id !== actor.id ? (
+-                    <StatusButton userId={user.id} status={user.status} />
++                    <div className="flex justify-end gap-2">
++                      <ResetPasswordButton userId={user.id} email={user.email} />
++                      <StatusButton userId={user.id} status={user.status} />
++                    </div>
+                   ) : null}
+                 </Td>
+               </tr>
+diff --git a/src/app/(app)/security/users/row-actions.tsx b/src/app/(app)/security/users/row-actions.tsx
+index 8e2ca32..3e8c869 100644
+--- a/src/app/(app)/security/users/row-actions.tsx
++++ b/src/app/(app)/security/users/row-actions.tsx
+@@ -1,8 +1,11 @@
+ 'use client';
+ 
+-import { Button, Select } from '@/components/ui';
++import { useActionState, useState } from 'react';
++import { Button, Notice, Select } from '@/components/ui';
+ import { ROLES } from '@/modules/core/permissions';
+-import { changeRoleAction, toggleStatusAction } from './actions';
++import { changeRoleAction, resetPasswordAction, toggleStatusAction, type UserFormState } from './actions';
++
++const initialState: UserFormState = {};
+ 
+ export function RoleSelect({ userId, role }: { userId: string; role: string }) {
+   return (
+@@ -35,3 +38,75 @@ export function StatusButton({ userId, status }: { userId: string; status: strin
+     </form>
+   );
+ }
++
++/**
++ * Resets to a fresh generated password and shows it once, the same way creating a user does.
++ * `resetPasswordAction` already existed; only this trigger and the reveal were missing.
++ */
++export function ResetPasswordButton({ userId, email }: { userId: string; email: string }) {
++  const [open, setOpen] = useState(false);
++  const [state, formAction, pending] = useActionState(resetPasswordAction, initialState);
++
++  if (!open) {
++    return (
++      <Button variant="secondary" onClick={() => setOpen(true)}>
++        Reset password
++      </Button>
++    );
++  }
++
++  return (
++    <div
++      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
++      role="dialog"
++      aria-modal="true"
++      aria-label="Reset password"
++    >
++      <div className="w-full max-w-sm rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)] p-5 text-left shadow-xl">
++        <div className="mb-4 flex items-center justify-between">
++          <h2 className="text-base font-semibold text-[var(--color-ink)]">Reset password</h2>
++          <button
++            type="button"
++            onClick={() => setOpen(false)}
++            className="text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
++            aria-label="Close"
++          >
++            ✕
++          </button>
++        </div>
++
++        {state.createdPassword ? (
++          <div className="space-y-3">
++            <Notice tone="ok">Password reset for {state.createdEmail}.</Notice>
++            <p className="text-xs text-[var(--color-ink-muted)]">
++              Give this to them in person or by message. It is shown once.
++            </p>
++            <p className="rounded-[var(--radius-control)] bg-[var(--color-surface-sunken)] px-3 py-2 font-mono text-sm">
++              {state.createdPassword}
++            </p>
++            <Button variant="secondary" onClick={() => setOpen(false)}>
++              Done
++            </Button>
++          </div>
++        ) : (
++          <form action={formAction} className="space-y-3">
++            <input type="hidden" name="userId" value={userId} />
++            <input type="hidden" name="email" value={email} />
++            <p className="text-sm text-[var(--color-ink-muted)]">
++              This immediately signs {email} out everywhere and replaces their password.
++            </p>
++            {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
++            <div className="flex gap-2">
++              <Button type="submit" disabled={pending}>
++                {pending ? 'Resetting' : 'Confirm reset'}
++              </Button>
++              <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
++                Cancel
++              </Button>
++            </div>
++          </form>
++        )}
++      </div>
++    </div>
++  );
++}
+diff --git a/src/app/(app)/setup/page.tsx b/src/app/(app)/setup/page.tsx
+index 73bbf13..e94de88 100644
+--- a/src/app/(app)/setup/page.tsx
++++ b/src/app/(app)/setup/page.tsx
+@@ -29,7 +29,7 @@ const SECTIONS: { href: string; label: string; description: string; permission:
+     href: '/security/users',
+     label: 'Users and roles',
+     description: 'Who can sign in and what they may do. Lives under Security.',
+-    permission: 'user.read',
++    permission: 'user.manage',
+   },
+   {
+     href: '/security/audit',
+diff --git a/src/app/(app)/spaces/[id]/toolbar.tsx b/src/app/(app)/spaces/[id]/toolbar.tsx
+index 59c7795..8e48839 100644
+--- a/src/app/(app)/spaces/[id]/toolbar.tsx
++++ b/src/app/(app)/spaces/[id]/toolbar.tsx
+@@ -36,10 +36,10 @@ export function Toolbar({
+         type="button"
+         onClick={() => onShowClosed(!showClosed)}
+         className={clsx(
+-          'flex items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 py-1 text-[12px] transition-colors',
++          'flex items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 py-1 text-[12px] font-medium transition-colors',
+           showClosed
+-            ? 'border-[var(--color-line-strong)] bg-[var(--color-surface-muted)] text-[var(--color-ink)]'
+-            : 'border-[var(--color-line)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]',
++            ? 'border-[var(--color-ink)] bg-[var(--color-ink)] text-[var(--color-surface)]'
++            : 'border-[var(--color-line)] font-normal text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]',
+         )}
+       >
+         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+diff --git a/src/app/(app)/spaces/page.tsx b/src/app/(app)/spaces/page.tsx
+index 60aeee0..a7dabaa 100644
+--- a/src/app/(app)/spaces/page.tsx
++++ b/src/app/(app)/spaces/page.tsx
+@@ -1,13 +1,10 @@
+-import Link from 'next/link';
+ import { asUser, requirePermission } from '@/lib/session';
+ import { listSpaces } from '@/modules/tasks/services/space.service';
+ import { listFolders } from '@/modules/tasks/services/folder.service';
+ import { listOrganisations } from '@/modules/crm/services/organisation.service';
+-import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
+-import { Progress } from '@/components/ui/progress';
+-import { Monogram } from '@/components/ui/monogram';
+-import { Avatar } from '@/components/ui/avatar';
++import { Card, PageHeader } from '@/components/ui';
+ import { NewSpacePanel } from './panels';
++import { SpacesTable } from './spaces-table';
+ import { listUsers } from '@/modules/core/services/user.service';
+ 
+ export const metadata = { title: 'Spaces · COEX' };
+@@ -28,8 +25,8 @@ export default async function SpacesPage() {
+     users: await listUsers(),
+   }));
+ 
+-  const customerNames = new Map(customers.map((customer) => [customer.id, customer.name]));
+-  const userNames = new Map(users.map((user) => [user.id, user.name]));
++  const customerNames = Object.fromEntries(customers.map((customer) => [customer.id, customer.name]));
++  const userNames = Object.fromEntries(users.map((user) => [user.id, user.name]));
+   const canManage = actor.permissions.includes('task.manage');
+ 
+   return (
+@@ -48,94 +45,28 @@ export default async function SpacesPage() {
+       />
+ 
+       <Card>
+-        {spaces.length === 0 ? (
+-          <EmptyState message="No spaces yet. Create one such as dOne Platform or Project Management." />
+-        ) : (
+-          <Table>
+-            <thead>
+-              <tr>
+-                <Th>Space</Th>
+-                <Th>Folders</Th>
+-                <Th>Customer</Th>
+-                <Th>Members</Th>
+-                <Th>Progress</Th>
+-                <Th>Open</Th>
+-                <Th>Due</Th>
+-              </tr>
+-            </thead>
+-            <tbody>
+-              {spaces.map((space) => {
+-                const inside = folders.filter((folder) => folder.spaceId === space.id);
+-
+-                return (
+-                  <tr key={space.id}>
+-                    <Td>
+-                      <div className="flex items-center gap-2.5">
+-                        <Monogram name={space.name} />
+-                        <div className="min-w-0">
+-                          <Link
+-                            href={`/spaces/${space.id}`}
+-                            className="block truncate font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
+-                          >
+-                            {space.name}
+-                          </Link>
+-                          {space.description ? (
+-                            <div className="truncate text-xs text-[var(--color-ink-subtle)]">
+-                              {space.description}
+-                            </div>
+-                          ) : null}
+-                        </div>
+-                      </div>
+-                    </Td>
+-
+-                    <Td className="text-[var(--color-ink-muted)]">
+-                      {inside.length === 0 ? (
+-                        '—'
+-                      ) : (
+-                        <span className="flex flex-wrap gap-1">
+-                          {inside.slice(0, 3).map((folder) => (
+-                            <span
+-                              key={folder.id}
+-                              className="rounded-[var(--radius-control)] bg-[var(--color-surface-sunken)] px-1.5 py-0.5 text-[11px]"
+-                            >
+-                              {folder.isPrivate ? '🔒 ' : ''}
+-                              {folder.name}
+-                            </span>
+-                          ))}
+-                          {inside.length > 3 ? (
+-                            <span className="text-[11px]">and {inside.length - 3} more</span>
+-                          ) : null}
+-                        </span>
+-                      )}
+-                    </Td>
+-                    <Td className="text-[var(--color-ink-muted)]">
+-                      {space.organisationId
+-                        ? (customerNames.get(space.organisationId) ?? 'Unknown')
+-                        : '—'}
+-                    </Td>
+-
+-                    <Td>{space.memberIds.length ? <span className="flex -space-x-1.5">{space.memberIds.map((id) => <Avatar key={id} name={userNames.get(id) ?? 'Unknown'} size="small" />)}</span> : <span className="text-xs text-[var(--color-ink-subtle)]">Everyone</span>}</Td>
+-
+-
+-                    <Td className="w-48">
+-                      <Progress percent={space.progressPercent} label={`${space.name} progress`} />
+-                    </Td>
+-
+-                    <Td>
+-                      <Badge tone={space.openTaskCount > 0 ? 'info' : 'ok'}>
+-                        {space.openTaskCount} of {space.totalTaskCount}
+-                      </Badge>
+-                    </Td>
+-
+-                    <Td className="text-[var(--color-ink-muted)]">
+-                      {space.dueDate ? space.dueDate.toLocaleDateString('en-GB') : '—'}
+-                    </Td>
+-                  </tr>
+-                );
+-              })}
+-            </tbody>
+-          </Table>
+-        )}
++        <SpacesTable
++          spaces={spaces.map((space) => ({
++            id: space.id,
++            name: space.name,
++            description: space.description,
++            organisationId: space.organisationId,
++            dueDate: space.dueDate ? space.dueDate.toISOString() : null,
++            openTaskCount: space.openTaskCount,
++            totalTaskCount: space.totalTaskCount,
++            progressPercent: space.progressPercent,
++            memberIds: space.memberIds,
++          }))}
++          folders={folders.map((folder) => ({
++            id: folder.id,
++            spaceId: folder.spaceId,
++            name: folder.name,
++            isPrivate: folder.isPrivate,
++          }))}
++          customerNames={customerNames}
++          userNames={userNames}
++          canManage={canManage}
++        />
+       </Card>
+     </div>
+   );
+diff --git a/src/app/(app)/spaces/spaces-table.tsx b/src/app/(app)/spaces/spaces-table.tsx
+new file mode 100644
+index 0000000..2439cd6
+--- /dev/null
++++ b/src/app/(app)/spaces/spaces-table.tsx
+@@ -0,0 +1,207 @@
++'use client';
++
++import Link from 'next/link';
++import { useState, useTransition } from 'react';
++import { clsx } from 'clsx';
++import { Badge, EmptyState, Table, Td, Th } from '@/components/ui';
++import { Progress } from '@/components/ui/progress';
++import { Monogram } from '@/components/ui/monogram';
++import { Avatar } from '@/components/ui/avatar';
++import { reorderSpacesAction } from '../tasks/actions';
++
++export interface SpaceRow {
++  id: string;
++  name: string;
++  description: string | null;
++  organisationId: string | null;
++  dueDate: string | null;
++  openTaskCount: number;
++  totalTaskCount: number;
++  progressPercent: number;
++  memberIds: string[];
++}
++
++export interface FolderRow {
++  id: string;
++  spaceId: string;
++  name: string;
++  isPrivate: boolean;
++}
++
++/**
++ * The Spaces list, reorderable by drag when the tenant has more than one space and the person can
++ * manage the tenant's work. Order is saved after the drop, not on every frame, so a full drag
++ * across the list is one write, not dozens.
++ */
++export function SpacesTable({
++  spaces,
++  folders,
++  customerNames,
++  userNames,
++  canManage,
++}: {
++  spaces: SpaceRow[];
++  folders: FolderRow[];
++  customerNames: Record<string, string>;
++  userNames: Record<string, string>;
++  canManage: boolean;
++}) {
++  const [order, setOrder] = useState(spaces);
++  const [draggingId, setDraggingId] = useState<string | null>(null);
++  const [, startTransition] = useTransition();
++
++  if (order.length === 0) {
++    return <EmptyState message="No spaces yet. Create one such as dOne Platform or Project Management." />;
++  }
++
++  function moveTo(targetId: string) {
++    if (!draggingId || draggingId === targetId) return;
++
++    setOrder((current) => {
++      const from = current.findIndex((row) => row.id === draggingId);
++      const to = current.findIndex((row) => row.id === targetId);
++      if (from === -1 || to === -1) return current;
++
++      const next = current.slice();
++      const [moved] = next.splice(from, 1);
++      next.splice(to, 0, moved);
++      return next;
++    });
++  }
++
++  function commit() {
++    if (!draggingId) return;
++    setDraggingId(null);
++
++    startTransition(async () => {
++      await reorderSpacesAction(order.map((row) => row.id));
++    });
++  }
++
++  return (
++    <Table>
++      <thead>
++        <tr>
++          {canManage ? <Th>{''}</Th> : null}
++          <Th>Space</Th>
++          <Th>Folders</Th>
++          <Th>Customer</Th>
++          <Th>Members</Th>
++          <Th>Progress</Th>
++          <Th>Open</Th>
++          <Th>Due</Th>
++        </tr>
++      </thead>
++      <tbody>
++        {order.map((space) => {
++          const inside = folders.filter((folder) => folder.spaceId === space.id);
++
++          return (
++            <tr
++              key={space.id}
++              draggable={canManage}
++              onDragStart={() => setDraggingId(space.id)}
++              onDragOver={(event) => {
++                if (!draggingId) return;
++                event.preventDefault();
++                moveTo(space.id);
++              }}
++              onDragEnd={commit}
++              onDrop={(event) => event.preventDefault()}
++              className={clsx(draggingId === space.id && 'opacity-50')}
++            >
++              {canManage ? (
++                <Td className="w-6 cursor-grab text-[var(--color-ink-subtle)] active:cursor-grabbing">
++                  <DragHandle />
++                </Td>
++              ) : null}
++
++              <Td>
++                <div className="flex items-center gap-2.5">
++                  <Monogram name={space.name} />
++                  <div className="min-w-0">
++                    <Link
++                      href={`/spaces/${space.id}`}
++                      className="block truncate font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
++                    >
++                      {space.name}
++                    </Link>
++                    {space.description ? (
++                      <div className="truncate text-xs text-[var(--color-ink-subtle)]">
++                        {space.description}
++                      </div>
++                    ) : null}
++                  </div>
++                </div>
++              </Td>
++
++              <Td className="text-[var(--color-ink-muted)]">
++                {inside.length === 0 ? (
++                  '—'
++                ) : (
++                  <span className="flex flex-wrap gap-1">
++                    {inside.slice(0, 3).map((folder) => (
++                      <span
++                        key={folder.id}
++                        className="rounded-[var(--radius-control)] bg-[var(--color-surface-sunken)] px-1.5 py-0.5 text-[11px]"
++                      >
++                        {folder.isPrivate ? '🔒 ' : ''}
++                        {folder.name}
++                      </span>
++                    ))}
++                    {inside.length > 3 ? (
++                      <span className="text-[11px]">and {inside.length - 3} more</span>
++                    ) : null}
++                  </span>
++                )}
++              </Td>
++
++              <Td className="text-[var(--color-ink-muted)]">
++                {space.organisationId ? (customerNames[space.organisationId] ?? 'Unknown') : '—'}
++              </Td>
++
++              <Td>
++                {space.memberIds.length ? (
++                  <span className="flex -space-x-1.5">
++                    {space.memberIds.map((id) => (
++                      <Avatar key={id} name={userNames[id] ?? 'Unknown'} size="small" />
++                    ))}
++                  </span>
++                ) : (
++                  <span className="text-xs text-[var(--color-ink-subtle)]">Everyone</span>
++                )}
++              </Td>
++
++              <Td className="w-48">
++                <Progress percent={space.progressPercent} label={`${space.name} progress`} />
++              </Td>
++
++              <Td>
++                <Badge tone={space.openTaskCount > 0 ? 'info' : 'ok'}>
++                  {space.openTaskCount} of {space.totalTaskCount}
++                </Badge>
++              </Td>
++
++              <Td className="text-[var(--color-ink-muted)]">
++                {space.dueDate ? new Date(space.dueDate).toLocaleDateString('en-GB') : '—'}
++              </Td>
++            </tr>
++          );
++        })}
++      </tbody>
++    </Table>
++  );
++}
++
++function DragHandle() {
++  return (
++    <svg width="10" height="14" viewBox="0 0 10 14" fill="none" aria-hidden="true">
++      <circle cx="2.5" cy="2.5" r="1.2" fill="currentColor" />
++      <circle cx="7.5" cy="2.5" r="1.2" fill="currentColor" />
++      <circle cx="2.5" cy="7" r="1.2" fill="currentColor" />
++      <circle cx="7.5" cy="7" r="1.2" fill="currentColor" />
++      <circle cx="2.5" cy="11.5" r="1.2" fill="currentColor" />
++      <circle cx="7.5" cy="11.5" r="1.2" fill="currentColor" />
++    </svg>
++  );
++}
+diff --git a/src/app/(app)/tasks/actions.ts b/src/app/(app)/tasks/actions.ts
+index ca8d74d..e65dd1f 100644
+--- a/src/app/(app)/tasks/actions.ts
++++ b/src/app/(app)/tasks/actions.ts
+@@ -17,7 +17,7 @@ import {
+   updateTask,
+   type Priority,
+ } from '@/modules/tasks/services/task.service';
+-import { createSpace, updateSpace } from '@/modules/tasks/services/space.service';
++import { createSpace, reorderSpaces, updateSpace } from '@/modules/tasks/services/space.service';
+ import { archiveFolder, createFolder, updateFolder } from '@/modules/tasks/services/folder.service';
+ 
+ export interface TaskFormState {
+@@ -85,6 +85,20 @@ export async function updateSpaceAction(_previous: TaskFormState, formData: Form
+   revalidatePath(`/spaces/${id}`); revalidatePath('/spaces'); return { saved: true };
+ }
+ 
++/** Persisting a drag reorder of the Spaces list. */
++export async function reorderSpacesAction(orderedIds: string[]): Promise<{ error?: string }> {
++  const actor = await requirePermission('task.manage');
++
++  try {
++    await asUser(actor, () => reorderSpaces(orderedIds));
++  } catch (error) {
++    return { error: error instanceof Error ? error.message : 'Could not save the new order.' };
++  }
++
++  revalidatePath('/spaces');
++  return {};
++}
++
+ export async function createTaskAction(
+   _previous: TaskFormState,
+   formData: FormData,
+diff --git a/src/app/(app)/time/all/page.tsx b/src/app/(app)/time/all/page.tsx
+new file mode 100644
+index 0000000..6422950
+--- /dev/null
++++ b/src/app/(app)/time/all/page.tsx
+@@ -0,0 +1,134 @@
++import Link from 'next/link';
++import { asUser, requirePermission } from '@/lib/session';
++import { listUsers } from '@/modules/core/services/user.service';
++import { loadTimesheet } from '@/modules/time/services/timesheet.service';
++import { formatMinutes, startOfWeek, toDateKey } from '@/modules/time/week';
++import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
++import { Avatar } from '@/components/ui/avatar';
++
++export const metadata = { title: 'All timesheets · COEX' };
++
++/**
++ * Every active person's week, side by side.
++ *
++ * The per-person timesheet already lets a manager switch to one person at a time; this is the
++ * page for the other question, who has and has not logged their week yet, answered in one glance
++ * rather than by opening each person in turn. Correcting an entry still happens on that person's
++ * own timesheet, reached from here with the week already carried across.
++ */
++export default async function AllTimesheetsPage({
++  searchParams,
++}: {
++  searchParams: Promise<{ week?: string }>;
++}) {
++  const actor = await requirePermission('task.read.all');
++  const params = await searchParams;
++
++  const week = params.week ? new Date(params.week) : new Date();
++  const weekStart = startOfWeek(week);
++
++  const previousWeek = new Date(weekStart);
++  previousWeek.setDate(previousWeek.getDate() - 7);
++  const nextWeek = new Date(weekStart);
++  nextWeek.setDate(nextWeek.getDate() + 7);
++
++  const { people, sheets } = await asUser(actor, async () => {
++    const users = (await listUsers()).filter((user) => user.status === 'active');
++    const sheets = await Promise.all(users.map((user) => loadTimesheet(weekStart, user.id)));
++    return { people: users, sheets };
++  });
++
++  const rows = people
++    .map((person, index) => ({ person, sheet: sheets[index] }))
++    .sort((a, b) => b.sheet.totalMinutes - a.sheet.totalMinutes);
++
++  const weekKey = toDateKey(weekStart);
++  const weekEnd = new Date(weekStart);
++  weekEnd.setDate(weekEnd.getDate() + 6);
++
++  return (
++    <div className="mx-auto max-w-5xl">
++      <PageHeader
++        title="All timesheets"
++        description="Every active person's hours for the week, logged or not."
++        action={
++          <div className="flex items-center gap-2 text-sm">
++            <Link
++              href={`/time/all?week=${toDateKey(previousWeek)}`}
++              className="rounded-[var(--radius-control)] border border-[var(--color-line)] px-3 py-1.5 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
++            >
++              Previous week
++            </Link>
++            <span className="text-[var(--color-ink-muted)]">
++              {weekStart.toLocaleDateString('en-GB')} to {weekEnd.toLocaleDateString('en-GB')}
++            </span>
++            <Link
++              href={`/time/all?week=${toDateKey(nextWeek)}`}
++              className="rounded-[var(--radius-control)] border border-[var(--color-line)] px-3 py-1.5 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
++            >
++              Next week
++            </Link>
++          </div>
++        }
++      />
++
++      <Card>
++        {rows.length === 0 ? (
++          <EmptyState message="No active people to show." />
++        ) : (
++          <Table>
++            <thead>
++              <tr>
++                <Th>Person</Th>
++                <Th>Total</Th>
++                <Th>Billable</Th>
++                <Th>Status</Th>
++                <Th>{''}</Th>
++              </tr>
++            </thead>
++            <tbody>
++              {rows.map(({ person, sheet }) => (
++                <tr key={person.id}>
++                  <Td>
++                    <div className="flex items-center gap-3">
++                      <Avatar name={person.name} size="small" />
++                      <div>
++                        <div className="font-medium text-[var(--color-ink)]">{person.name}</div>
++                        <div className="text-xs text-[var(--color-ink-subtle)]">
++                          {person.role.replace('_', ' ')}
++                        </div>
++                      </div>
++                    </div>
++                  </Td>
++                  <Td className="text-[var(--color-ink-muted)] tabular-nums">
++                    {formatMinutes(sheet.totalMinutes)}
++                  </Td>
++                  <Td className="text-[var(--color-ink-muted)] tabular-nums">
++                    {formatMinutes(sheet.billableMinutes)}
++                  </Td>
++                  <Td>
++                    {sheet.totalMinutes === 0 ? (
++                      <Badge tone="warn">Nothing logged</Badge>
++                    ) : sheet.locked ? (
++                      <Badge tone="ok">Locked</Badge>
++                    ) : (
++                      <Badge tone="info">Open</Badge>
++                    )}
++                  </Td>
++                  <Td>
++                    <Link
++                      href={`/time?user=${person.id}&week=${weekKey}`}
++                      className="text-[var(--color-ink-muted)] underline-offset-4 hover:text-[var(--color-ink)] hover:underline"
++                    >
++                      Open
++                    </Link>
++                  </Td>
++                </tr>
++              ))}
++            </tbody>
++          </Table>
++        )}
++      </Card>
++    </div>
++  );
++}
+diff --git a/src/app/login/login-form.tsx b/src/app/login/login-form.tsx
+index b4a300f..2357f49 100644
+--- a/src/app/login/login-form.tsx
++++ b/src/app/login/login-form.tsx
+@@ -1,5 +1,6 @@
+ 'use client';
+ 
++import { useState } from 'react';
+ import { useActionState } from 'react';
+ import { Button, Field, Input, Notice } from '@/components/ui';
+ import { loginAction, type LoginState } from './actions';
+@@ -8,6 +9,7 @@ const initialState: LoginState = {};
+ 
+ export function LoginForm() {
+   const [state, formAction, pending] = useActionState(loginAction, initialState);
++  const [showPassword, setShowPassword] = useState(false);
+ 
+   return (
+     <form action={formAction} className="mt-8 space-y-4">
+@@ -16,7 +18,24 @@ export function LoginForm() {
+       </Field>
+ 
+       <Field label="Password">
+-        <Input name="password" type="password" autoComplete="current-password" required />
++        <div className="relative">
++          <Input
++            name="password"
++            type={showPassword ? 'text' : 'password'}
++            autoComplete="current-password"
++            required
++            className="pr-9"
++          />
++          <button
++            type="button"
++            onClick={() => setShowPassword((value) => !value)}
++            aria-label={showPassword ? 'Hide password' : 'Show password'}
++            aria-pressed={showPassword}
++            className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-[var(--color-ink-subtle)] hover:text-[var(--color-ink)]"
++          >
++            {showPassword ? <EyeOffIcon /> : <EyeIcon />}
++          </button>
++        </div>
+       </Field>
+ 
+       {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
+@@ -27,3 +46,31 @@ export function LoginForm() {
+     </form>
+   );
+ }
++
++function EyeIcon() {
++  return (
++    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
++      <path
++        d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5Z"
++        stroke="currentColor"
++        strokeWidth="1.3"
++        strokeLinejoin="round"
++      />
++      <circle cx="8" cy="8" r="2.2" stroke="currentColor" strokeWidth="1.3" />
++    </svg>
++  );
++}
++
++function EyeOffIcon() {
++  return (
++    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
++      <path
++        d="M2 2l12 12M6.6 6.7A2.2 2.2 0 0 0 8 10.2c.5 0 1-.17 1.35-.45M4.2 4.5C2.6 5.6 1 8 1 8s2.5 5 7 5c1.2 0 2.25-.35 3.1-.85M9.9 5.15C9.35 5.05 8.7 5 8 5c-.4 0-.78.02-1.13.06M11.3 6.2c1.15.9 1.7 1.8 1.7 1.8s-.35.7-1 1.5"
++        stroke="currentColor"
++        strokeWidth="1.3"
++        strokeLinecap="round"
++        strokeLinejoin="round"
++      />
++    </svg>
++  );
++}
+diff --git a/src/components/navigation/navigation.ts b/src/components/navigation/navigation.ts
+index 1a92904..258831a 100644
+--- a/src/components/navigation/navigation.ts
++++ b/src/components/navigation/navigation.ts
+@@ -37,6 +37,7 @@ export const GROUPS: NavigationGroup[] = [
+       { href: '/tasks', label: 'My tasks', permission: 'task.read.own' },
+       { href: '/spaces', label: 'Spaces', permission: 'task.read.all' },
+       { href: '/time', label: 'Timesheet', permission: 'task.read.own' },
++      { href: '/time/all', label: 'All timesheets', permission: 'task.read.all' },
+       { href: '/time/report', label: 'Time report', permission: 'task.read.all' },
+     ],
+   },
+@@ -62,7 +63,7 @@ export const GROUPS: NavigationGroup[] = [
+     id: 'security',
+     label: 'Security',
+     items: [
+-      { href: '/security/users', label: 'Users and roles', permission: 'user.read' },
++      { href: '/security/users', label: 'Users and roles', permission: 'user.manage' },
+       { href: '/security/audit', label: 'Audit log', permission: 'audit.read' },
+       // Active sessions and the sign in policy join here with Entra.
+     ],
+diff --git a/src/modules/tasks/models/space.model.ts b/src/modules/tasks/models/space.model.ts
+index a106505..2a68a67 100644
+--- a/src/modules/tasks/models/space.model.ts
++++ b/src/modules/tasks/models/space.model.ts
+@@ -49,6 +49,9 @@ const spaceSchema = new Schema(
+     startDate: { type: Date, default: null },
+     dueDate: { type: Date, default: null },
+ 
++    /** Manual drag order on the Spaces list. Untouched spaces keep the default and sort by name. */
++    sortOrder: { type: Number, default: 0, index: true },
++
+     statuses: { type: [statusSchema], default: () => DEFAULT_STATUSES },
+ 
+     status: {
+diff --git a/src/modules/tasks/services/space.service.ts b/src/modules/tasks/services/space.service.ts
+index 9fbe74b..7869c37 100644
+--- a/src/modules/tasks/services/space.service.ts
++++ b/src/modules/tasks/services/space.service.ts
+@@ -84,7 +84,9 @@ export async function assignableSpaceMemberIds(id: string): Promise<string[] | n
+ export async function listSpaces(): Promise<SpaceSummary[]> {
+   await connectToDatabase();
+ 
+-  const found = await spaces().find(await visibleSpaceFilter()).sort({ name: 1 });
++  const found = await spaces()
++    .find(await visibleSpaceFilter())
++    .sort({ sortOrder: 1, name: 1 });
+ 
+   // Counts respect folder privacy, so a space does not advertise the size of work the person
+   // cannot open. A count that does not match the list is how people conclude a tool is lying.
+@@ -197,6 +199,28 @@ export async function updateSpace(id: string, input: SpaceInput): Promise<void>
+     before: { name: space.name, private: space.memberIds.length > 0 }, after: { name, private: memberIds.length > 0 } });
+ }
+ 
++/**
++ * Setting a manual order on the Spaces list, from a drag.
++ *
++ * The client sends the full list in its new order; this just writes a sortOrder that matches it,
++ * spaced by ten so a later single-item reorder never needs to touch every row again. Only ids the
++ * caller may actually see are written, so dragging cannot be used to reorder a space nobody showed
++ * the person in the first place.
++ */
++export async function reorderSpaces(orderedIds: string[]): Promise<void> {
++  await connectToDatabase();
++
++  const visible = await visibleSpaceIds();
++  const allowed = visible === null ? null : new Set(visible.map(String));
++
++  await Promise.all(
++    orderedIds.map((id, index) => {
++      if (allowed && !allowed.has(id)) return Promise.resolve();
++      return spaces().updateOne({ _id: toObjectId(id) }, { $set: { sortOrder: (index + 1) * 10 } });
++    }),
++  );
++}
++
+ export async function archiveSpace(id: string): Promise<void> {
+   await connectToDatabase();
+ 

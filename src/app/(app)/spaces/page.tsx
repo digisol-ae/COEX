@@ -1,13 +1,10 @@
-import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
 import { listSpaces } from '@/modules/tasks/services/space.service';
 import { listFolders } from '@/modules/tasks/services/folder.service';
 import { listOrganisations } from '@/modules/crm/services/organisation.service';
-import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
-import { Progress } from '@/components/ui/progress';
-import { Monogram } from '@/components/ui/monogram';
-import { Avatar } from '@/components/ui/avatar';
+import { Card, PageHeader } from '@/components/ui';
 import { NewSpacePanel } from './panels';
+import { SpacesTable } from './spaces-table';
 import { listUsers } from '@/modules/core/services/user.service';
 
 export const metadata = { title: 'Spaces · COEX' };
@@ -28,8 +25,8 @@ export default async function SpacesPage() {
     users: await listUsers(),
   }));
 
-  const customerNames = new Map(customers.map((customer) => [customer.id, customer.name]));
-  const userNames = new Map(users.map((user) => [user.id, user.name]));
+  const customerNames = Object.fromEntries(customers.map((customer) => [customer.id, customer.name]));
+  const userNames = Object.fromEntries(users.map((user) => [user.id, user.name]));
   const canManage = actor.permissions.includes('task.manage');
 
   return (
@@ -48,94 +45,28 @@ export default async function SpacesPage() {
       />
 
       <Card>
-        {spaces.length === 0 ? (
-          <EmptyState message="No spaces yet. Create one such as dOne Platform or Project Management." />
-        ) : (
-          <Table>
-            <thead>
-              <tr>
-                <Th>Space</Th>
-                <Th>Folders</Th>
-                <Th>Customer</Th>
-                <Th>Members</Th>
-                <Th>Progress</Th>
-                <Th>Open</Th>
-                <Th>Due</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {spaces.map((space) => {
-                const inside = folders.filter((folder) => folder.spaceId === space.id);
-
-                return (
-                  <tr key={space.id}>
-                    <Td>
-                      <div className="flex items-center gap-2.5">
-                        <Monogram name={space.name} />
-                        <div className="min-w-0">
-                          <Link
-                            href={`/spaces/${space.id}`}
-                            className="block truncate font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
-                          >
-                            {space.name}
-                          </Link>
-                          {space.description ? (
-                            <div className="truncate text-xs text-[var(--color-ink-subtle)]">
-                              {space.description}
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    </Td>
-
-                    <Td className="text-[var(--color-ink-muted)]">
-                      {inside.length === 0 ? (
-                        '—'
-                      ) : (
-                        <span className="flex flex-wrap gap-1">
-                          {inside.slice(0, 3).map((folder) => (
-                            <span
-                              key={folder.id}
-                              className="rounded-[var(--radius-control)] bg-[var(--color-surface-sunken)] px-1.5 py-0.5 text-[11px]"
-                            >
-                              {folder.isPrivate ? '🔒 ' : ''}
-                              {folder.name}
-                            </span>
-                          ))}
-                          {inside.length > 3 ? (
-                            <span className="text-[11px]">and {inside.length - 3} more</span>
-                          ) : null}
-                        </span>
-                      )}
-                    </Td>
-                    <Td className="text-[var(--color-ink-muted)]">
-                      {space.organisationId
-                        ? (customerNames.get(space.organisationId) ?? 'Unknown')
-                        : '—'}
-                    </Td>
-
-                    <Td>{space.memberIds.length ? <span className="flex -space-x-1.5">{space.memberIds.map((id) => <Avatar key={id} name={userNames.get(id) ?? 'Unknown'} size="small" />)}</span> : <span className="text-xs text-[var(--color-ink-subtle)]">Everyone</span>}</Td>
-
-
-                    <Td className="w-48">
-                      <Progress percent={space.progressPercent} label={`${space.name} progress`} />
-                    </Td>
-
-                    <Td>
-                      <Badge tone={space.openTaskCount > 0 ? 'info' : 'ok'}>
-                        {space.openTaskCount} of {space.totalTaskCount}
-                      </Badge>
-                    </Td>
-
-                    <Td className="text-[var(--color-ink-muted)]">
-                      {space.dueDate ? space.dueDate.toLocaleDateString('en-GB') : '—'}
-                    </Td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>
-        )}
+        <SpacesTable
+          spaces={spaces.map((space) => ({
+            id: space.id,
+            name: space.name,
+            description: space.description,
+            organisationId: space.organisationId,
+            dueDate: space.dueDate ? space.dueDate.toISOString() : null,
+            openTaskCount: space.openTaskCount,
+            totalTaskCount: space.totalTaskCount,
+            progressPercent: space.progressPercent,
+            memberIds: space.memberIds,
+          }))}
+          folders={folders.map((folder) => ({
+            id: folder.id,
+            spaceId: folder.spaceId,
+            name: folder.name,
+            isPrivate: folder.isPrivate,
+          }))}
+          customerNames={customerNames}
+          userNames={userNames}
+          canManage={canManage}
+        />
       </Card>
     </div>
   );

@@ -17,7 +17,7 @@ import {
   updateTask,
   type Priority,
 } from '@/modules/tasks/services/task.service';
-import { createSpace, updateSpace } from '@/modules/tasks/services/space.service';
+import { createSpace, reorderSpaces, updateSpace } from '@/modules/tasks/services/space.service';
 import { archiveFolder, createFolder, updateFolder } from '@/modules/tasks/services/folder.service';
 
 export interface TaskFormState {
@@ -83,6 +83,20 @@ export async function updateSpaceAction(_previous: TaskFormState, formData: Form
     await asUser(actor, () => updateSpace(id, { name: text(formData, 'name'), description: text(formData, 'description'), organisationId: text(formData, 'organisationId') || null, dueDate: text(formData, 'dueDate') || null, memberIds: formData.getAll('memberIds').map(String).filter(Boolean) }));
   } catch (error) { return { error: error instanceof Error ? error.message : 'Could not update the space.' }; }
   revalidatePath(`/spaces/${id}`); revalidatePath('/spaces'); return { saved: true };
+}
+
+/** Persisting a drag reorder of the Spaces list. */
+export async function reorderSpacesAction(orderedIds: string[]): Promise<{ error?: string }> {
+  const actor = await requirePermission('task.manage');
+
+  try {
+    await asUser(actor, () => reorderSpaces(orderedIds));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not save the new order.' };
+  }
+
+  revalidatePath('/spaces');
+  return {};
 }
 
 export async function createTaskAction(

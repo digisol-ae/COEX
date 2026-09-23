@@ -49,6 +49,9 @@ const spaceSchema = new Schema(
     startDate: { type: Date, default: null },
     dueDate: { type: Date, default: null },
 
+    /** Manual drag order on the Spaces list. Untouched spaces keep the default and sort by name. */
+    sortOrder: { type: Number, default: 0, index: true },
+
     statuses: { type: [statusSchema], default: () => DEFAULT_STATUSES },
 
     status: {

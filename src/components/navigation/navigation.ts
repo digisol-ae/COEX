@@ -37,6 +37,7 @@ export const GROUPS: NavigationGroup[] = [
       { href: '/tasks', label: 'My tasks', permission: 'task.read.own' },
       { href: '/spaces', label: 'Spaces', permission: 'task.read.all' },
       { href: '/time', label: 'Timesheet', permission: 'task.read.own' },
+      { href: '/time/all', label: 'All timesheets', permission: 'task.read.all' },
       { href: '/time/report', label: 'Time report', permission: 'task.read.all' },
     ],
   },
@@ -62,7 +63,7 @@ export const GROUPS: NavigationGroup[] = [
     id: 'security',
     label: 'Security',
     items: [
-      { href: '/security/users', label: 'Users and roles', permission: 'user.read' },
+      { href: '/security/users', label: 'Users and roles', permission: 'user.manage' },
       { href: '/security/audit', label: 'Audit log', permission: 'audit.read' },
       // Active sessions and the sign in policy join here with Entra.
     ],
