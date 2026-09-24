@@ -20,6 +20,7 @@ import { ContactModel } from '@/modules/crm/models/contact.model';
 import { TaskModel } from '@/modules/tasks/models/task.model';
 import { TicketModel } from '../models/ticket.model';
 import { TicketMessageModel } from '../models/ticket-message.model';
+import { unreadAmong } from './unread.service';
 import { QueueModel, DEFAULT_TARGETS } from '../models/queue.model';
 import {
   DEFAULT_CALENDAR,
@@ -116,6 +117,8 @@ export async function createTicket(input: CreateTicketInput): Promise<CreatedTic
     firstResponseDueAt: addWorkingMinutes(now, target.firstResponseMinutes, calendar),
     resolutionDueAt: addWorkingMinutes(now, target.resolutionMinutes, calendar),
     lastActivityAt: now,
+    // A ticket an agent raised is not news to the desk; one the customer sent is.
+    customerActivityAt: (input.channel ?? 'agent') === 'agent' ? null : now,
     createdById: context.userId,
   });
 
@@ -372,6 +375,8 @@ export interface TicketSummary {
   firstResponseState: SlaState;
   resolutionState: SlaState;
   isOpen: boolean;
+  /** The customer has written since the current person last opened it. */
+  unread: boolean;
   lastActivityAt: Date;
   createdAt: Date;
 }
@@ -446,11 +451,12 @@ async function decorate(found: Awaited<ReturnType<ReturnType<typeof tickets>['fi
   ];
   const contactIds = [...new Set(found.filter((t) => t.contactId).map((t) => String(t.contactId)))];
 
-  const [queueRows, userRows, organisationRows, contactRows] = await Promise.all([
+  const [queueRows, userRows, organisationRows, contactRows, unread] = await Promise.all([
     QueueModel.find({ _id: { $in: queueIds } }).select('name'),
     UserModel.find({ _id: { $in: userIds } }).select('name'),
     OrganisationModel.find({ _id: { $in: organisationIds } }).select('name'),
     ContactModel.find({ _id: { $in: contactIds } }).select('name'),
+    unreadAmong(found),
   ]);
 
   const queueNames = new Map(queueRows.map((row) => [String(row._id), row.name]));
@@ -491,6 +497,7 @@ async function decorate(found: Awaited<ReturnType<ReturnType<typeof tickets>['fi
       now,
     ),
     isOpen: !['resolved', 'closed'].includes(ticket.status),
+    unread: unread.has(String(ticket._id)),
     lastActivityAt: ticket.lastActivityAt ?? ticket.updatedAt,
     createdAt: ticket.createdAt,
   }));

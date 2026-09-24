@@ -1,7 +1,7 @@
 import { asUser, requireUser } from '@/lib/session';
 import { getRunningTimer } from '@/modules/time/services/time.service';
 import { countMyOpenTasks } from '@/modules/tasks/services/task.service';
-import { countMyOpenTickets } from '@/modules/tickets/services/metrics.service';
+import { countUnreadTickets } from '@/modules/tickets/services/unread.service';
 import { RunningTimer } from '@/modules/time/components/running-timer';
 import { TimerTray } from '@/modules/time/components/timer-tray';
 import { IconRail } from '@/components/navigation/icon-rail';
@@ -22,11 +22,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = await requireUser();
   const groups = visibleGroups(user.permissions);
   /**
-   * The badges on the rail: how much open work is mine, in each place I might have some.
+   * The badges on the rail: a prompt to act, never a total.
    *
-   * Only my own work is counted, whatever the person can see. A manager who can read the whole
-   * tenant does not want a badge showing two hundred; a badge is a prompt to act, and a number
-   * nobody can act on is decoration that teaches people to ignore the rail.
+   * Tasks counts my open tasks. Support counts tickets where the customer has written since I last
+   * looked, because an open ticket I have already read is not news, and a badge that is always
+   * lit teaches people to ignore the rail. Unassigned tickets count for whoever sees the whole desk.
    */
   const { timer, counts } = await asUser(user, async () => ({
     timer: await getRunningTimer(),
@@ -35,7 +35,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         ? await countMyOpenTasks(user.id)
         : undefined,
       '/support/tickets': user.permissions.includes('ticket.read.own')
-        ? await countMyOpenTickets(user.id)
+        ? await countUnreadTickets({
+            includeUnassigned: user.permissions.includes('ticket.read.all'),
+          })
         : undefined,
     },
   }));

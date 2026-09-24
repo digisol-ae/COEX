@@ -160,7 +160,13 @@ export async function importInboundEmail(
         const reopen = ['pending_customer', 'resolved'].includes(parentTicket.status);
         await TicketModel.updateOne(
           { _id: parentTicket._id, tenantId },
-          { $set: { lastActivityAt: new Date(), ...(reopen ? { status: 'open' } : {}) } },
+          {
+            $set: {
+              lastActivityAt: new Date(),
+              customerActivityAt: new Date(),
+              ...(reopen ? { status: 'open' } : {}),
+            },
+          },
         );
 
         await alertStaff(

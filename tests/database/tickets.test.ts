@@ -26,6 +26,8 @@ import {
   listQueues,
   updateQueue,
 } from '@/modules/tickets/services/queue.service';
+import { countUnreadTickets, markTicketRead } from '@/modules/tickets/services/unread.service';
+import { TicketModel } from '@/modules/tickets/models/ticket.model';
 import {
   countMyOpenTickets,
   loadDeskMetrics,
@@ -513,6 +515,62 @@ describe('the badge on the rail', () => {
     const count = await runWithContext(context, () => countMyOpenTickets(String(userId)));
 
     expect(count).toBe(1);
+  });
+});
+
+describe('the unread mark', () => {
+  async function anEmailTicket(queueId: string, subject: string): Promise<string> {
+    const created = await runWithContext(context, () =>
+      createTicket({
+        subject,
+        body: 'Hello?',
+        queueId,
+        channel: 'email',
+        onBehalfOfCustomer: true,
+      }),
+    );
+    return created.id;
+  }
+
+  const unreadFor = (includeUnassigned: boolean) =>
+    runWithContext(context, () => countUnreadTickets({ includeUnassigned }));
+
+  it('marks a new email ticket until it is opened, and again when the customer writes', async () => {
+    const queueId = await aQueue();
+    const id = await anEmailTicket(queueId, 'Printer offline');
+
+    expect(await unreadFor(true)).toBe(1);
+    // An agent limited to their own tickets cannot open an unassigned one, so it is not theirs to count.
+    expect(await unreadFor(false)).toBe(0);
+    const [listed] = await runWithContext(context, () => listTickets());
+    expect(listed.unread).toBe(true);
+
+    await runWithContext(context, () => markTicketRead(id));
+    expect(await unreadFor(true)).toBe(0);
+
+    await TicketModel.updateOne(
+      { _id: id },
+      { $set: { customerActivityAt: new Date(Date.now() + 1000) } },
+    );
+    expect(await unreadFor(true)).toBe(1);
+  });
+
+  it('never marks work raised by staff or assigned to someone else', async () => {
+    const queueId = await aQueue();
+    await aTicket(queueId, 'Raised by an agent');
+    const theirs = await anEmailTicket(queueId, 'Fatima has this');
+    await runWithContext(context, () => assignTicket(theirs, String(colleagueId)));
+
+    expect(await unreadFor(true)).toBe(0);
+  });
+
+  it('keeps each person their own mark', async () => {
+    const queueId = await aQueue();
+    const id = await anEmailTicket(queueId, 'Shared desk');
+
+    await runWithContext({ ...context, userId: colleagueId }, () => markTicketRead(id));
+
+    expect(await unreadFor(true)).toBe(1);
   });
 });
 

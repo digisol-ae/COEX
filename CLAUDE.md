@@ -85,6 +85,11 @@ The full scope document lives in the Claude project "ECHO System Development" as
 15. osTicket migration (M7) covers open tickets only, and only if straightforward. No full import.
 16. Attachments live on the Contabo VPS (100 GB); archival starts at 50 GB used. DigiSol owns and
     operates backups. Figma adoption is dropped.
+17. Unread marks (25 Sep 2026): a ticket is unread for a person when the customer has written (a
+    new email ticket or a reply) since that person last opened it. Staff activity never marks
+    anything. Marks go to the assignee, and on unassigned tickets to everyone with
+    ticket.read.all. The Support badge on the rail counts unread tickets, not open ones, and polls
+    every 30 seconds so it moves on any page. Read state is per person (ticket-read model).
 
 ## Code standards
 

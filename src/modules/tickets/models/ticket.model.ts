@@ -81,6 +81,8 @@ const ticketSchema = new Schema(
     customFields: { type: Map, of: Schema.Types.Mixed, default: () => new Map() },
 
     lastActivityAt: { type: Date, default: Date.now, index: true },
+    /** When the customer last wrote. Staff activity never moves it; it drives the unread mark. */
+    customerActivityAt: { type: Date, default: null },
     createdById: { type: Schema.Types.ObjectId, ref: 'User', default: null },
 
     deletedAt: { type: Date, default: null, index: true },

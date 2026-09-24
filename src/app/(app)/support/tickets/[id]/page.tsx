@@ -19,6 +19,7 @@ import { TicketTimerButton } from '@/modules/time/components/ticket-timer-button
 import { Conversation } from './conversation';
 import { ReplyBox } from './reply-box';
 import { Properties } from './properties';
+import { MarkTicketRead } from './mark-read';
 
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
   const actor = await requirePermission('ticket.read.own');
@@ -72,6 +73,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
                 {ticket.number}
               </span>
               <LiveRefresh />
+              <MarkTicketRead ticketId={ticket.id} unread={ticket.unread} />
             </div>
           }
         />

@@ -123,6 +123,7 @@ export default async function TicketsPage({
                       href={`/support/tickets/${ticket.id}`}
                       className="mt-2 block text-sm font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
                     >
+                      {ticket.unread ? <UnreadMark /> : null}
                       {ticket.subject}
                     </Link>
                     <p className="mt-1 truncate text-xs text-[var(--color-ink-subtle)]">
@@ -220,6 +221,7 @@ export default async function TicketsPage({
                           href={`/support/tickets/${ticket.id}`}
                           className="block truncate font-medium text-[var(--color-ink)] underline-offset-4 group-hover:underline"
                         >
+                          {ticket.unread ? <UnreadMark /> : null}
                           {ticket.subject}
                         </Link>
 
@@ -310,4 +312,16 @@ function statusClass(status: TicketStatus) {
     closed: 'text-[var(--color-status-ok)]',
   }[status];
   return `text-xs font-semibold ${tone}`;
+}
+
+/** The customer has written since you last opened this ticket. */
+function UnreadMark() {
+  return (
+    <span
+      className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[var(--color-brand-red)] align-middle"
+      title="New from the customer since you last opened it"
+    >
+      <span className="sr-only">New: </span>
+    </span>
+  );
 }

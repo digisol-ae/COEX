@@ -33,6 +33,7 @@ import {
   updateQueue,
   type QueueTarget,
 } from '@/modules/tickets/services/queue.service';
+import { markTicketRead } from '@/modules/tickets/services/unread.service';
 
 export interface SupportFormState {
   error?: string;
@@ -77,6 +78,16 @@ function refreshTicket(id: string): void {
   revalidatePath('/support/tickets');
   revalidatePath('/support/metrics');
   revalidatePath('/dashboard');
+}
+
+/**
+ * Clears the current person's unread mark once a ticket is on their screen. Revalidating the page
+ * re-renders the shell with it, so the Support icon drops the ticket straight away.
+ */
+export async function markTicketReadAction(id: string): Promise<void> {
+  const actor = await requirePermission('ticket.read.own');
+  await asUser(actor, () => markTicketRead(id));
+  revalidatePath(`/support/tickets/${id}`);
 }
 
 export async function createTicketAction(
