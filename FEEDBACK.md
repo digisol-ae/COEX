@@ -7,6 +7,10 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 0. Local phone QA: after the 24 Sep LAN development-server restart, John must confirm that the
    menu drawer, timer tray and sign-out controls respond to touch. Also confirm Ticket Status and
    Priority text stays fully visible on phone and desktop.
+   24 Sep QA fixes, retested and accepted by John on 24 Sep ("looks ok"): the phone menu drawer is now portalled to
+   the page body, because the header's backdrop blur was confining it to the header strip; and
+   escalating a ticket now records the ticket on the new task, so Task work updates and completion
+   reach the ticket as internal notes. Older escalated tasks fall back to the ticket's own link.
 
 0a. Before production email intake is enabled, decide the mailbox polling frequency and configure
     a separate app-server UID baseline. Historic unread mail must not become tickets by accident.

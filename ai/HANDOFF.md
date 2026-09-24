@@ -1,5 +1,14 @@
 # COEX — AI Handoff
 
+## Update — 24 Sep 2026, Claude
+
+QA fixes applied and accepted by John: `task.service.ts` (createTask accepts `sourceTicketId`;
+`sourceTicketIdFor` helper used by work updates and completion), `ticket.service.ts` (escalation
+passes the ticket id), `mobile-navigation.tsx` (drawer via `createPortal`), `next.config.ts`
+(comment corrected). The two service files were also Prettier-formatted. Known open item: the
+Tasks module imports Tickets models directly, against the module-boundary rule; move to an
+outbox event or core service when John schedules it.
+
 ## Current Handoff — 24 Sep 2026
 
 ### From

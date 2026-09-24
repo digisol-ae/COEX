@@ -10,6 +10,12 @@
 > and mobile ticket cards; (4) only then plan a scoped push/deployment. Do not schedule inbound
 > email polling until John confirms a frequency and the app-server setup.
 
+**Update, later on 24 Sep (Claude):** QA found and fixed two defects: escalation never set
+`sourceTicketId`, so no Task update reached its ticket; and the phone menu drawer was confined to
+the header by its backdrop blur (now portalled to `<body>`). John retested and accepted. Next:
+John commits locally; push and deployment still need his separate approval. No new features
+until he approves them.
+
 ## Historical Task — 2026-09-23
 
 Batch B: space visibility (option B, chosen by John on 22 Sep 2026) and the matching

@@ -6,7 +6,7 @@ import type { NextConfig } from 'next';
  *
  * experimental.serverActions.bodySizeLimit raises Next's own request ceiling for anything
  * submitted through a Server Action, ticket attachments included. Next's default is 1MB, which a
- * single photo from a phone already clears; the application's own per-file cap of 25MB, and the
+ * single photo from a phone already clears; the application's own caps of 3MB per file and 10MB per message, and the
  * server-side image resize and re-encode on the way in, are unrelated and already handle a large
  * attachment sensibly once the request is allowed to arrive at all. 30MB comfortably covers one
  * large file plus a few smaller ones in the same ticket, with room to raise it further if a

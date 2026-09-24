@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { NavigationGroup } from './navigation';
 import { NavigationTree } from './navigation-tree';
 
@@ -57,50 +58,55 @@ export function MobileNavigation({
         </svg>
       </button>
 
-      {open ? (
-        <div className="fixed inset-0 z-50 flex">
-          <button
-            type="button"
-            aria-label="Close menu"
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-[var(--color-brand-black)]/30"
-          />
-
-          <div className="relative flex h-full w-72 max-w-[85vw] flex-col overflow-y-auto bg-[var(--color-surface)] px-3 py-5">
-            <div className="mb-6 flex items-center justify-between pl-2">
-              <Image
-                src="/brand/logo-long.png"
-                alt="DigiSol"
-                width={130}
-                height={28}
-                className="h-6 w-auto"
-              />
-
+      {/* Portalled to <body>: the header's backdrop blur makes it the containing block for any
+          fixed child, which would squeeze the drawer into the header strip on a phone. */}
+      {open
+        ? createPortal(
+            <div className="fixed inset-0 z-50 flex md:hidden">
               <button
                 type="button"
-                onClick={() => setOpen(false)}
                 aria-label="Close menu"
-                className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-ink-subtle)] hover:text-[var(--color-ink)]"
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path
-                    d="M4 4l8 8M12 4l-8 8"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            </div>
+                onClick={() => setOpen(false)}
+                className="absolute inset-0 bg-[var(--color-brand-black)]/30"
+              />
 
-            <NavigationTree
-              groups={groups}
-              canManageTasks={canManageTasks}
-              onNavigate={() => setOpen(false)}
-            />
-          </div>
-        </div>
-      ) : null}
+              <div className="relative flex h-full w-72 max-w-[85vw] flex-col overflow-y-auto bg-[var(--color-surface)] px-3 py-5">
+                <div className="mb-6 flex items-center justify-between pl-2">
+                  <Image
+                    src="/brand/logo-long.png"
+                    alt="DigiSol"
+                    width={130}
+                    height={28}
+                    className="h-6 w-auto"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    aria-label="Close menu"
+                    className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-ink-subtle)] hover:text-[var(--color-ink)]"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <path
+                        d="M4 4l8 8M12 4l-8 8"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                <NavigationTree
+                  groups={groups}
+                  canManageTasks={canManageTasks}
+                  onNavigate={() => setOpen(false)}
+                />
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

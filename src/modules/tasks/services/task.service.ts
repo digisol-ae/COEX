@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { repository } from '@/lib/repository';
@@ -231,6 +232,24 @@ export interface TaskCommentView {
   createdAt: Date;
 }
 
+/**
+ * The ticket a task was escalated from. Tasks escalated before sourceTicketId was written only
+ * carry the link on the ticket side, so fall back to that rather than silently dropping updates.
+ */
+async function sourceTicketIdFor(task: {
+  _id: Types.ObjectId;
+  sourceTicketId?: Types.ObjectId | null;
+}): Promise<Types.ObjectId | null> {
+  if (task.sourceTicketId) return task.sourceTicketId;
+  const ticket = await TicketModel.findOne({
+    tenantId: getContext().tenantId,
+    escalatedTaskId: task._id,
+  })
+    .select('_id')
+    .lean<{ _id: Types.ObjectId }>();
+  return ticket?._id ?? null;
+}
+
 /** Task notes are internal work updates, never customer-facing messages. */
 export async function listTaskComments(taskId: string): Promise<TaskCommentView[]> {
   const task = await getTask(taskId);
@@ -261,7 +280,10 @@ export async function addTaskComment(taskId: string, body: string): Promise<void
   if (!task) throw new Error('Task not found.');
 
   const context = getContext();
-  const author = await UserModel.findOne({ _id: context.userId, tenantId: context.tenantId }).select('name');
+  const author = await UserModel.findOne({
+    _id: context.userId,
+    tenantId: context.tenantId,
+  }).select('name');
   const authorName = author?.name ?? 'Unknown agent';
 
   await taskComments().create({
@@ -273,11 +295,12 @@ export async function addTaskComment(taskId: string, body: string): Promise<void
 
   await tasks().updateOne({ _id: task._id }, { $set: { lastActivityAt: new Date() } });
 
-  if (task.sourceTicketId) {
+  const sourceTicketId = await sourceTicketIdFor(task);
+  if (sourceTicketId) {
     const now = new Date();
     await TicketMessageModel.create({
       tenantId: context.tenantId,
-      ticketId: task.sourceTicketId,
+      ticketId: sourceTicketId,
       visibility: 'internal',
       direction: 'outbound',
       body: `Task ${task.number} update\n${text}`,
@@ -286,7 +309,7 @@ export async function addTaskComment(taskId: string, body: string): Promise<void
       channel: 'agent',
     });
     await TicketModel.updateOne(
-      { _id: task.sourceTicketId, tenantId: context.tenantId },
+      { _id: sourceTicketId, tenantId: context.tenantId },
       { $set: { lastActivityAt: now } },
     );
   }
@@ -305,6 +328,8 @@ export interface CreateTaskInput {
   folderId?: string | null;
   /** Adding straight into a column, from the board. Anything else opens in the first column. */
   status?: string;
+  /** Set when support escalates a ticket, so work updates on the task can reach that ticket. */
+  sourceTicketId?: string | null;
 }
 
 /**
@@ -313,7 +338,11 @@ export interface CreateTaskInput {
  * The alternative is creating a task its own owner cannot open, which is a worse outcome than any
  * refusal, and one nobody would think to look for.
  */
-async function assertAssignable(folderId: string | null, assigneeIds: string[], spaceId?: string): Promise<void> {
+async function assertAssignable(
+  folderId: string | null,
+  assigneeIds: string[],
+  spaceId?: string,
+): Promise<void> {
   const spaceAllowed = spaceId ? await assignableSpaceMemberIds(spaceId) : null;
   if (spaceAllowed && assigneeIds.some((id) => !spaceAllowed.includes(id))) {
     throw new Error('That space is private, so work in it can only be assigned to its members.');
@@ -353,7 +382,11 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
 
   const firstColumn = column ?? columns[0];
 
-  await assertAssignable(input.folderId ?? null, (input.assigneeIds ?? []).filter(Boolean), input.spaceId);
+  await assertAssignable(
+    input.folderId ?? null,
+    (input.assigneeIds ?? []).filter(Boolean),
+    input.spaceId,
+  );
 
   const assigneeIds = (input.assigneeIds ?? []).filter(Boolean).map((id) => toObjectId(id));
 
@@ -376,6 +409,7 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     estimateMinutes: input.estimateMinutes ?? null,
     sortOrder: Date.now(),
     organisationId: toOptionalObjectId(input.organisationId ?? space.organisationId),
+    sourceTicketId: toOptionalObjectId(input.sourceTicketId),
     isClosed: firstColumn?.isClosed ?? false,
     lastActivityAt: new Date(),
     createdById: getContext().userId,
@@ -450,11 +484,12 @@ export async function moveTask(id: string, status: string): Promise<void> {
 
   // Completion is useful to support even when the assignee did not leave a written update.
   // This is an internal system event, never a customer reply.
-  if (!wasClosed && column.isClosed && task.sourceTicketId) {
+  const completedTicketId = !wasClosed && column.isClosed ? await sourceTicketIdFor(task) : null;
+  if (completedTicketId) {
     const context = getContext();
     await TicketMessageModel.create({
       tenantId: context.tenantId,
-      ticketId: task.sourceTicketId,
+      ticketId: completedTicketId,
       visibility: 'internal',
       direction: 'outbound',
       body: `Task ${task.number} marked complete.`,
@@ -463,7 +498,7 @@ export async function moveTask(id: string, status: string): Promise<void> {
       channel: 'system',
     });
     await TicketModel.updateOne(
-      { _id: task.sourceTicketId, tenantId: context.tenantId },
+      { _id: completedTicketId, tenantId: context.tenantId },
       { $set: { lastActivityAt: new Date() } },
     );
   }

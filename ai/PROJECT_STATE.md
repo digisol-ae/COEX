@@ -12,6 +12,11 @@
 > yet. `.env.local` contains local secrets/settings and is never committed. Phone header controls
 > need one final actual-device check after the development-server restart.
 
+> **Later on 24 Sep (Claude):** QA fixes accepted by John: escalated Tasks now carry
+> `sourceTicketId` (with a fallback via the ticket's `escalatedTaskId` for older tasks), and the
+> phone menu drawer renders through a portal. The hydration warning seen in development comes from
+> a Chrome extension injecting `__gcr*` attributes, not from COEX. Type check and lint pass.
+
 ## Purpose
 
 This is the shared working memory for AI agents collaborating on COEX.
