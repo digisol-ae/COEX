@@ -9,6 +9,10 @@ import { replyAction, type SupportFormState } from '../../actions';
 
 const initialState: SupportFormState = {};
 
+/** Mirrors MAX_FILE_BYTES in attachment.service.ts, the server's real limit. Checking here only
+ * gives an earlier, friendlier message; the server enforces this regardless. */
+const MAX_FILE_BYTES = 25 * 1024 * 1024;
+
 /**
  * Writing a reply.
  *
@@ -31,6 +35,7 @@ export function ReplyBox({
 }) {
   const [visibility, setVisibility] = useState<'public' | 'internal'>('public');
   const [usedReplyId, setUsedReplyId] = useState('');
+  const [oversizedFiles, setOversizedFiles] = useState<string[]>([]);
   const [state, formAction, pending] = useActionState(replyAction, initialState);
   const box = useRef<HTMLTextAreaElement>(null);
 
@@ -134,9 +139,22 @@ export function ReplyBox({
               type="file"
               name="files"
               multiple
+              onChange={(event) => {
+                const tooBig = Array.from(event.target.files ?? [])
+                  .filter((file) => file.size > MAX_FILE_BYTES)
+                  .map((file) => file.name);
+                setOversizedFiles(tooBig);
+              }}
               className="text-[11px] text-[var(--color-ink-subtle)] file:hidden"
             />
           </label>
+
+          {oversizedFiles.length > 0 ? (
+            <Notice tone="alert">
+              {oversizedFiles.join(', ')} {oversizedFiles.length === 1 ? 'is' : 'are'} over 25MB.
+              Send a link to it instead, or remove it before submitting.
+            </Notice>
+          ) : null}
 
           {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
 

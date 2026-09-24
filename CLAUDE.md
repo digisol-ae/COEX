@@ -19,8 +19,8 @@ Confirmed product name. The repository is COEX.
 
 ## Where we are
 
-M1 Foundation is accepted. M2 CRM foundation is built: customers, contacts, sites, products, the
-single activity timeline and per tenant custom fields. M3 Tasks and dashboard is next.
+M1 Foundation is accepted. M2 CRM foundation, M3 Tasks and dashboard, M4 Time tracking and M5
+Support are built. Current work is local verification, mobile QA and controlled rollout.
 
 Conventions worth knowing before changing CRM code:
 
@@ -47,20 +47,25 @@ The full scope document lives in the Claude project "ECHO System Development" as
 3. Job queue: MongoDB backed, no Redis. Wrapped in a thin service so BullMQ can replace it later.
 4. Multi tenant from day one. Every document carries tenantId, enforced in the data access layer.
 5. Documents live in Microsoft 365. Tasks store links, never files. Ticket attachments are the one
-   exception and are compressed automatically on upload.
+   exception and are compressed automatically on upload. DigiSol's own cloud server is the planned
+   production store; application limits are 3 MB per file and 10 MB per ticket message.
 6. No ClickUp data migration. osTicket migrates in full.
 7. No knowledge base, no automations builder, no whiteboards, no goals.
 8. Task structure is four levels: Space, Folder, Task, Subtask. Set by John's team on 18 Sep 2026,
-   replacing the three level structure agreed the day before. A folder is the only place visibility
-   is decided: no members named on it means everyone who can open the space sees it; name members
-   and it is private to exactly those people, a tenant administrator excepted. Work in a private
-   folder can only be assigned to its members, and closing a folder around work assigned outside it
-   is refused. Phases were removed: a folder does everything a phase did and adds visibility, so
-   keeping both would give the team two ways to group the same work. Portfolios were removed
-   earlier. scripts/migrate-spaces.ts carries an older database across.
+   replacing the three level structure agreed the day before. A Space or Folder without named
+   members is open to the tenant; naming members makes it private to exactly those members, a
+   tenant administrator excepted. Work in a private Space or Folder can only be assigned to its
+   members, and making one private while it strands an assignee is refused. Phases were removed: a
+   folder does everything a phase did and adds visibility, so keeping both would give the team two
+   ways to group the same work. Portfolios were removed earlier. scripts/migrate-spaces.ts carries
+   an older database across.
 9. XVERSE integration: COEX writes events to an outbox, a connector sends them. Both sides are ours.
 10. Client tenants will be billed eventually. The model is undecided, so tenant settings carry an
     inert commercial block and nothing more.
+11. Ticket-linked Task work updates are internal support notes. They may update the linked ticket,
+    but must never notify the customer automatically.
+12. IMAP email intake is configured locally only. It must use a per-mailbox UID baseline so old
+    unread mail cannot be imported accidentally; production polling is a deployment decision.
 
 ## Code standards
 

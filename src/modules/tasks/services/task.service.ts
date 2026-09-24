@@ -7,6 +7,7 @@ import { nextNumber } from '@/modules/core/services/numbering.service';
 import { recordActivity } from '@/modules/crm/services/activity.service';
 import { UserModel } from '@/modules/core/models/user.model';
 import { TaskModel } from '../models/task.model';
+import { TaskCommentModel } from '../models/task-comment.model';
 import { SpaceModel } from '../models/space.model';
 import { FolderModel } from '../models/folder.model';
 import { TimeEntryModel } from '@/modules/time/models/time-entry.model';
@@ -19,6 +20,8 @@ import {
   workingMinutesBetween,
   type WorkingCalendar,
 } from '@/modules/tickets/business-hours';
+import { TicketModel } from '@/modules/tickets/models/ticket.model';
+import { TicketMessageModel } from '@/modules/tickets/models/ticket-message.model';
 
 /**
  * Tasks.
@@ -30,6 +33,7 @@ import {
  */
 
 const tasks = () => repository(TaskModel);
+const taskComments = () => repository(TaskCommentModel);
 
 /**
  * Planned hours come from the working calendar, not from elapsed time.
@@ -220,6 +224,74 @@ export async function getTask(id: string) {
   return task;
 }
 
+export interface TaskCommentView {
+  id: string;
+  body: string;
+  authorName: string;
+  createdAt: Date;
+}
+
+/** Task notes are internal work updates, never customer-facing messages. */
+export async function listTaskComments(taskId: string): Promise<TaskCommentView[]> {
+  const task = await getTask(taskId);
+  if (!task) return [];
+
+  const found = await taskComments()
+    .find({ taskId: toObjectId(taskId) })
+    .sort({ createdAt: 1 });
+
+  return found.map((comment) => ({
+    id: String(comment._id),
+    body: comment.body,
+    authorName: comment.authorName,
+    createdAt: comment.createdAt,
+  }));
+}
+
+/**
+ * Records a task update and mirrors it into its source ticket as an internal note. That mirror is
+ * intentionally one-way: task work may inform support staff, but it must never email a customer.
+ */
+export async function addTaskComment(taskId: string, body: string): Promise<void> {
+  const text = body.trim();
+  if (!text) throw new Error('Write a comment before posting it.');
+  if (text.length > 4_000) throw new Error('A comment can be up to 4,000 characters.');
+
+  const task = await getTask(taskId);
+  if (!task) throw new Error('Task not found.');
+
+  const context = getContext();
+  const author = await UserModel.findOne({ _id: context.userId, tenantId: context.tenantId }).select('name');
+  const authorName = author?.name ?? 'Unknown agent';
+
+  await taskComments().create({
+    taskId: task._id,
+    body: text,
+    authorUserId: context.userId,
+    authorName,
+  });
+
+  await tasks().updateOne({ _id: task._id }, { $set: { lastActivityAt: new Date() } });
+
+  if (task.sourceTicketId) {
+    const now = new Date();
+    await TicketMessageModel.create({
+      tenantId: context.tenantId,
+      ticketId: task.sourceTicketId,
+      visibility: 'internal',
+      direction: 'outbound',
+      body: `Task ${task.number} update\n${text}`,
+      authorUserId: context.userId,
+      authorName,
+      channel: 'agent',
+    });
+    await TicketModel.updateOne(
+      { _id: task.sourceTicketId, tenantId: context.tenantId },
+      { $set: { lastActivityAt: now } },
+    );
+  }
+}
+
 export interface CreateTaskInput {
   spaceId: string;
   title: string;
@@ -374,6 +446,26 @@ export async function moveTask(id: string, status: string): Promise<void> {
       sourceModule: 'tasks',
       sourceId: task._id,
     });
+  }
+
+  // Completion is useful to support even when the assignee did not leave a written update.
+  // This is an internal system event, never a customer reply.
+  if (!wasClosed && column.isClosed && task.sourceTicketId) {
+    const context = getContext();
+    await TicketMessageModel.create({
+      tenantId: context.tenantId,
+      ticketId: task.sourceTicketId,
+      visibility: 'internal',
+      direction: 'outbound',
+      body: `Task ${task.number} marked complete.`,
+      authorUserId: context.userId,
+      authorName: 'COEX',
+      channel: 'system',
+    });
+    await TicketModel.updateOne(
+      { _id: task.sourceTicketId, tenantId: context.tenantId },
+      { $set: { lastActivityAt: new Date() } },
+    );
   }
 }
 

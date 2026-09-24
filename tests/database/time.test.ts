@@ -57,7 +57,8 @@ describe('the timer', () => {
     await runWithContext(context, () => startTimer(taskId));
 
     const running = await runWithContext(context, () => getRunningTimer());
-    expect(running?.taskId).toBe(taskId);
+    expect(running?.kind).toBe('task');
+    expect(running?.itemId).toBe(taskId);
 
     await runWithContext(context, () => stopTimer());
 
@@ -77,7 +78,8 @@ describe('the timer', () => {
     await runWithContext(context, () => startTimer(second));
 
     const running = await runWithContext(context, () => getRunningTimer());
-    expect(running?.taskId).toBe(second);
+    expect(running?.kind).toBe('task');
+    expect(running?.itemId).toBe(second);
 
     const sheet = await runWithContext(context, () => loadTimesheet(new Date()));
     expect(sheet.entries.filter((entry) => entry.running)).toHaveLength(1);

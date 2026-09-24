@@ -40,7 +40,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
         title: link.title,
       })),
       loggedMinutes: await loggedMinutesForTask(id),
-      timerRunning: timer?.taskId === id,
+      timerRunning: timer?.kind === 'task' && timer?.itemId === id,
     };
   });
 

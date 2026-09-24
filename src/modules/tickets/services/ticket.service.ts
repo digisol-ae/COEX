@@ -581,11 +581,14 @@ export async function getTicketDetail(id: string): Promise<TicketDetail | null> 
  * promise belongs to the queue. It measures from when the ticket arrived, not from the move, so a
  * ticket cannot buy itself a fresh four hours by being passed around.
  */
-export async function assignTicket(ticketId: string, userId: string | null): Promise<void> {
+export async function assignTicket(ticketId: string, userId: string | null, note?: string): Promise<void> {
   await connectToDatabase();
 
   const ticket = await tickets().findById(ticketId);
   if (!ticket) throw new Error('Ticket not found.');
+  const changed = String(ticket.assigneeId ?? '') !== String(userId ?? '');
+  const reason = note?.trim() ?? '';
+  if (changed && ticket.assigneeId && !reason) throw new Error('Add a handover comment before assigning this ticket to another agent.');
 
   await tickets().updateOne(
     { _id: ticket._id },
@@ -601,6 +604,10 @@ export async function assignTicket(ticketId: string, userId: string | null): Pro
       { assigneeId: userId },
     ),
   });
+  if (changed && reason) {
+    const author = await UserModel.findOne({ _id: getContext().userId }).select('name');
+    await TicketMessageModel.create({ tenantId: getContext().tenantId, ticketId: ticket._id, visibility: 'internal', direction: 'outbound', body: `Reassigned: ${reason}`, authorUserId: getContext().userId, authorName: author?.name ?? 'Unknown', channel: 'agent' });
+  }
 }
 
 export async function setTicketPriority(ticketId: string, priority: Priority): Promise<void> {

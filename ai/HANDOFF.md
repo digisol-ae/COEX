@@ -1,5 +1,46 @@
 # COEX — AI Handoff
 
+## Current Handoff — 24 Sep 2026
+
+### From
+
+ChatGPT
+
+### To
+
+Claude
+
+### State
+
+The local implementation and this documentation are committed as a stable handoff baseline.
+No GitHub push or server deployment is authorised yet.
+
+Included local work:
+
+- Per-user permission grants/denials and product read/manage permissions.
+- Private Spaces, member settings, multi-assignee Tasks, and folder rename.
+- Task/ticket timers and grouped timer tray.
+- Attachment previews, transparent image overlay, safe downloads, 3 MB per file / 10 MB per
+  message limit, and image re-encoding.
+- Ticket Status/Priority/Agent controls, required reassignment reason, and responsive ticket cards.
+- Internal Task work updates mirrored to source tickets and internal completion events.
+- IMAP email importer with Message-ID deduplication, threading, existing CRM matching, and a local
+  UID safety watermark. It is not scheduled for production.
+- Phone development-host support and header touch/layering adjustment.
+
+Verification: `npm run build` passes. Four known dynamic filesystem tracing warnings from
+`src/lib/storage.ts` remain.
+
+Do next: retest the phone header; test Task-to-Ticket note flow; obtain John's UI acceptance; then
+prepare any push/deployment as a separate, explicitly approved step.
+
+Excluded: `.env.local` and the untracked `*.patch` scratch artifacts. Preserve those patches
+locally but do not add or delete them without John's direction.
+
+---
+
+## Historical Handoff — 2026-09-23
+
 This file is the explicit handover channel between Claude and ChatGPT.
 
 The active AI must update this file when handing work to another AI.

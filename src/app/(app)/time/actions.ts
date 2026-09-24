@@ -1,10 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { asUser, requirePermission } from '@/lib/session';
+import { redirect } from 'next/navigation';
+import { asUser, requirePermission, requireUser } from '@/lib/session';
 import {
   addManualEntry,
   removeEntry,
+  startTicketTimer,
   startTimer,
   stopTimer,
   updateEntry,
@@ -30,8 +32,24 @@ export async function startTimerAction(formData: FormData): Promise<void> {
   revalidatePath('/', 'layout');
 }
 
+export async function startTicketTimerAction(formData: FormData): Promise<void> {
+  const actor = await requirePermission('ticket.read.own');
+
+  await asUser(actor, () => startTicketTimer(text(formData, 'ticketId')));
+
+  revalidatePath('/', 'layout');
+}
+
 export async function stopTimerAction(): Promise<void> {
-  const actor = await requirePermission('task.read.own');
+  // Whichever timer is running, task or ticket, only one of the two matching permissions may be
+  // held by the person who started it: a support only role can hold ticket.read.own without
+  // task.read.own now that access is editable per person, and that person still has to be able
+  // to press stop on their own running ticket timer.
+  const actor = await requireUser();
+
+  if (!actor.permissions.includes('task.read.own') && !actor.permissions.includes('ticket.read.own')) {
+    redirect('/dashboard?denied=task.read.own');
+  }
 
   await asUser(actor, () => stopTimer());
 

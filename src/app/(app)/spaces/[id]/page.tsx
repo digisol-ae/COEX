@@ -91,7 +91,7 @@ export default async function SpacePage({
         users={users.map((user) => ({ id: user.id, name: user.name }))}
         canManage={actor.permissions.includes('task.manage')}
         initialView={view === 'list' ? 'list' : view === 'gantt' ? 'gantt' : 'board'}
-        runningTaskId={runningTimer?.taskId ?? null}
+        runningTaskId={runningTimer?.kind === 'task' ? runningTimer.itemId : null}
       />
     </div>
   );

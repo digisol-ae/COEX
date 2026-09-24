@@ -29,9 +29,16 @@ const tickets = () => repository(TicketModel);
 const MAX_IMAGE_EDGE = 2000;
 
 /** One file, not one upload: ten small screenshots are fine, a virtual machine image is not. */
-export const MAX_FILE_BYTES = 25 * 1024 * 1024;
+export const MAX_FILE_BYTES = 3 * 1024 * 1024;
+/** Many small files can consume storage just as quickly as one large one. */
+export const MAX_MESSAGE_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 
-const PROCESSED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+/**
+ * The only content types re-encoded on the way in, and the only ones ever served back inline for
+ * a preview. Not svg: an svg can carry a script, and running it on this origin defeats the whole
+ * point of the attachment route always serving as a forced download.
+ */
+export const PROCESSED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 export interface IncomingFile {
   fileName: string;
@@ -71,7 +78,9 @@ async function prepare(file: IncomingFile): Promise<{ body: Buffer; processed: b
     const body =
       file.contentType === 'image/png'
         ? await pipeline.png({ compressionLevel: 9 }).toBuffer()
-        : await pipeline.jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+        : file.contentType === 'image/webp'
+          ? await pipeline.webp({ quality: 82 }).toBuffer()
+          : await pipeline.jpeg({ quality: 82, mozjpeg: true }).toBuffer();
 
     if (body.byteLength >= file.body.byteLength) return { body: file.body, processed: false };
 
@@ -95,12 +104,17 @@ export async function attachToMessage(
   const storage = fileStorage();
   const stored: StoredAttachment[] = [];
 
+  const totalBytes = files.reduce((sum, file) => sum + file.body.byteLength, 0);
+  if (totalBytes > MAX_MESSAGE_ATTACHMENT_BYTES) {
+    throw new Error(`Attachments total more than ${Math.round(MAX_MESSAGE_ATTACHMENT_BYTES / (1024 * 1024))}MB. Send a cloud link instead.`);
+  }
+
   for (const file of files) {
     if (file.body.byteLength === 0) continue;
 
     if (file.body.byteLength > MAX_FILE_BYTES) {
       throw new Error(
-        `${file.fileName} is larger than ${Math.round(MAX_FILE_BYTES / (1024 * 1024))}MB. Send a link to it instead.`,
+        `${file.fileName} is larger than ${Math.round(MAX_FILE_BYTES / (1024 * 1024))}MB. Send a cloud link instead.`,
       );
     }
 

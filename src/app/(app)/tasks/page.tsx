@@ -67,7 +67,7 @@ export default async function TasksPage({
           users={users.map((user) => ({ id: user.id, name: user.name }))}
           columnsBySpace={columnsBySpace}
           canManage={actor.permissions.includes('task.manage')}
-          runningTaskId={runningTimer?.taskId ?? null}
+          runningTaskId={runningTimer?.kind === 'task' ? runningTimer.itemId : null}
         />
       </div>
     </div>

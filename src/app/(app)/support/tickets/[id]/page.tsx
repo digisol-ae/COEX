@@ -12,6 +12,9 @@ import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { StatusPill } from '@/components/ui/pill';
 import { SlaChip } from '@/components/ui/sla';
 import { formatDateTime } from '@/modules/tasks/dates';
+import { formatMinutes } from '@/modules/time/week';
+import { getRunningTimer, loggedMinutesForTicket } from '@/modules/time/services/time.service';
+import { TicketTimerButton } from '@/modules/time/components/ticket-timer-button';
 import { Conversation } from './conversation';
 import { ReplyBox } from './reply-box';
 import { Properties } from './properties';
@@ -28,12 +31,19 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
 
   const canManage = actor.permissions.includes('ticket.manage');
 
-  const { queues, users, spaces, cannedReplies } = await asUser(actor, async () => ({
-    queues: await listQueues(),
-    users: await listUsers(),
-    spaces: actor.permissions.includes('task.manage') ? await listSpaces() : [],
-    cannedReplies: await listCannedReplies({ queueId: ticket.queueId }),
-  }));
+  const { queues, users, spaces, cannedReplies, runningTimer, loggedMinutes } = await asUser(
+    actor,
+    async () => ({
+      queues: await listQueues(),
+      users: await listUsers(),
+      spaces: actor.permissions.includes('task.manage') ? await listSpaces() : [],
+      cannedReplies: await listCannedReplies({ queueId: ticket.queueId }),
+      runningTimer: await getRunningTimer(),
+      loggedMinutes: await loggedMinutesForTicket(id),
+    }),
+  );
+
+  const timerRunning = runningTimer?.kind === 'ticket' && runningTimer.itemId === id;
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -98,6 +108,11 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
                 />
                 <span>{CHANNEL_LABELS[ticket.channel] ?? ticket.channel}</span>
                 <span>Raised {formatDateTime(ticket.createdAt)}</span>
+                {loggedMinutes > 0 ? <span>{formatMinutes(loggedMinutes)} logged</span> : null}
+              </div>
+
+              <div className="mt-3">
+                <TicketTimerButton ticketId={ticket.id} running={timerRunning} />
               </div>
             </CardSection>
           </Card>

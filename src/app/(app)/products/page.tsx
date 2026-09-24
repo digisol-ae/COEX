@@ -14,10 +14,10 @@ const PERIOD_LABEL: Record<string, string> = {
 };
 
 export default async function ProductsPage() {
-  const actor = await requirePermission('customer.read');
+  const actor = await requirePermission('products.read');
   const products = await asUser(actor, () => listProducts(true));
 
-  const editable = actor.permissions.includes('customer.manage');
+  const editable = actor.permissions.includes('products.manage');
 
   return (
     <div className="mx-auto max-w-5xl">

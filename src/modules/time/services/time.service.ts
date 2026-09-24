@@ -4,6 +4,7 @@ import { repository } from '@/lib/repository';
 import { toObjectId } from '@/lib/ids';
 import { recordAudit, changedFields } from '@/modules/core/services/audit.service';
 import { TaskModel } from '@/modules/tasks/models/task.model';
+import { TicketModel } from '@/modules/tickets/models/ticket.model';
 import { TimeEntryModel } from '../models/time-entry.model';
 import { WeekLockModel } from '../models/week-lock.model';
 import { startOfDay, startOfWeek, toDateKey } from '../week';
@@ -21,9 +22,10 @@ const entries = () => repository(TimeEntryModel);
 
 export interface RunningTimer {
   entryId: string;
-  taskId: string;
-  taskNumber: string;
-  taskTitle: string;
+  kind: 'task' | 'ticket';
+  itemId: string;
+  itemNumber: string;
+  itemTitle: string;
   startedAt: Date;
   elapsedMinutes: number;
 }
@@ -37,15 +39,30 @@ export async function getRunningTimer(userId?: string): Promise<RunningTimer | n
   const running = await entries().findOne({ userId: owner, running: true });
   if (!running) return null;
 
-  const task = await TaskModel.findOne({ _id: running.taskId, tenantId: context.tenantId });
-
   const startedAt = running.startedAt ?? running.createdAt;
+
+  if (running.taskId) {
+    const task = await TaskModel.findOne({ _id: running.taskId, tenantId: context.tenantId });
+
+    return {
+      entryId: String(running._id),
+      kind: 'task',
+      itemId: String(running.taskId),
+      itemNumber: task?.number ?? '',
+      itemTitle: task?.title ?? 'Unknown task',
+      startedAt,
+      elapsedMinutes: Math.floor((Date.now() - startedAt.getTime()) / 60000),
+    };
+  }
+
+  const ticket = await TicketModel.findOne({ _id: running.ticketId, tenantId: context.tenantId });
 
   return {
     entryId: String(running._id),
-    taskId: String(running.taskId),
-    taskNumber: task?.number ?? '',
-    taskTitle: task?.title ?? 'Unknown task',
+    kind: 'ticket',
+    itemId: String(running.ticketId),
+    itemNumber: ticket?.number ?? '',
+    itemTitle: ticket?.subject ?? 'Unknown ticket',
     startedAt,
     elapsedMinutes: Math.floor((Date.now() - startedAt.getTime()) / 60000),
   };
@@ -60,6 +77,15 @@ export async function loggedMinutesForTask(taskId: string): Promise<number> {
   return found.reduce((sum, entry) => sum + (entry.minutes ?? 0), 0);
 }
 
+/** Every minute recorded against one ticket, by everyone. */
+export async function loggedMinutesForTicket(ticketId: string): Promise<number> {
+  await connectToDatabase();
+
+  const found = await entries().find({ ticketId: toObjectId(ticketId) });
+
+  return found.reduce((sum, entry) => sum + (entry.minutes ?? 0), 0);
+}
+
 /**
  * Every timer this person has started today, running or already stopped.
  *
@@ -70,9 +96,10 @@ export async function loggedMinutesForTask(taskId: string): Promise<number> {
  */
 export interface TodayTimer {
   entryId: string;
-  taskId: string;
-  taskNumber: string;
-  taskTitle: string;
+  kind: 'task' | 'ticket';
+  itemId: string;
+  itemNumber: string;
+  itemTitle: string;
   minutes: number;
   running: boolean;
 }
@@ -85,40 +112,63 @@ export async function listTodaysTimers(): Promise<TodayTimer[]> {
 
   const found = await entries().find({ userId: context.userId, workDate: today, source: 'timer' });
 
-  const tasks = await TaskModel.find({
-    _id: { $in: found.map((entry) => entry.taskId) },
-  }).select('number title');
+  const [tasks, tickets] = await Promise.all([
+    TaskModel.find({
+      _id: { $in: found.filter((entry) => entry.taskId).map((entry) => entry.taskId) },
+    }).select('number title'),
+    TicketModel.find({
+      _id: { $in: found.filter((entry) => entry.ticketId).map((entry) => entry.ticketId) },
+    }).select('number subject'),
+  ]);
 
   const taskById = new Map(tasks.map((task) => [String(task._id), task]));
+  const ticketById = new Map(tickets.map((ticket) => [String(ticket._id), ticket]));
 
-  // Grouped by task, not one row per start-and-stop segment, so switching between two tasks a
+  // Grouped by item, not one row per start-and-stop segment, so switching between two things a
   // dozen times today shows as two rows with their totals, not a dozen. The one-timer-at-a-time
-  // design means at most one task is ever "running"; every stopped segment for a task, today's
-  // total, and today's total only, folds into that task's single row.
-  const byTask = new Map<string, { number: string; title: string; minutes: number; running: boolean }>();
+  // design means at most one item is ever "running"; every stopped segment for an item, today's
+  // total, and today's total only, folds into that item's single row. A task and a ticket sharing
+  // a coincidentally equal id string are kept apart by the 't:'/'k:' prefix on the grouping key.
+  const byItem = new Map<
+    string,
+    { kind: 'task' | 'ticket'; itemId: string; number: string; title: string; minutes: number; running: boolean }
+  >();
 
   for (const entry of found) {
-    const taskId = String(entry.taskId);
+    const kind: 'task' | 'ticket' = entry.taskId ? 'task' : 'ticket';
+    const itemId = String(entry.taskId ?? entry.ticketId);
+    const key = `${kind === 'task' ? 't' : 'k'}:${itemId}`;
+
     const startedAt = entry.startedAt ?? entry.createdAt;
     const minutes = entry.running
       ? Math.max(0, Math.floor((Date.now() - startedAt.getTime()) / 60000))
       : (entry.minutes ?? 0);
 
-    const existing = byTask.get(taskId);
-    byTask.set(taskId, {
-      number: taskById.get(taskId)?.number ?? '',
-      title: taskById.get(taskId)?.title ?? 'Unknown task',
+    const existing = byItem.get(key);
+    const number =
+      kind === 'task' ? (taskById.get(itemId)?.number ?? '') : (ticketById.get(itemId)?.number ?? '');
+    const title =
+      kind === 'task'
+        ? (taskById.get(itemId)?.title ?? 'Unknown task')
+        : (ticketById.get(itemId)?.subject ?? 'Unknown ticket');
+
+    byItem.set(key, {
+      kind,
+      itemId,
+      number,
+      title,
       minutes: (existing?.minutes ?? 0) + minutes,
       running: (existing?.running ?? false) || (entry.running ?? false),
     });
   }
 
-  return Array.from(byTask.entries())
-    .map(([taskId, row]) => ({
-      entryId: taskId,
-      taskId,
-      taskNumber: row.number,
-      taskTitle: row.title,
+  return Array.from(byItem.entries())
+    .map(([key, row]) => ({
+      entryId: key,
+      kind: row.kind,
+      itemId: row.itemId,
+      itemNumber: row.number,
+      itemTitle: row.title,
       minutes: row.minutes,
       running: row.running,
     }))
@@ -172,6 +222,54 @@ export async function startTimer(taskId: string): Promise<void> {
     entityType: 'Task',
     entityId: task._id,
     after: { task: task.number },
+  });
+}
+
+/**
+ * The same timer, against a ticket instead of a task.
+ *
+ * Mirrors `startTimer` deliberately rather than sharing a generic helper: a task always has a
+ * space and a ticket never does, so trying to unify the two bodies would mean threading optional
+ * fields through both call sites for a saving of a dozen lines. One running timer per person still
+ * holds, enforced the same way, by the same database index, whichever kind was running before.
+ */
+export async function startTicketTimer(ticketId: string): Promise<void> {
+  await connectToDatabase();
+
+  const context = getContext();
+
+  const ticket = await TicketModel.findOne({
+    _id: toObjectId(ticketId),
+    tenantId: context.tenantId,
+    deletedAt: null,
+  });
+
+  if (!ticket) throw new Error('Ticket not found.');
+
+  const running = await entries().findOne({ userId: context.userId, running: true });
+  if (running) {
+    await stopTimer(String(running._id));
+  }
+
+  const now = new Date();
+  await assertWeekOpen(now);
+
+  await entries().create({
+    userId: context.userId,
+    ticketId: ticket._id,
+    organisationId: ticket.organisationId ?? null,
+    workDate: startOfDay(now),
+    startedAt: now,
+    running: true,
+    source: 'timer',
+    minutes: 0,
+  });
+
+  await recordAudit({
+    action: 'time.timer_started',
+    entityType: 'Ticket',
+    entityId: ticket._id,
+    after: { ticket: ticket.number },
   });
 }
 

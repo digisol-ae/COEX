@@ -50,7 +50,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-[var(--color-line)] bg-[var(--color-surface)]/95 px-4 py-2 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-40 flex touch-manipulation items-center gap-3 border-b border-[var(--color-line)] bg-[var(--color-surface)]/95 px-4 py-2 pointer-events-auto backdrop-blur sm:px-6">
           <MobileNavigation
             groups={groups}
             canManageTasks={user.permissions.includes('task.manage')}
@@ -66,9 +66,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
           {timer ? (
             <RunningTimer
-              taskId={timer.taskId}
-              taskNumber={timer.taskNumber}
-              taskTitle={timer.taskTitle}
+              kind={timer.kind}
+              itemId={timer.itemId}
+              itemNumber={timer.itemNumber}
+              itemTitle={timer.itemTitle}
               startedAt={timer.startedAt.toISOString()}
             />
           ) : null}

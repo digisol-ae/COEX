@@ -11,11 +11,11 @@ import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { STATUS_LABELS } from '@/modules/tickets/labels';
 import { Card, EmptyState, Notice, PageHeader } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
-import { StatusPill, PriorityFlag } from '@/components/ui/pill';
 import { SlaChip } from '@/components/ui/sla';
 import { formatDateTime } from '@/modules/tasks/dates';
 import { TicketFilters } from './filters';
 import { NewTicketPanel } from './new-ticket-panel';
+import { AgentControl, PriorityControl, TicketRowActions } from './ticket-row-actions';
 
 export const metadata = { title: 'Tickets · COEX' };
 
@@ -110,23 +110,90 @@ export default async function TicketsPage({
         {tickets.length === 0 ? (
           <EmptyState message="Nothing here. Try another queue, or widen the filters." />
         ) : (
-          <table className="w-full border-collapse text-sm">
+          <>
+          <div className="divide-y divide-[var(--color-line)] md:hidden">
+            {tickets.map((ticket) => (
+              <article key={ticket.id} className="space-y-3 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
+                    <Link
+                      href={`/support/tickets/${ticket.id}`}
+                      className="mt-2 block text-sm font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
+                    >
+                      {ticket.subject}
+                    </Link>
+                    <p className="mt-1 truncate text-xs text-[var(--color-ink-subtle)]">
+                      {[ticket.organisationName, ticket.contactName, ticket.queueName]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </p>
+                  </div>
+                  <div className="shrink-0">
+                    {canManage ? (
+                      <AgentControl
+                        ticketId={ticket.id}
+                        assigneeId={ticket.assigneeId}
+                        assigneeName={ticket.assigneeName}
+                        users={users.map((user) => ({ id: user.id, name: user.name }))}
+                      />
+                    ) : ticket.assigneeName ? (
+                      <Avatar name={ticket.assigneeName} size="small" />
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <div>
+                    <p className="mb-1 text-[10px] font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">Status</p>
+                    {canManage ? (
+                      <TicketRowActions ticket={{ id: ticket.id, status: ticket.status }} />
+                    ) : (
+                      <span className={statusClass(ticket.status)}>{STATUS_LABELS[ticket.status]}</span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="mb-1 text-[10px] font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">Priority</p>
+                    {canManage ? (
+                      <PriorityControl ticketId={ticket.id} priority={ticket.priority} />
+                    ) : (
+                      <span className={priorityClass(ticket.priority)}>{ticket.priority}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-end justify-between gap-3 text-xs text-[var(--color-ink-muted)]">
+                  <div className="flex flex-col gap-0.5">
+                    <SlaChip label="Reply" state={ticket.firstResponseState} dueAt={ticket.firstResponseDueAt} />
+                    <SlaChip label="Resolve" state={ticket.resolutionState} dueAt={ticket.resolutionDueAt} />
+                  </div>
+                  <span className="text-right">{formatDateTime(ticket.lastActivityAt)}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
+          <table className="min-w-[980px] w-full border-collapse text-sm">
             <thead>
               <tr className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                <th className="w-20 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
+                <th className="w-[12ch] border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
                   Number
                 </th>
                 <th className="border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
                   Subject
                 </th>
-                <th className="w-36 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
+                <th className="w-52 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
                   Status
+                </th>
+                <th className="w-32 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
+                  Priority
                 </th>
                 <th className="w-44 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
                   Service level
                 </th>
                 <th className="w-28 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
-                  Owner
+                  Agent
                 </th>
                 <th className="w-32 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
                   Last activity
@@ -140,14 +207,12 @@ export default async function TicketsPage({
                   key={ticket.id}
                   className="group border-b border-[var(--color-line)] last:border-b-0 hover:bg-[var(--color-surface-muted)]/60"
                 >
-                  <td className="px-3 py-2 align-top font-mono text-[11px] text-[var(--color-ink-subtle)]">
-                    {ticket.number}
+                  <td className="px-3 py-2 align-top">
+                    <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
                   </td>
 
                   <td className="px-3 py-2 align-top">
                     <div className="flex items-start gap-2">
-                      <PriorityFlag priority={ticket.priority} />
-
                       <div className="min-w-0">
                         <Link
                           href={`/support/tickets/${ticket.id}`}
@@ -166,7 +231,11 @@ export default async function TicketsPage({
                   </td>
 
                   <td className="px-3 py-2 align-top">
-                    <StatusPill status={STATUS_LABELS[ticket.status]} isClosed={!ticket.isOpen} />
+                    {canManage ? <TicketRowActions ticket={{ id: ticket.id, status: ticket.status }} /> : <span className={statusClass(ticket.status)}>{STATUS_LABELS[ticket.status]}</span>}
+                  </td>
+
+                  <td className="px-3 py-2 align-top">
+                    {canManage ? <PriorityControl ticketId={ticket.id} priority={ticket.priority} /> : <span className={priorityClass(ticket.priority)}>{ticket.priority}</span>}
                   </td>
 
                   <td className="px-3 py-2 align-top">
@@ -185,7 +254,7 @@ export default async function TicketsPage({
                   </td>
 
                   <td className="px-3 py-2 align-top">
-                    {ticket.assigneeName ? (
+                    {canManage ? <AgentControl ticketId={ticket.id} assigneeId={ticket.assigneeId} assigneeName={ticket.assigneeName} users={users.map((user) => ({ id: user.id, name: user.name }))} /> : ticket.assigneeName ? (
                       <span className="flex items-center gap-1.5">
                         <Avatar name={ticket.assigneeName} size="small" />
                         <span className="truncate text-[12px] text-[var(--color-ink-muted)]">
@@ -206,6 +275,8 @@ export default async function TicketsPage({
               ))}
             </tbody>
           </table>
+          </div>
+          </>
         )}
       </Card>
 
@@ -215,4 +286,26 @@ export default async function TicketsPage({
       </p>
     </div>
   );
+}
+
+function priorityClass(priority: Priority) {
+  const tone = {
+    urgent: 'text-[var(--color-status-alert)]',
+    high: 'text-[var(--color-status-warn)]',
+    normal: 'text-[var(--color-ink-muted)]',
+    low: 'text-[var(--color-status-ok)]',
+  }[priority];
+  return `inline-flex font-mono text-[11px] font-semibold ${tone}`;
+}
+
+function statusClass(status: TicketStatus) {
+  const tone = {
+    new: 'text-[var(--color-status-info)]',
+    open: 'text-[var(--color-status-info)]',
+    pending_customer: 'text-[var(--color-status-warn)]',
+    escalated: 'text-[var(--color-status-alert)]',
+    resolved: 'text-[var(--color-status-ok)]',
+    closed: 'text-[var(--color-status-ok)]',
+  }[status];
+  return `text-xs font-semibold ${tone}`;
 }

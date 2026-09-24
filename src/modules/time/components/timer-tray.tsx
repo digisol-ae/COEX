@@ -2,20 +2,21 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { startTimerAction, stopTimerAction } from '@/app/(app)/time/actions';
+import { startTicketTimerAction, startTimerAction, stopTimerAction } from '@/app/(app)/time/actions';
 
 interface TodayTimer {
   entryId: string;
-  taskId: string;
-  taskNumber: string;
-  taskTitle: string;
+  kind: 'task' | 'ticket';
+  itemId: string;
+  itemNumber: string;
+  itemTitle: string;
   minutes: number;
   running: boolean;
 }
 
 /**
- * Every timer started today, in one place, so switching between tasks through the day does not
- * mean losing track of what else is still owed a resume.
+ * Every timer started today, task or ticket, in one place, so switching between things through
+ * the day does not mean losing track of what else is still owed a resume.
  *
  * Stopping the running one, or resuming a stopped one, both fetch a fresh list afterward rather
  * than trusting the click alone, because starting a timer always stops whatever else is running,
@@ -55,11 +56,18 @@ export function TimerTray() {
     setBusyId(null);
   }
 
-  async function resume(entryId: string, taskId: string) {
+  async function resume(entryId: string, kind: 'task' | 'ticket', itemId: string) {
     setBusyId(entryId);
     const data = new FormData();
-    data.set('taskId', taskId);
-    await startTimerAction(data);
+
+    if (kind === 'task') {
+      data.set('taskId', itemId);
+      await startTimerAction(data);
+    } else {
+      data.set('ticketId', itemId);
+      await startTicketTimerAction(data);
+    }
+
     await load();
     setBusyId(null);
   }
@@ -125,13 +133,20 @@ export function TimerTray() {
                     <span className="w-1.5 shrink-0" />
                   )}
 
+                  <span
+                    title={timer.kind === 'task' ? 'Task' : 'Ticket'}
+                    className="shrink-0 text-[10px] tracking-wide text-[var(--color-ink-subtle)] uppercase"
+                  >
+                    {timer.kind === 'task' ? 'Task' : 'Tkt'}
+                  </span>
+
                   <Link
-                    href={`/tasks/${timer.taskId}`}
+                    href={timer.kind === 'task' ? `/tasks/${timer.itemId}` : `/support/tickets/${timer.itemId}`}
                     onClick={() => setOpen(false)}
                     className="min-w-0 flex-1 truncate text-sm text-[var(--color-ink)] hover:underline"
-                    title={`${timer.taskNumber} ${timer.taskTitle}`}
+                    title={`${timer.itemNumber} ${timer.itemTitle}`}
                   >
-                    {timer.taskTitle}
+                    {timer.itemTitle}
                   </Link>
 
                   <span className="shrink-0 text-xs text-[var(--color-ink-subtle)] tabular-nums">
@@ -144,7 +159,7 @@ export function TimerTray() {
                       onClick={() => stop(timer.entryId)}
                       disabled={busyId === timer.entryId}
                       title="Stop"
-                      aria-label={`Stop the timer for ${timer.taskTitle}`}
+                      aria-label={`Stop the timer for ${timer.itemTitle}`}
                       className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-status-alert)] transition-colors hover:bg-[var(--color-status-alert-soft)] disabled:opacity-50"
                     >
                       <StopIcon />
@@ -152,10 +167,10 @@ export function TimerTray() {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => resume(timer.entryId, timer.taskId)}
+                      onClick={() => resume(timer.entryId, timer.kind, timer.itemId)}
                       disabled={busyId === timer.entryId}
                       title="Resume"
-                      aria-label={`Resume the timer for ${timer.taskTitle}`}
+                      aria-label={`Resume the timer for ${timer.itemTitle}`}
                       className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-status-ok)] transition-colors hover:bg-[var(--color-status-ok-soft)] disabled:opacity-50"
                     >
                       <PlayIcon />

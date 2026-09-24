@@ -35,7 +35,7 @@ export async function saveProductAction(
   _previous: ProductFormState,
   formData: FormData,
 ): Promise<ProductFormState> {
-  const actor = await requirePermission('customer.manage');
+  const actor = await requirePermission('products.manage');
   const id = text(formData, 'id');
 
   const input = {
@@ -59,7 +59,7 @@ export async function saveProductAction(
 }
 
 export async function toggleProductStatusAction(formData: FormData): Promise<void> {
-  const actor = await requirePermission('customer.manage');
+  const actor = await requirePermission('products.manage');
   const id = text(formData, 'id');
   const status = text(formData, 'status');
 

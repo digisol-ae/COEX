@@ -5,7 +5,8 @@ import { repository } from '@/lib/repository';
 import { UserModel } from '../models/user.model';
 import { recordAudit, changedFields } from './audit.service';
 import { revokeAllSessionsForUser } from './session.service';
-import type { Role } from '../permissions';
+import type { Role, Permission } from '../permissions';
+import { PERMISSIONS } from '../permissions';
 
 /**
  * User administration inside one tenant.
@@ -25,6 +26,8 @@ export interface UserSummary {
   status: string;
   lastSignedInAt: Date | null;
   createdAt: Date;
+  permissionGrants: string[];
+  permissionDenials: string[];
 }
 
 export async function listUsers(): Promise<UserSummary[]> {
@@ -40,6 +43,8 @@ export async function listUsers(): Promise<UserSummary[]> {
     status: user.status,
     lastSignedInAt: user.lastSignedInAt ?? null,
     createdAt: user.createdAt,
+    permissionGrants: user.permissionGrants ?? [],
+    permissionDenials: user.permissionDenials ?? [],
   }));
 }
 
@@ -97,6 +102,42 @@ export async function updateUserRole(userId: string, role: Role): Promise<void> 
     entityType: 'User',
     entityId: before._id,
     ...changedFields({ role: before.role }, { role: after.role }),
+  });
+}
+
+/**
+ * Per-user overrides on top of the role.
+ *
+ * A grant adds a permission the role would not otherwise carry; a denial removes one the role
+ * would otherwise carry, and a denial always wins if a permission somehow ends up in both lists.
+ * This is how "sees only CRM and Products, and nothing else but their own password reset" gets
+ * built without inventing a role for one person: deny everything the role grants beyond that,
+ * rather than starting a new role that only one person will ever have.
+ */
+export async function updateUserAccess(
+  userId: string,
+  input: { grants: Permission[]; denials: Permission[] },
+): Promise<void> {
+  await connectToDatabase();
+
+  const before = await users().findById(userId);
+  if (!before) throw new Error('User not found.');
+
+  const valid = new Set<string>(PERMISSIONS);
+  const grants = input.grants.filter((permission) => valid.has(permission));
+  const denials = input.denials.filter((permission) => valid.has(permission));
+
+  await users().updateOne(
+    { _id: before._id },
+    { $set: { permissionGrants: grants, permissionDenials: denials } },
+  );
+
+  await recordAudit({
+    action: 'user.access_changed',
+    entityType: 'User',
+    entityId: before._id,
+    before: { permissionGrants: before.permissionGrants, permissionDenials: before.permissionDenials },
+    after: { permissionGrants: grants, permissionDenials: denials },
   });
 }
 

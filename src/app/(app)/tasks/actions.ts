@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
 import {
   addDocumentLink,
+  addTaskComment,
   addSubtask,
   archiveTask,
   createTask,
@@ -215,6 +216,23 @@ export async function moveTaskAction(formData: FormData): Promise<void> {
   revalidatePath(`/tasks/${id}`);
   revalidatePath('/tasks');
   revalidatePath('/dashboard');
+}
+
+export async function addTaskCommentAction(
+  _previous: TaskFormState,
+  formData: FormData,
+): Promise<TaskFormState> {
+  const actor = await requirePermission('task.manage');
+  const id = text(formData, 'taskId');
+
+  try {
+    await asUser(actor, () => addTaskComment(id, text(formData, 'body')));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not post the comment.' };
+  }
+
+  revalidatePath(`/tasks/${id}`);
+  return { saved: true };
 }
 
 export async function updateTaskAction(

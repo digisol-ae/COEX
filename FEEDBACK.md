@@ -4,6 +4,16 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
+0. Local phone QA: after the 24 Sep LAN development-server restart, John must confirm that the
+   menu drawer, timer tray and sign-out controls respond to touch. Also confirm Ticket Status and
+   Priority text stays fully visible on phone and desktop.
+
+0a. Before production email intake is enabled, decide the mailbox polling frequency and configure
+    a separate app-server UID baseline. Historic unread mail must not become tickets by accident.
+
+0d. Attachment retention/archival: decide whether images and files move to archive storage after
+    6 or 12 months. Keep this deferred until real storage usage is known.
+
 0. Awaiting John's look at the project screen, rebuilt on 17 Sep 2026 against his ClickUp
    walkthrough: view tabs, a filter toolbar, a grouped list table, editing in place on cards and
    rows, subtasks opening inside a row, Gantt zoom, and a breadcrumb.
@@ -32,6 +42,12 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Done
 
+0. September local support improvements built, awaiting John's acceptance: per-user permission
+   management UI; task and ticket timers with a shared timer tray; ticket attachment previews and
+   upload improvements; 3 MB per file / 10 MB total attachment cap; ticket Status, Priority and
+   Agent controls; task work comments mirrored privately to their source ticket; and responsive
+   mobile ticket cards. Inbound IMAP email intake is implemented but not scheduled for production.
+
 0. Backups are already implemented by John's team. No COEX backup implementation work is required
    at present; verify operational ownership and recovery testing before the M7 import.
 
@@ -42,7 +58,8 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
    as Thursday's in the CSV a client is invoiced from.
 2. Ticket attachments on 18 Sep 2026: a one file storage adapter, images resized and re-encoded on
    upload with the original size kept beside the new one, everything else stored byte for byte, and
-   downloads checked per ticket per person. Completes M5.
+   downloads checked per ticket per person. September improvements add previews and the 3 MB per
+   file / 10 MB per message limit. Completes M5.
 3. Board and list finished on 18 Sep 2026: a task opens in a panel over the board rather than on
    its own page, a task is added from a line at the foot of the column it belongs in, and the rail
    carries a badge for my own open tasks and tickets. Awaiting John's acceptance.

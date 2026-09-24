@@ -1,5 +1,17 @@
 # COEX — Shared AI Project State
 
+> **Current verified update — 24 Sep 2026.** The historical snapshot below is superseded where it
+> conflicts with this section. The local branch now has completed Space privacy, per-user access,
+> task/ticket timers, attachment previews and limits, ticket mobile cards, task-to-ticket internal
+> work updates, and a safe IMAP intake service. `npm run build` passes; the four remaining
+> `src/lib/storage.ts` tracing warnings are pre-existing deployment-size warnings. The code is
+> committed locally for Claude, but must not be pushed or deployed without John's approval.
+>
+> Inbound email uses Message-ID deduplication, threading and existing CRM matching. It intentionally
+> skips historic unread mailbox mail using a local UID baseline, and no production scheduler exists
+> yet. `.env.local` contains local secrets/settings and is never committed. Phone header controls
+> need one final actual-device check after the development-server restart.
+
 ## Purpose
 
 This is the shared working memory for AI agents collaborating on COEX.
@@ -238,11 +250,12 @@ After significant work:
 
 ---
 
-## Last Updated
+## Historical Snapshot — 2026-09-23
 
 2026-09-23
 
 Updated by:
 
 Claude, docs pass: removed the obsolete patch-guard references after `770eead` deleted the file,
-and recorded the 19 Sep Mac permission change in `CLAUDE.md`.
+and recorded the 19 Sep Mac permission change in `CLAUDE.md`. Superseded by the 24 Sep update at
+the top of this file.

@@ -1,7 +1,7 @@
 import { Schema, model, models, type InferSchemaType, type Model } from 'mongoose';
 
 /**
- * One period of work against one task.
+ * One period of work, against one task or one ticket, never both.
  *
  * minutes is stored rather than computed from the timestamps, because a manual entry has no
  * timestamps worth keeping and because a rounding rule applied at read time would give different
@@ -16,8 +16,10 @@ const timeEntrySchema = new Schema(
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 
-    taskId: { type: Schema.Types.ObjectId, ref: 'Task', required: true, index: true },
-    spaceId: { type: Schema.Types.ObjectId, ref: 'Space', required: true, index: true },
+    /** Exactly one of taskId or ticketId is set; a partial index below enforces it. */
+    taskId: { type: Schema.Types.ObjectId, ref: 'Task', default: null, index: true },
+    spaceId: { type: Schema.Types.ObjectId, ref: 'Space', default: null, index: true },
+    ticketId: { type: Schema.Types.ObjectId, ref: 'Ticket', default: null, index: true },
     /** Copied from the task so time can be reported by customer without a join. */
     organisationId: {
       type: Schema.Types.ObjectId,
@@ -49,6 +51,16 @@ const timeEntrySchema = new Schema(
 
 timeEntrySchema.index({ tenantId: 1, userId: 1, workDate: -1 });
 timeEntrySchema.index({ tenantId: 1, taskId: 1 });
+timeEntrySchema.index({ tenantId: 1, ticketId: 1 });
+
+timeEntrySchema.pre('validate', async function () {
+  const hasTask = Boolean(this.taskId);
+  const hasTicket = Boolean(this.ticketId);
+
+  if (hasTask === hasTicket) {
+    throw new Error('A time entry belongs to exactly one of a task or a ticket, not both or neither.');
+  }
+});
 
 /**
  * One running timer per person, enforced by the database rather than by application code, because

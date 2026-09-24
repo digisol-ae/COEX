@@ -12,14 +12,16 @@ import { stopTimerAction } from '@/app/(app)/time/actions';
  * usual cause is someone forgetting to stop it and a fourteen hour entry helps nobody.
  */
 export function RunningTimer({
-  taskId,
-  taskNumber,
-  taskTitle,
+  kind,
+  itemId,
+  itemNumber,
+  itemTitle,
   startedAt,
 }: {
-  taskId: string;
-  taskNumber: string;
-  taskTitle: string;
+  kind: 'task' | 'ticket';
+  itemId: string;
+  itemNumber: string;
+  itemTitle: string;
   startedAt: string;
 }) {
   const start = new Date(startedAt).getTime();
@@ -35,12 +37,13 @@ export function RunningTimer({
   const minutes = Math.floor((seconds % 3600) / 60);
 
   const startedOnAnotherDay = new Date(startedAt).toDateString() !== new Date(now).toDateString();
+  const href = kind === 'task' ? `/tasks/${itemId}` : `/support/tickets/${itemId}`;
 
   return (
     <div className="flex items-center gap-2">
       <Link
-        href={`/tasks/${taskId}`}
-        title={`${taskNumber} ${taskTitle}`}
+        href={href}
+        title={`${itemNumber} ${itemTitle}`}
         className="flex items-center gap-2 rounded-full bg-[var(--color-surface-muted)] px-3 py-1.5 text-sm text-[var(--color-ink)] transition-colors hover:bg-[var(--color-surface-sunken)]"
       >
         <span
@@ -50,7 +53,7 @@ export function RunningTimer({
         <span className="tabular-nums">
           {hours}:{String(minutes).padStart(2, '0')}
         </span>
-        <span className="hidden max-w-32 truncate sm:inline">{taskTitle}</span>
+        <span className="hidden max-w-32 truncate sm:inline">{itemTitle}</span>
       </Link>
 
       {startedOnAnotherDay ? (

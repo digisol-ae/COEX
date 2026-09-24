@@ -176,11 +176,12 @@ export async function setStatusAction(input: {
 export async function assignAction(input: {
   id: string;
   userId: string | null;
+  note?: string;
 }): Promise<SupportFormState> {
   const actor = await requirePermission('ticket.manage');
 
   try {
-    await asUser(actor, () => assignTicket(input.id, input.userId));
+    await asUser(actor, () => assignTicket(input.id, input.userId, input.note));
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not assign the ticket.' };
   }

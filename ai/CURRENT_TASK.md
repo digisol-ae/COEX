@@ -1,6 +1,16 @@
 # COEX — Current AI Task
 
-## Task
+> **Current task — 24 Sep 2026:** Post-implementation QA and handoff. The Batch B description
+> below is historical; Space visibility is implemented. The local branch is committed for
+> Claude to continue, with no GitHub push or deployment approved.
+>
+> Claude's next steps: (1) retest the phone header menu, timer tray and sign-out after refreshing
+> the LAN URL; (2) test a ticket escalation → Task work update → Task completion and confirm both
+> updates remain internal notes on the ticket; (3) get John's acceptance of Status/Priority text
+> and mobile ticket cards; (4) only then plan a scoped push/deployment. Do not schedule inbound
+> email polling until John confirms a frequency and the app-server setup.
+
+## Historical Task — 2026-09-23
 
 Batch B: space visibility (option B, chosen by John on 22 Sep 2026) and the matching
 private-folder / private-space assignment rules. Reference: `FEEDBACK.md`, items B1 and B2.
