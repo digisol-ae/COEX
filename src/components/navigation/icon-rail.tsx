@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
+import { SUPPORT_HREF, useLiveUnreadCount } from './unread-count';
 
 /**
  * The icon rail: dark, narrow, and labelled.
@@ -19,9 +19,6 @@ interface RailItem {
   icon: 'home' | 'tasks' | 'spaces' | 'support' | 'time' | 'customers' | 'settings';
   permission?: string;
 }
-
-const SUPPORT = '/support/tickets';
-const POLL_MS = 30 * 1000;
 
 const ITEMS: RailItem[] = [
   { href: '/dashboard', label: 'Home', icon: 'home' },
@@ -42,7 +39,7 @@ export function IconRail({
 }) {
   const pathname = usePathname();
   const supportCount = useLiveUnreadCount(
-    counts?.[SUPPORT],
+    counts?.[SUPPORT_HREF],
     permissions.includes('ticket.read.own'),
   );
 
@@ -63,7 +60,7 @@ export function IconRail({
 
       {visible.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-        const count = item.href === SUPPORT ? supportCount : counts?.[item.href];
+        const count = item.href === SUPPORT_HREF ? supportCount : counts?.[item.href];
 
         return (
           <Link
@@ -90,40 +87,6 @@ export function IconRail({
       })}
     </nav>
   );
-}
-
-/**
- * The Support number, kept current on pages that never refresh, so a new email ticket shows on the
- * rail while someone is working in Tasks. A polled value only stands until the server sends a
- * newer one with the page, which is how opening a ticket clears it at once.
- */
-function useLiveUnreadCount(serverCount: number | undefined, enabled: boolean) {
-  const [polled, setPolled] = useState<{ basis: number | undefined; value: number } | null>(null);
-
-  useEffect(() => {
-    if (!enabled) return;
-
-    async function poll() {
-      if (document.visibilityState !== 'visible') return;
-      try {
-        const response = await fetch('/api/tickets/unread', { cache: 'no-store' });
-        if (!response.ok) return;
-        const { count } = (await response.json()) as { count: number };
-        setPolled({ basis: serverCount, value: count });
-      } catch {
-        // Offline for a moment; the next poll or page load catches up.
-      }
-    }
-
-    const timer = setInterval(poll, POLL_MS);
-    document.addEventListener('visibilitychange', poll);
-    return () => {
-      clearInterval(timer);
-      document.removeEventListener('visibilitychange', poll);
-    };
-  }, [enabled, serverCount]);
-
-  return polled && polled.basis === serverCount ? polled.value : serverCount;
 }
 
 function Icon({ name }: { name: RailItem['icon'] }) {

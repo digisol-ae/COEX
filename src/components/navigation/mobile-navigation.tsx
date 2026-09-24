@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { NavigationGroup } from './navigation';
 import { NavigationTree } from './navigation-tree';
+import { SUPPORT_HREF, useLiveUnreadCount } from './unread-count';
 
 /**
  * Navigation on a phone.
@@ -17,11 +18,15 @@ import { NavigationTree } from './navigation-tree';
 export function MobileNavigation({
   groups,
   canManageTasks,
+  unreadTickets,
 }: {
   groups: NavigationGroup[];
   canManageTasks: boolean;
+  /** Undefined for someone who cannot read tickets. */
+  unreadTickets?: number;
 }) {
   const [open, setOpen] = useState(false);
+  const unread = useLiveUnreadCount(unreadTickets, unreadTickets !== undefined);
 
   useEffect(() => {
     if (!open) return;
@@ -44,9 +49,9 @@ export function MobileNavigation({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Open menu"
+        aria-label={unread ? `Open menu, ${unread} tickets with something new` : 'Open menu'}
         aria-expanded={open}
-        className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-control)] border border-[var(--color-line-strong)] text-[var(--color-ink-muted)]"
+        className="relative flex h-10 w-10 items-center justify-center rounded-[var(--radius-control)] border border-[var(--color-line-strong)] text-[var(--color-ink-muted)]"
       >
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
           <path
@@ -56,6 +61,12 @@ export function MobileNavigation({
             strokeLinecap="round"
           />
         </svg>
+        {/* The rail is hidden on a phone, so the menu button carries the Support number instead. */}
+        {unread ? (
+          <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-brand-red)] px-1 text-[9px] font-medium text-white">
+            {unread > 99 ? '99+' : unread}
+          </span>
+        ) : null}
       </button>
 
       {/* Portalled to <body>: the header's backdrop blur makes it the containing block for any
@@ -101,6 +112,7 @@ export function MobileNavigation({
                   groups={groups}
                   canManageTasks={canManageTasks}
                   onNavigate={() => setOpen(false)}
+                  counts={unread ? { [SUPPORT_HREF]: unread } : undefined}
                 />
               </div>
             </div>,

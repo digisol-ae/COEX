@@ -23,10 +23,13 @@ export function NavigationTree({
   groups,
   onNavigate,
   canManageTasks,
+  counts,
 }: {
   groups: NavigationGroup[];
   onNavigate?: () => void;
   canManageTasks: boolean;
+  /** A number beside a link, keyed by its href. */
+  counts?: Partial<Record<string, number>>;
 }) {
   const pathname = usePathname();
   const collapsed = useSyncExternalStore(subscribe, getCollapsedSnapshot, getServerSnapshot);
@@ -73,6 +76,7 @@ export function NavigationTree({
                       label={item.label}
                       active={isActive(item.href)}
                       onNavigate={onNavigate}
+                      count={counts?.[item.href]}
                     />
                   ),
                 )}
@@ -90,11 +94,13 @@ function NavigationLink({
   label,
   active,
   onNavigate,
+  count,
 }: {
   href: string;
   label: string;
   active: boolean;
   onNavigate?: () => void;
+  count?: number;
 }) {
   return (
     <Link
@@ -104,13 +110,18 @@ function NavigationLink({
       className={clsx(
         // The generous height is for thumbs: 44 pixels is the smallest target reliably hit on a
         // phone.
-        'block rounded-[var(--radius-control)] px-2 py-2 text-[13px] transition-colors',
+        'flex items-center justify-between rounded-[var(--radius-control)] px-2 py-2 text-[13px] transition-colors',
         active
           ? 'bg-[var(--color-surface-muted)] font-medium text-[var(--color-ink)]'
           : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]',
       )}
     >
       {label}
+      {count ? (
+        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-brand-red)] px-1 text-[9px] font-medium text-white">
+          {count > 99 ? '99+' : count}
+        </span>
+      ) : null}
     </Link>
   );
 }

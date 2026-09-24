@@ -56,6 +56,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <MobileNavigation
             groups={groups}
             canManageTasks={user.permissions.includes('task.manage')}
+            unreadTickets={counts['/support/tickets']}
           />
 
           <p className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--color-ink)] sm:hidden">
