@@ -12,6 +12,7 @@ import { STATUS_LABELS } from '@/modules/tickets/labels';
 import { Card, EmptyState, Notice, PageHeader } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
 import { SlaChip } from '@/components/ui/sla';
+import { LiveRefresh } from '@/components/ui/live-refresh';
 import { formatDateTime } from '@/modules/tasks/dates';
 import { TicketFilters } from './filters';
 import { NewTicketPanel } from './new-ticket-panel';
@@ -72,6 +73,7 @@ export default async function TicketsPage({
     <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Tickets"
+        titleExtra={<LiveRefresh />}
         description="Support work, newest activity first. Both service level clocks are in the row, so nothing goes quiet without anyone noticing."
         action={
           canManage && queues.length > 0 ? (

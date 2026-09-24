@@ -11,6 +11,7 @@ import { Card, CardSection, PageHeader } from '@/components/ui';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { StatusPill } from '@/components/ui/pill';
 import { SlaChip } from '@/components/ui/sla';
+import { LiveRefresh } from '@/components/ui/live-refresh';
 import { formatDateTime } from '@/modules/tasks/dates';
 import { formatMinutes } from '@/modules/time/week';
 import { getRunningTimer, loggedMinutesForTicket } from '@/modules/time/services/time.service';
@@ -70,6 +71,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
               <span className="font-mono text-[11px] text-[var(--color-ink-subtle)]">
                 {ticket.number}
               </span>
+              <LiveRefresh />
             </div>
           }
         />
