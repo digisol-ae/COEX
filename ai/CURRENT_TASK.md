@@ -1,5 +1,13 @@
 # COEX — Current AI Task
 
+> **Current task — 24 Sep 2026, evening (Claude):** John accepted M4, M5, the board and task
+> panel work and the September support baseline, and approved commit, push and deploy. Built
+> today, uncommitted until John runs the commands: QA fixes (escalation link, phone drawer),
+> assignee restriction (Space/Folder members for tasks, task assignees for subtasks) and the
+> 148x50 mobile logo. Cutover (M8) starts 25 Sep. Awaiting John's choice on email delivery
+> (IMAP IDLE worker recommended). Gantt export left for ChatGPT. See FEEDBACK.md "Decisions
+> from John, 24 Sep 2026".
+
 > **Current task — 24 Sep 2026:** Post-implementation QA and handoff. The Batch B description
 > below is historical; Space visibility is implemented. The local branch is committed for
 > Claude to continue, with no GitHub push or deployment approved.

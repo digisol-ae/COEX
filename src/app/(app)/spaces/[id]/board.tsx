@@ -86,6 +86,7 @@ export function Board({
   activeFolderId,
   tasks,
   users,
+  spaceMemberIds,
   canManage,
   initialView,
   runningTaskId,
@@ -96,6 +97,8 @@ export function Board({
   activeFolderId: string | null;
   tasks: TaskSummary[];
   users: { id: string; name: string }[];
+  /** Empty when the Space is open to the whole tenant. */
+  spaceMemberIds: string[];
   canManage: boolean;
   initialView: SpaceView;
   runningTaskId: string | null;
@@ -197,8 +200,21 @@ export function Board({
     });
   }
 
+  // A private Space, and a private Folder inside it, narrow who a task can go to. People already
+  // assigned stay listed so an older assignment is visible rather than silently hidden.
+  const assignableUsersFor = (task: TaskSummary) => {
+    const folder = task.folderId ? folders.find((row) => row.id === task.folderId) : undefined;
+    return users.filter(
+      (user) =>
+        task.assigneeIds.includes(user.id) ||
+        ((spaceMemberIds.length === 0 || spaceMemberIds.includes(user.id)) &&
+          (!folder?.isPrivate || folder.memberIds.includes(user.id))),
+    );
+  };
+
   const handlers: EditHandlers = {
     users,
+    assignableUsersFor,
     columnsFor: () => columns,
     canManage,
     runningTaskId,
@@ -363,7 +379,11 @@ export function Board({
               </div>
 
               <Field label="Assign to" hint="Hold command to choose more than one">
-                <select name="assigneeIds" multiple className="h-28 w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2 py-1.5 text-sm text-[var(--color-ink)]">
+                <select
+                  name="assigneeIds"
+                  multiple
+                  className="h-28 w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2 py-1.5 text-sm text-[var(--color-ink)]"
+                >
                   {users.map((user) => (
                     <option key={user.id} value={user.id}>
                       {user.name}
@@ -647,9 +667,13 @@ function TaskCard({
       ) : null}
 
       <div className="mt-2 flex items-center gap-1 pl-3">
-        <CardTimerButton taskId={task.id} running={runningTaskId === task.id} loggedMinutes={task.loggedMinutes} />
+        <CardTimerButton
+          taskId={task.id}
+          running={runningTaskId === task.id}
+          loggedMinutes={task.loggedMinutes}
+        />
         <AssigneePicker
-          users={users}
+          users={handlers.assignableUsersFor?.(task) ?? users}
           selectedIds={task.assigneeIds}
           disabled={!canManage}
           onChange={(ids) => handlers.onAssignees(task, ids)}
@@ -859,13 +883,17 @@ function ListView({
 
                                   <DocumentBadge links={task.documentLinks} />
 
-                                  <CardTimerButton taskId={task.id} running={runningTaskId === task.id} loggedMinutes={task.loggedMinutes} />
+                                  <CardTimerButton
+                                    taskId={task.id}
+                                    running={runningTaskId === task.id}
+                                    loggedMinutes={task.loggedMinutes}
+                                  />
                                 </div>
                               </td>
 
                               <td className="px-2 py-2 align-middle">
                                 <AssigneePicker
-                                  users={users}
+                                  users={handlers.assignableUsersFor?.(task) ?? users}
                                   selectedIds={task.assigneeIds}
                                   disabled={!canManage}
                                   onChange={(ids) => handlers.onAssignees(task, ids)}

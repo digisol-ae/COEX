@@ -1,5 +1,13 @@
 # COEX — AI Handoff
 
+## Update — 24 Sep 2026 evening, Claude
+
+Added: `assignableUserIdsForTask` / `assignableUserIdsForSubtask` in `task.service.ts`,
+enforced in `setSubtaskAssignee`, and `patchTask` now checks Space membership too. Pickers use
+them on the task page, the slide over panel (via the panel API) and the board/list (via
+`spaceMemberIds` + folder members). My tasks row picker still lists everyone, but the service
+refuses a non member. Mobile logo 148x50. For ChatGPT if asked: Gantt export (low priority).
+
 ## Update — 24 Sep 2026, Claude
 
 QA fixes applied and accepted by John: `task.service.ts` (createTask accepts `sourceTicketId`;

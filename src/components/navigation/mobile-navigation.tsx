@@ -75,9 +75,9 @@ export function MobileNavigation({
                   <Image
                     src="/brand/logo-long.png"
                     alt="DigiSol"
-                    width={130}
-                    height={28}
-                    className="h-6 w-auto"
+                    width={148}
+                    height={50}
+                    className="h-[50px] w-auto"
                   />
 
                   <button

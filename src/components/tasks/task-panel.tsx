@@ -8,7 +8,11 @@ import { StatusDot } from '@/components/ui/pill';
 import { formatMinutes } from '@/modules/time/week';
 import { formatDateTime } from '@/modules/tasks/dates';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
-import { addDocumentAction, removeDocumentAction, type TaskFormState } from '@/app/(app)/tasks/actions';
+import {
+  addDocumentAction,
+  removeDocumentAction,
+  type TaskFormState,
+} from '@/app/(app)/tasks/actions';
 import {
   AssigneePicker,
   CalendarIcon,
@@ -41,10 +45,15 @@ interface PanelDetail {
   documentLinks: { id: string; url: string; title: string }[];
   loggedMinutes: number;
   timerRunning: boolean;
+  /** null means the Space and Folder are both open, so anyone in the tenant may own the task. */
+  assignableUserIds: string[] | null;
+  subtaskAssignableUserIds: string[] | null;
 }
 
 export interface PanelHandlers {
   users: { id: string; name: string }[];
+  /** Who may own this task, when the view already knows its Space and Folder members. */
+  assignableUsersFor?: (task: TaskSummary) => { id: string; name: string }[];
   /** Per task, because My tasks spans spaces and each space configures its own columns. */
   columnsFor: (task: TaskSummary) => TaskColumn[];
   canManage: boolean;
@@ -85,6 +94,21 @@ export function TaskPanel({
 
   const { canManage, users } = handlers;
   const columns = handlers.columnsFor(task);
+
+  // Owners come from the Space and Folder members; subtask owners from the task's own owners.
+  // Whoever is already selected stays listed, so an older assignment is shown rather than hidden.
+  const ownerAllowed = detail?.assignableUserIds ?? null;
+  const ownerOptions =
+    handlers.assignableUsersFor?.(task) ??
+    (ownerAllowed
+      ? users.filter((user) => ownerAllowed.includes(user.id) || task.assigneeIds.includes(user.id))
+      : users);
+  const subtaskAllowed =
+    task.assigneeIds.length > 0 ? task.assigneeIds : (detail?.subtaskAssignableUserIds ?? null);
+  const subtaskOptionsFor = (current: string | null) =>
+    subtaskAllowed
+      ? users.filter((user) => subtaskAllowed.includes(user.id) || user.id === current)
+      : users;
 
   function loadDetail() {
     let live = true;
@@ -201,7 +225,7 @@ export function TaskPanel({
           <dl className="space-y-2 text-[13px]">
             <Row label="Owner">
               <AssigneePicker
-                users={users}
+                users={ownerOptions}
                 selectedIds={task.assigneeIds}
                 disabled={!canManage}
                 onChange={(ids) => handlers.onAssignees(task, ids)}
@@ -342,7 +366,7 @@ export function TaskPanel({
                       className="max-w-28 truncate rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-1.5 py-0.5 text-[12px] text-[var(--color-ink-muted)]"
                     >
                       <option value="">Unassigned</option>
-                      {handlers.users.map((user) => (
+                      {subtaskOptionsFor(subtask.assigneeId ?? null).map((user) => (
                         <option key={user.id} value={user.id}>
                           {user.name}
                         </option>

@@ -2,11 +2,34 @@
 
 Running backlog. Newest at the top. Each item is numbered, has a state and a short note.
 
+## Decisions from John, 24 Sep 2026
+
+- Accepted: the September support baseline (permissions screen, task and ticket timers,
+  attachment previews and limits, ticket controls, phone ticket cards); the project screen
+  rebuild, slide over task panel, My tasks, board and list; M4 Time tracking; M5 Support desk;
+  and the 24 Sep QA fixes.
+- Batch A was redeployed to coex.digisol.ae on 22 Sep 2026 and accepted by John in testing.
+- Approved: commit, push to GitHub and deploy to coex.digisol.ae.
+- Tasks and Tickets stay directly connected (escalation, work updates, completion notes). This is
+  a deliberate exception to the module boundary rule, recorded in CLAUDE.md.
+- Assignees: a task may only go to members of its private Space (and private Folder); a subtask
+  may only go to the task's own assignees. Built 24 Sep, awaiting deploy.
+- Mobile menu logo corrected to 148x50, the logo's own proportions. Built 24 Sep.
+- Gantt export: low priority, handed to ChatGPT if picked up.
+- Attachments are stored on the Contabo VPS (100 GB). Archive older attachments once usage
+  reaches 50 GB.
+- Backups: DigiSol owns them and the DigiSol team operates and restore-tests them.
+- Figma design adoption: removed from the plan.
+- M7: migrate only open osTicket tickets, and only if it proves straightforward; otherwise agents
+  start fresh in COEX. No full history import.
+- M8 cutover: the team starts using COEX in place of ClickUp and osTicket from 25 Sep 2026.
+- Next after cutover: notify members and agents about tasks and tickets assigned to them.
+- Entra single sign on is already registered by John; Claude to list what it needs.
+
 ## Open
 
-0. Local phone QA: after the 24 Sep LAN development-server restart, John must confirm that the
-   menu drawer, timer tray and sign-out controls respond to touch. Also confirm Ticket Status and
-   Priority text stays fully visible on phone and desktop.
+0. Local phone QA: menu drawer, timer tray, sign out and ticket Status/Priority. Accepted by
+   John on 24 Sep 2026.
    24 Sep QA fixes, retested and accepted by John on 24 Sep ("looks ok"): the phone menu drawer is now portalled to
    the page body, because the header's backdrop blur was confining it to the header strip; and
    escalating a ticket now records the ticket on the new task, so Task work updates and completion
@@ -15,8 +38,8 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 0a. Before production email intake is enabled, decide the mailbox polling frequency and configure
     a separate app-server UID baseline. Historic unread mail must not become tickets by accident.
 
-0d. Attachment retention/archival: decide whether images and files move to archive storage after
-    6 or 12 months. Keep this deferred until real storage usage is known.
+0d. Attachment archival: triggered by volume, not age. Archive older attachments once stored
+    attachments reach 50 GB of the VPS's 100 GB. Not built yet.
 
 0. Awaiting John's look at the project screen, rebuilt on 17 Sep 2026 against his ClickUp
    walkthrough: view tabs, a filter toolbar, a grouped list table, editing in place on cards and
@@ -29,7 +52,8 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
    John is unsure whether this review and the Gantt export are already complete; verify the
    repository and deployed product before changing this item's status.
 
-0b. Production attachment storage decision: use DigiSol's own cloud server. Attachments are built
+0b. Production attachment storage: decided 24 Sep, the Contabo VPS (100 GB) at
+   /srv/coex/shared/storage. Attachments are built
    and working on local disk behind a one-file adapter. Verify the production configuration before
    M7, when osTicket's existing attachments land there. PDF downsampling stays deferred: it needs
    Ghostscript on the server and we do not yet know whether customers send large PDFs at all.
@@ -40,9 +64,6 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 1. Batch C — Entra app registration. Password sign-on covers the gap. Revisit when Batch C is
    scheduled; it also unlocks Graph document titles.
-2. Figma design. Defer to the next version, approximately 3–8 Oct 2026. Tokens live in one place,
-   so adoption is mostly rewriting globals.css and the component library rather than touching
-   screens.
 
 ## Done
 

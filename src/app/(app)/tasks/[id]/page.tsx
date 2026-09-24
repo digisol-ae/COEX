@@ -1,7 +1,12 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
-import { getTask, listTaskComments } from '@/modules/tasks/services/task.service';
+import {
+  assignableUserIdsForSubtask,
+  assignableUserIdsForTask,
+  getTask,
+  listTaskComments,
+} from '@/modules/tasks/services/task.service';
 import { getSpace } from '@/modules/tasks/services/space.service';
 import { listFolders } from '@/modules/tasks/services/folder.service';
 import { listUsers } from '@/modules/core/services/user.service';
@@ -22,16 +27,36 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
   const task = await asUser(actor, () => getTask(id));
   if (!task) notFound();
 
-  const { space, folders, users, timer, loggedMinutes, comments } = await asUser(actor, async () => ({
-    space: await getSpace(String(task.spaceId)),
-    folders: await listFolders(String(task.spaceId)),
-    users: await listUsers(),
-    timer: await getRunningTimer(),
-    loggedMinutes: await loggedMinutesForTask(id),
-    comments: await listTaskComments(id),
-  }));
+  const { space, folders, users, timer, loggedMinutes, comments, ownerIds, subtaskOwnerIds } =
+    await asUser(actor, async () => ({
+      space: await getSpace(String(task.spaceId)),
+      folders: await listFolders(String(task.spaceId)),
+      users: await listUsers(),
+      timer: await getRunningTimer(),
+      loggedMinutes: await loggedMinutesForTask(id),
+      comments: await listTaskComments(id),
+      ownerIds: await assignableUserIdsForTask(task),
+      subtaskOwnerIds: await assignableUserIdsForSubtask(task),
+    }));
 
   const canManage = actor.permissions.includes('task.manage');
+
+  // Pickers offer only people the service will accept; anyone already assigned stays listed.
+  const assignedIds = task.assigneeIds.map(String);
+  const subtaskAssignedIds = task.subtasks.flatMap((subtask) =>
+    subtask.assigneeId ? [String(subtask.assigneeId)] : [],
+  );
+  const ownerChoices = users
+    .filter((user) => !ownerIds || ownerIds.includes(user.id) || assignedIds.includes(user.id))
+    .map((user) => ({ id: user.id, name: user.name }));
+  const subtaskChoices = users
+    .filter(
+      (user) =>
+        !subtaskOwnerIds ||
+        subtaskOwnerIds.includes(user.id) ||
+        subtaskAssignedIds.includes(user.id),
+    )
+    .map((user) => ({ id: user.id, name: user.name }));
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -105,7 +130,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
           <SubtaskList
             taskId={id}
             canManage={canManage}
-            users={users.map((user) => ({ id: user.id, name: user.name }))}
+            users={subtaskChoices}
             subtasks={task.subtasks.map((subtask) => ({
               id: String(subtask._id),
               title: subtask.title,
@@ -129,7 +154,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
           <CardSection title="Details">
             <TaskForm
               canManage={canManage}
-              users={users.map((user) => ({ id: user.id, name: user.name }))}
+              users={ownerChoices}
               task={{
                 id,
                 title: task.title,

@@ -4,6 +4,10 @@ This is what is ACTUALLY running, for a fresh session. It diverges from DEPLOY.m
 the live box uses pm2 (not systemd) and a single app dir (not releases/current).
 Follow this file for the live server; DEPLOY.md is the original design only.
 
+## Deploy history
+- 19 Sep 2026: first deploy, fresh seed (after the Spaces change, so no `migrate:spaces` needed).
+- 22 Sep 2026: Batch A redeployed; accepted by John in testing.
+
 ## Server
 - Contabo VPS, host `zabbix-server`, IP 194.163.137.54, Ubuntu 24.04, 6 vCPU / 12 GB.
 - SSH: `ssh -i ~/Downloads/digisol-zabbix.pem digisol@194.163.137.54`

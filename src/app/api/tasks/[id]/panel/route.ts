@@ -1,5 +1,9 @@
 import { asUser, getSignedInUser } from '@/lib/session';
-import { getTask } from '@/modules/tasks/services/task.service';
+import {
+  assignableUserIdsForSubtask,
+  assignableUserIdsForTask,
+  getTask,
+} from '@/modules/tasks/services/task.service';
 import { loggedMinutesForTask, getRunningTimer } from '@/modules/time/services/time.service';
 
 /**
@@ -41,6 +45,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       })),
       loggedMinutes: await loggedMinutesForTask(id),
       timerRunning: timer?.kind === 'task' && timer?.itemId === id,
+      assignableUserIds: await assignableUserIdsForTask(task),
+      subtaskAssignableUserIds: await assignableUserIdsForSubtask(task),
     };
   });
 

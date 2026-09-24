@@ -54,7 +54,33 @@ export default async function SpacePage({
         <PageHeader
           icon={<Monogram name={space.name} />}
           title={space.name}
-          titleExtra={<span className="flex -space-x-1.5">{space.memberIds.map((memberId) => <Avatar key={String(memberId)} name={users.find((user) => user.id === String(memberId))?.name ?? 'Unknown'} size="small" />)}{actor.permissions.includes('task.manage') ? <SpaceSettings space={{ id, name: space.name, description: space.description ?? null, memberIds: space.memberIds.map(String), organisationId: space.organisationId ? String(space.organisationId) : null }} users={users.map((user) => ({ id: user.id, name: user.name }))} customers={customers.map((customer) => ({ id: customer.id, name: customer.name }))} /> : null}</span>}
+          titleExtra={
+            <span className="flex -space-x-1.5">
+              {space.memberIds.map((memberId) => (
+                <Avatar
+                  key={String(memberId)}
+                  name={users.find((user) => user.id === String(memberId))?.name ?? 'Unknown'}
+                  size="small"
+                />
+              ))}
+              {actor.permissions.includes('task.manage') ? (
+                <SpaceSettings
+                  space={{
+                    id,
+                    name: space.name,
+                    description: space.description ?? null,
+                    memberIds: space.memberIds.map(String),
+                    organisationId: space.organisationId ? String(space.organisationId) : null,
+                  }}
+                  users={users.map((user) => ({ id: user.id, name: user.name }))}
+                  customers={customers.map((customer) => ({
+                    id: customer.id,
+                    name: customer.name,
+                  }))}
+                />
+              ) : null}
+            </span>
+          }
           description={space.description ?? undefined}
           action={
             <div className="w-48">
@@ -89,6 +115,7 @@ export default async function SpacePage({
         activeFolderId={folder ?? null}
         tasks={tasks}
         users={users.map((user) => ({ id: user.id, name: user.name }))}
+        spaceMemberIds={space.memberIds.map(String)}
         canManage={actor.permissions.includes('task.manage')}
         initialView={view === 'list' ? 'list' : view === 'gantt' ? 'gantt' : 'board'}
         runningTaskId={runningTimer?.kind === 'task' ? runningTimer.itemId : null}

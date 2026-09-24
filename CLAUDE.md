@@ -20,7 +20,8 @@ Confirmed product name. The repository is COEX.
 ## Where we are
 
 M1 Foundation is accepted. M2 CRM foundation, M3 Tasks and dashboard, M4 Time tracking and M5
-Support are built. Current work is local verification, mobile QA and controlled rollout.
+Support are built and accepted by John (24 Sep 2026). The team cuts over from ClickUp and
+osTicket to COEX on 25 Sep 2026 (M8). Next: assignment notifications, then Channels (M6).
 
 Conventions worth knowing before changing CRM code:
 
@@ -66,6 +67,16 @@ The full scope document lives in the Claude project "ECHO System Development" as
     but must never notify the customer automatically.
 12. IMAP email intake is configured locally only. It must use a per-mailbox UID baseline so old
     unread mail cannot be imported accidentally; production polling is a deployment decision.
+13. Tasks and Tickets are natural partners and stay directly connected: escalation creates a task
+    carrying sourceTicketId, and task work updates and completion post internal notes on the
+    ticket. This is John's deliberate exception to the rule that modules never import siblings
+    (24 Sep 2026); no other module pair gets it without his say.
+14. Assignment follows visibility: a task can only go to members of its private Space and private
+    Folder; a subtask can only go to the task's own assignees (anyone the task could go to when the
+    task is unassigned). Pickers show only these people; the service refuses anyone else.
+15. osTicket migration (M7) covers open tickets only, and only if straightforward. No full import.
+16. Attachments live on the Contabo VPS (100 GB); archival starts at 50 GB used. DigiSol owns and
+    operates backups. Figma adoption is dropped.
 
 ## Code standards
 

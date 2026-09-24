@@ -17,6 +17,12 @@
 > phone menu drawer renders through a portal. The hydration warning seen in development comes from
 > a Chrome extension injecting `__gcr*` attributes, not from COEX. Type check and lint pass.
 
+> **24 Sep evening (Claude):** decisions recorded in FEEDBACK.md and CLAUDE.md (items 13 to 16).
+> Batch A's 22 Sep redeploy and acceptance are now recorded. Production DB was seeded on 19 Sep,
+> after the 18 Sep Spaces change, so it does not need `migrate:spaces`. Known pre-existing issues:
+> 36 files fail Prettier and `board.tsx` has one react-hooks lint error, so CI is red until a
+> formatting pass. Cutover to COEX: 25 Sep 2026.
+
 ## Purpose
 
 This is the shared working memory for AI agents collaborating on COEX.

@@ -359,6 +359,38 @@ async function assertAssignable(
   }
 }
 
+/**
+ * Who may own this task: the members of its private Space and private Folder, or null when
+ * neither is private and anyone in the tenant may. Pickers use it so they never offer a person
+ * the service would then refuse.
+ */
+export async function assignableUserIdsForTask(task: {
+  spaceId: Types.ObjectId | string;
+  folderId?: Types.ObjectId | string | null;
+}): Promise<string[] | null> {
+  const [spaceMembers, folderMembers] = await Promise.all([
+    assignableSpaceMemberIds(String(task.spaceId)),
+    assignableMemberIds(task.folderId ? String(task.folderId) : null),
+  ]);
+  if (spaceMembers && folderMembers) {
+    return spaceMembers.filter((id) => folderMembers.includes(id));
+  }
+  return spaceMembers ?? folderMembers;
+}
+
+/**
+ * Who a subtask may go to: the task's own assignees, because a subtask is a slice of their work.
+ * An unassigned task falls back to whoever may own the task itself.
+ */
+export async function assignableUserIdsForSubtask(task: {
+  spaceId: Types.ObjectId | string;
+  folderId?: Types.ObjectId | string | null;
+  assigneeIds: (Types.ObjectId | string)[];
+}): Promise<string[] | null> {
+  if (task.assigneeIds.length > 0) return task.assigneeIds.map(String);
+  return assignableUserIdsForTask(task);
+}
+
 export async function createTask(input: CreateTaskInput): Promise<string> {
   await connectToDatabase();
 
@@ -619,6 +651,7 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
     await assertAssignable(
       patch.folderId,
       (patch.assigneeIds ?? before.assigneeIds.map(String)).filter(Boolean),
+      String(before.spaceId),
     );
 
     set.folderId = toOptionalObjectId(patch.folderId);
@@ -634,6 +667,7 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
     await assertAssignable(
       before.folderId ? String(before.folderId) : null,
       patch.assigneeIds.filter(Boolean),
+      String(before.spaceId),
     );
 
     const assigneeIds = patch.assigneeIds.filter(Boolean).map((value) => toObjectId(value));
@@ -718,6 +752,17 @@ export async function setSubtaskAssignee(
 
   const subtask = task.subtasks.find((candidate) => String(candidate._id) === subtaskId);
   if (!subtask) throw new Error('Subtask not found.');
+
+  if (assigneeId) {
+    const allowed = await assignableUserIdsForSubtask(task);
+    if (allowed && !allowed.includes(assigneeId)) {
+      throw new Error(
+        task.assigneeIds.length > 0
+          ? 'A subtask can only go to someone already assigned to its task.'
+          : 'That person is not a member of this private Space or Folder.',
+      );
+    }
+  }
 
   subtask.assigneeId = assigneeId ? toObjectId(assigneeId) : null;
   task.lastActivityAt = new Date();
