@@ -14,6 +14,12 @@ const SECTIONS: { href: string; label: string; description: string; permission: 
     permission: 'tenant.manage',
   },
   {
+    href: '/setup/email',
+    label: 'Email',
+    description: 'Support mailbox, sending account, customer acknowledgements and staff alerts.',
+    permission: 'tenant.manage',
+  },
+  {
     href: '/setup/fields',
     label: 'Custom fields',
     description: 'Extra fields on your records, defined without a code change.',

@@ -73,6 +73,7 @@ export const GROUPS: NavigationGroup[] = [
     label: 'Setup',
     items: [
       { href: '/setup/queues', label: 'Queues', permission: 'tenant.manage' },
+      { href: '/setup/email', label: 'Email', permission: 'tenant.manage' },
       { href: '/setup/canned-replies', label: 'Saved replies', permission: 'ticket.manage' },
       { href: '/setup/tenant', label: 'Tenant settings', permission: 'tenant.manage' },
       { href: '/setup/fields', label: 'Custom fields', permission: 'tenant.manage' },

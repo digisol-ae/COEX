@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
-import { getTicketDetail } from '@/modules/tickets/services/ticket.service';
+import { customerReplyAddress, getTicketDetail } from '@/modules/tickets/services/ticket.service';
 import { listQueues } from '@/modules/tickets/services/queue.service';
 import { listCannedReplies } from '@/modules/tickets/services/canned-reply.service';
 import { listUsers } from '@/modules/core/services/user.service';
@@ -30,6 +30,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   if (!seesEverything && ticket.assigneeId !== actor.id) notFound();
 
   const canManage = actor.permissions.includes('ticket.manage');
+  const replyEmail = canManage ? await asUser(actor, () => customerReplyAddress(id)) : null;
 
   const { queues, users, spaces, cannedReplies, runningTimer, loggedMinutes } = await asUser(
     actor,
@@ -122,6 +123,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           {canManage && !ticket.mergedIntoId ? (
             <ReplyBox
               ticketId={ticket.id}
+              emailTo={replyEmail}
               cannedReplies={cannedReplies}
               context={{
                 contactName: ticket.contactName,

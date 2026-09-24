@@ -25,6 +25,9 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 - M8 cutover: the team starts using COEX in place of ClickUp and osTicket from 25 Sep 2026.
 - Next after cutover: notify members and agents about tasks and tickets assigned to them.
 - Entra single sign on is already registered by John; Claude to list what it needs.
+- Email (built 24 Sep, awaiting John's test and deploy): Setup, Email screen for the support
+  mailbox, the sending account, customer acknowledgement and public reply emails, and staff alerts
+  (ticket assigned, customer replied, task assigned). IMAP IDLE worker `coex-mail` for push intake.
 
 ## Open
 

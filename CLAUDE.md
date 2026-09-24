@@ -65,8 +65,13 @@ The full scope document lives in the Claude project "ECHO System Development" as
     inert commercial block and nothing more.
 11. Ticket-linked Task work updates are internal support notes. They may update the linked ticket,
     but must never notify the customer automatically.
-12. IMAP email intake is configured locally only. It must use a per-mailbox UID baseline so old
-    unread mail cannot be imported accidentally; production polling is a deployment decision.
+12. Email is configured per tenant in Setup, Email, not in .env. A separate worker process
+    (scripts/email-worker.ts, pm2 `coex-mail`) holds an IMAP IDLE connection to the support mailbox
+    (push, with a 5 minute safety sweep) and sends queued mail. Progress is tracked by mailbox UID;
+    the first run records the current highest UID, so mail already in the inbox never becomes a
+    ticket. Requests never send mail: they write to the email outbox and the worker delivers with
+    retries. Passwords are sealed with COEX_ENCRYPTION_KEY. Automatic acknowledgements are never
+    sent to automatic mail and at most once an hour per sender. Internal notes are never emailed.
 13. Tasks and Tickets are natural partners and stay directly connected: escalation creates a task
     carrying sourceTicketId, and task work updates and completion post internal notes on the
     ticket. This is John's deliberate exception to the rule that modules never import siblings

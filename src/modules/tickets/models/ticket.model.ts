@@ -41,6 +41,9 @@ const ticketSchema = new Schema(
       index: true,
     },
     contactId: { type: Schema.Types.ObjectId, ref: 'Contact', default: null, index: true },
+    /** Who emailed us, kept so replies reach them before they are added to the CRM. */
+    requesterEmail: { type: String, default: null, lowercase: true, trim: true },
+    requesterName: { type: String, default: null },
     locationId: { type: Schema.Types.ObjectId, ref: 'Location', default: null },
     productId: { type: Schema.Types.ObjectId, ref: 'Product', default: null },
 

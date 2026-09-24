@@ -39,6 +39,13 @@ Follow this file for the live server; DEPLOY.md is the original design only.
 - Nightly 2am cron (user digisol) -> /srv/coex/shared/backups via deploy/backup.sh
   (mongodump + tar of storage, 14-day retention). Copy off-box periodically.
 
+## Email worker (from 24 Sep 2026)
+- Second pm2 process `coex-mail`: `pm2 start npm --name coex-mail -- run email:worker`, then
+  `pm2 save`. It reads the same /srv/coex/app/.env. Restart it with the app after each redeploy.
+- .env needs `COEX_ENCRYPTION_KEY` (openssl rand -base64 32, never change it) and
+  `COEX_APP_URL=https://coex.digisol.ae`.
+- Mailbox and SMTP details are entered in COEX, Setup, Email, not in .env.
+
 ## Redeploy after a git push to main
     cd /srv/coex/app && git pull && npm ci && npm run build && pm2 restart coex-app
 

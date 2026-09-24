@@ -28,7 +28,10 @@ export function ReplyBox({
   ticketId,
   cannedReplies,
   context,
+  emailTo = null,
 }: {
+  /** Where a public reply will be emailed; null when it stays in COEX only. */
+  emailTo?: string | null;
   ticketId: string;
   cannedReplies: CannedReplySummary[];
   context: ReplyContext;
@@ -111,6 +114,14 @@ export function ReplyBox({
           <input type="hidden" name="ticketId" value={ticketId} />
           <input type="hidden" name="visibility" value={visibility} />
           <input type="hidden" name="cannedReplyId" value={isInternal ? '' : usedReplyId} />
+
+          {!isInternal ? (
+            <p className="text-xs text-[var(--color-ink-subtle)]">
+              {emailTo
+                ? `This reply will be emailed to ${emailTo}.`
+                : 'This reply is saved on the ticket only: no customer email address, or customer emails are off.'}
+            </p>
+          ) : null}
 
           <textarea
             ref={box}

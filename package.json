@@ -17,10 +17,12 @@
     "test:watch": "vitest",
     "test:unit": "vitest run tests/unit",
     "test:db": "vitest run tests/database",
-    "check": "npm run test && npm run build"
+    "check": "npm run test && npm run build",
+    "email:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/email-worker.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.1",
+    "@types/nodemailer": "^8.0.2",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
@@ -29,6 +31,7 @@
     "mongoose": "^9.10.1",
     "next": "16.3.5",
     "next-auth": "^5.0.0-beta.32",
+    "nodemailer": "^10.0.10",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "sharp": "^0.35.4",

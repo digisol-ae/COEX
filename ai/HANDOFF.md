@@ -1,5 +1,15 @@
 # COEX — AI Handoff
 
+## Update — 24 Sep 2026 night, Claude: email
+
+New: core `email.service.ts` (settings, outbox, delivery, alerts), models `email-settings` and
+`email-outbox`, `lib/secret-box.ts`, tickets `mailbox.service.ts` (UID based sync) and a rewritten
+`inbound-email.service.ts` (subject token threading, reopen on customer reply, requesterEmail,
+acknowledgement), `scripts/email-worker.ts`, Setup, Email screen. Public replies email the customer
+(reply box shows the address); ticket and task assignment alerts. Type check (with
+@types/nodemailer) and lint pass on the changed files; not yet run against a live mailbox.
+`scripts/import-inbound-email.ts` is superseded by the worker.
+
 ## Update — 24 Sep 2026 evening, Claude
 
 Added: `assignableUserIdsForTask` / `assignableUserIdsForSubtask` in `task.service.ts`,

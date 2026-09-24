@@ -1,3 +1,10 @@
+import {
+  alertStaff,
+  appBaseUrl,
+  newMessageId,
+  publicRepliesAreEmailed,
+  queueEmail,
+} from '@/modules/core/services/email.service';
 import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
@@ -161,6 +168,10 @@ export async function createTicket(input: CreateTicketInput): Promise<CreatedTic
     });
   }
 
+  if (created.assigneeId) {
+    await safely(() => alertTicketAssignee(created, created.assigneeId!));
+  }
+
   return { id: String(created._id), firstMessageId: String(firstMessage._id) };
 }
 
@@ -215,6 +226,10 @@ export async function addReply(input: ReplyInput): Promise<string> {
   }
 
   await tickets().updateOne({ _id: ticket._id }, { $set: update });
+
+  if (input.visibility === 'public') {
+    await safely(() => emailCustomerReply(ticket, message._id, input.body));
+  }
 
   if (input.visibility === 'public' && ticket.organisationId) {
     await recordActivity({
@@ -609,6 +624,8 @@ export async function assignTicket(
       { assigneeId: userId },
     ),
   });
+  if (changed && userId) await safely(() => alertTicketAssignee(ticket, userId));
+
   if (changed && reason) {
     const author = await UserModel.findOne({ _id: getContext().userId }).select('name');
     await TicketMessageModel.create({
@@ -884,4 +901,119 @@ async function systemMessage(ticketId: Types.ObjectId, body: string): Promise<vo
     authorName: 'COEX',
     channel: 'system',
   });
+}
+
+/**
+ * Email must never be the reason a reply or an assignment fails to save. The outbox write is
+ * logged and skipped on error; the ticket itself is already stored.
+ */
+async function safely(work: () => Promise<unknown>): Promise<void> {
+  try {
+    await work();
+  } catch (error) {
+    console.error('Email step skipped:', error instanceof Error ? error.message : error);
+  }
+}
+
+interface EmailableTicket {
+  _id: Types.ObjectId;
+  tenantId: Types.ObjectId;
+  number: string;
+  subject: string;
+  queueId: Types.ObjectId;
+  contactId?: Types.ObjectId | null;
+  requesterEmail?: string | null;
+}
+
+async function recipientFor(ticket: EmailableTicket): Promise<string | null> {
+  if (ticket.contactId) {
+    const contact = await ContactModel.findOne({
+      _id: ticket.contactId,
+      tenantId: ticket.tenantId,
+    }).select('email');
+    if (contact?.email) return contact.email;
+  }
+  return ticket.requesterEmail ?? null;
+}
+
+/** Where a public reply on this ticket will be emailed, or null when it will not be emailed. */
+export async function customerReplyAddress(ticketId: string): Promise<string | null> {
+  await connectToDatabase();
+  const ticket = await tickets().findById(ticketId);
+  if (!ticket || !(await publicRepliesAreEmailed())) return null;
+  return recipientFor(ticket);
+}
+
+/**
+ * Queues a public reply to the customer. The subject carries the ticket number and the headers
+ * point at the conversation, so the customer's answer comes back onto this ticket.
+ */
+async function emailCustomerReply(
+  ticket: EmailableTicket,
+  messageId: Types.ObjectId,
+  body: string,
+): Promise<void> {
+  const to = await recipientFor(ticket);
+  if (!to) return;
+
+  const thread = await TicketMessageModel.find({
+    tenantId: ticket.tenantId,
+    ticketId: ticket._id,
+    externalMessageId: { $ne: null },
+  })
+    .sort({ sentAt: 1 })
+    .select('externalMessageId direction');
+  const references = thread
+    .map((message) => message.externalMessageId)
+    .filter((value): value is string => Boolean(value));
+  const lastInbound =
+    [...thread].reverse().find((message) => message.direction === 'inbound')?.externalMessageId ??
+    references.at(-1) ??
+    null;
+
+  // The queue signature is not added here: agents insert it through saved replies already.
+  const ownMessageId = await newMessageId();
+
+  const queued = await queueEmail({
+    kind: 'ticket_reply',
+    to,
+    subject: `Re: [${ticket.number}] ${ticket.subject}`,
+    text: [
+      body.trim(),
+      `\n--\nTicket ${ticket.number}. Please keep [${ticket.number}] in the subject when you reply.`,
+    ]
+      .filter(Boolean)
+      .join('\n'),
+    messageId: ownMessageId,
+    inReplyTo: lastInbound,
+    references: references.slice(-10),
+    ticketMessageId: messageId,
+    // Attachments are stored just after the reply itself; give them time to land.
+    delaySeconds: 20,
+  });
+
+  if (queued) {
+    await TicketMessageModel.updateOne(
+      { _id: messageId, tenantId: ticket.tenantId },
+      { $set: { externalMessageId: ownMessageId } },
+    );
+  }
+}
+
+async function alertTicketAssignee(
+  ticket: { _id: Types.ObjectId; number: string; subject: string },
+  userId: Types.ObjectId | string,
+): Promise<void> {
+  await alertStaff(
+    'ticket_assigned',
+    userId,
+    `[${ticket.number}] Assigned to you: ${ticket.subject}`,
+    [
+      `Ticket ${ticket.number} has been assigned to you.`,
+      '',
+      ticket.subject,
+      '',
+      `${appBaseUrl()}/support/tickets/${ticket._id}`,
+    ],
+  );
 }

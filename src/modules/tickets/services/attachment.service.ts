@@ -4,6 +4,7 @@ import { getContext } from '@/lib/tenant-context';
 import { toObjectId } from '@/lib/ids';
 import { fileStorage } from '@/lib/storage';
 import { recordAudit } from '@/modules/core/services/audit.service';
+import { attachFilesToQueuedEmail } from '@/modules/core/services/email.service';
 import { repository } from '@/lib/repository';
 import { TicketMessageModel } from '../models/ticket-message.model';
 import { TicketModel } from '../models/ticket.model';
@@ -106,7 +107,9 @@ export async function attachToMessage(
 
   const totalBytes = files.reduce((sum, file) => sum + file.body.byteLength, 0);
   if (totalBytes > MAX_MESSAGE_ATTACHMENT_BYTES) {
-    throw new Error(`Attachments total more than ${Math.round(MAX_MESSAGE_ATTACHMENT_BYTES / (1024 * 1024))}MB. Send a cloud link instead.`);
+    throw new Error(
+      `Attachments total more than ${Math.round(MAX_MESSAGE_ATTACHMENT_BYTES / (1024 * 1024))}MB. Send a cloud link instead.`,
+    );
   }
 
   for (const file of files) {
@@ -140,6 +143,9 @@ export async function attachToMessage(
   if (stored.length === 0) return [];
 
   await messages().updateOne({ _id: message._id }, { $push: { attachments: { $each: stored } } });
+
+  // A public reply's email is queued a few seconds before its files are stored; add them to it.
+  await attachFilesToQueuedEmail(message._id, stored);
 
   await tickets().updateOne({ _id: message.ticketId }, { $set: { lastActivityAt: new Date() } });
 

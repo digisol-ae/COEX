@@ -9,6 +9,7 @@ import { recordActivity } from '@/modules/crm/services/activity.service';
 import { UserModel } from '@/modules/core/models/user.model';
 import { TaskModel } from '../models/task.model';
 import { TaskCommentModel } from '../models/task-comment.model';
+import { alertStaff, appBaseUrl } from '@/modules/core/services/email.service';
 import { SpaceModel } from '../models/space.model';
 import { FolderModel } from '../models/folder.model';
 import { TimeEntryModel } from '@/modules/time/models/time-entry.model';
@@ -454,6 +455,8 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     after: { number: created.number, title: created.title, space: space.name },
   });
 
+  await alertNewAssignees(created, [], created.assigneeIds.map(String));
+
   // A task against a customer belongs on that customer's timeline, which is the whole point of
   // keeping one activity collection.
   if (created.organisationId) {
@@ -573,6 +576,13 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
     throw new Error('The end must come after the start.');
   }
 
+  await alertNewAssignees(
+    before,
+    before.assigneeIds.map(String),
+    assigneeIds.map(String),
+    input.title.trim(),
+  );
+
   const after = await tasks().updateOne(
     { _id: before._id },
     {
@@ -689,6 +699,15 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
   }
 
   await tasks().updateOne({ _id: before._id }, { $set: set });
+
+  if (patch.assigneeIds) {
+    await alertNewAssignees(
+      before,
+      before.assigneeIds.map(String),
+      patch.assigneeIds.filter(Boolean),
+      typeof set.title === 'string' ? set.title : undefined,
+    );
+  }
 
   await recordAudit({
     action: 'task.updated',
@@ -870,4 +889,30 @@ export async function archiveTask(id: string): Promise<void> {
     entityId: removed._id,
     before: { number: removed.number, title: removed.title },
   });
+}
+
+/**
+ * Emails the people newly given a task. Anyone already on it heard the first time, and a failed
+ * email never stops the assignment itself from saving.
+ */
+async function alertNewAssignees(
+  task: { _id: Types.ObjectId; number: string; title: string },
+  beforeIds: string[],
+  afterIds: string[],
+  title = task.title,
+): Promise<void> {
+  const added = afterIds.filter((id) => !beforeIds.includes(id));
+  for (const userId of added) {
+    try {
+      await alertStaff('task_assigned', userId, `[${task.number}] Assigned to you: ${title}`, [
+        `Task ${task.number} has been assigned to you.`,
+        '',
+        title,
+        '',
+        `${appBaseUrl()}/tasks/${task._id}`,
+      ]);
+    } catch (error) {
+      console.error('Task alert skipped:', error instanceof Error ? error.message : error);
+    }
+  }
 }
