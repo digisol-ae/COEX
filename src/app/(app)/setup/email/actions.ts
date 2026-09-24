@@ -47,7 +47,6 @@ export async function saveEmailSettingsAction(
         },
         customer: {
           autoReplyEnabled: flag(formData, 'autoReplyEnabled'),
-          autoReplySubject: text(formData, 'autoReplySubject'),
           autoReplyBody: text(formData, 'autoReplyBody'),
           emailPublicReplies: flag(formData, 'emailPublicReplies'),
         },

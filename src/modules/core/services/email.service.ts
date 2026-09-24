@@ -72,7 +72,6 @@ export interface EmailSettingsView {
   };
   customer: {
     autoReplyEnabled: boolean;
-    autoReplySubject: string;
     autoReplyBody: string;
     emailPublicReplies: boolean;
   };
@@ -128,7 +127,6 @@ export async function getEmailSettings(): Promise<EmailSettingsView> {
     },
     customer: {
       autoReplyEnabled: customer.autoReplyEnabled ?? false,
-      autoReplySubject: customer.autoReplySubject ?? '',
       autoReplyBody: customer.autoReplyBody ?? '',
       emailPublicReplies: customer.emailPublicReplies ?? true,
     },
@@ -233,7 +231,6 @@ export async function saveEmailSettings(input: EmailSettingsInput): Promise<void
   }
   settings.customer = {
     autoReplyEnabled: input.customer.autoReplyEnabled,
-    autoReplySubject: input.customer.autoReplySubject.trim() || 'We have received your request',
     autoReplyBody: input.customer.autoReplyBody.trim(),
     emailPublicReplies: input.customer.emailPublicReplies,
   };

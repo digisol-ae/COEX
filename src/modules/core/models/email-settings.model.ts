@@ -48,7 +48,6 @@ const emailSettingsSchema = new Schema(
 
     customer: {
       autoReplyEnabled: { type: Boolean, default: false },
-      autoReplySubject: { type: String, default: 'We have received your request' },
       autoReplyBody: {
         type: String,
         default:

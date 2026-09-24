@@ -72,6 +72,9 @@ The full scope document lives in the Claude project "ECHO System Development" as
     ticket. Requests never send mail: they write to the email outbox and the worker delivers with
     retries. Passwords are sealed with COEX_ENCRYPTION_KEY. Automatic acknowledgements are never
     sent to automatic mail and at most once an hour per sender. Internal notes are never emailed.
+    Every customer email on a ticket, the acknowledgement included, uses the subject
+    `Re: [TICKET] <original subject>`: Outlook groups conversations by subject and ignores reply
+    headers, so a custom acknowledgement subject split the customer's thread in two (25 Sep 2026).
 13. Tasks and Tickets are natural partners and stay directly connected: escalation creates a task
     carrying sourceTicketId, and task work updates and completion post internal notes on the
     ticket. This is John's deliberate exception to the rule that modules never import siblings

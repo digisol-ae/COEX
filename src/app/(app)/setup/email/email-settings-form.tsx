@@ -228,9 +228,6 @@ export function EmailSettingsForm({
               hint="Never sent to automatic mail (out of office, bounces, lists), and at most once an hour per sender."
               defaultChecked={customer.autoReplyEnabled}
             />
-            <Field label="Acknowledgement subject" hint="The ticket number is added in front.">
-              <Input name="autoReplySubject" defaultValue={customer.autoReplySubject} />
-            </Field>
             <Field
               label="Acknowledgement message"
               hint="Placeholders: {customer}, {ticket}, {subject}"

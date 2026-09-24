@@ -249,7 +249,9 @@ async function acknowledge(input: {
   const queued = await queueEmail({
     kind: 'auto_reply',
     to: input.to,
-    subject: `[${ticket.number}] ${fill(customer.autoReplySubject ?? '', values)}`,
+    // Same subject as agent replies: Outlook groups a conversation by subject and ignores the
+    // reply headers, so a different acknowledgement subject would split the customer's thread.
+    subject: `Re: [${ticket.number}] ${ticket.subject}`,
     text: fill(customer.autoReplyBody ?? '', values),
     messageId,
     inReplyTo: input.inReplyTo,
