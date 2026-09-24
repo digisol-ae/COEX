@@ -63,7 +63,7 @@ export function MobileNavigation({
         </svg>
         {/* The rail is hidden on a phone, so the menu button carries the Support number instead. */}
         {unread ? (
-          <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-brand-red)] px-1 text-[9px] font-medium text-white">
+          <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-brand-black)] px-1 text-[9px] font-bold text-[var(--color-brand-red)]">
             {unread > 99 ? '99+' : unread}
           </span>
         ) : null}
