@@ -118,7 +118,7 @@ function NavigationLink({
     >
       {label}
       {count ? (
-        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-brand-black)] px-1 text-[9px] font-bold text-[var(--color-brand-red)]">
+        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-brand-red)] px-1 text-[9px] font-medium text-white">
           {count > 99 ? '99+' : count}
         </span>
       ) : null}

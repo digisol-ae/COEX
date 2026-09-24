@@ -63,7 +63,7 @@ export function MobileNavigation({
         </svg>
         {/* The rail is hidden on a phone, so the menu button carries the Support number instead. */}
         {unread ? (
-          <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-brand-black)] px-1 text-[9px] font-bold text-[var(--color-brand-red)]">
+          <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-brand-red)] px-1 text-[9px] font-medium text-white">
             {unread > 99 ? '99+' : unread}
           </span>
         ) : null}
@@ -81,7 +81,7 @@ export function MobileNavigation({
                 className="absolute inset-0 bg-[var(--color-brand-black)]/30"
               />
 
-              <div className="relative flex h-full w-72 max-w-[85vw] flex-col overflow-y-auto bg-[var(--color-surface)] px-3 py-5">
+              <div className="navigation-dark relative flex h-full w-72 max-w-[85vw] flex-col overflow-y-auto px-3 py-5">
                 <div className="mb-6 flex items-center justify-between pl-2">
                   <Image
                     src="/brand/logo-long.png"

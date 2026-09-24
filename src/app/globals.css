@@ -152,3 +152,20 @@ body {
     0 1px 2px rgb(20 20 20 / 4%),
     0 8px 24px -16px rgb(20 20 20 / 18%);
 }
+
+/*
+ * The phone menu drawer, in the logo's colours: brand black with red lettering, as John asked on
+ * 25 Sep 2026. Only the tokens change, so the shared menu and space tree inside need no variant of
+ * their own. Red on #141414 is about 4.9:1, which passes for text this size.
+ */
+.navigation-dark {
+  --color-surface: var(--color-brand-black);
+  --color-surface-muted: #262626;
+  --color-ink: #ff5a6b;
+  --color-ink-muted: var(--color-brand-red);
+  --color-ink-subtle: var(--color-brand-red);
+  --color-line: #2c2c2c;
+  --color-line-strong: #3a3a3a;
+  background: var(--color-brand-black);
+  color: var(--color-brand-red);
+}
