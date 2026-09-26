@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
+import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
 import { Badge, Button, Field, Input, Notice, Select, Td } from '@/components/ui';
 import { formatMinutes, toDateKey } from '@/modules/time/week';
@@ -290,32 +291,107 @@ export function EntryRow({
       ) : null}
 
       {showHistory ? (
-        <tr>
-          <td colSpan={columns} className="bg-[var(--color-surface-sunken)]/50 px-3 py-2">
-            {history === null ? (
-              <p className="text-[11px] text-[var(--color-ink-subtle)]">Loading</p>
-            ) : history.length === 0 ? (
-              <p className="text-[11px] text-[var(--color-ink-subtle)]">
-                Nothing recorded against this entry.
-              </p>
-            ) : (
-              <ol className="space-y-1">
-                {history.map((row) => (
-                  <li key={row.id} className="flex flex-wrap gap-x-2 text-[11px]">
-                    <span className="text-[var(--color-ink-subtle)] tabular-nums">
-                      {new Date(row.at).toLocaleString('en-GB')}
-                    </span>
+        <HistoryPopup
+          title={`${entry.taskNumber ?? ''} ${entry.taskTitle}`.trim()}
+          day={new Date(entry.workDate).toLocaleDateString('en-GB', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+          })}
+          rows={history}
+          onClose={() => setShowHistory(false)}
+        />
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * An entry's history as a popup over the timesheet. Opening it inside the table pushed every row
+ * below it down the page, which John found jarring (26 Sep 2026).
+ */
+function HistoryPopup({
+  title,
+  day,
+  rows,
+  onClose,
+}: {
+  title: string;
+  day: string;
+  rows: HistoryRow[] | null;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="entry-history-title"
+        className="w-full max-w-lg rounded-[var(--radius-card)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-pop)]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h2 id="entry-history-title" className="font-medium text-[var(--color-ink)]">
+              History of this entry
+            </h2>
+            <p className="mt-0.5 truncate text-xs text-[var(--color-ink-subtle)]">
+              {day} · {title}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            autoFocus
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-ink-subtle)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="mt-4 max-h-[60vh] overflow-y-auto">
+          {rows === null ? (
+            <p className="text-sm text-[var(--color-ink-subtle)]">Loading…</p>
+          ) : rows.length === 0 ? (
+            <p className="text-sm text-[var(--color-ink-subtle)]">
+              Nothing recorded against this entry.
+            </p>
+          ) : (
+            <ol className="space-y-3">
+              {rows.map((row) => (
+                <li key={row.id} className="border-l-2 border-[var(--color-line)] pl-3 text-sm">
+                  <p className="text-xs text-[var(--color-ink-subtle)] tabular-nums">
+                    {new Date(row.at).toLocaleString('en-GB', {
+                      day: 'numeric',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}{' '}
+                    ·{' '}
                     <span className="font-medium text-[var(--color-ink-muted)]">
                       {row.actorName}
                     </span>
-                    <span className="text-[var(--color-ink-muted)]">{row.summary}</span>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </td>
-        </tr>
-      ) : null}
-    </>
+                  </p>
+                  <p className="mt-0.5 text-[var(--color-ink)]">{row.summary}</p>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
