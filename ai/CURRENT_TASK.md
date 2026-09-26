@@ -1,10 +1,13 @@
 # COEX — Current AI Task
 
-> **Current task — 26 Sep 2026 (Claude):** QA of the post-cutover build is done (see
-> PROJECT_STATE.md). The QA fixes are committed locally and await John's approval to push and
-> deploy. No new features until John approves them. Candidates he has been offered: changing the
-> once-an-hour acknowledgement rule, watching the Junk folder for tickets, silencing the
-> `src/lib/storage.ts` build warnings, a Prettier pass over the files that currently fail it.
+> **Current task — 26 Sep 2026 (Claude):** Batch C (FEEDBACK.md item 1), not started. The
+> post-cutover QA fixes are deployed and verified live (`6fa0730`). Batch C scope, in John's
+> words: (a) from a task, a link to its ticket; (b) comments on a ticket that the task's agent can
+> reply to, with @mentions that autocomplete agent names and email the mentioned agent; (c) one
+> consolidated tickets-and-tasks view for agents with both modules; (d) agents may adjust
+> accumulated hours, with a required reason. Claude asked John scoping questions on 26 Sep before
+> building; record his answers in FEEDBACK.md. Other offers still open: the once-an-hour
+> acknowledgement rule, watching the Junk folder, the storage.ts build warnings, a Prettier pass.
 
 > **Current task — 24 Sep 2026, evening (Claude):** John accepted M4, M5, the board and task
 > panel work and the September support baseline, and approved commit, push and deploy. Built

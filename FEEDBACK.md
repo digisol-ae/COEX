@@ -2,6 +2,23 @@
 
 Running backlog. Newest at the top. Each item is numbered, has a state and a short note.
 
+## Decisions from John, 26 Sep 2026
+
+- Cutover happened on 25 Sep: the team works in COEX. Email intake (`coex-mail`, IMAP IDLE) and
+  outbound email are live on coex.digisol.ae.
+- Deployed and verified live on 26 Sep (`6fa0730`): unread marks on tickets and the Support icon,
+  ticket list and ticket page refreshing every 30 seconds, one Outlook thread per ticket (the
+  acknowledgement uses the reply subject), black phone menu drawer with red lettering, the phone
+  timer tray, Status/Priority widths, and the 3 MB warning on ticket forms.
+- Attachment limit stays 3 MB per file, 10 MB per message. (John's message said "limit should be
+  MB" with the number missing; the documented 3 MB was kept. Confirm if another figure was meant.)
+- Tasks and Tickets read each other's data directly, in both directions, by design (CLAUDE.md
+  decision 13). No longer an open refactoring item.
+- Server operating system updates (187 pending on 26 Sep, 123 security) are Nabeel's
+  responsibility, not COEX development work.
+- ChatGPT will take over at a later stage: every session keeps CLAUDE.md, FEEDBACK.md and the
+  `ai/` files current so the hand-over needs no chat history.
+
 ## Decisions from John, 24 Sep 2026
 
 - Accepted: the September support baseline (permissions screen, task and ticket timers,
@@ -31,16 +48,6 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
-0. Local phone QA: menu drawer, timer tray, sign out and ticket Status/Priority. Accepted by
-   John on 24 Sep 2026.
-   24 Sep QA fixes, retested and accepted by John on 24 Sep ("looks ok"): the phone menu drawer is now portalled to
-   the page body, because the header's backdrop blur was confining it to the header strip; and
-   escalating a ticket now records the ticket on the new task, so Task work updates and completion
-   reach the ticket as internal notes. Older escalated tasks fall back to the ticket's own link.
-
-0a. Before production email intake is enabled, decide the mailbox polling frequency and configure
-    a separate app-server UID baseline. Historic unread mail must not become tickets by accident.
-
 0d. Attachment archival: triggered by volume, not age. Archive older attachments once stored
     attachments reach 50 GB of the VPS's 100 GB. Not built yet.
 
@@ -65,10 +72,33 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
    John is unsure whether `npm run migrate:spaces` has been run for databases written before this
    change. Verify migration history before marking this complete.
 
-1. Batch C — Entra app registration. Password sign-on covers the gap. Revisit when Batch C is
+1. Batch C (added by John, 26 Sep 2026). Not started; awaiting John's answers to scoping questions.
+- Connect Tickes and Tasks in the manner that an agent can see by clicking on the link from tasks.
+- Comment sections is required for ticket when assigned to an agent and Agent from tasks can also reply to the same comments. Comment should be able to mention target agent name by typing @(agent name should come automatically) and then agent will be notified by an email.
+- there should be a mixed dashboard for an agent who have access to tickets and tasks module so he can see consolidated ticket and tasks.
+- Accumulated hour can be adjusted by an agent with comments (why is he changing it)
+   What exists already (checked 26 Sep): the ticket page links to its task, but the task page has
+   no link back to its ticket; task comments are mirrored onto the ticket as internal notes, but
+   ticket notes do not reach the task and there are no @mentions or mention emails; the dashboard
+   has task tiles and a separate support block, not one consolidated list; time entries can be
+   corrected and every correction is audited, but no reason is asked for.
+
+— Entra app registration. Password sign-on covers the gap. Revisit when Batch C is
    scheduled; it also unlocks Graph document titles.
 
 ## Done
+
+0. 26 Sep 2026: post-cutover QA passed and deployed (`6fa0730`). Escalation → Task work update →
+   Task completion posts two internal notes on the ticket and emails no customer. Phone menu,
+   timer tray (start, tray, stop, "1m logged") and sign-out work; Status/Priority show on phone
+   cards and the desktop table. Fixed during QA: phone timer tray ran off the left edge, "Normal"
+   clipped on macOS, long subjects widened the tickets table, forms warned at 25MB instead of 3MB.
+
+0. Email intake live since 25 Sep: IMAP IDLE worker `coex-mail` with a UID baseline, so historic
+   mail never became tickets (supersedes the old open item on polling frequency).
+
+0. Local phone QA of 24 Sep accepted by John: phone menu drawer portalled to the page body, and
+   escalated tasks record their ticket so work updates and completion reach it.
 
 0. September local support improvements built, awaiting John's acceptance: per-user permission
    management UI; task and ticket timers with a shared timer tray; ticket attachment previews and

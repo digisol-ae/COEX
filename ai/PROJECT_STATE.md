@@ -1,17 +1,19 @@
 # COEX — Shared AI Project State
 
 > **Current verified update — 26 Sep 2026 (Claude).** Supersedes everything below where they
-> conflict. `origin/main` is deployed through `65756e0` (unread marks, live refresh, one Outlook
+> conflict. `origin/main` is deployed through `6fa0730` (unread marks, live refresh, one Outlook
 > thread per ticket, black phone drawer, leftover patch files removed). The team cut over to COEX
 > on 25 Sep. Email runs through the `coex-mail` pm2 worker (IMAP IDLE). QA on 26 Sep passed:
 > escalation → Task work update → Task completion posts two internal notes on the ticket and
 > queues no customer email; phone menu, timer tray and sign-out work; Status/Priority show on
-> phone cards and the desktop table. QA fixed, committed locally: phone timer tray ran off the
+> phone cards and the desktop table. QA fixed and deployed live (`6fa0730`, verified on coex.digisol.ae): phone timer tray ran off the
 > left edge; priority "Normal" clipped on macOS; long subjects widened the tickets table; forms
 > still warned at 25MB (limit is 3MB per file); the screenshot test used an image over 3MB. All
 > 151 tests pass. Tasks and Tickets reading each other directly is intended (CLAUDE.md
 > decision 13), no longer an open item. Local QA runs against a separate `coex_qa` database
 > (test user `qa@coex.test`, password kept outside the repository), never `coex_dev`.
+> Production runs on its own MongoDB on the VPS. Server OS updates belong to Nabeel. Next work:
+> Batch C in FEEDBACK.md item 1, awaiting John's scoping answers.
 
 > **Earlier update — 24 Sep 2026.** The historical snapshot below is superseded where it
 > conflicts with this section. The local branch now has completed Space privacy, per-user access,

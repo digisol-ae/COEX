@@ -1,5 +1,13 @@
 # COEX — AI Handoff
 
+## Update — 26 Sep 2026 later, Claude
+
+QA fixes deployed and verified live (`6fa0730`), including a timer start/stop on the Test ticket.
+FEEDBACK.md brought current (26 Sep decisions, stale open items moved to Done, Batch C annotated
+with what exists). Next: Batch C, once John answers the scoping questions. For a later ChatGPT
+hand-over, CLAUDE.md, FEEDBACK.md and these ai/ files are the complete state; nothing lives only in
+chat.
+
 ## Update — 26 Sep 2026, Claude: post-cutover QA
 
 Changed: `timer-tray.tsx` (phone: fixed full-width panel under the header), `ticket-row-actions.tsx`
