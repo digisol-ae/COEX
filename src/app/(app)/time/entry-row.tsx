@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { clsx } from 'clsx';
 import { Badge, Button, Field, Input, Notice, Select, Td } from '@/components/ui';
-import { formatMinutes } from '@/modules/time/week';
+import { formatMinutes, toDateKey } from '@/modules/time/week';
 import { entryHistoryAction, removeTimeAction, saveEntryAction } from './actions';
 
 export interface Entry {
@@ -106,7 +106,10 @@ export function EntryRow({
                 name="workDate"
                 type="date"
                 required
-                defaultValue={entry.workDate.slice(0, 10)}
+                // The day in the reader's own time. Slicing the stored UTC value gave the day
+                // before for anyone east of Greenwich, so saving any correction in Dubai or
+                // Karachi quietly moved the entry back a day (found in QA, 26 Sep 2026).
+                defaultValue={toDateKey(new Date(entry.workDate))}
               />
             </Field>
 
