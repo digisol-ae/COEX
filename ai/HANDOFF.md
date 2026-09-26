@@ -1,5 +1,19 @@
 # COEX — AI Handoff
 
+## Update — 26 Sep 2026 afternoon, Claude: Batch C
+
+Built (commits 56d5d60, 28ce08d, e6c61de, c62385d, 2e7dd2e): core `mention.service.ts` and the
+`mentioned` staff alert; `components/ui/mention-textarea.tsx`; task comments read and write the
+source ticket's internal notes (`listTaskComments`, `addTaskComment`, `sourceTicketFor`,
+`mentionableForTask` in task.service); `addReply` takes `mentionIds` and bumps the linked task;
+`tasks/services/my-work.service.ts` and `dashboard/my-work.tsx`; `updateEntry`/`removeEntry`
+require a reason (audit `after.reason`, shown by `describeChanges`); user `navigationOrder`,
+`orderGroups` in navigation.ts, `/menu-order` page, rail follows the order. Tests: 163 pass (new
+ones in tickets.test.ts, time.test.ts, unit/navigation-order.test.ts); type check, lint (only the
+four older errors) and `next build` pass. Checked live against a throwaway `coex_qa` database at
+375px and desktop. A dev server on port 3100 was started from the Claude app at 08:53 against
+`coex_dev`; QA ran from a separate copy on port 3101 to leave it alone.
+
 ## Update — 26 Sep 2026 later, Claude
 
 QA fixes deployed and verified live (`6fa0730`), including a timer start/stop on the Test ticket.

@@ -12,8 +12,9 @@
 > 151 tests pass. Tasks and Tickets reading each other directly is intended (CLAUDE.md
 > decision 13), no longer an open item. Local QA runs against a separate `coex_qa` database
 > (test user `qa@coex.test`, password kept outside the repository), never `coex_dev`.
-> Production runs on its own MongoDB on the VPS. Server OS updates belong to Nabeel. Next work:
-> Batch C in FEEDBACK.md item 1, awaiting John's scoping answers.
+> Production runs on its own MongoDB on the VPS. Server OS updates belong to Nabeel. Batch C
+> (CLAUDE.md decision 18) was built and tested on 26 Sep; committed locally, awaiting push, deploy
+> and John's acceptance.
 
 > **Earlier update — 24 Sep 2026.** The historical snapshot below is superseded where it
 > conflicts with this section. The local branch now has completed Space privacy, per-user access,
@@ -183,7 +184,10 @@ but the implementation has not started.
 
 ---
 
-## Batch C — Proposed / Not Started
+## Earlier "Batch C" (22 Sep): timer tray — historical, since built
+
+> Not the current Batch C. The timer tray below shipped with the September baseline. The current
+> Batch C is John's 26 Sep list in FEEDBACK.md item 1 (CLAUDE.md decision 18).
 
 Proposed feature:
 

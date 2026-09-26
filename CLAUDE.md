@@ -21,7 +21,8 @@ Confirmed product name. The repository is COEX.
 
 M1 Foundation is accepted. M2 CRM foundation, M3 Tasks and dashboard, M4 Time tracking and M5
 Support are built and accepted by John (24 Sep 2026). The team cuts over from ClickUp and
-osTicket to COEX on 25 Sep 2026 (M8). Next: assignment notifications, then Channels (M6).
+osTicket to COEX on 25 Sep 2026 (M8), and did. Batch C (decision 18) was built on 26 Sep 2026.
+Next: John's acceptance of Batch C, then Channels (M6).
 
 Conventions worth knowing before changing CRM code:
 
@@ -92,6 +93,21 @@ The full scope document lives in the Claude project "ECHO System Development" as
     anything. Marks go to the assignee, and on unassigned tickets to everyone with
     ticket.read.all. The Support badge on the rail counts unread tickets, not open ones, and polls
     every 30 seconds so it moves on any page. Read state is per person (ticket-read model).
+18. Batch C (John, 26 Sep 2026):
+    - One conversation per escalated ticket: a task raised from a ticket shows that ticket's
+      internal notes as its work updates and posts there; nothing is stored twice. Tasks without a
+      ticket keep their own notes. Never emailed to a customer.
+    - @mentions in internal notes and task updates: the picker sends the chosen people's ids, and
+      only those whose "@Full Name" is still in the text are emailed (staff alert kind
+      `mentioned`, switchable in Setup, Email). Replies to customers never carry mentions.
+    - The dashboard's "My work" lists my open tickets and tasks together, soonest due first (a
+      ticket's reply target until answered, then resolution; a task's end date), with a Tickets
+      only / Tasks only / Both filter kept in the address.
+    - Agents change only their own logged hours, administrators anyone's, and every correction or
+      removal needs a written reason, stored in the audit record and shown in the entry's history.
+    - Each person orders the menu groups for themselves ("Arrange my menu"); the order is stored on
+      the user (`navigationOrder`) so it follows them across devices, the rail follows it with
+      Home first, and it only reorders what they may already see.
 
 ## Code standards
 

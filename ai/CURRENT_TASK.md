@@ -1,14 +1,11 @@
 # COEX — Current AI Task
 
-> **Current task — 26 Sep 2026 (Claude):** Batch C (FEEDBACK.md item 1), not started. The
-> post-cutover QA fixes are deployed and verified live (`6fa0730`). Batch C scope, in John's
-> words: (a) from a task, a link to its ticket; (b) comments on a ticket that the task's agent can
-> reply to, with @mentions that autocomplete agent names and email the mentioned agent; (c) one
-> consolidated tickets-and-tasks view for agents with both modules; (d) agents may adjust
-> accumulated hours, with a required reason; (e) each person can reorder the menu groups for
-> themselves (e.g. Support first for one agent, CRM first for another). Claude asked John scoping questions on 26 Sep before
-> building; record his answers in FEEDBACK.md. Other offers still open: the once-an-hour
-> acknowledgement rule, watching the Junk folder, the storage.ts build warnings, a Prettier pass.
+> **Current task — 26 Sep 2026, afternoon (Claude):** Batch C is built, tested and committed
+> locally (56d5d60..2e7dd2e), not yet pushed or deployed. Waiting for John to approve the push,
+> deploy, and accept it. Scope and John's answers: FEEDBACK.md item 1 and CLAUDE.md decision 18.
+> Other offers still open: the once-an-hour acknowledgement rule, watching the Junk folder, the
+> storage.ts build warnings, a Prettier pass, the four older lint errors (row-actions.tsx,
+> board.tsx, task-form.tsx), and "Unknown task" for ticket time in the timesheet edit form.
 
 > **Current task — 24 Sep 2026, evening (Claude):** John accepted M4, M5, the board and task
 > panel work and the September support baseline, and approved commit, push and deploy. Built

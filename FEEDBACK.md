@@ -72,7 +72,8 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
    John is unsure whether `npm run migrate:spaces` has been run for databases written before this
    change. Verify migration history before marking this complete.
 
-1. Batch C (added by John, 26 Sep 2026). In progress. John's answers, 26 Sep:
+1. Batch C (added by John, 26 Sep 2026). Built and tested on 26 Sep, awaiting John's push,
+   deploy and acceptance (commits 56d5d60 to 2e7dd2e; CLAUDE.md decision 18). John's answers, 26 Sep:
    comments are one shared internal conversation between a ticket and its task, visible and
    answerable from both, never emailed to the customer; the dashboard gets one "My work" list of my
    open tickets and tasks sorted by what is due first, with a filter for tickets only, tasks only or
@@ -92,6 +93,13 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
    src/components/navigation/navigation.ts; only collapsed groups are remembered, per browser.
    A personal order should be saved on the user record, not the browser, so it follows the person
    to their phone, and it must only reorder the links the person may already see.
+   Built, 26 Sep: (a) the task page and board panel link to the ticket; (b) one shared internal
+   conversation with @mentions that email the person picked; (c) "My work" on the dashboard with
+   the Both / Tickets only / Tasks only filter; (d) a required reason on every change or removal
+   of logged time, shown in the entry's history; (e) "Arrange my menu" at the foot of the menu.
+   Found and fixed while testing: correcting a time entry moved it back a day for anyone east of
+   UTC (the edit form read the stored UTC date). Still open, older: time logged on a ticket shows
+   "Unknown task" in the timesheet's edit form (harmless, the server keeps it on the ticket).
 
 — Entra app registration. Password sign-on covers the gap. Revisit when Batch C is
    scheduled; it also unlocks Graph document titles.
