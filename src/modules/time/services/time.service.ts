@@ -362,6 +362,17 @@ export interface UpdateEntryInput {
   taskId?: string;
   /** Only a tenant administrator may correct somebody else's timesheet. */
   mayEditOthers?: boolean;
+  /** Why the hours changed. Required, and shown in the entry's history (John, 26 Sep 2026). */
+  reason: string;
+}
+
+const MAX_REASON = 500;
+
+function requiredReason(reason: string | undefined): string {
+  const text = reason?.trim() ?? '';
+  if (!text) throw new Error('Say why you are changing this time.');
+  if (text.length > MAX_REASON) throw new Error(`Keep the reason under ${MAX_REASON} characters.`);
+  return text;
 }
 
 /**
@@ -390,6 +401,7 @@ export async function updateEntry(entryId: string, input: UpdateEntryInput): Pro
     throw new Error('Only an administrator can change somebody else\u2019s timesheet.');
   }
 
+  const reason = requiredReason(input.reason);
   await assertWeekOpen(before.workDate);
 
   if (input.duration <= 0) {
@@ -461,11 +473,19 @@ export async function updateEntry(entryId: string, input: UpdateEntryInput): Pro
     before: diff.before,
     // Whose sheet this was is recorded even though it did not change, because "who was corrected"
     // is the first question anybody asks of an edit they did not make themselves.
-    after: isOwn ? diff.after : { ...diff.after, onBehalfOf: String(before.userId) },
+    after: {
+      ...diff.after,
+      reason,
+      ...(isOwn ? {} : { onBehalfOf: String(before.userId) }),
+    },
   });
 }
 
-export async function removeEntry(entryId: string, mayEditOthers = false): Promise<void> {
+export async function removeEntry(
+  entryId: string,
+  mayEditOthers = false,
+  reasonGiven = '',
+): Promise<void> {
   await connectToDatabase();
 
   const entry = await entries().findById(entryId);
@@ -476,6 +496,7 @@ export async function removeEntry(entryId: string, mayEditOthers = false): Promi
     throw new Error('Only an administrator can change somebody else\u2019s timesheet.');
   }
 
+  const reason = requiredReason(reasonGiven);
   await assertWeekOpen(entry.workDate);
   await entries().softDelete({ _id: entry._id });
 
@@ -484,6 +505,7 @@ export async function removeEntry(entryId: string, mayEditOthers = false): Promi
     entityType: 'TimeEntry',
     entityId: entry._id,
     before: { minutes: entry.minutes, day: toDateKey(entry.workDate) },
+    after: { reason },
   });
 }
 

@@ -54,6 +54,7 @@ export function EntryRow({
   columns: number;
 }) {
   const [editing, setEditing] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<HistoryRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +92,7 @@ export function EntryRow({
                   billable: data.get('billable') !== null,
                   workDate: String(data.get('workDate') ?? ''),
                   taskId: String(data.get('taskId') ?? ''),
+                  reason: String(data.get('reason') ?? ''),
                 });
 
                 // Closing on success keeps the row where the eye already is.
@@ -137,6 +139,12 @@ export function EntryRow({
             <div className="sm:col-span-5">
               <Field label="Note" hint="Optional. What the time went on.">
                 <Input name="note" defaultValue={entry.note ?? ''} />
+              </Field>
+            </div>
+
+            <div className="sm:col-span-5">
+              <Field label="Reason for the change" hint="Required. Shown in this entry's history.">
+                <Input name="reason" required maxLength={500} />
               </Field>
             </div>
 
@@ -228,20 +236,55 @@ export function EntryRow({
                   Edit
                 </button>
 
-                <form action={removeTimeAction}>
-                  <input type="hidden" name="id" value={entry.id} />
-                  <button
-                    type="submit"
-                    className="text-[var(--color-ink-subtle)] underline-offset-4 hover:underline"
-                  >
-                    Remove
-                  </button>
-                </form>
+                <button
+                  type="button"
+                  onClick={() => setRemoving(true)}
+                  className="text-[var(--color-ink-subtle)] underline-offset-4 hover:underline"
+                >
+                  Remove
+                </button>
               </>
             ) : null}
           </div>
         </Td>
       </tr>
+
+      {removing ? (
+        <tr className="bg-[var(--color-surface-muted)]/50">
+          <td colSpan={columns} className="px-3 py-3">
+            <form
+              className="flex flex-wrap items-end gap-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const reason = String(new FormData(event.currentTarget).get('reason') ?? '');
+                setError(null);
+                startTransition(async () => {
+                  const result = await removeTimeAction({ id: entry.id, reason });
+                  if (result.error) setError(result.error);
+                  else setRemoving(false);
+                });
+              }}
+            >
+              <div className="min-w-60 flex-1">
+                <Field label="Why remove this time?" hint="Required. Kept in the history.">
+                  <Input name="reason" required maxLength={500} autoFocus />
+                </Field>
+              </div>
+              <Button type="submit" disabled={saving}>
+                {saving ? 'Removing' : 'Remove'}
+              </Button>
+              <Button type="button" variant="secondary" onClick={() => setRemoving(false)}>
+                Cancel
+              </Button>
+              {error ? (
+                <div className="w-full">
+                  <Notice tone="alert">{error}</Notice>
+                </div>
+              ) : null}
+            </form>
+          </td>
+        </tr>
+      ) : null}
 
       {showHistory ? (
         <tr>

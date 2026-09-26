@@ -108,6 +108,7 @@ export async function updateTimeAction(
         workDate: text(formData, 'workDate') || undefined,
         taskId: text(formData, 'taskId') || undefined,
         mayEditOthers: actor.permissions.includes('tenant.manage'),
+        reason: text(formData, 'reason'),
       }),
     );
   } catch (error) {
@@ -118,14 +119,22 @@ export async function updateTimeAction(
   return { saved: true };
 }
 
-export async function removeTimeAction(formData: FormData): Promise<void> {
+export async function removeTimeAction(input: {
+  id: string;
+  reason: string;
+}): Promise<TimeFormState> {
   const actor = await requirePermission('task.read.own');
 
-  await asUser(actor, () =>
-    removeEntry(text(formData, 'id'), actor.permissions.includes('tenant.manage')),
-  );
+  try {
+    await asUser(actor, () =>
+      removeEntry(input.id, actor.permissions.includes('tenant.manage'), input.reason),
+    );
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not remove the entry.' };
+  }
 
   revalidatePath('/time');
+  return { saved: true };
 }
 
 /**
@@ -141,6 +150,7 @@ export async function saveEntryAction(input: {
   billable: boolean;
   workDate: string;
   taskId: string;
+  reason: string;
 }): Promise<TimeFormState> {
   const actor = await requirePermission('task.read.own');
 
@@ -156,6 +166,7 @@ export async function saveEntryAction(input: {
         workDate: input.workDate || undefined,
         taskId: input.taskId || undefined,
         mayEditOthers: actor.permissions.includes('tenant.manage'),
+        reason: input.reason,
       }),
     );
   } catch (error) {
@@ -199,6 +210,7 @@ const FIELD_LABELS: Record<string, string> = {
   day: 'day',
   task: 'task',
   onBehalfOf: 'on behalf of',
+  reason: 'reason',
 };
 
 /** The log in a sentence, because "minutes: 90 to 120" is data, not an explanation. */
@@ -206,13 +218,16 @@ function describeChanges(
   action: string,
   changes: { field: string; from: unknown; to: unknown }[],
 ): string {
+  const reason = changes.find((change) => change.field === 'reason')?.to;
+  const because = reason ? ` because "${String(reason)}"` : '';
+
   if (action === 'time.entry_added') return 'Added';
-  if (action === 'time.entry_removed') return 'Removed';
+  if (action === 'time.entry_removed') return `Removed${because}`;
   if (action === 'time.timer_started') return 'Timer started';
   if (action === 'time.timer_stopped') return 'Timer stopped';
 
   const described = changes
-    .filter((change) => change.field !== 'onBehalfOf' && change.field !== 'task')
+    .filter((change) => !['onBehalfOf', 'task', 'reason'].includes(change.field))
     .map((change) => {
       const label = FIELD_LABELS[change.field] ?? change.field;
 
@@ -233,7 +248,7 @@ function describeChanges(
 
   if (changes.some((change) => change.field === 'task')) described.push('moved to another task');
 
-  return described.length > 0 ? described.join(', ') : 'Edited';
+  return `${described.length > 0 ? described.join(', ') : 'Edited'}${because}`;
 }
 
 export async function lockWeekAction(formData: FormData): Promise<void> {

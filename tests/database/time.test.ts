@@ -183,7 +183,12 @@ describe('correcting an entry', () => {
     const entryId = before.entries[0].id;
 
     await runWithContext(context, () =>
-      updateEntry(entryId, { duration: 120, note: 'Checked the calendar', billable: true }),
+      updateEntry(entryId, {
+        reason: 'Correcting it',
+        duration: 120,
+        note: 'Checked the calendar',
+        billable: true,
+      }),
     );
 
     const after = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
@@ -203,6 +208,35 @@ describe('correcting an entry', () => {
     });
   });
 
+  it('refuses a correction or a removal without a reason, and keeps the reason', async () => {
+    const taskId = await aTask();
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 60 }));
+    const sheet = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
+    const entryId = sheet.entries[0].id;
+
+    await expect(
+      runWithContext(context, () =>
+        updateEntry(entryId, { reason: '  ', duration: 30, billable: true }),
+      ),
+    ).rejects.toThrow(/why/i);
+    await expect(runWithContext(context, () => removeEntry(entryId))).rejects.toThrow(/why/i);
+
+    await runWithContext(context, () =>
+      updateEntry(entryId, {
+        reason: 'Left the timer running over lunch',
+        duration: 30,
+        billable: true,
+      }),
+    );
+    await runWithContext(context, () => removeEntry(entryId, false, 'Logged on the wrong task'));
+
+    const history = await runWithContext(context, () => historyFor('TimeEntry', entryId));
+    const reasons = history.flatMap((row) =>
+      row.changes.filter((change) => change.field === 'reason').map((change) => change.to),
+    );
+    expect(reasons).toEqual(['Left the timer running over lunch', 'Logged on the wrong task']);
+  });
+
   it('moves an entry to another day', async () => {
     const taskId = await aTask();
 
@@ -215,6 +249,7 @@ describe('correcting an entry', () => {
 
     await runWithContext(context, () =>
       updateEntry(before.entries[0].id, {
+        reason: 'Correcting it',
         duration: 60,
         billable: true,
         workDate: toDateKey(yesterday),
@@ -237,7 +272,12 @@ describe('correcting an entry', () => {
     const before = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
 
     await runWithContext(context, () =>
-      updateEntry(before.entries[0].id, { duration: 60, billable: true, taskId: second }),
+      updateEntry(before.entries[0].id, {
+        reason: 'Correcting it',
+        duration: 60,
+        billable: true,
+        taskId: second,
+      }),
     );
 
     const after = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
@@ -255,7 +295,7 @@ describe('correcting an entry', () => {
 
     await expect(
       runWithContext(otherPerson, () =>
-        updateEntry(sheet.entries[0].id, { duration: 30, billable: true }),
+        updateEntry(sheet.entries[0].id, { reason: 'Correcting it', duration: 30, billable: true }),
       ),
     ).rejects.toThrow(/administrator/i);
   });
@@ -268,7 +308,12 @@ describe('correcting an entry', () => {
     const sheet = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
 
     await runWithContext(otherPerson, () =>
-      updateEntry(sheet.entries[0].id, { duration: 30, billable: true, mayEditOthers: true }),
+      updateEntry(sheet.entries[0].id, {
+        reason: 'Correcting it',
+        duration: 30,
+        billable: true,
+        mayEditOthers: true,
+      }),
     );
 
     const history = await runWithContext(context, () =>
@@ -291,7 +336,7 @@ describe('correcting an entry', () => {
 
     await expect(
       runWithContext(context, () =>
-        updateEntry(sheet.entries[0].id, { duration: 30, billable: true }),
+        updateEntry(sheet.entries[0].id, { reason: 'Correcting it', duration: 30, billable: true }),
       ),
     ).rejects.toThrow(/locked/i);
   });
@@ -311,6 +356,7 @@ describe('correcting an entry', () => {
     await expect(
       runWithContext(context, () =>
         updateEntry(sheet.entries[0].id, {
+          reason: 'Correcting it',
           duration: 60,
           billable: true,
           workDate: toDateKey(lastWeek),
@@ -328,7 +374,7 @@ describe('correcting an entry', () => {
 
     await expect(
       runWithContext(context, () =>
-        updateEntry(running!.entryId, { duration: 60, billable: true }),
+        updateEntry(running!.entryId, { reason: 'Correcting it', duration: 60, billable: true }),
       ),
     ).rejects.toThrow(/timer/i);
   });
