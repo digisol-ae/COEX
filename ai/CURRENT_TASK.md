@@ -1,5 +1,11 @@
 # COEX — Current AI Task
 
+> **Current task — 26 Sep 2026 (Claude):** QA of the post-cutover build is done (see
+> PROJECT_STATE.md). The QA fixes are committed locally and await John's approval to push and
+> deploy. No new features until John approves them. Candidates he has been offered: changing the
+> once-an-hour acknowledgement rule, watching the Junk folder for tickets, silencing the
+> `src/lib/storage.ts` build warnings, a Prettier pass over the files that currently fail it.
+
 > **Current task — 24 Sep 2026, evening (Claude):** John accepted M4, M5, the board and task
 > panel work and the September support baseline, and approved commit, push and deploy. Built
 > today, uncommitted until John runs the commands: QA fixes (escalation link, phone drawer),

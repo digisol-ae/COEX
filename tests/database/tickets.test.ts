@@ -587,14 +587,15 @@ describe('attachments', () => {
     );
 
     // Noise rather than a flat colour, because a flat colour compresses to almost nothing and
-    // would prove the encoder works rather than that the resize does.
-    const width = 3200;
-    const height = 2400;
+    // would prove the encoder works rather than that the resize does. Larger than the 2000px edge,
+    // yet under the 3MB file limit, because anything over the limit is refused rather than shrunk.
+    const width = 2600;
+    const height = 1950;
     const noise = Buffer.alloc(width * height * 3);
     for (let index = 0; index < noise.length; index += 1) noise[index] = (index * 37) % 251;
 
     const original = await sharp(noise, { raw: { width, height, channels: 3 } })
-      .jpeg({ quality: 95 })
+      .jpeg({ quality: 75 })
       .toBuffer();
 
     const [stored] = await runWithContext(context, () =>

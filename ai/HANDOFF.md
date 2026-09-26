@@ -1,5 +1,16 @@
 # COEX — AI Handoff
 
+## Update — 26 Sep 2026, Claude: post-cutover QA
+
+Changed: `timer-tray.tsx` (phone: fixed full-width panel under the header), `ticket-row-actions.tsx`
+(minimum widths so Status/Priority text is not clipped), tickets `page.tsx` (subject column
+truncates instead of widening the table), `reply-box.tsx` and `new-ticket-panel.tsx` (3MB
+warning), the screenshot test (image under 3MB, over 2000px), CLAUDE.md decision 13. Tests: 151/151,
+type check and lint pass; checked live at 375px, 1024px and 1440px. Superseded: the "known open
+item" below about Tasks importing Tickets models; John confirmed direct reads both ways are
+intended. Open: a Prettier pass (several files already fail it); the tickets table still scrolls
+sideways inside its card below about 1200px, as before.
+
 ## Update — 24 Sep 2026 night, Claude: email
 
 New: core `email.service.ts` (settings, outbox, delivery, alerts), models `email-settings` and

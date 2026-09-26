@@ -6,6 +6,8 @@ import { STATUS_LABELS } from '@/modules/tickets/labels';
 import type { Priority, TicketStatus } from '@/modules/tickets/services/ticket.service';
 import { assignAction, setPriorityAction, setStatusAction } from '../actions';
 
+// A minimum width, not max-w-full: the table would otherwise squeeze these columns, and on macOS
+// the native dropdown arrow takes its own space, which cut "Normal" down to "Norm".
 function statusTextClass(status: TicketStatus) {
   const tone = {
     new: 'text-[var(--color-status-info)]',
@@ -15,7 +17,7 @@ function statusTextClass(status: TicketStatus) {
     resolved: 'text-[var(--color-status-ok)]',
     closed: 'text-[var(--color-status-ok)]',
   }[status];
-  return `h-7 w-48 max-w-full border-0 bg-transparent py-0 pr-6 pl-0 text-xs font-semibold ${tone} focus:ring-0`;
+  return `h-7 w-48 min-w-44 border-0 bg-transparent py-0 pr-6 pl-0 text-xs font-semibold ${tone} focus:ring-0`;
 }
 
 export function TicketRowActions({ ticket }: { ticket: { id: string; status: TicketStatus } }) {
@@ -24,7 +26,7 @@ export function TicketRowActions({ ticket }: { ticket: { id: string; status: Tic
   return <Select aria-label="Change status" className={statusTextClass(ticket.status)} value={ticket.status} disabled={pending} onChange={(e) => run(() => setStatusAction({ id: ticket.id, status: e.target.value as TicketStatus }))}>{Object.entries(STATUS_LABELS).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</Select>;
 }
 
-export function PriorityControl({ ticketId, priority }: { ticketId: string; priority: Priority }) { const [pending, startTransition] = useTransition(); const tone = { urgent: 'text-[var(--color-status-alert)]', high: 'text-[var(--color-status-warn)]', normal: 'text-[var(--color-ink-muted)]', low: 'text-[var(--color-status-ok)]' }[priority]; return <Select aria-label="Change priority" className={`h-7 w-28 max-w-full border-0 bg-transparent py-0 pr-6 pl-0 text-xs font-semibold ${tone} focus:ring-0`} value={priority} disabled={pending} onChange={(e) => startTransition(() => { void setPriorityAction({ id: ticketId, priority: e.target.value as Priority }); })}>{['urgent','high','normal','low'].map((value) => <option key={value} value={value}>{value[0].toUpperCase()+value.slice(1)}</option>)}</Select>; }
+export function PriorityControl({ ticketId, priority }: { ticketId: string; priority: Priority }) { const [pending, startTransition] = useTransition(); const tone = { urgent: 'text-[var(--color-status-alert)]', high: 'text-[var(--color-status-warn)]', normal: 'text-[var(--color-ink-muted)]', low: 'text-[var(--color-status-ok)]' }[priority]; return <Select aria-label="Change priority" className={`h-7 w-28 min-w-24 border-0 bg-transparent py-0 pr-6 pl-0 text-xs font-semibold ${tone} focus:ring-0`} value={priority} disabled={pending} onChange={(e) => startTransition(() => { void setPriorityAction({ id: ticketId, priority: e.target.value as Priority }); })}>{['urgent','high','normal','low'].map((value) => <option key={value} value={value}>{value[0].toUpperCase()+value.slice(1)}</option>)}</Select>; }
 
 export function AgentControl({ ticketId, assigneeId, assigneeName, users }: { ticketId: string; assigneeId: string | null; assigneeName: string | null; users: { id: string; name: string }[] }) {
   const [open, setOpen] = useState(false); const [next, setNext] = useState(assigneeId ?? ''); const [note, setNote] = useState(''); const [error, setError] = useState(''); const [pending, startTransition] = useTransition();

@@ -78,7 +78,9 @@ The full scope document lives in the Claude project "ECHO System Development" as
 13. Tasks and Tickets are natural partners and stay directly connected: escalation creates a task
     carrying sourceTicketId, and task work updates and completion post internal notes on the
     ticket. This is John's deliberate exception to the rule that modules never import siblings
-    (24 Sep 2026); no other module pair gets it without his say.
+    (24 Sep 2026); no other module pair gets it without his say. Confirmed 26 Sep 2026: Tasks and
+    Tickets read each other's data directly, in both directions, especially where a ticket is
+    linked to a task. This is intended design, not a boundary violation to be refactored away.
 14. Assignment follows visibility: a task can only go to members of its private Space and private
     Folder; a subtask can only go to the task's own assignees (anyone the task could go to when the
     task is unassigned). Pickers show only these people; the service refuses anyone else.
@@ -112,7 +114,8 @@ never sent to their browser.
 
 ## Where things live
 
-- `src/modules/<module>/` one folder per module, never importing from a sibling module
+- `src/modules/<module>/` one folder per module, never importing from a sibling module (Tasks and
+  Tickets excepted, decision 13)
 - `src/modules/core/` tenancy, users, audit log, outbox, shared primitives
 - `src/lib/` framework level helpers: database connection, tenant context, utilities
 - `src/components/ui/` the shared component library

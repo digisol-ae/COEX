@@ -214,9 +214,11 @@ export default async function TicketsPage({
                     <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
                   </td>
 
-                  <td className="px-3 py-2 align-top">
+                  {/* max-w-0 with w-full lets the subject take whatever the other columns leave and
+                      truncate within it; without it a long subject widens the table past the screen. */}
+                  <td className="w-full max-w-0 px-3 py-2 align-top">
                     <div className="flex items-start gap-2">
-                      <div className="min-w-0">
+                      <div className="min-w-48 flex-1">
                         <Link
                           href={`/support/tickets/${ticket.id}`}
                           className="block truncate font-medium text-[var(--color-ink)] underline-offset-4 group-hover:underline"

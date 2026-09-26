@@ -105,8 +105,10 @@ export function TimerTray() {
         <ListIcon />
       </button>
 
+      {/* On a phone the button sits mid-header, so a panel anchored to it runs off the left edge;
+          there it spans the screen under the header instead. */}
       {open ? (
-        <div className="absolute top-full right-0 z-40 mt-1 w-72 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)] p-2 shadow-[var(--shadow-pop)]">
+        <div className="fixed inset-x-4 top-16 z-40 rounded-[var(--radius-card)] sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-1 sm:w-72 border border-[var(--color-line)] bg-[var(--color-surface)] p-2 shadow-[var(--shadow-pop)]">
           <p className="px-1.5 pb-1.5 text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
             Today&apos;s timers
           </p>

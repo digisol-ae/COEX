@@ -11,7 +11,7 @@ const initialState: SupportFormState = {};
 
 /** Mirrors MAX_FILE_BYTES in attachment.service.ts, the server's real limit. Checking here only
  * gives an earlier, friendlier message; the server enforces this regardless. */
-const MAX_FILE_BYTES = 25 * 1024 * 1024;
+const MAX_FILE_BYTES = 3 * 1024 * 1024;
 
 /**
  * Writing a reply.
@@ -162,7 +162,7 @@ export function ReplyBox({
 
           {oversizedFiles.length > 0 ? (
             <Notice tone="alert">
-              {oversizedFiles.join(', ')} {oversizedFiles.length === 1 ? 'is' : 'are'} over 25MB.
+              {oversizedFiles.join(', ')} {oversizedFiles.length === 1 ? 'is' : 'are'} over 3MB.
               Send a link to it instead, or remove it before submitting.
             </Notice>
           ) : null}
