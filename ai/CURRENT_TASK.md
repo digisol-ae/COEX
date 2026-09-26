@@ -1,8 +1,8 @@
 # COEX — Current AI Task
 
-> **Current task — 26 Sep 2026, afternoon (Claude):** Batch C is built, tested and committed
-> locally (56d5d60..2e7dd2e), not yet pushed or deployed. Waiting for John to approve the push,
-> deploy, and accept it. Scope and John's answers: FEEDBACK.md item 1 and CLAUDE.md decision 18.
+> **Current task — 26 Sep 2026, afternoon (Claude):** Batch C, frosted-glass popups and icon
+> buttons are built, pushed (7c36801) and accepted by John on the local build. John deploys to
+> coex.digisol.ae himself. No new work until John asks. Scope and John's answers: FEEDBACK.md item 1 and CLAUDE.md decision 18.
 > Other offers still open: the once-an-hour acknowledgement rule, watching the Junk folder, the
 > storage.ts build warnings, a Prettier pass, the four older lint errors (row-actions.tsx,
 > board.tsx, task-form.tsx), and "Unknown task" for ticket time in the timesheet edit form.

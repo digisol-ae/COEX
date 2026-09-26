@@ -75,8 +75,9 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
    John is unsure whether `npm run migrate:spaces` has been run for databases written before this
    change. Verify migration history before marking this complete.
 
-1. Batch C (added by John, 26 Sep 2026). Built and tested on 26 Sep, awaiting John's push,
-   deploy and acceptance (commits 56d5d60 to 2e7dd2e; CLAUDE.md decision 18). John's answers, 26 Sep:
+1. Batch C (added by John, 26 Sep 2026). Built, tested and pushed on 26 Sep (up to 7c36801);
+   reviewed by John on the local build and accepted ("all good"). Deployment to coex.digisol.ae
+   is John's to run (CLAUDE.md decision 18). John's answers, 26 Sep:
    comments are one shared internal conversation between a ticket and its task, visible and
    answerable from both, never emailed to the customer; the dashboard gets one "My work" list of my
    open tickets and tasks sorted by what is due first, with a filter for tickets only, tasks only or
