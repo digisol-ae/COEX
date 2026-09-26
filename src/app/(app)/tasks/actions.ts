@@ -226,7 +226,9 @@ export async function addTaskCommentAction(
   const id = text(formData, 'taskId');
 
   try {
-    await asUser(actor, () => addTaskComment(id, text(formData, 'body')));
+    await asUser(actor, () =>
+      addTaskComment(id, text(formData, 'body'), mentionIdsFrom(formData)),
+    );
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not post the comment.' };
   }
@@ -515,4 +517,9 @@ export async function archiveFolderAction(formData: FormData): Promise<void> {
 
   revalidatePath(`/spaces/${spaceId}`);
   revalidatePath('/spaces');
+}
+
+/** The people picked with @ in a note, sent by the mention picker as one hidden field each. */
+function mentionIdsFrom(formData: FormData): string[] {
+  return formData.getAll('mentionIds').map(String).filter(Boolean);
 }

@@ -153,7 +153,12 @@ export async function replyAction(
 
   try {
     await asUser(actor, async () => {
-      const messageId = await addReply({ ticketId: id, body, visibility });
+      const messageId = await addReply({
+        ticketId: id,
+        body,
+        visibility,
+        mentionIds: formData.getAll('mentionIds').map(String).filter(Boolean),
+      });
 
       if (files.length > 0) await attachToMessage(messageId, files);
 

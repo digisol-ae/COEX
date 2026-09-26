@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { Button, Card, CardSection, Notice } from '@/components/ui';
 import { expandCannedReply, type ReplyContext } from '@/modules/tickets/canned-reply-text';
 import type { CannedReplySummary } from '@/modules/tickets/services/canned-reply.service';
+import { MentionTextarea, type MentionPerson } from '@/components/ui/mention-textarea';
 import { replyAction, type SupportFormState } from '../../actions';
 
 const initialState: SupportFormState = {};
@@ -29,7 +30,10 @@ export function ReplyBox({
   cannedReplies,
   context,
   emailTo = null,
+  people = [],
 }: {
+  /** Colleagues who can be @mentioned in an internal note. */
+  people?: MentionPerson[];
   /** Where a public reply will be emailed; null when it stays in COEX only. */
   emailTo?: string | null;
   ticketId: string;
@@ -123,15 +127,16 @@ export function ReplyBox({
             </p>
           ) : null}
 
-          <textarea
+          <MentionTextarea
             ref={box}
+            people={isInternal ? people : []}
             name="body"
             required
             rows={6}
             key={visibility}
             placeholder={
               isInternal
-                ? 'A note for colleagues. The customer never sees this.'
+                ? 'A note for colleagues. The customer never sees this. Type @ to mention someone.'
                 : 'This goes to the customer.'
             }
             className={clsx(

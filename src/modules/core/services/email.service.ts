@@ -19,9 +19,15 @@ import { recordAudit } from './audit.service';
  */
 
 export type OutboxKind =
-  'auto_reply' | 'ticket_reply' | 'ticket_assigned' | 'customer_replied' | 'task_assigned' | 'test';
+  | 'auto_reply'
+  | 'ticket_reply'
+  | 'ticket_assigned'
+  | 'customer_replied'
+  | 'task_assigned'
+  | 'mentioned'
+  | 'test';
 
-type StaffAlert = 'ticket_assigned' | 'customer_replied' | 'task_assigned';
+type StaffAlert = 'ticket_assigned' | 'customer_replied' | 'task_assigned' | 'mentioned';
 
 const MAX_ATTEMPTS = 5;
 
@@ -75,7 +81,12 @@ export interface EmailSettingsView {
     autoReplyBody: string;
     emailPublicReplies: boolean;
   };
-  staff: { ticketAssigned: boolean; customerReplied: boolean; taskAssigned: boolean };
+  staff: {
+    ticketAssigned: boolean;
+    customerReplied: boolean;
+    taskAssigned: boolean;
+    mentioned: boolean;
+  };
   pendingCount: number;
   failedCount: number;
 }
@@ -134,6 +145,7 @@ export async function getEmailSettings(): Promise<EmailSettingsView> {
       ticketAssigned: staff.ticketAssigned ?? true,
       customerReplied: staff.customerReplied ?? true,
       taskAssigned: staff.taskAssigned ?? true,
+      mentioned: staff.mentioned ?? true,
     },
     pendingCount,
     failedCount,
@@ -301,6 +313,7 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
     ticket_assigned: settings.staff?.ticketAssigned ?? true,
     customer_replied: settings.staff?.customerReplied ?? true,
     task_assigned: settings.staff?.taskAssigned ?? true,
+    mentioned: settings.staff?.mentioned ?? true,
     test: true,
   };
   if (!allowed[input.kind]) return false;

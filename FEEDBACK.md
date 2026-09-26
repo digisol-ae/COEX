@@ -72,7 +72,12 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
    John is unsure whether `npm run migrate:spaces` has been run for databases written before this
    change. Verify migration history before marking this complete.
 
-1. Batch C (added by John, 26 Sep 2026). Not started; awaiting John's answers to scoping questions.
+1. Batch C (added by John, 26 Sep 2026). In progress. John's answers, 26 Sep:
+   comments are one shared internal conversation between a ticket and its task, visible and
+   answerable from both, never emailed to the customer; the dashboard gets one "My work" list of my
+   open tickets and tasks sorted by what is due first, with a filter for tickets only, tasks only or
+   both; agents adjust only their own hours and administrators anyone's, always with a required
+   reason shown in the entry's history.
 - Connect Tickes and Tasks in the manner that an agent can see by clicking on the link from tasks.
 - Comment sections is required for ticket when assigned to an agent and Agent from tasks can also reply to the same comments. Comment should be able to mention target agent name by typing @(agent name should come automatically) and then agent will be notified by an email.
 - there should be a mixed dashboard for an agent who have access to tickets and tasks module so he can see consolidated ticket and tasks.

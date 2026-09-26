@@ -3,6 +3,7 @@ import {
   assignableUserIdsForSubtask,
   assignableUserIdsForTask,
   getTask,
+  sourceTicketFor,
 } from '@/modules/tasks/services/task.service';
 import { loggedMinutesForTask, getRunningTimer } from '@/modules/time/services/time.service';
 
@@ -47,6 +48,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       timerRunning: timer?.kind === 'task' && timer?.itemId === id,
       assignableUserIds: await assignableUserIdsForTask(task),
       subtaskAssignableUserIds: await assignableUserIdsForSubtask(task),
+      sourceTicket: await sourceTicketFor(task).then((ticket) =>
+        ticket ? { id: ticket.id, number: ticket.number } : null,
+      ),
     };
   });
 

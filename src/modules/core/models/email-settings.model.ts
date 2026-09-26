@@ -60,6 +60,7 @@ const emailSettingsSchema = new Schema(
       ticketAssigned: { type: Boolean, default: true },
       customerReplied: { type: Boolean, default: true },
       taskAssigned: { type: Boolean, default: true },
+      mentioned: { type: Boolean, default: true },
     },
 
     updatedById: { type: Schema.Types.ObjectId, ref: 'User', default: null },

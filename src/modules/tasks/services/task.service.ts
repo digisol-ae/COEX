@@ -10,6 +10,11 @@ import { UserModel } from '@/modules/core/models/user.model';
 import { TaskModel } from '../models/task.model';
 import { TaskCommentModel } from '../models/task-comment.model';
 import { alertStaff, appBaseUrl } from '@/modules/core/services/email.service';
+import {
+  alertMentioned,
+  mentionableUsers,
+  type MentionableUser,
+} from '@/modules/core/services/mention.service';
 import { SpaceModel } from '../models/space.model';
 import { FolderModel } from '../models/folder.model';
 import { TimeEntryModel } from '@/modules/time/models/time-entry.model';
@@ -251,10 +256,43 @@ async function sourceTicketIdFor(task: {
   return ticket?._id ?? null;
 }
 
-/** Task notes are internal work updates, never customer-facing messages. */
+/** The ticket a task came from, for the link back to it on the task screen. */
+export async function sourceTicketFor(task: {
+  _id: Types.ObjectId;
+  sourceTicketId?: Types.ObjectId | null;
+}): Promise<{ id: string; number: string; subject: string } | null> {
+  const ticketId = await sourceTicketIdFor(task);
+  if (!ticketId) return null;
+  const ticket = await TicketModel.findOne({ _id: ticketId, tenantId: getContext().tenantId })
+    .select('number subject')
+    .lean<{ number: string; subject: string }>();
+  return ticket ? { id: String(ticketId), number: ticket.number, subject: ticket.subject } : null;
+}
+
+/**
+ * A task's conversation. For a task raised from a ticket it is that ticket's internal notes, the one
+ * conversation both screens show and answer (John, 26 Sep 2026), so nothing is stored twice and
+ * nothing drifts apart. Other tasks keep their own notes. Neither is ever emailed to a customer.
+ */
 export async function listTaskComments(taskId: string): Promise<TaskCommentView[]> {
   const task = await getTask(taskId);
   if (!task) return [];
+
+  const sourceTicketId = await sourceTicketIdFor(task);
+  if (sourceTicketId) {
+    const notes = await TicketMessageModel.find({
+      tenantId: getContext().tenantId,
+      ticketId: sourceTicketId,
+      visibility: 'internal',
+    }).sort({ sentAt: 1 });
+
+    return notes.map((note) => ({
+      id: String(note._id),
+      body: note.body,
+      authorName: note.authorName,
+      createdAt: note.sentAt ?? note.createdAt,
+    }));
+  }
 
   const found = await taskComments()
     .find({ taskId: toObjectId(taskId) })
@@ -268,11 +306,20 @@ export async function listTaskComments(taskId: string): Promise<TaskCommentView[
   }));
 }
 
-/**
- * Records a task update and mirrors it into its source ticket as an internal note. That mirror is
- * intentionally one-way: task work may inform support staff, but it must never email a customer.
- */
-export async function addTaskComment(taskId: string, body: string): Promise<void> {
+/** Who may be @mentioned on a task: its private members if it has any, otherwise all staff. */
+export async function mentionableForTask(taskId: string): Promise<MentionableUser[]> {
+  const task = await getTask(taskId);
+  if (!task) return [];
+  const members = await assignableUserIdsForTask(task);
+  return mentionableUsers(members);
+}
+
+/** Adds to a task's conversation, on its ticket when it has one; see listTaskComments. */
+export async function addTaskComment(
+  taskId: string,
+  body: string,
+  mentionIds: string[] = [],
+): Promise<void> {
   const text = body.trim();
   if (!text) throw new Error('Write a comment before posting it.');
   if (text.length > 4_000) throw new Error('A comment can be up to 4,000 characters.');
@@ -286,25 +333,16 @@ export async function addTaskComment(taskId: string, body: string): Promise<void
     tenantId: context.tenantId,
   }).select('name');
   const authorName = author?.name ?? 'Unknown agent';
-
-  await taskComments().create({
-    taskId: task._id,
-    body: text,
-    authorUserId: context.userId,
-    authorName,
-  });
-
-  await tasks().updateOne({ _id: task._id }, { $set: { lastActivityAt: new Date() } });
+  const now = new Date();
 
   const sourceTicketId = await sourceTicketIdFor(task);
   if (sourceTicketId) {
-    const now = new Date();
     await TicketMessageModel.create({
       tenantId: context.tenantId,
       ticketId: sourceTicketId,
       visibility: 'internal',
       direction: 'outbound',
-      body: `Task ${task.number} update\n${text}`,
+      body: text,
       authorUserId: context.userId,
       authorName,
       channel: 'agent',
@@ -313,6 +351,27 @@ export async function addTaskComment(taskId: string, body: string): Promise<void
       { _id: sourceTicketId, tenantId: context.tenantId },
       { $set: { lastActivityAt: now } },
     );
+  } else {
+    await taskComments().create({
+      taskId: task._id,
+      body: text,
+      authorUserId: context.userId,
+      authorName,
+    });
+  }
+
+  await tasks().updateOne({ _id: task._id }, { $set: { lastActivityAt: now } });
+
+  if (mentionIds.length > 0) {
+    await alertMentioned({
+      body: text,
+      chosenIds: mentionIds,
+      candidates: await mentionableForTask(taskId),
+      subject: `[${task.number}] ${authorName} mentioned you`,
+      where: `task ${task.number} ${task.title}`,
+      link: `${appBaseUrl()}/tasks/${task._id}`,
+      authorName,
+    });
   }
 }
 

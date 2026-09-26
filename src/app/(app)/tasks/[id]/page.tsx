@@ -6,6 +6,8 @@ import {
   assignableUserIdsForTask,
   getTask,
   listTaskComments,
+  mentionableForTask,
+  sourceTicketFor,
 } from '@/modules/tasks/services/task.service';
 import { getSpace } from '@/modules/tasks/services/space.service';
 import { listFolders } from '@/modules/tasks/services/folder.service';
@@ -27,17 +29,29 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
   const task = await asUser(actor, () => getTask(id));
   if (!task) notFound();
 
-  const { space, folders, users, timer, loggedMinutes, comments, ownerIds, subtaskOwnerIds } =
-    await asUser(actor, async () => ({
-      space: await getSpace(String(task.spaceId)),
-      folders: await listFolders(String(task.spaceId)),
-      users: await listUsers(),
-      timer: await getRunningTimer(),
-      loggedMinutes: await loggedMinutesForTask(id),
-      comments: await listTaskComments(id),
-      ownerIds: await assignableUserIdsForTask(task),
-      subtaskOwnerIds: await assignableUserIdsForSubtask(task),
-    }));
+  const {
+    space,
+    folders,
+    users,
+    timer,
+    loggedMinutes,
+    comments,
+    ownerIds,
+    subtaskOwnerIds,
+    mentionable,
+    sourceTicket,
+  } = await asUser(actor, async () => ({
+    space: await getSpace(String(task.spaceId)),
+    folders: await listFolders(String(task.spaceId)),
+    users: await listUsers(),
+    timer: await getRunningTimer(),
+    loggedMinutes: await loggedMinutesForTask(id),
+    comments: await listTaskComments(id),
+    ownerIds: await assignableUserIdsForTask(task),
+    subtaskOwnerIds: await assignableUserIdsForSubtask(task),
+    mentionable: await mentionableForTask(id),
+    sourceTicket: await sourceTicketFor(task),
+  }));
 
   const canManage = actor.permissions.includes('task.manage');
 
@@ -70,7 +84,23 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
       <div className="mt-3">
         <PageHeader
           title={task.title}
-          description={`${task.number} · ${space?.name ?? ''}`}
+          description={
+            <>
+              {task.number} · {space?.name ?? ''}
+              {sourceTicket ? (
+                <>
+                  {' · From ticket '}
+                  <Link
+                    href={`/support/tickets/${sourceTicket.id}`}
+                    className="font-medium text-[var(--color-ink)] underline underline-offset-4"
+                  >
+                    {sourceTicket.number}
+                  </Link>
+                  {sourceTicket.subject ? ` ${sourceTicket.subject}` : ''}
+                </>
+              ) : null}
+            </>
+          }
           action={
             <div className="flex flex-wrap items-center gap-2">
               <TimerButton taskId={id} running={timer?.kind === 'task' && timer?.itemId === id} />
@@ -125,7 +155,13 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
             </CardSection>
           </Card>
 
-          <TaskComments taskId={id} canComment={canManage} comments={comments} />
+          <TaskComments
+            taskId={id}
+            canComment={canManage}
+            comments={comments}
+            people={mentionable}
+            ticket={sourceTicket ? { id: sourceTicket.id, number: sourceTicket.number } : null}
+          />
 
           <SubtaskList
             taskId={id}

@@ -17,7 +17,7 @@ export function PageHeader({
   titleExtra,
 }: {
   title: string;
-  description?: string;
+  description?: ReactNode;
   action?: ReactNode;
   icon?: ReactNode;
   titleExtra?: ReactNode;

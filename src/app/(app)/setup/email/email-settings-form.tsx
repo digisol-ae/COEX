@@ -262,6 +262,11 @@ export function EmailSettingsForm({
               label="A task is assigned to me"
               defaultChecked={staff.taskAssigned}
             />
+            <Toggle
+              name="mentioned"
+              label="Someone mentions me with @ in a note"
+              defaultChecked={staff.mentioned}
+            />
           </div>
         </CardSection>
       </Card>

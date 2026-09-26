@@ -5,7 +5,15 @@ import { runWithContext } from '@/lib/tenant-context';
 import { TenantModel } from '@/modules/core/models/tenant.model';
 import { UserModel } from '@/modules/core/models/user.model';
 import { createSpace } from '@/modules/tasks/services/space.service';
-import { getTask } from '@/modules/tasks/services/task.service';
+import {
+  addTaskComment,
+  getTask,
+  listTaskComments,
+  moveTask,
+  sourceTicketFor,
+} from '@/modules/tasks/services/task.service';
+import { EmailSettingsModel } from '@/modules/core/models/email-settings.model';
+import { EmailOutboxModel } from '@/modules/core/models/email-outbox.model';
 import {
   addReply,
   assignTicket,
@@ -412,6 +420,94 @@ describe('escalation', () => {
     await expect(
       runWithContext(context, () => escalateToTask({ ticketId: id, spaceId })),
     ).rejects.toThrow(/already/i);
+  });
+});
+
+describe('the ticket and task conversation', () => {
+  async function escalated() {
+    const queueId = await aQueue();
+    const ticketId = await aTicket(queueId);
+    const spaceId = await runWithContext(context, () => createSpace({ name: 'R4 platform' }));
+    const taskId = await runWithContext(context, () =>
+      escalateToTask({ ticketId, spaceId, assigneeIds: [String(colleagueId)] }),
+    );
+    return { ticketId, taskId };
+  }
+
+  async function sendingMail() {
+    await EmailSettingsModel.create({ tenantId, outbound: { enabled: true } });
+  }
+
+  it('is one conversation: a note on either screen shows on both, and only once', async () => {
+    const { ticketId, taskId } = await escalated();
+
+    await runWithContext(context, () => addTaskComment(taskId, 'Driver fault found.'));
+    await runWithContext(context, () =>
+      addReply({ ticketId, body: 'Customer asked for an ETA.', visibility: 'internal' }),
+    );
+
+    const onTask = await runWithContext(context, () => listTaskComments(taskId));
+    const onTicket = (await runWithContext(context, () => getTicketDetail(ticketId)))!.messages
+      .filter((message) => message.visibility === 'internal')
+      .map((message) => message.body);
+
+    for (const note of ['Driver fault found.', 'Customer asked for an ETA.']) {
+      expect(onTask.filter((comment) => comment.body === note)).toHaveLength(1);
+      expect(onTicket.filter((body) => body === note)).toHaveLength(1);
+    }
+  });
+
+  it('links the task back to its ticket', async () => {
+    const { ticketId, taskId } = await escalated();
+    const task = await runWithContext(context, () => getTask(taskId));
+    const ticket = await runWithContext(context, () => sourceTicketFor(task!));
+    expect(ticket).toMatchObject({ id: ticketId, number: 'DGS-S-1' });
+  });
+
+  it('emails a colleague picked with @, and only while the mention is still in the text', async () => {
+    await sendingMail();
+    const { ticketId, taskId } = await escalated();
+
+    await runWithContext(context, () =>
+      addTaskComment(taskId, '@Fatima Noor can you check the logs?', [String(colleagueId)]),
+    );
+    // Picked, then deleted from the text before posting: no email.
+    await runWithContext(context, () =>
+      addReply({
+        ticketId,
+        body: 'Never mind, sorted.',
+        visibility: 'internal',
+        mentionIds: [String(colleagueId)],
+      }),
+    );
+
+    const sent = await EmailOutboxModel.find({ kind: 'mentioned' });
+    expect(sent).toHaveLength(1);
+    expect(sent[0].to).toBe('fatima@example.com');
+    expect(sent[0].text).toContain('can you check the logs?');
+  });
+
+  it('never treats a public reply as a mention, because the customer reads it', async () => {
+    await sendingMail();
+    const { ticketId } = await escalated();
+
+    await runWithContext(context, () =>
+      addReply({
+        ticketId,
+        body: '@Fatima Noor will call you.',
+        visibility: 'public',
+        mentionIds: [String(colleagueId)],
+      }),
+    );
+
+    expect(await EmailOutboxModel.countDocuments({ kind: 'mentioned' })).toBe(0);
+  });
+
+  it('still reaches the ticket as a completion note when the task is done', async () => {
+    const { ticketId, taskId } = await escalated();
+    await runWithContext(context, () => moveTask(taskId, 'Done'));
+    const detail = await runWithContext(context, () => getTicketDetail(ticketId));
+    expect(detail!.messages.some((message) => /marked complete/.test(message.body))).toBe(true);
   });
 });
 

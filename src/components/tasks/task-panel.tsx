@@ -48,6 +48,8 @@ interface PanelDetail {
   /** null means the Space and Folder are both open, so anyone in the tenant may own the task. */
   assignableUserIds: string[] | null;
   subtaskAssignableUserIds: string[] | null;
+  /** The ticket this task was raised from, linked from the panel header. */
+  sourceTicket: { id: string; number: string } | null;
 }
 
 export interface PanelHandlers {
@@ -182,6 +184,15 @@ export function TaskPanel({
           <span className="font-mono text-[11px] text-[var(--color-ink-subtle)]">
             {task.number}
           </span>
+
+          {detail?.sourceTicket ? (
+            <Link
+              href={`/support/tickets/${detail.sourceTicket.id}`}
+              className="text-[12px] font-medium text-[var(--color-ink-muted)] underline underline-offset-4"
+            >
+              Ticket {detail.sourceTicket.number}
+            </Link>
+          ) : null}
 
           <Link
             href={`/tasks/${task.id}`}

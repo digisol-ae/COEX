@@ -5,6 +5,7 @@ import { customerReplyAddress, getTicketDetail } from '@/modules/tickets/service
 import { listQueues } from '@/modules/tickets/services/queue.service';
 import { listCannedReplies } from '@/modules/tickets/services/canned-reply.service';
 import { listUsers } from '@/modules/core/services/user.service';
+import { mentionableUsers } from '@/modules/core/services/mention.service';
 import { listSpaces } from '@/modules/tasks/services/space.service';
 import { STATUS_LABELS, CHANNEL_LABELS } from '@/modules/tickets/labels';
 import { Card, CardSection, PageHeader } from '@/components/ui';
@@ -34,17 +35,16 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   const canManage = actor.permissions.includes('ticket.manage');
   const replyEmail = canManage ? await asUser(actor, () => customerReplyAddress(id)) : null;
 
-  const { queues, users, spaces, cannedReplies, runningTimer, loggedMinutes } = await asUser(
-    actor,
-    async () => ({
+  const { queues, users, spaces, cannedReplies, runningTimer, loggedMinutes, people } =
+    await asUser(actor, async () => ({
       queues: await listQueues(),
       users: await listUsers(),
       spaces: actor.permissions.includes('task.manage') ? await listSpaces() : [],
       cannedReplies: await listCannedReplies({ queueId: ticket.queueId }),
       runningTimer: await getRunningTimer(),
       loggedMinutes: await loggedMinutesForTicket(id),
-    }),
-  );
+      people: canManage ? await mentionableUsers() : [],
+    }));
 
   const timerRunning = runningTimer?.kind === 'ticket' && runningTimer.itemId === id;
 
@@ -128,6 +128,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             <ReplyBox
               ticketId={ticket.id}
               emailTo={replyEmail}
+              people={people}
               cannedReplies={cannedReplies}
               context={{
                 contactName: ticket.contactName,

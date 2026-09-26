@@ -13,6 +13,7 @@ import { toObjectId, toOptionalObjectId } from '@/lib/ids';
 import { recordAudit, changedFields } from '@/modules/core/services/audit.service';
 import { nextNumber } from '@/modules/core/services/numbering.service';
 import { recordActivity } from '@/modules/crm/services/activity.service';
+import { alertMentioned, mentionableUsers } from '@/modules/core/services/mention.service';
 import { TenantModel } from '@/modules/core/models/tenant.model';
 import { UserModel } from '@/modules/core/models/user.model';
 import { OrganisationModel } from '@/modules/crm/models/organisation.model';
@@ -182,10 +183,15 @@ export interface ReplyInput {
   ticketId: string;
   body: string;
   visibility: 'public' | 'internal';
+  /** People picked with @ in an internal note. Ignored on a public reply, which a customer reads. */
+  mentionIds?: string[];
 }
 
 /**
  * A reply or an internal note.
+ *
+ * An internal note on a ticket with a task is the same conversation the task shows (decision 13),
+ * so it also counts as activity on that task.
  *
  * The first public reply from staff stops the first response clock. An internal note never does,
  * because a note to a colleague is not an answer to the customer, and counting it as one is how
@@ -232,6 +238,33 @@ export async function addReply(input: ReplyInput): Promise<string> {
 
   if (input.visibility === 'public') {
     await safely(() => emailCustomerReply(ticket, message._id, input.body));
+  }
+
+  if (input.visibility === 'internal') {
+    if (ticket.escalatedTaskId) {
+      await TaskModel.updateOne(
+        { _id: ticket.escalatedTaskId, tenantId: context.tenantId },
+        { $set: { lastActivityAt: now } },
+      );
+    }
+
+    if (input.mentionIds?.length) {
+      await alertMentioned({
+        body: message.body,
+        chosenIds: input.mentionIds,
+        candidates: await mentionableUsers(),
+        subject: `[${ticket.number}] ${message.authorName} mentioned you`,
+        where: `ticket ${ticket.number} ${ticket.subject}`,
+        // An engineer on the linked task may not have the Support desk, so give them the task too.
+        link: [
+          `${appBaseUrl()}/support/tickets/${ticket._id}`,
+          ticket.escalatedTaskId ? `Task: ${appBaseUrl()}/tasks/${ticket.escalatedTaskId}` : '',
+        ]
+          .filter(Boolean)
+          .join('\n'),
+        authorName: message.authorName,
+      });
+    }
   }
 
   if (input.visibility === 'public' && ticket.organisationId) {

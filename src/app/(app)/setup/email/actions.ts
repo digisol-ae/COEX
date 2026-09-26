@@ -54,6 +54,7 @@ export async function saveEmailSettingsAction(
           ticketAssigned: flag(formData, 'ticketAssigned'),
           customerReplied: flag(formData, 'customerReplied'),
           taskAssigned: flag(formData, 'taskAssigned'),
+          mentioned: flag(formData, 'mentioned'),
         },
       }),
     );
