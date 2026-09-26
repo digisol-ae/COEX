@@ -34,6 +34,13 @@ const userSchema = new Schema(
     },
     lastSignedInAt: { type: Date, default: null },
 
+    /**
+     * The person's own order for the menu groups, by group id. Kept on the account rather than in
+     * the browser so it follows them to their phone. Unknown or missing ids fall back to the
+     * standard order, so a group added later still appears.
+     */
+    navigationOrder: { type: [String], default: [] },
+
     /** Optional link to the customer record, used by the client contact role. */
     organisationId: { type: Schema.Types.ObjectId, ref: 'Organisation', default: null },
 

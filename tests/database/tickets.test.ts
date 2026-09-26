@@ -13,6 +13,7 @@ import {
   moveTask,
   sourceTicketFor,
 } from '@/modules/tasks/services/task.service';
+import { getNavigationOrder, saveNavigationOrder } from '@/modules/core/services/user.service';
 import { loadMyWork } from '@/modules/tasks/services/my-work.service';
 import { EmailSettingsModel } from '@/modules/core/models/email-settings.model';
 import { EmailOutboxModel } from '@/modules/core/models/email-outbox.model';
@@ -546,6 +547,18 @@ describe('my work', () => {
       loadMyWork({ filter: 'all', seesTickets: false, seesTasks: true }),
     );
     expect(withoutDesk.map((item) => item.kind)).toEqual(['task']);
+  });
+});
+
+describe('menu order', () => {
+  it('is kept per person: one agent’s order never changes another’s', async () => {
+    const colleague = { tenantId, userId: colleagueId, isPlatformAdmin: false };
+
+    await runWithContext(context, () => saveNavigationOrder(['support', 'tasks']));
+    await runWithContext(colleague, () => saveNavigationOrder(['crm']));
+
+    expect(await runWithContext(context, () => getNavigationOrder())).toEqual(['support', 'tasks']);
+    expect(await runWithContext(colleague, () => getNavigationOrder())).toEqual(['crm']);
   });
 });
 

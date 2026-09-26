@@ -85,6 +85,14 @@ export function NavigationTree({
           </div>
         );
       })}
+
+      <Link
+        href="/menu-order"
+        onClick={onNavigate}
+        className="block px-2 text-[11px] text-[var(--color-ink-subtle)] underline-offset-4 hover:text-[var(--color-ink-muted)] hover:underline"
+      >
+        Arrange my menu
+      </Link>
     </nav>
   );
 }

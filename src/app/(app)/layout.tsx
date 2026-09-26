@@ -9,7 +9,8 @@ import { Sidebar } from '@/components/navigation/sidebar';
 import { MobileNavigation } from '@/components/navigation/mobile-navigation';
 import { QuickSearch } from '@/components/navigation/quick-search';
 import { UserMenu } from '@/components/navigation/user-menu';
-import { visibleGroups } from '@/components/navigation/navigation';
+import { orderGroups, visibleGroups } from '@/components/navigation/navigation';
+import { getNavigationOrder } from '@/modules/core/services/user.service';
 
 /**
  * Shell for every signed in screen.
@@ -20,7 +21,6 @@ import { visibleGroups } from '@/components/navigation/navigation';
  */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
-  const groups = visibleGroups(user.permissions);
   /**
    * The badges on the rail: a prompt to act, never a total.
    *
@@ -28,8 +28,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
    * looked, because an open ticket I have already read is not news, and a badge that is always
    * lit teaches people to ignore the rail. Unassigned tickets count for whoever sees the whole desk.
    */
-  const { timer, counts } = await asUser(user, async () => ({
+  const { timer, counts, order } = await asUser(user, async () => ({
     timer: await getRunningTimer(),
+    order: await getNavigationOrder(),
     counts: {
       '/tasks': user.permissions.includes('task.read.own')
         ? await countMyOpenTasks(user.id)
@@ -42,9 +43,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     },
   }));
 
+  const groups = orderGroups(visibleGroups(user.permissions), order);
+
   return (
     <div className="flex min-h-screen">
-      <IconRail permissions={user.permissions} counts={counts} />
+      <IconRail
+        permissions={user.permissions}
+        counts={counts}
+        groupOrder={groups.map((group) => group.id)}
+      />
       <Sidebar
         groups={groups}
         tenantName={user.tenantName}

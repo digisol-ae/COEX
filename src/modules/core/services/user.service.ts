@@ -2,6 +2,8 @@ import { randomBytes } from 'node:crypto';
 import { connectToDatabase } from '@/lib/db';
 import { hashPassword } from '@/lib/password';
 import { repository } from '@/lib/repository';
+import { getContext } from '@/lib/tenant-context';
+import { toObjectId } from '@/lib/ids';
 import { UserModel } from '../models/user.model';
 import { recordAudit, changedFields } from './audit.service';
 import { revokeAllSessionsForUser } from './session.service';
@@ -185,4 +187,25 @@ export async function resetPassword(userId: string): Promise<{ password: string 
   });
 
   return { password };
+}
+
+/** The signed-in person's menu order; empty means the standard order. */
+export async function getNavigationOrder(): Promise<string[]> {
+  await connectToDatabase();
+  const user = await users().findById(String(getContext().userId)).select('navigationOrder');
+  return user?.navigationOrder ?? [];
+}
+
+/**
+ * Saves the signed-in person's menu order. Only ever their own: this reorders what they can
+ * already see and grants nothing, so it needs no permission beyond being signed in.
+ */
+export async function saveNavigationOrder(order: string[]): Promise<void> {
+  await connectToDatabase();
+  const clean = [...new Set(order.map((id) => id.trim()).filter(Boolean))].slice(0, 30);
+  if (clean.some((id) => id.length > 40)) throw new Error('That menu order is not valid.');
+  await users().updateOne(
+    { _id: toObjectId(String(getContext().userId)) },
+    { $set: { navigationOrder: clean } },
+  );
 }

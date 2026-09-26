@@ -18,24 +18,41 @@ interface RailItem {
   label: string;
   icon: 'home' | 'tasks' | 'spaces' | 'support' | 'time' | 'customers' | 'settings';
   permission?: string;
+  /** The sidebar group it belongs to, so the rail follows the person's own menu order. */
+  group?: string;
 }
 
 const ITEMS: RailItem[] = [
   { href: '/dashboard', label: 'Home', icon: 'home' },
-  { href: '/tasks', label: 'Tasks', icon: 'tasks', permission: 'task.read.own' },
-  { href: '/spaces', label: 'Spaces', icon: 'spaces', permission: 'task.read.all' },
-  { href: '/support/tickets', label: 'Support', icon: 'support', permission: 'ticket.read.own' },
-  { href: '/time', label: 'Time', icon: 'time', permission: 'task.read.own' },
-  { href: '/customers', label: 'CRM', icon: 'customers', permission: 'customer.read' },
-  { href: '/setup', label: 'Setup', icon: 'settings', permission: 'tenant.manage' },
+  { href: '/tasks', label: 'Tasks', icon: 'tasks', permission: 'task.read.own', group: 'tasks' },
+  {
+    href: '/spaces',
+    label: 'Spaces',
+    icon: 'spaces',
+    permission: 'task.read.all',
+    group: 'tasks',
+  },
+  {
+    href: '/support/tickets',
+    label: 'Support',
+    icon: 'support',
+    permission: 'ticket.read.own',
+    group: 'support',
+  },
+  { href: '/time', label: 'Time', icon: 'time', permission: 'task.read.own', group: 'tasks' },
+  { href: '/customers', label: 'CRM', icon: 'customers', permission: 'customer.read', group: 'crm' },
+  { href: '/setup', label: 'Setup', icon: 'settings', permission: 'tenant.manage', group: 'setup' },
 ];
 
 export function IconRail({
   permissions,
   counts,
+  groupOrder = [],
 }: {
   permissions: string[];
   counts?: Partial<Record<string, number>>;
+  /** Group ids in the person's order; Home stays first whatever it says. */
+  groupOrder?: string[];
 }) {
   const pathname = usePathname();
   const supportCount = useLiveUnreadCount(
@@ -43,7 +60,15 @@ export function IconRail({
     permissions.includes('ticket.read.own'),
   );
 
-  const visible = ITEMS.filter((item) => !item.permission || permissions.includes(item.permission));
+  const rank = (item: RailItem) => {
+    if (!item.group) return -1;
+    const index = groupOrder.indexOf(item.group);
+    return index === -1 ? groupOrder.length : index;
+  };
+  // A stable sort keeps Tasks, Spaces and Time together in their usual order within their group.
+  const visible = ITEMS.filter(
+    (item) => !item.permission || permissions.includes(item.permission),
+  ).sort((a, b) => rank(a) - rank(b));
 
   return (
     <nav

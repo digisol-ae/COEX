@@ -82,6 +82,18 @@ export const GROUPS: NavigationGroup[] = [
   },
 ];
 
+/**
+ * Groups in the person's own order (John, 26 Sep 2026: one agent wants Support first, another
+ * CRM). Groups the order does not mention keep their standard place after the ones it does.
+ */
+export function orderGroups<T extends { id: string }>(groups: T[], order: string[]): T[] {
+  const rank = (id: string) => {
+    const index = order.indexOf(id);
+    return index === -1 ? order.length + GROUPS.findIndex((group) => group.id === id) : index;
+  };
+  return [...groups].sort((a, b) => rank(a.id) - rank(b.id));
+}
+
 /** Groups the signed in person may actually open, with empty groups dropped entirely. */
 export function visibleGroups(permissions: Permission[]): NavigationGroup[] {
   return GROUPS.map((group) => ({
