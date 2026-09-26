@@ -5,6 +5,8 @@ import { loadDeskSnapshot } from '@/modules/tickets/services/metrics.service';
 import { untilDue } from '@/modules/tickets/labels';
 import { Card, CardSection, EmptyState, PageHeader } from '@/components/ui';
 import { formatMinutes } from '@/modules/time/week';
+import { loadMyWork, parseWorkFilter } from '@/modules/tasks/services/my-work.service';
+import { MyWork } from './my-work';
 
 export const metadata = { title: 'Dashboard · COEX' };
 
@@ -15,16 +17,24 @@ export const metadata = { title: 'Dashboard · COEX' };
  * without visibility is just a list nobody reads. An agent sees their own work; a manager and
  * above see the tenant.
  */
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ work?: string }>;
+}) {
   const user = await requireUser();
+  const filter = parseWorkFilter((await searchParams).work);
 
   const seesEverything = user.permissions.includes('task.read.all');
 
   const seesTickets = user.permissions.includes('ticket.read.own');
 
-  const { data, desk } = await asUser(user, async () => ({
+  const seesTasks = user.permissions.includes('task.read.own');
+
+  const { data, desk, work } = await asUser(user, async () => ({
     data: await loadDashboard({ onlyAssigneeId: seesEverything ? undefined : user.id }),
     desk: seesTickets ? await loadDeskSnapshot({ userId: user.id }) : null,
+    work: await loadMyWork({ filter, seesTickets, seesTasks }),
   }));
 
   const tiles = [
@@ -49,7 +59,9 @@ export default async function DashboardPage() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <MyWork items={work} filter={filter} showFilter={seesTickets && seesTasks} />
+
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
         {tiles.map((tile) => (
           <Link key={tile.label} href={tile.href}>
             <Card className="h-full px-4 py-4 transition-colors hover:bg-[var(--color-surface-muted)]">

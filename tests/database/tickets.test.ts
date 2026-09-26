@@ -7,11 +7,13 @@ import { UserModel } from '@/modules/core/models/user.model';
 import { createSpace } from '@/modules/tasks/services/space.service';
 import {
   addTaskComment,
+  createTask,
   getTask,
   listTaskComments,
   moveTask,
   sourceTicketFor,
 } from '@/modules/tasks/services/task.service';
+import { loadMyWork } from '@/modules/tasks/services/my-work.service';
 import { EmailSettingsModel } from '@/modules/core/models/email-settings.model';
 import { EmailOutboxModel } from '@/modules/core/models/email-outbox.model';
 import {
@@ -508,6 +510,42 @@ describe('the ticket and task conversation', () => {
     await runWithContext(context, () => moveTask(taskId, 'Done'));
     const detail = await runWithContext(context, () => getTicketDetail(ticketId));
     expect(detail!.messages.some((message) => /marked complete/.test(message.body))).toBe(true);
+  });
+});
+
+describe('my work', () => {
+  it('mixes my open tickets and tasks, soonest due first, and filters by kind', async () => {
+    const queueId = await aQueue();
+    const ticketId = await aTicket(queueId);
+    await runWithContext(context, () => assignTicket(ticketId, String(userId)));
+
+    const spaceId = await runWithContext(context, () => createSpace({ name: 'R4 platform' }));
+    const inAYear = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+    await runWithContext(context, () =>
+      createTask({ spaceId, title: 'Later', assigneeIds: [String(userId)], endAt: inAYear }),
+    );
+    await runWithContext(context, () =>
+      createTask({ spaceId, title: 'Someone else', assigneeIds: [String(colleagueId)] }),
+    );
+
+    const both = await runWithContext(context, () =>
+      loadMyWork({ filter: 'all', seesTickets: true, seesTasks: true }),
+    );
+    // The ticket's reply target is days away at most; the task is due in a year.
+    expect(both.map((item) => [item.kind, item.title])).toEqual([
+      ['ticket', 'Scanner will not connect'],
+      ['task', 'Later'],
+    ]);
+
+    const ticketsOnly = await runWithContext(context, () =>
+      loadMyWork({ filter: 'tickets', seesTickets: true, seesTasks: true }),
+    );
+    expect(ticketsOnly.map((item) => item.kind)).toEqual(['ticket']);
+
+    const withoutDesk = await runWithContext(context, () =>
+      loadMyWork({ filter: 'all', seesTickets: false, seesTasks: true }),
+    );
+    expect(withoutDesk.map((item) => item.kind)).toEqual(['task']);
   });
 });
 
