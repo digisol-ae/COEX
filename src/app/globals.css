@@ -169,3 +169,64 @@ body {
   background: var(--color-brand-black);
   color: var(--color-brand-red);
 }
+
+/*
+ * Popups in frosted glass, the macOS and iOS sheet look John asked for on 26 Sep 2026: the page
+ * behind is only lightly dimmed and blurred, and the popup itself lets a little of it through.
+ * The glass stays opaque enough that text on it reads like text on a card. People who have asked
+ * their device for less transparency or motion get a plain card and no animation.
+ */
+.popup-backdrop {
+  @apply backdrop-blur-sm backdrop-saturate-125;
+  background: rgb(20 20 20 / 16%);
+  animation: popup-fade 160ms ease-out;
+}
+
+.popup-glass {
+  /* Written with Tailwind's utilities: the build dropped a hand-written backdrop-filter. */
+  @apply backdrop-blur-2xl backdrop-saturate-150;
+  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 1.125rem;
+  box-shadow:
+    0 0 0 0.5px rgb(20 20 20 / 8%),
+    0 24px 60px -16px rgb(20 20 20 / 32%);
+  animation: popup-in 180ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes popup-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes popup-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(4px);
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .popup-glass {
+    background: var(--color-surface);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .popup-backdrop {
+    @apply backdrop-blur-none;
+    background: rgb(20 20 20 / 35%);
+  }
+  .popup-glass {
+    @apply backdrop-blur-none;
+    background: var(--color-surface);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popup-backdrop,
+  .popup-glass {
+    animation: none;
+  }
+}

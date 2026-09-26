@@ -165,7 +165,7 @@ export function TaskPanel({
         type="button"
         aria-label="Close the task"
         onClick={onClose}
-        className="flex-1 bg-[var(--color-ink)]/20"
+        className="popup-backdrop flex-1"
       />
 
       <aside

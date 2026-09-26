@@ -101,10 +101,10 @@ export function QuickSearch() {
             type="button"
             aria-label="Close search"
             onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-[var(--color-brand-black)]/30"
+            className="popup-backdrop absolute inset-0"
           />
 
-          <div className="surface-raised relative w-full max-w-lg overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)]">
+          <div className="popup-glass relative w-full max-w-lg overflow-hidden">
             <input
               ref={inputRef}
               value={query}

@@ -58,14 +58,14 @@ export function FolderSettings({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      className="popup-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-label="Folder settings"
     >
       <form
         action={action}
-        className="w-full max-w-lg rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)] p-5 text-left shadow-xl"
+        className="w-full max-w-lg popup-glass p-5 text-left"
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-semibold text-[var(--color-ink)]">Folder settings</h2>
