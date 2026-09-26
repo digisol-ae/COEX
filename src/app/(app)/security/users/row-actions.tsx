@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { Button, Notice, Select } from '@/components/ui';
+import { IconButton } from '@/components/ui/icon-button';
 import { ROLES } from '@/modules/core/permissions';
 import {
   changeRoleAction,
@@ -57,9 +58,7 @@ export function ResetPasswordButton({ userId, email }: { userId: string; email: 
 
   if (!open) {
     return (
-      <Button variant="secondary" onClick={() => setOpen(true)}>
-        Reset password
-      </Button>
+      <IconButton icon="key" label="Reset this person's password" onClick={() => setOpen(true)} />
     );
   }
 
@@ -146,9 +145,11 @@ export function AccessEditor({
 
   if (!open) {
     return (
-      <Button variant="secondary" onClick={() => setOpen(true)}>
-        Manage access
-      </Button>
+      <IconButton
+        icon="access"
+        label="Manage what this person can open"
+        onClick={() => setOpen(true)}
+      />
     );
   }
 

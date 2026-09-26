@@ -1,8 +1,8 @@
-import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
 import { loadTotals } from '@/modules/time/services/timesheet.service';
 import { formatMinutes, startOfWeek } from '@/modules/time/week';
 import { Card, CardSection, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
+import { IconLink } from '@/components/ui/icon-button';
 import { PeriodPicker } from './period-picker';
 import { toDateKey } from '@/modules/time/week';
 
@@ -37,12 +37,12 @@ export default async function TimeReportPage({
         title="Time report"
         description="Hours by person, space and customer for the period, with billable shown beside each total."
         action={
-          <Link
+          <IconLink
+            icon="download"
+            label="Download this report as CSV"
+            prefetch={false}
             href={exportHref}
-            className="rounded-[var(--radius-control)] border border-[var(--color-line-strong)] px-4 py-2 text-sm text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
-          >
-            Export CSV
-          </Link>
+          />
         }
       />
 

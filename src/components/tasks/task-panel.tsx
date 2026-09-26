@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useActionState, useEffect, useState, useTransition } from 'react';
 import { clsx } from 'clsx';
 import { Button, Field, Input, Notice } from '@/components/ui';
+import { IconButton, IconLink } from '@/components/ui/icon-button';
 import { StatusDot } from '@/components/ui/pill';
 import { formatMinutes } from '@/modules/time/week';
 import { formatDateTime } from '@/modules/tasks/dates';
@@ -194,12 +195,12 @@ export function TaskPanel({
             </Link>
           ) : null}
 
-          <Link
+          <IconLink
+            icon="open"
+            label="Open the task in its own page"
             href={`/tasks/${task.id}`}
-            className="ml-auto text-[12px] text-[var(--color-ink-muted)] underline-offset-4 hover:underline"
-          >
-            Open full window
-          </Link>
+            className="ml-auto"
+          />
 
           <button
             type="button"
@@ -442,13 +443,12 @@ export function TaskPanel({
                       </a>
 
                       {canManage ? (
-                        <button
-                          type="button"
+                        <IconButton
+                          icon="remove"
+                          label="Remove this link"
+                          tone="danger"
                           onClick={() => removeLink(link.id)}
-                          className="shrink-0 text-[11px] text-[var(--color-ink-subtle)] underline-offset-4 hover:underline"
-                        >
-                          Remove
-                        </button>
+                        />
                       ) : null}
                     </li>
                   ))}

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { Button, Card, CardSection, EmptyState, Field, Input, Notice } from '@/components/ui';
+import { IconButton } from '@/components/ui/icon-button';
 import type { LocationSummary } from '@/modules/crm/services/location.service';
 import { addLocationAction, archiveLocationAction, type CrmFormState } from '../actions';
 
@@ -44,12 +45,7 @@ export function LocationsPanel({
                   <form action={archiveLocationAction}>
                     <input type="hidden" name="id" value={location.id} />
                     <input type="hidden" name="organisationId" value={organisationId} />
-                    <button
-                      type="submit"
-                      className="text-xs text-[var(--color-ink-subtle)] underline-offset-4 hover:underline"
-                    >
-                      Remove
-                    </button>
+                    <IconButton type="submit" icon="remove" label="Remove this location" tone="danger" />
                   </form>
                 ) : null}
               </li>

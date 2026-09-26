@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useActionState, useState, useTransition } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
+import { IconButton } from '@/components/ui/icon-button';
 import { TicketPicker } from './ticket-picker';
 import { STATUS_LABELS } from '@/modules/tickets/labels';
 import type { Priority, TicketStatus } from '@/modules/tickets/services/ticket.service';
@@ -295,7 +296,10 @@ function RelatedPanel({
                   {related.subject}
                 </Link>
 
-                <button
+                <IconButton
+                  icon="unlink"
+                  label="Unlink this ticket"
+                  tone="danger"
                   type="button"
                   onClick={() => {
                     onError(null);
@@ -304,10 +308,7 @@ function RelatedPanel({
                       if (result.error) onError(result.error);
                     });
                   }}
-                  className="text-[11px] text-[var(--color-ink-subtle)] hover:text-[var(--color-status-alert)]"
-                >
-                  Unlink
-                </button>
+                />
               </li>
             ))}
           </ul>

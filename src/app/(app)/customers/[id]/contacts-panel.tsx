@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { Button, Card, CardSection, EmptyState, Field, Input, Notice } from '@/components/ui';
+import { IconButton } from '@/components/ui/icon-button';
 import type { ContactSummary } from '@/modules/crm/services/contact.service';
 import { MobileInput } from '@/modules/crm/components/mobile-input';
 import { addContactAction, archiveContactAction, type CrmFormState } from '../actions';
@@ -51,12 +52,7 @@ export function ContactsPanel({
                   <form action={archiveContactAction}>
                     <input type="hidden" name="id" value={contact.id} />
                     <input type="hidden" name="organisationId" value={organisationId} />
-                    <button
-                      type="submit"
-                      className="text-xs text-[var(--color-ink-subtle)] underline-offset-4 hover:underline"
-                    >
-                      Remove
-                    </button>
+                    <IconButton type="submit" icon="remove" label="Remove this contact" tone="danger" />
                   </form>
                 ) : null}
               </li>

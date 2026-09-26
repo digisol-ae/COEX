@@ -16,6 +16,9 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
   decision 13). No longer an open refactoring item.
 - Server operating system updates (187 pending on 26 Sep, 123 security) are Nabeel's
   responsibility, not COEX development work.
+- Interface, 26 Sep: a timesheet entry's history, edit and remove open as popups; all popups use
+  frosted glass ("Apple vibe"); secondary action buttons became small icons with tooltips. See
+  CLAUDE.md, Interface conventions.
 - ChatGPT will take over at a later stage: every session keeps CLAUDE.md, FEEDBACK.md and the
   `ai/` files current so the hand-over needs no chat history.
 

@@ -128,6 +128,17 @@ there and nothing else, because the sidebar, the permission filtering and the co
 read from that list. Permissions are applied on the server, so a link a person may not open is
 never sent to their browser.
 
+## Interface conventions (John, 26 Sep 2026)
+
+- Secondary actions (edit, remove, history, archive, previous and next, download, open) are small
+  icon buttons with a tooltip saying what they do: `IconButton` and `IconLink` in
+  src/components/ui/icon-button.tsx. The tooltip is also the accessible name. Primary actions
+  (Save, Raise ticket, Add time) and consequential ones (Suspend) keep their words.
+- Popups use frosted glass: `popup-backdrop` on the overlay and `popup-glass` on the panel, both in
+  globals.css. Forms that would otherwise open inside a table open as popups instead, so the page
+  never jumps. Exceptions: the image preview stays dark, the phone menu drawer stays brand black.
+- A phone has no hover, so nothing may be reachable only on hover.
+
 ## Where things live
 
 - `src/modules/<module>/` one folder per module, never importing from a sibling module (Tasks and

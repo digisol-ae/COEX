@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { Badge, Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
+import { IconButton } from '@/components/ui/icon-button';
 import { PLACEHOLDERS } from '@/modules/tickets/canned-reply-text';
 import type { CannedReplySummary } from '@/modules/tickets/services/canned-reply.service';
 import {
@@ -77,17 +78,25 @@ export function CannedReplyList({
                 </div>
 
                 <div className="flex gap-2">
-                  <Button variant="secondary" onClick={() => setEditing(reply.id)}>
-                    Edit
-                  </Button>
+                  <IconButton
+                    icon="edit"
+                    label="Edit this saved reply"
+                    onClick={() => setEditing(reply.id)}
+                  />
 
                   <form
                     action={reply.isArchived ? restoreCannedReplyAction : archiveCannedReplyAction}
                   >
                     <input type="hidden" name="id" value={reply.id} />
-                    <Button type="submit" variant="secondary">
-                      {reply.isArchived ? 'Restore' : 'Archive'}
-                    </Button>
+                    <IconButton
+                      type="submit"
+                      icon={reply.isArchived ? 'restore' : 'archive'}
+                      label={
+                        reply.isArchived
+                          ? 'Restore this saved reply'
+                          : 'Archive this saved reply; it can be restored later'
+                      }
+                    />
                   </form>
                 </div>
               </div>

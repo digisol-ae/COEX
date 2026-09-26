@@ -230,3 +230,47 @@ body {
     animation: none;
   }
 }
+
+/*
+ * Tooltips for icon buttons: the button's own label, shown above it on hover or keyboard focus
+ * after a short pause, so moving the mouse across a row does not flash a trail of them. Above
+ * rather than below, because a table's header row leaves room above its first line.
+ */
+.has-tooltip {
+  position: relative;
+}
+
+.has-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  z-index: 60;
+  transform: translate(-50%, 2px);
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgb(20 20 20 / 90%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity 120ms ease-out,
+    transform 120ms ease-out;
+}
+
+.has-tooltip:hover::after,
+.has-tooltip:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  transition-delay: 350ms;
+}
+
+@media (hover: none) {
+  .has-tooltip::after {
+    display: none;
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { Button, Card, CardSection, EmptyState, Field, Input, Notice } from '@/components/ui';
+import { IconButton } from '@/components/ui/icon-button';
 import { addDocumentAction, removeDocumentAction, type TaskFormState } from '../actions';
 
 const initialState: TaskFormState = {};
@@ -43,12 +44,7 @@ export function DocumentLinks({
                   <form action={removeDocumentAction}>
                     <input type="hidden" name="taskId" value={taskId} />
                     <input type="hidden" name="linkId" value={link.id} />
-                    <button
-                      type="submit"
-                      className="text-xs text-[var(--color-ink-subtle)] underline-offset-4 hover:underline"
-                    >
-                      Remove
-                    </button>
+                    <IconButton type="submit" icon="remove" label="Remove this link" tone="danger" />
                   </form>
                 ) : null}
               </li>

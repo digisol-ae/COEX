@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
 import { Badge, Button, Field, Input, Notice, Select, Td } from '@/components/ui';
 import { formatMinutes, toDateKey } from '@/modules/time/week';
+import { IconButton } from '@/components/ui/icon-button';
 import { entryHistoryAction, removeTimeAction, saveEntryAction } from './actions';
 
 export interface Entry {
@@ -129,36 +130,26 @@ export function EntryRow({
         <Td>
           <div
             className={clsx(
-              'flex items-center justify-end gap-2 text-xs transition-opacity',
+              'flex items-center justify-end gap-0.5 transition-opacity',
               // A phone has no hover, so there the actions stay visible.
               'md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100',
             )}
           >
-            <button
-              type="button"
-              onClick={openHistory}
-              className="text-[var(--color-ink-subtle)] underline-offset-4 hover:underline"
-            >
-              History
-            </button>
+            <IconButton icon="history" label="History of this entry" onClick={openHistory} />
 
             {canEdit && !entry.locked && !entry.running ? (
               <>
-                <button
-                  type="button"
+                <IconButton
+                  icon="edit"
+                  label="Correct this entry"
                   onClick={() => setEditing(true)}
-                  className="text-[var(--color-ink-muted)] underline-offset-4 hover:underline"
-                >
-                  Edit
-                </button>
-
-                <button
-                  type="button"
+                />
+                <IconButton
+                  icon="remove"
+                  label="Remove this time"
+                  tone="danger"
                   onClick={() => setRemoving(true)}
-                  className="text-[var(--color-ink-subtle)] underline-offset-4 hover:underline"
-                >
-                  Remove
-                </button>
+                />
               </>
             ) : null}
           </div>

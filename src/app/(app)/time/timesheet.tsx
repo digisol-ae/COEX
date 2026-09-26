@@ -2,7 +2,6 @@
 
 import { useActionState, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import {
   Badge,
   Button,
@@ -17,6 +16,7 @@ import {
   Th,
 } from '@/components/ui';
 import { formatMinutes } from '@/modules/time/week';
+import { IconButton, IconLink } from '@/components/ui/icon-button';
 import { EntryRow, type Entry } from './entry-row';
 import { addTimeAction, lockWeekAction, type TimeFormState } from './actions';
 import { toDateKey } from '@/modules/time/week';
@@ -71,9 +71,7 @@ export function Timesheet({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={() => goToWeek(-1)}>
-            Previous
-          </Button>
+          <IconButton icon="previous" label="Previous week" onClick={() => goToWeek(-1)} />
 
           <span className="text-sm font-medium text-[var(--color-ink)]">
             {weekStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} to{' '}
@@ -84,9 +82,7 @@ export function Timesheet({
             })}
           </span>
 
-          <Button variant="secondary" onClick={() => goToWeek(1)}>
-            Next
-          </Button>
+          <IconButton icon="next" label="Next week" onClick={() => goToWeek(1)} />
 
           {timesheet.locked ? <Badge tone="warn">locked</Badge> : null}
         </div>
@@ -111,19 +107,21 @@ export function Timesheet({
             </Select>
           ) : null}
 
-          <Link
+          <IconLink
+            icon="download"
+            label="Download this week as CSV"
+            prefetch={false}
             href={`/time/export?week=${timesheet.weekStart.slice(0, 10)}&user=${timesheet.userId}`}
-            className="rounded-[var(--radius-control)] border border-[var(--color-line-strong)] px-4 py-2 text-sm text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
-          >
-            Export CSV
-          </Link>
+          />
 
           {canLock && !timesheet.locked ? (
             <form action={lockWeekAction}>
               <input type="hidden" name="weekStart" value={timesheet.weekStart} />
-              <Button type="submit" variant="secondary">
-                Lock week
-              </Button>
+              <IconButton
+                type="submit"
+                icon="lock"
+                label="Lock this week so its time can no longer change"
+              />
             </form>
           ) : null}
         </div>

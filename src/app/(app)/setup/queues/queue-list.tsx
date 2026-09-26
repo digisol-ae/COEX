@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { Badge, Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
+import { IconButton } from '@/components/ui/icon-button';
 import { Avatar } from '@/components/ui/avatar';
 import { formatWorkingMinutes } from '@/modules/tickets/business-hours';
 import type { QueueSummary } from '@/modules/tickets/services/queue.service';
@@ -97,15 +98,23 @@ export function QueueList({
                 </div>
 
                 <div className="flex gap-2">
-                  <Button variant="secondary" onClick={() => setEditing(queue.id)}>
-                    Edit
-                  </Button>
+                  <IconButton
+                    icon="edit"
+                    label="Edit this queue"
+                    onClick={() => setEditing(queue.id)}
+                  />
 
                   <form action={queue.isArchived ? restoreQueueAction : archiveQueueAction}>
                     <input type="hidden" name="id" value={queue.id} />
-                    <Button type="submit" variant="secondary">
-                      {queue.isArchived ? 'Restore' : 'Archive'}
-                    </Button>
+                    <IconButton
+                      type="submit"
+                      icon={queue.isArchived ? 'restore' : 'archive'}
+                      label={
+                        queue.isArchived
+                          ? 'Restore this queue'
+                          : 'Archive this queue; it can be restored later'
+                      }
+                    />
                   </form>
                 </div>
               </div>
