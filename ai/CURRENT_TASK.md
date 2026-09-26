@@ -5,7 +5,8 @@
 > words: (a) from a task, a link to its ticket; (b) comments on a ticket that the task's agent can
 > reply to, with @mentions that autocomplete agent names and email the mentioned agent; (c) one
 > consolidated tickets-and-tasks view for agents with both modules; (d) agents may adjust
-> accumulated hours, with a required reason. Claude asked John scoping questions on 26 Sep before
+> accumulated hours, with a required reason; (e) each person can reorder the menu groups for
+> themselves (e.g. Support first for one agent, CRM first for another). Claude asked John scoping questions on 26 Sep before
 > building; record his answers in FEEDBACK.md. Other offers still open: the once-an-hour
 > acknowledgement rule, watching the Junk folder, the storage.ts build warnings, a Prettier pass.
 

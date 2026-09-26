@@ -77,11 +77,16 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 - Comment sections is required for ticket when assigned to an agent and Agent from tasks can also reply to the same comments. Comment should be able to mention target agent name by typing @(agent name should come automatically) and then agent will be notified by an email.
 - there should be a mixed dashboard for an agent who have access to tickets and tasks module so he can see consolidated ticket and tasks.
 - Accumulated hour can be adjusted by an agent with comments (why is he changing it)
+- Every user can handle menu list position, for example i want to keep Tickets module on the top while another agent want CRM module on the top
    What exists already (checked 26 Sep): the ticket page links to its task, but the task page has
    no link back to its ticket; task comments are mirrored onto the ticket as internal notes, but
    ticket notes do not reach the task and there are no @mentions or mention emails; the dashboard
    has task tiles and a separate support block, not one consolidated list; time entries can be
    corrected and every correction is audited, but no reason is asked for.
+   Menu order (added 26 Sep): today every person sees the groups in the one order defined in
+   src/components/navigation/navigation.ts; only collapsed groups are remembered, per browser.
+   A personal order should be saved on the user record, not the browser, so it follows the person
+   to their phone, and it must only reorder the links the person may already see.
 
 — Entra app registration. Password sign-on covers the gap. Revisit when Batch C is
    scheduled; it also unlocks Graph document titles.
