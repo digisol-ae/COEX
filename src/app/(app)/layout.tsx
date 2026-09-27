@@ -89,7 +89,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
           <ThemeMenu current={user.theme} />
 
-          <UserMenu name={user.name} role={user.role} tenantName={user.tenantName} />
+          <UserMenu name={user.name} email={user.email} tenantName={user.tenantName} />
         </header>
 
         <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6">{children}</main>

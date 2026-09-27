@@ -21,6 +21,9 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
   CLAUDE.md, Interface conventions.
 - Visual, 27 Sep: menu headings bold and standing out; the current page highlighted; three
   themes, Dark, Light and Sunset (the original), chosen from the header and kept per person.
+- Profile menu, 27 Sep: the avatar at the top right opens a menu with Edit profile, Arrange my
+  menu and Sign out; the header shows only the workspace name, not the role. The new profile page
+  edits name and job title and changes the person's own password (there was no way to before).
 - ChatGPT will take over at a later stage: every session keeps CLAUDE.md, FEEDBACK.md and the
   `ai/` files current so the hand-over needs no chat history.
 

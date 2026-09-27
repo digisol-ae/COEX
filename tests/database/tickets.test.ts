@@ -13,7 +13,16 @@ import {
   moveTask,
   sourceTicketFor,
 } from '@/modules/tasks/services/task.service';
-import { getNavigationOrder, saveNavigationOrder } from '@/modules/core/services/user.service';
+import {
+  changeMyPassword,
+  getMyProfile,
+  getNavigationOrder,
+  saveNavigationOrder,
+  updateMyProfile,
+} from '@/modules/core/services/user.service';
+import { hashPassword } from '@/lib/password';
+import { SessionModel } from '@/modules/core/models/session.model';
+import { createSession } from '@/modules/core/services/session.service';
 import { loadMyWork } from '@/modules/tasks/services/my-work.service';
 import { EmailSettingsModel } from '@/modules/core/models/email-settings.model';
 import { EmailOutboxModel } from '@/modules/core/models/email-outbox.model';
@@ -559,6 +568,48 @@ describe('menu order', () => {
 
     expect(await runWithContext(context, () => getNavigationOrder())).toEqual(['support', 'tasks']);
     expect(await runWithContext(colleague, () => getNavigationOrder())).toEqual(['crm']);
+  });
+});
+
+describe('my profile', () => {
+  it('lets a person rename themselves, and nothing else about the account', async () => {
+    await runWithContext(context, () => updateMyProfile({ name: 'Syed M. Ali', title: 'CEO' }));
+    const profile = await runWithContext(context, () => getMyProfile());
+    expect(profile).toMatchObject({ name: 'Syed M. Ali', title: 'CEO', email: 'ali@example.com' });
+    await expect(
+      runWithContext(context, () => updateMyProfile({ name: '  ', title: '' })),
+    ).rejects.toThrow(/empty/i);
+  });
+
+  it('changes the password only with the current one, and signs out other devices', async () => {
+    await UserModel.updateOne(
+      { _id: userId },
+      { $set: { passwordHash: await hashPassword('old-password-1') } },
+    );
+    const here = await createSession({ userId, tenantId });
+    const elsewhere = await createSession({ userId, tenantId });
+
+    await expect(
+      runWithContext(context, () =>
+        changeMyPassword({
+          current: 'wrong',
+          next: 'new-password-2',
+          keepSessionToken: here.token,
+        }),
+      ),
+    ).rejects.toThrow(/current password/i);
+
+    await runWithContext(context, () =>
+      changeMyPassword({
+        current: 'old-password-1',
+        next: 'new-password-2',
+        keepSessionToken: here.token,
+      }),
+    );
+
+    const live = await SessionModel.countDocuments({ userId, revokedAt: null });
+    expect(live).toBe(1);
+    expect(elsewhere.token).not.toBe(here.token);
   });
 });
 

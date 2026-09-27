@@ -143,6 +143,10 @@ never sent to their browser.
   literal colours, so a theme is only a set of values. The choice is stored on the user (`theme`)
   and set on `<html>` by the root layout on the server, so pages never flash the wrong theme; the
   switch is the theme button in the header.
+- The avatar at the top right opens the person's own menu: name and email, Edit profile
+  (`/profile`: name, job title, own password), Arrange my menu, and Sign out. Beside the avatar
+  only the workspace name shows, never the role (27 Sep 2026). Changing your own password needs
+  the current one and signs out your other devices, not this one.
 - Menu headings are bold in full ink (`navigation-heading`); the current page carries a red bar
   and red tint (`navigation-active`), in the sidebar, the phone drawer and the Spaces tree.
 

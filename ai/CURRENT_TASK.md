@@ -2,7 +2,9 @@
 
 > **Current task — 26 Sep 2026, afternoon (Claude):** Batch C, frosted-glass popups and icon
 > buttons are built, pushed (7c36801) and accepted by John on the local build. John deploys to
-> coex.digisol.ae himself. No new work until John asks. Scope and John's answers: FEEDBACK.md item 1 and CLAUDE.md decision 18.
+> coex.digisol.ae himself. 27 Sep: themes (Dark, Light, Sunset), bold menu headings and the
+> current-page highlight (1108cf1), and the avatar profile menu with a profile page; committed
+> locally, not pushed, because John said he pushes himself. Scope and John's answers: FEEDBACK.md item 1 and CLAUDE.md decision 18.
 > Other offers still open: the once-an-hour acknowledgement rule, watching the Junk folder, the
 > storage.ts build warnings, a Prettier pass, the four older lint errors (row-actions.tsx,
 > board.tsx, task-form.tsx), and "Unknown task" for ticket time in the timesheet edit form.

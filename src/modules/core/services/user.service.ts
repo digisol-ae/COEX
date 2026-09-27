@@ -1,12 +1,12 @@
 import { randomBytes } from 'node:crypto';
 import { connectToDatabase } from '@/lib/db';
-import { hashPassword } from '@/lib/password';
+import { hashPassword, verifyPassword } from '@/lib/password';
 import { repository } from '@/lib/repository';
 import { getContext } from '@/lib/tenant-context';
 import { toObjectId } from '@/lib/ids';
 import { UserModel } from '../models/user.model';
 import { recordAudit, changedFields } from './audit.service';
-import { revokeAllSessionsForUser } from './session.service';
+import { revokeAllSessionsForUser, revokeOtherSessionsForUser } from './session.service';
 import type { Role, Permission } from '../permissions';
 import { PERMISSIONS } from '../permissions';
 
@@ -218,4 +218,89 @@ export async function saveTheme(theme: string): Promise<void> {
   if (!['sunset', 'light', 'dark'].includes(theme)) throw new Error('That theme does not exist.');
   await connectToDatabase();
   await users().updateOne({ _id: toObjectId(String(getContext().userId)) }, { $set: { theme } });
+}
+
+export interface MyProfile {
+  name: string;
+  title: string | null;
+  email: string;
+  hasPassword: boolean;
+}
+
+/** The signed-in person's own details, for the profile page. */
+export async function getMyProfile(): Promise<MyProfile> {
+  await connectToDatabase();
+  const user = await users()
+    .findById(String(getContext().userId))
+    .select('name title email +passwordHash');
+  if (!user) throw new Error('Account not found.');
+  return {
+    name: user.name,
+    title: user.title ?? null,
+    email: user.email,
+    hasPassword: Boolean(user.passwordHash),
+  };
+}
+
+/**
+ * A person edits their own name and job title. Email is the sign-in identity, so only an
+ * administrator changes it; role and access are never self-service.
+ */
+export async function updateMyProfile(input: { name: string; title: string }): Promise<void> {
+  await connectToDatabase();
+  const name = input.name.trim();
+  const title = input.title.trim() || null;
+  if (!name) throw new Error('Your name cannot be empty.');
+  if (name.length > 120 || (title?.length ?? 0) > 120) {
+    throw new Error('Keep your name and title under 120 characters.');
+  }
+
+  const before = await users().findById(String(getContext().userId)).select('name title');
+  if (!before) throw new Error('Account not found.');
+
+  await users().updateOne({ _id: before._id }, { $set: { name, title } });
+
+  const diff = changedFields({ name: before.name, title: before.title ?? null }, { name, title });
+  await recordAudit({
+    action: 'user.profile_updated',
+    entityType: 'User',
+    entityId: before._id,
+    before: diff.before,
+    after: diff.after,
+  });
+}
+
+const MIN_PASSWORD = 10;
+
+/**
+ * A person changes their own password. The current one is asked for, so an unattended signed-in
+ * screen is not enough to take the account over. Every other device is signed out.
+ */
+export async function changeMyPassword(input: {
+  current: string;
+  next: string;
+  keepSessionToken: string;
+}): Promise<void> {
+  await connectToDatabase();
+  const user = await users().findById(String(getContext().userId)).select('+passwordHash');
+  if (!user) throw new Error('Account not found.');
+  if (!user.passwordHash) {
+    throw new Error('This account signs in with Microsoft, so it has no COEX password.');
+  }
+  if (!(await verifyPassword(input.current, user.passwordHash))) {
+    throw new Error('Your current password is not right.');
+  }
+  if (input.next.length < MIN_PASSWORD) {
+    throw new Error(`Use at least ${MIN_PASSWORD} characters for the new password.`);
+  }
+  if (input.next === input.current) {
+    throw new Error('Choose a password different from the current one.');
+  }
+
+  await users().updateOne(
+    { _id: user._id },
+    { $set: { passwordHash: await hashPassword(input.next), mustChangePassword: false } },
+  );
+  await revokeOtherSessionsForUser(user._id, input.keepSessionToken);
+  await recordAudit({ action: 'user.password_changed', entityType: 'User', entityId: user._id });
 }
