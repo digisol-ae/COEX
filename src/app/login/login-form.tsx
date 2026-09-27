@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useActionState } from 'react';
 import { Button, Field, Input, Notice } from '@/components/ui';
@@ -43,6 +44,15 @@ export function LoginForm() {
       <Button type="submit" disabled={pending} className="w-full py-2.5">
         {pending ? 'Signing in' : 'Sign in'}
       </Button>
+
+      <p className="text-center text-sm">
+        <Link
+          href="/forgot-password"
+          className="text-[var(--color-ink-muted)] underline-offset-4 hover:text-[var(--color-ink)] hover:underline"
+        >
+          Forgot your password?
+        </Link>
+      </p>
     </form>
   );
 }

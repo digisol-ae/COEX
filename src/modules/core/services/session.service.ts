@@ -72,17 +72,3 @@ export async function revokeSession(token: string): Promise<void> {
 export async function revokeAllSessionsForUser(userId: Types.ObjectId): Promise<void> {
   await SessionModel.updateMany({ userId, revokedAt: null }, { $set: { revokedAt: new Date() } });
 }
-
-/**
- * After someone changes their own password: every other device signs in again, but the one they
- * are using stays signed in, so changing a password does not throw them out mid-task.
- */
-export async function revokeOtherSessionsForUser(
-  userId: Types.ObjectId,
-  keepToken: string,
-): Promise<void> {
-  await SessionModel.updateMany(
-    { userId, revokedAt: null, token: { $ne: hashToken(keepToken) } },
-    { $set: { revokedAt: new Date() } },
-  );
-}

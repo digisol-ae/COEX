@@ -1,10 +1,9 @@
 'use server';
 
-import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { asUser, requireUser } from '@/lib/session';
-import { SESSION_COOKIE } from '@/modules/core/services/session.service';
-import { changeMyPassword, updateMyProfile } from '@/modules/core/services/user.service';
+import { updateMyProfile } from '@/modules/core/services/user.service';
+import { requestPasswordReset } from '@/modules/core/services/password-reset.service';
 
 export interface ProfileFormState {
   error?: string;
@@ -31,26 +30,18 @@ export async function updateProfileAction(
   return { saved: true };
 }
 
-export async function changePasswordAction(
-  _previous: ProfileFormState,
-  formData: FormData,
-): Promise<ProfileFormState> {
+/** Sends the signed-in person a link to change their password, at their registered email. */
+export async function emailPasswordLinkAction(): Promise<ProfileFormState> {
   const user = await requireUser();
-  const next = String(formData.get('next') ?? '');
-  if (next !== String(formData.get('confirm') ?? '')) {
-    return { error: 'The two new passwords do not match.' };
+  const result = await requestPasswordReset(user.email);
+  if (result === 'sent') return { saved: true };
+  if (result === 'too_many') {
+    return { error: 'Three links were sent in the last hour. Use one of those, or try later.' };
   }
-  const token = (await cookies()).get(SESSION_COOKIE)?.value ?? '';
-  try {
-    await asUser(user, () =>
-      changeMyPassword({
-        current: String(formData.get('current') ?? ''),
-        next,
-        keepSessionToken: token,
-      }),
-    );
-  } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Could not change your password.' };
+  if (result === 'email_off') {
+    return {
+      error: 'COEX cannot send email yet. Ask an administrator to set it up in Setup, Email.',
+    };
   }
-  return { saved: true };
+  return { error: 'Could not send the link.' };
 }

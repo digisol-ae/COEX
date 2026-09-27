@@ -24,6 +24,10 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 - Profile menu, 27 Sep: the avatar at the top right opens a menu with Edit profile, Arrange my
   menu and Sign out; the header shows only the workspace name, not the role. The new profile page
   edits name and job title and changes the person's own password (there was no way to before).
+- Passwords, 27 Sep: changing a password now works only through a link sent to the registered
+  email (from the profile, and "Forgot your password?" on the sign-in page), with rules following
+  the NIST SP 800-63B standard: 12+ characters, common and personal passwords refused, a strength
+  meter while typing. Still open: accounts marked "must change password" are not yet forced to.
 - ChatGPT will take over at a later stage: every session keeps CLAUDE.md, FEEDBACK.md and the
   `ai/` files current so the hand-over needs no chat history.
 

@@ -19,6 +19,7 @@ const emailOutboxSchema = new Schema(
         'customer_replied',
         'task_assigned',
         'mentioned',
+        'password_reset',
         'test',
       ],
       required: true,

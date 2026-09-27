@@ -1,7 +1,7 @@
 import { asUser, requireUser } from '@/lib/session';
 import { PageHeader } from '@/components/ui';
 import { getMyProfile } from '@/modules/core/services/user.service';
-import { PasswordForm, ProfileForm } from './profile-forms';
+import { PasswordLink, ProfileForm } from './profile-forms';
 
 export const metadata = { title: 'My profile · COEX' };
 
@@ -16,7 +16,7 @@ export default async function ProfilePage() {
         description={`${profile.email} · ${user.tenantName}. Your role and access are set by an administrator.`}
       />
       <ProfileForm name={profile.name} title={profile.title ?? ''} />
-      {profile.hasPassword ? <PasswordForm /> : null}
+      {profile.hasPassword ? <PasswordLink email={profile.email} /> : null}
     </div>
   );
 }

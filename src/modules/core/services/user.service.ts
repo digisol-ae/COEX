@@ -1,12 +1,12 @@
 import { randomBytes } from 'node:crypto';
 import { connectToDatabase } from '@/lib/db';
-import { hashPassword, verifyPassword } from '@/lib/password';
+import { hashPassword } from '@/lib/password';
 import { repository } from '@/lib/repository';
 import { getContext } from '@/lib/tenant-context';
 import { toObjectId } from '@/lib/ids';
 import { UserModel } from '../models/user.model';
 import { recordAudit, changedFields } from './audit.service';
-import { revokeAllSessionsForUser, revokeOtherSessionsForUser } from './session.service';
+import { revokeAllSessionsForUser } from './session.service';
 import type { Role, Permission } from '../permissions';
 import { PERMISSIONS } from '../permissions';
 
@@ -268,39 +268,4 @@ export async function updateMyProfile(input: { name: string; title: string }): P
     before: diff.before,
     after: diff.after,
   });
-}
-
-const MIN_PASSWORD = 10;
-
-/**
- * A person changes their own password. The current one is asked for, so an unattended signed-in
- * screen is not enough to take the account over. Every other device is signed out.
- */
-export async function changeMyPassword(input: {
-  current: string;
-  next: string;
-  keepSessionToken: string;
-}): Promise<void> {
-  await connectToDatabase();
-  const user = await users().findById(String(getContext().userId)).select('+passwordHash');
-  if (!user) throw new Error('Account not found.');
-  if (!user.passwordHash) {
-    throw new Error('This account signs in with Microsoft, so it has no COEX password.');
-  }
-  if (!(await verifyPassword(input.current, user.passwordHash))) {
-    throw new Error('Your current password is not right.');
-  }
-  if (input.next.length < MIN_PASSWORD) {
-    throw new Error(`Use at least ${MIN_PASSWORD} characters for the new password.`);
-  }
-  if (input.next === input.current) {
-    throw new Error('Choose a password different from the current one.');
-  }
-
-  await users().updateOne(
-    { _id: user._id },
-    { $set: { passwordHash: await hashPassword(input.next), mustChangePassword: false } },
-  );
-  await revokeOtherSessionsForUser(user._id, input.keepSessionToken);
-  await recordAudit({ action: 'user.password_changed', entityType: 'User', entityId: user._id });
 }

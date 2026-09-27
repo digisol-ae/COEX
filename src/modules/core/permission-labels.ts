@@ -7,7 +7,10 @@ import type { Permission } from './permissions';
  * this person can see" in the editor lines up with "what this person actually sees" in the app,
  * rather than being a second, disconnected vocabulary an admin has to learn.
  */
-export const PERMISSION_GROUPS: { label: string; permissions: { id: Permission; label: string }[] }[] = [
+export const PERMISSION_GROUPS: {
+  label: string;
+  permissions: { id: Permission; label: string }[];
+}[] = [
   {
     label: 'Tasks and planning',
     permissions: [

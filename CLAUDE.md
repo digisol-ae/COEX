@@ -145,8 +145,14 @@ never sent to their browser.
   switch is the theme button in the header.
 - The avatar at the top right opens the person's own menu: name and email, Edit profile
   (`/profile`: name, job title, own password), Arrange my menu, and Sign out. Beside the avatar
-  only the workspace name shows, never the role (27 Sep 2026). Changing your own password needs
-  the current one and signs out your other devices, not this one.
+  only the workspace name shows, never the role (27 Sep 2026).
+- Passwords change only through a link emailed to the account's registered address, from the
+  profile or from "Forgot your password?" on the sign-in page. Links work once, for 30 minutes,
+  three per account per hour; only a hash is stored; using one signs out every device. The
+  forgot page answers the same whether or not an address has an account. Password rules follow
+  NIST SP 800-63B (src/modules/core/password-policy.ts): at least 12 characters, up to 128, no
+  forced symbols or capitals, and common passwords, simple patterns and the person's own name or
+  email are refused. The `password_reset` email kind cannot be switched off.
 - Menu headings are bold in full ink (`navigation-heading`); the current page carries a red bar
   and red tint (`navigation-active`), in the sidebar, the phone drawer and the Spaces tree.
 

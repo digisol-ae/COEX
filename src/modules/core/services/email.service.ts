@@ -25,6 +25,7 @@ export type OutboxKind =
   | 'customer_replied'
   | 'task_assigned'
   | 'mentioned'
+  | 'password_reset'
   | 'test';
 
 type StaffAlert = 'ticket_assigned' | 'customer_replied' | 'task_assigned' | 'mentioned';
@@ -314,6 +315,8 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
     customer_replied: settings.staff?.customerReplied ?? true,
     task_assigned: settings.staff?.taskAssigned ?? true,
     mentioned: settings.staff?.mentioned ?? true,
+    // A password link is the account's own security, so no setting switches it off.
+    password_reset: true,
     test: true,
   };
   if (!allowed[input.kind]) return false;

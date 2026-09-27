@@ -14,7 +14,6 @@ import {
   sourceTicketFor,
 } from '@/modules/tasks/services/task.service';
 import {
-  changeMyPassword,
   getMyProfile,
   getNavigationOrder,
   saveNavigationOrder,
@@ -23,6 +22,12 @@ import {
 import { hashPassword } from '@/lib/password';
 import { SessionModel } from '@/modules/core/models/session.model';
 import { createSession } from '@/modules/core/services/session.service';
+import {
+  requestPasswordReset,
+  resetLinkIsValid,
+  resetPasswordWithToken,
+} from '@/modules/core/services/password-reset.service';
+import { verifyPassword } from '@/lib/password';
 import { loadMyWork } from '@/modules/tasks/services/my-work.service';
 import { EmailSettingsModel } from '@/modules/core/models/email-settings.model';
 import { EmailOutboxModel } from '@/modules/core/models/email-outbox.model';
@@ -581,35 +586,38 @@ describe('my profile', () => {
     ).rejects.toThrow(/empty/i);
   });
 
-  it('changes the password only with the current one, and signs out other devices', async () => {
-    await UserModel.updateOne(
-      { _id: userId },
-      { $set: { passwordHash: await hashPassword('old-password-1') } },
+  it('emails a one-time link, and the link sets a new password and signs everyone out', async () => {
+    await EmailSettingsModel.create({ tenantId, outbound: { enabled: true } });
+    await createSession({ userId, tenantId });
+
+    expect(await requestPasswordReset('ALI@example.com')).toBe('sent');
+    expect(await requestPasswordReset('nobody@example.com')).toBe('no_account');
+
+    const mail = await EmailOutboxModel.findOne({ kind: 'password_reset' });
+    expect(mail?.to).toBe('ali@example.com');
+    const token = /token=([\w-]+)/.exec(mail!.text)![1];
+    expect(await resetLinkIsValid(token)).toBe(true);
+
+    await expect(resetPasswordWithToken(token, 'Password123!')).rejects.toThrow(/common/i);
+    await expect(resetPasswordWithToken(token, 'short')).rejects.toThrow(/12 characters/);
+
+    await resetPasswordWithToken(token, 'amber kettle mountain ladder');
+    const user = await UserModel.findById(userId).select('+passwordHash');
+    expect(await verifyPassword('amber kettle mountain ladder', user!.passwordHash!)).toBe(true);
+    expect(await SessionModel.countDocuments({ userId, revokedAt: null })).toBe(0);
+
+    await expect(resetPasswordWithToken(token, 'another long passphrase here')).rejects.toThrow(
+      /expired or was already used/,
     );
-    const here = await createSession({ userId, tenantId });
-    const elsewhere = await createSession({ userId, tenantId });
+  });
 
-    await expect(
-      runWithContext(context, () =>
-        changeMyPassword({
-          current: 'wrong',
-          next: 'new-password-2',
-          keepSessionToken: here.token,
-        }),
-      ),
-    ).rejects.toThrow(/current password/i);
-
-    await runWithContext(context, () =>
-      changeMyPassword({
-        current: 'old-password-1',
-        next: 'new-password-2',
-        keepSessionToken: here.token,
-      }),
-    );
-
-    const live = await SessionModel.countDocuments({ userId, revokedAt: null });
-    expect(live).toBe(1);
-    expect(elsewhere.token).not.toBe(here.token);
+  it('sends at most three links an hour, and none when email is switched off', async () => {
+    expect(await requestPasswordReset('ali@example.com')).toBe('email_off');
+    await EmailSettingsModel.create({ tenantId, outbound: { enabled: true } });
+    for (let sent = 0; sent < 3; sent += 1) {
+      expect(await requestPasswordReset('ali@example.com')).toBe('sent');
+    }
+    expect(await requestPasswordReset('ali@example.com')).toBe('too_many');
   });
 });
 
