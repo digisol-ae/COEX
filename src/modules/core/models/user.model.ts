@@ -41,6 +41,9 @@ const userSchema = new Schema(
      */
     navigationOrder: { type: [String], default: [] },
 
+    /** The person's colour theme, on the account so it follows them across devices. */
+    theme: { type: String, enum: ['sunset', 'light', 'dark'], default: 'sunset' },
+
     /** Optional link to the customer record, used by the client contact role. */
     organisationId: { type: Schema.Types.ObjectId, ref: 'Organisation', default: null },
 

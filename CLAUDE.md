@@ -138,6 +138,13 @@ never sent to their browser.
   globals.css. Forms that would otherwise open inside a table open as popups instead, so the page
   never jumps. Exceptions: the image preview stays dark, the phone menu drawer stays brand black.
 - A phone has no hover, so nothing may be reachable only on hover.
+- Three themes (27 Sep 2026): Sunset (the original warm tokens in `@theme`), Light and Dark
+  (overrides on `html[data-theme=...]` in globals.css). Components use only colour tokens, never
+  literal colours, so a theme is only a set of values. The choice is stored on the user (`theme`)
+  and set on `<html>` by the root layout on the server, so pages never flash the wrong theme; the
+  switch is the theme button in the header.
+- Menu headings are bold in full ink (`navigation-heading`); the current page carries a red bar
+  and red tint (`navigation-active`), in the sidebar, the phone drawer and the Spaces tree.
 
 ## Where things live
 

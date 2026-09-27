@@ -9,6 +9,7 @@ import { Sidebar } from '@/components/navigation/sidebar';
 import { MobileNavigation } from '@/components/navigation/mobile-navigation';
 import { QuickSearch } from '@/components/navigation/quick-search';
 import { UserMenu } from '@/components/navigation/user-menu';
+import { ThemeMenu } from '@/components/navigation/theme-menu';
 import { orderGroups, visibleGroups } from '@/components/navigation/navigation';
 import { getNavigationOrder } from '@/modules/core/services/user.service';
 
@@ -85,6 +86,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           ) : null}
 
           {user.permissions.includes('task.read.own') ? <TimerTray /> : null}
+
+          <ThemeMenu current={user.theme} />
 
           <UserMenu name={user.name} role={user.role} tenantName={user.tenantName} />
         </header>

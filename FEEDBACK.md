@@ -19,6 +19,8 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 - Interface, 26 Sep: a timesheet entry's history, edit and remove open as popups; all popups use
   frosted glass ("Apple vibe"); secondary action buttons became small icons with tooltips. See
   CLAUDE.md, Interface conventions.
+- Visual, 27 Sep: menu headings bold and standing out; the current page highlighted; three
+  themes, Dark, Light and Sunset (the original), chosen from the header and kept per person.
 - ChatGPT will take over at a later stage: every session keeps CLAUDE.md, FEEDBACK.md and the
   `ai/` files current so the hand-over needs no chat history.
 

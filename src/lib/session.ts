@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { Types } from 'mongoose';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -23,44 +24,58 @@ export interface SignedInUser {
   tenantId: string;
   tenantName: string;
   permissions: Permission[];
+  theme: Theme;
 }
 
-export async function getSignedInUser(): Promise<SignedInUser | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE)?.value;
+export type Theme = 'sunset' | 'light' | 'dark';
 
-  if (!token) return null;
+/**
+ * Cached per request: the root layout reads it for the theme and every page reads it again, and
+ * both should cost one lookup.
+ */
+export const getSignedInUser = cache(
+  async function getSignedInUser(): Promise<SignedInUser | null> {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(SESSION_COOKIE)?.value;
 
-  await connectToDatabase();
+    if (!token) return null;
 
-  const session = await resolveSession(token);
-  if (!session) return null;
+    await connectToDatabase();
 
-  const user = await UserModel.findOne({ _id: session.userId, status: 'active', deletedAt: null });
-  if (!user) return null;
+    const session = await resolveSession(token);
+    if (!session) return null;
 
-  const tenant = await TenantModel.findOne({
-    _id: session.impersonatedTenantId ?? user.tenantId,
-    status: 'active',
-  });
-  if (!tenant) return null;
+    const user = await UserModel.findOne({
+      _id: session.userId,
+      status: 'active',
+      deletedAt: null,
+    });
+    if (!user) return null;
 
-  return {
-    id: String(user._id),
-    name: user.name,
-    email: user.email,
-    role: user.role as Role,
-    tenantId: String(tenant._id),
-    tenantName: tenant.name,
-    permissions: [
-      ...permissionsFor({
-        role: user.role as Role,
-        permissionGrants: user.permissionGrants,
-        permissionDenials: user.permissionDenials,
-      }),
-    ],
-  };
-}
+    const tenant = await TenantModel.findOne({
+      _id: session.impersonatedTenantId ?? user.tenantId,
+      status: 'active',
+    });
+    if (!tenant) return null;
+
+    return {
+      id: String(user._id),
+      name: user.name,
+      email: user.email,
+      role: user.role as Role,
+      tenantId: String(tenant._id),
+      tenantName: tenant.name,
+      permissions: [
+        ...permissionsFor({
+          role: user.role as Role,
+          permissionGrants: user.permissionGrants,
+          permissionDenials: user.permissionDenials,
+        }),
+      ],
+      theme: (user.theme as Theme | undefined) ?? 'sunset',
+    };
+  },
+);
 
 /** For pages behind sign in. Sends anyone without a session to the login screen. */
 export async function requireUser(): Promise<SignedInUser> {

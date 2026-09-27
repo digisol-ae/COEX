@@ -109,6 +109,74 @@
   --shadow-pop: 0 2px 4px rgb(20 20 20 / 6%), 0 12px 32px -12px rgb(20 20 20 / 28%);
 }
 
+/*
+ * Themes (John, 27 Sep 2026). The tokens above are Sunset, the original warm look. Light is the same
+ * layout in neutral greys, and Dark is for evenings and dim rooms. Every screen draws from these
+ * tokens, so a theme is only a different set of values here; nothing in a component changes.
+ * Status colours are lifted in Dark so they keep their contrast on a dark surface.
+ */
+html[data-theme='light'] {
+  --color-canvas: #f5f5f7;
+  --gradient-canvas: linear-gradient(160deg, #f8f8fa 0%, #f2f2f5 100%);
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f1f4;
+  --color-surface-sunken: #ebebef;
+  --color-brand-sand: #f1f1f4;
+  --color-ink: #1d1d1f;
+  --color-ink-muted: #515154;
+  --color-ink-subtle: #86868b;
+  --color-line: #e2e2e7;
+  --color-line-strong: #cfcfd6;
+  --color-pill-todo: #ededf1;
+  --color-pill-todo-ink: #515154;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --color-canvas: #0f0f10;
+  --gradient-canvas: linear-gradient(160deg, #161618 0%, #0f0f10 100%);
+  --color-surface: #1c1c1e;
+  --color-surface-muted: #2a2a2d;
+  --color-surface-sunken: #141416;
+  --color-brand-sand: #2a2a2d;
+  --color-ink: #f2f2f3;
+  --color-ink-muted: #b4b4b9;
+  --color-ink-subtle: #86868c;
+  --color-ink-inverse: #141414;
+  --color-line: #2f2f33;
+  --color-line-strong: #414147;
+  --color-action: #f2f2f3;
+  --color-action-hover: #d8d8dc;
+  --color-rail: #0b0b0c;
+  --gradient-rail: linear-gradient(180deg, #111112 0%, #0a0a0b 100%);
+  --color-pill-todo: #2c2d30;
+  --color-pill-todo-ink: #c8c9cc;
+  --color-pill-progress: #1b2a36;
+  --color-pill-progress-ink: #8fbadb;
+  --color-pill-blocked: #3b1c22;
+  --color-pill-blocked-ink: #ff8f9c;
+  --color-pill-done: #1c2d20;
+  --color-pill-done-ink: #92c79a;
+  --color-pill-review: #372c18;
+  --color-pill-review-ink: #e2bb6c;
+  --color-status-ok: #86bd8e;
+  --color-status-ok-soft: #1c2d20;
+  --color-status-warn: #dcaa5e;
+  --color-status-warn-soft: #372c18;
+  --color-status-alert: #ff6b7c;
+  --color-status-alert-soft: #3b1c22;
+  --color-status-info: #8fbadb;
+  --color-status-info-soft: #1b2a36;
+  --color-person-1: #7f9fb4;
+  --color-person-2: #7fae85;
+  --color-person-3: #cc9a55;
+  --color-person-4: #9c8cc4;
+  --color-person-5: #6fb0ac;
+  --color-person-6: #c98ca0;
+  --shadow-pop: 0 2px 4px rgb(0 0 0 / 30%), 0 12px 32px -12px rgb(0 0 0 / 60%);
+  --glass-edge: rgb(255 255 255 / 10%);
+}
+
 @font-face {
   font-family: 'TT Norms Pro';
   src: url('./fonts/TTNormsPro-Regular.ttf') format('truetype');
@@ -186,7 +254,7 @@ body {
   /* Written with Tailwind's utilities: the build dropped a hand-written backdrop-filter. */
   @apply backdrop-blur-2xl backdrop-saturate-150;
   background: color-mix(in srgb, var(--color-surface) 82%, transparent);
-  border: 1px solid rgb(255 255 255 / 55%);
+  border: 1px solid var(--glass-edge, rgb(255 255 255 / 55%));
   border-radius: 1.125rem;
   box-shadow:
     0 0 0 0.5px rgb(20 20 20 / 8%),
@@ -273,4 +341,35 @@ body {
   .has-tooltip::after {
     display: none;
   }
+}
+
+/*
+ * The menu (John, 27 Sep 2026): group headings are bold and in full ink so the sections stand
+ * out, and the page you are on carries a red bar and a red-tinted fill, so it is found at a
+ * glance rather than by reading. The tint is mixed from the surface, so it suits every theme and
+ * the black phone drawer alike.
+ */
+.navigation-heading {
+  color: var(--color-ink);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+}
+
+.navigation-active {
+  position: relative;
+  background: color-mix(in srgb, var(--color-brand-red) 12%, var(--color-surface));
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.navigation-active::before {
+  content: '';
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 0;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--color-brand-red);
 }

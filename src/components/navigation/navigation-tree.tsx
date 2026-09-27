@@ -57,7 +57,7 @@ export function NavigationTree({
               type="button"
               onClick={() => toggleCollapsed(group.id)}
               aria-expanded={open}
-              className="flex w-full items-center justify-between rounded-[var(--radius-control)] px-2 py-1 text-[11px] font-semibold tracking-[0.06em] text-[var(--color-ink-subtle)] uppercase transition-colors hover:text-[var(--color-ink-muted)]"
+              className="navigation-heading flex w-full items-center justify-between rounded-[var(--radius-control)] px-2 py-1 uppercase transition-opacity hover:opacity-75"
             >
               {group.label}
               <Chevron open={open} />
@@ -120,7 +120,7 @@ function NavigationLink({
         // phone.
         'flex items-center justify-between rounded-[var(--radius-control)] px-2 py-2 text-[13px] transition-colors',
         active
-          ? 'bg-[var(--color-surface-muted)] font-medium text-[var(--color-ink)]'
+          ? 'navigation-active pl-3'
           : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]',
       )}
     >

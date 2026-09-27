@@ -6,7 +6,12 @@ import { useState, useTransition } from 'react';
 import { clsx } from 'clsx';
 import { Monogram } from '@/components/ui/monogram';
 import { DocumentBadge } from '@/components/ui/task-badges';
-import { quickAddFolderAction, quickAddSpaceAction, reorderFoldersAction, reorderSpacesAction } from '@/app/(app)/tasks/actions';
+import {
+  quickAddFolderAction,
+  quickAddSpaceAction,
+  reorderFoldersAction,
+  reorderSpacesAction,
+} from '@/app/(app)/tasks/actions';
 
 /**
  * The tree in the sidebar: space, folder, task, subtask. Four levels, the same four the data has.
@@ -186,7 +191,6 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
     });
   }
 
-
   return (
     <div>
       <div className="flex items-center">
@@ -194,8 +198,9 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
           href="/spaces"
           className={clsx(
             'flex-1 rounded-[var(--radius-control)] px-2 py-2 text-[13px] transition-colors',
-            pathname.startsWith('/spaces')
-              ? 'bg-[var(--color-surface-muted)] font-medium text-[var(--color-ink)]'
+            // Only the list itself: inside a space, that space's own line carries the highlight.
+            pathname === '/spaces'
+              ? 'navigation-active pl-3'
               : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]',
           )}
         >
@@ -276,7 +281,7 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
                     className={clsx(
                       'flex min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] px-2 py-1.5 text-xs transition-colors',
                       pathname === `/spaces/${space.id}`
-                        ? 'bg-[var(--color-surface-muted)] text-[var(--color-ink)]'
+                        ? 'navigation-active pl-3'
                         : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]',
                     )}
                   >
@@ -408,7 +413,7 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
                                           ? 'text-[var(--color-ink-subtle)] line-through'
                                           : 'text-[var(--color-ink-muted)]',
                                         pathname === `/tasks/${task.id}` &&
-                                          'bg-[var(--color-surface-muted)] text-[var(--color-ink)]',
+                                          'navigation-active pl-3',
                                       )}
                                     >
                                       {task.title}

@@ -138,7 +138,10 @@ export async function updateUserAccess(
     action: 'user.access_changed',
     entityType: 'User',
     entityId: before._id,
-    before: { permissionGrants: before.permissionGrants, permissionDenials: before.permissionDenials },
+    before: {
+      permissionGrants: before.permissionGrants,
+      permissionDenials: before.permissionDenials,
+    },
     after: { permissionGrants: grants, permissionDenials: denials },
   });
 }
@@ -208,4 +211,11 @@ export async function saveNavigationOrder(order: string[]): Promise<void> {
     { _id: toObjectId(String(getContext().userId)) },
     { $set: { navigationOrder: clean } },
   );
+}
+
+/** Saves the signed-in person's colour theme. Only ever their own, like the menu order. */
+export async function saveTheme(theme: string): Promise<void> {
+  if (!['sunset', 'light', 'dark'].includes(theme)) throw new Error('That theme does not exist.');
+  await connectToDatabase();
+  await users().updateOne({ _id: toObjectId(String(getContext().userId)) }, { $set: { theme } });
 }
