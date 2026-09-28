@@ -1,7 +1,8 @@
 'use client';
 
 import { useActionState, useEffect, useState } from 'react';
-import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
+import { createPortal } from 'react-dom';
+import { Button, Field, Input, Notice, Select } from '@/components/ui';
 import { createTicketAction, type SupportFormState } from '../actions';
 
 const initialState: SupportFormState = {};
@@ -65,154 +66,191 @@ export function NewTicketPanel({
 
   const contacts = loaded.organisationId === organisationId ? loaded.contacts : [];
 
-  if (!open) return <Button onClick={() => setOpen(true)}>Raise ticket</Button>;
+  useEffect(() => {
+    if (!open) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [open]);
 
+  const button = <Button onClick={() => setOpen(true)}>Raise ticket</Button>;
+  if (!open) return button;
+
+  // A popup over the list rather than a card inside it, so the page never jumps (John, 28 Sep).
   return (
-    <Card className="w-full sm:w-[28rem]">
-      <CardSection title="New ticket">
-        <form action={formAction} className="space-y-3">
-          <fieldset className="rounded-[var(--radius-control)] border border-[var(--color-line)] p-2.5">
-            <legend className="px-1 text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
-              Whose words are these
-            </legend>
-
-            <div className="flex flex-wrap gap-3 text-[13px]">
-              <label className="flex items-center gap-1.5 text-[var(--color-ink-muted)]">
-                <input
-                  type="radio"
-                  name="onBehalf"
-                  value="yes"
-                  checked={onBehalf}
-                  onChange={() => setOnBehalf(true)}
-                />
-                The customer&rsquo;s, recorded by me
-              </label>
-
-              <label className="flex items-center gap-1.5 text-[var(--color-ink-muted)]">
-                <input
-                  type="radio"
-                  name="onBehalf"
-                  value="no"
-                  checked={!onBehalf}
-                  onChange={() => setOnBehalf(false)}
-                />
-                Mine
-              </label>
-            </div>
-
-            <p className="mt-1.5 text-[11px] text-[var(--color-ink-subtle)]">
-              {onBehalf
-                ? 'Recorded as a message from the customer, so the first reply clock keeps running until someone answers.'
-                : 'Recorded as our own message, which counts as the first reply.'}
-            </p>
-          </fieldset>
-
-          <Field label="Subject">
-            <Input name="subject" required autoFocus />
-          </Field>
-
-          <Field
-            label={onBehalf ? 'What the customer told you' : 'What happened'}
-            hint="The first message on the ticket"
+    <>
+      {button}
+      {createPortal(
+        <div
+          className="popup-backdrop-light fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center"
+          onMouseDown={() => setOpen(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="New ticket"
+            className="popup-glass-gradient my-auto w-full max-w-lg p-5"
+            onMouseDown={(event) => event.stopPropagation()}
           >
-            <textarea
-              name="body"
-              required
-              rows={4}
-              className="w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)]"
-            />
-          </Field>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Queue">
-              <Select name="queueId" required defaultValue={queues[0]?.id ?? ''}>
-                {queues.map((queue) => (
-                  <option key={queue.id} value={queue.id}>
-                    {queue.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-
-            <Field label="Priority">
-              <Select name="priority" defaultValue="normal">
-                <option value="urgent">Urgent</option>
-                <option value="high">High</option>
-                <option value="normal">Normal</option>
-                <option value="low">Low</option>
-              </Select>
-            </Field>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Customer" hint="Puts the ticket on their timeline">
-              <Select
-                name="organisationId"
-                value={organisationId}
-                onChange={(event) => setOrganisationId(event.target.value)}
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-[var(--color-ink)]">New ticket</h2>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close"
+                className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-ink-subtle)] hover:bg-white/60 hover:text-[var(--color-ink)]"
               >
-                <option value="">No customer</option>
-                {organisations.map((organisation) => (
-                  <option key={organisation.id} value={organisation.id}>
-                    {organisation.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+                ✕
+              </button>
+            </div>
+            <form action={formAction} className="space-y-3">
+              <fieldset className="rounded-[var(--radius-control)] border border-[var(--color-line)] p-2.5">
+                <legend className="px-1 text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                  Whose words are these
+                </legend>
 
-            <Field
-              label="Contact"
-              hint={organisationId ? 'Who reported it' : 'Choose a customer first'}
-            >
-              <Select name="contactId" defaultValue="" disabled={contacts.length === 0}>
-                <option value="">Not recorded</option>
-                {contacts.map((contact) => (
-                  <option key={contact.id} value={contact.id}>
-                    {contact.name}
-                    {contact.title ? ` · ${contact.title}` : ''}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+                <div className="flex flex-wrap gap-3 text-[13px]">
+                  <label className="flex items-center gap-1.5 text-[var(--color-ink-muted)]">
+                    <input
+                      type="radio"
+                      name="onBehalf"
+                      value="yes"
+                      checked={onBehalf}
+                      onChange={() => setOnBehalf(true)}
+                    />
+                    The customer&rsquo;s, recorded by me
+                  </label>
+
+                  <label className="flex items-center gap-1.5 text-[var(--color-ink-muted)]">
+                    <input
+                      type="radio"
+                      name="onBehalf"
+                      value="no"
+                      checked={!onBehalf}
+                      onChange={() => setOnBehalf(false)}
+                    />
+                    Mine
+                  </label>
+                </div>
+
+                <p className="mt-1.5 text-[11px] text-[var(--color-ink-subtle)]">
+                  {onBehalf
+                    ? 'Recorded as a message from the customer, so the first reply clock keeps running until someone answers.'
+                    : 'Recorded as our own message, which counts as the first reply.'}
+                </p>
+              </fieldset>
+
+              <Field label="Subject">
+                <Input name="subject" required autoFocus />
+              </Field>
+
+              <Field
+                label={onBehalf ? 'What the customer told you' : 'What happened'}
+                hint="The first message on the ticket"
+              >
+                <textarea
+                  name="body"
+                  required
+                  rows={4}
+                  className="w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)]"
+                />
+              </Field>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Queue">
+                  <Select name="queueId" required defaultValue={queues[0]?.id ?? ''}>
+                    {queues.map((queue) => (
+                      <option key={queue.id} value={queue.id}>
+                        {queue.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+
+                <Field label="Priority">
+                  <Select name="priority" defaultValue="normal">
+                    <option value="urgent">Urgent</option>
+                    <option value="high">High</option>
+                    <option value="normal">Normal</option>
+                    <option value="low">Low</option>
+                  </Select>
+                </Field>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Customer" hint="Puts the ticket on their timeline">
+                  <Select
+                    name="organisationId"
+                    value={organisationId}
+                    onChange={(event) => setOrganisationId(event.target.value)}
+                  >
+                    <option value="">No customer</option>
+                    {organisations.map((organisation) => (
+                      <option key={organisation.id} value={organisation.id}>
+                        {organisation.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+
+                <Field
+                  label="Contact"
+                  hint={organisationId ? 'Who reported it' : 'Choose a customer first'}
+                >
+                  <Select name="contactId" defaultValue="" disabled={contacts.length === 0}>
+                    <option value="">Not recorded</option>
+                    {contacts.map((contact) => (
+                      <option key={contact.id} value={contact.id}>
+                        {contact.name}
+                        {contact.title ? ` · ${contact.title}` : ''}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+
+              <label className="flex flex-wrap items-center gap-2 text-[12px] text-[var(--color-ink-muted)]">
+                <span className="rounded-[var(--radius-control)] border border-[var(--color-line)] px-2.5 py-1 transition-colors hover:text-[var(--color-ink)]">
+                  Attach files
+                </span>
+                <input
+                  type="file"
+                  name="files"
+                  multiple
+                  onChange={(event) => {
+                    const tooBig = Array.from(event.target.files ?? [])
+                      .filter((file) => file.size > MAX_FILE_BYTES)
+                      .map((file) => file.name);
+                    setOversizedFiles(tooBig);
+                  }}
+                  className="text-[11px] text-[var(--color-ink-subtle)] file:hidden"
+                />
+              </label>
+
+              {oversizedFiles.length > 0 ? (
+                <Notice tone="alert">
+                  {oversizedFiles.join(', ')} {oversizedFiles.length === 1 ? 'is' : 'are'} over 3MB.
+                  Send a link to it instead, or remove it before submitting.
+                </Notice>
+              ) : null}
+
+              {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
+
+              <div className="flex gap-2 pt-1">
+                <Button type="submit" disabled={pending}>
+                  {pending ? 'Raising' : 'Raise ticket'}
+                </Button>
+                <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
           </div>
-
-          <label className="flex flex-wrap items-center gap-2 text-[12px] text-[var(--color-ink-muted)]">
-            <span className="rounded-[var(--radius-control)] border border-[var(--color-line)] px-2.5 py-1 transition-colors hover:text-[var(--color-ink)]">
-              Attach files
-            </span>
-            <input
-              type="file"
-              name="files"
-              multiple
-              onChange={(event) => {
-                const tooBig = Array.from(event.target.files ?? [])
-                  .filter((file) => file.size > MAX_FILE_BYTES)
-                  .map((file) => file.name);
-                setOversizedFiles(tooBig);
-              }}
-              className="text-[11px] text-[var(--color-ink-subtle)] file:hidden"
-            />
-          </label>
-
-          {oversizedFiles.length > 0 ? (
-            <Notice tone="alert">
-              {oversizedFiles.join(', ')} {oversizedFiles.length === 1 ? 'is' : 'are'} over 3MB.
-              Send a link to it instead, or remove it before submitting.
-            </Notice>
-          ) : null}
-
-          {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
-
-          <div className="flex gap-2 pt-1">
-            <Button type="submit" disabled={pending}>
-              {pending ? 'Raising' : 'Raise ticket'}
-            </Button>
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </CardSection>
-    </Card>
+        </div>,
+        document.body,
+      )}
+    </>
   );
 }

@@ -157,6 +157,9 @@ never sent to their browser.
 - Popups use frosted glass: `popup-backdrop` on the overlay and `popup-glass` on the panel, both in
   globals.css. Forms that would otherwise open inside a table open as popups instead, so the page
   never jumps. Exceptions: the image preview stays dark, the phone menu drawer stays brand black.
+  Larger forms (Raise ticket so far) use the lighter variant, `popup-backdrop-light` and
+  `popup-glass-gradient`: bright frosted glass behind, and a panel of glass tinted with the
+  sidebar's pastels (28 Sep 2026).
 - A phone has no hover, so nothing may be reachable only on hover.
 - Three themes (27 Sep 2026): Sunset (the original warm tokens in `@theme`), Light and Dark
   (overrides on `html[data-theme=...]` in globals.css). Components use only colour tokens, never

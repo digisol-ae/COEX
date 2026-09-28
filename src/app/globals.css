@@ -447,3 +447,66 @@ html[data-theme='dark'] .sidebar-glow {
     #1e1c26 100%
   );
 }
+
+/*
+ * A lighter glass for larger forms such as Raise ticket (John, 28 Sep 2026): the page behind turns
+ * to bright frosted glass instead of dimming, and the panel is glass tinted with the sidebar's
+ * sunset, cloud and rainbow pastels. Opaque enough that a form on it reads like a form on a card.
+ */
+.popup-backdrop-light {
+  @apply backdrop-blur-md backdrop-saturate-150;
+  background: rgb(255 255 255 / 28%);
+  animation: popup-fade 160ms ease-out;
+}
+
+.popup-glass-gradient {
+  @apply backdrop-blur-2xl backdrop-saturate-150;
+  background: linear-gradient(
+    160deg,
+    rgb(255 251 246 / 86%) 0%,
+    rgb(255 244 236 / 84%) 22%,
+    rgb(253 243 247 / 84%) 44%,
+    rgb(242 251 246 / 84%) 66%,
+    rgb(241 247 255 / 84%) 84%,
+    rgb(247 244 255 / 86%) 100%
+  );
+  border: 1px solid rgb(255 255 255 / 75%);
+  border-radius: 1.25rem;
+  box-shadow:
+    0 0 0 0.5px rgb(20 20 20 / 6%),
+    0 30px 70px -20px rgb(120 90 140 / 28%);
+  animation: popup-in 200ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+html[data-theme='dark'] .popup-backdrop-light {
+  background: rgb(0 0 0 / 35%);
+}
+
+html[data-theme='dark'] .popup-glass-gradient {
+  background: linear-gradient(
+    160deg,
+    rgb(40 33 31 / 88%) 0%,
+    rgb(38 31 38 / 88%) 40%,
+    rgb(30 36 40 / 88%) 75%,
+    rgb(34 31 44 / 88%) 100%
+  );
+  border-color: rgb(255 255 255 / 10%);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .popup-backdrop-light {
+    @apply backdrop-blur-none;
+    background: rgb(20 20 20 / 30%);
+  }
+  .popup-glass-gradient {
+    @apply backdrop-blur-none;
+    background: var(--color-surface);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popup-backdrop-light,
+  .popup-glass-gradient {
+    animation: none;
+  }
+}
