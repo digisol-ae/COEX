@@ -37,6 +37,7 @@ export interface QueueSummary {
   name: string;
   description: string | null;
   signature: string | null;
+  autoSign: boolean;
   isDefault: boolean;
   isArchived: boolean;
   memberIds: string[];
@@ -105,6 +106,7 @@ export async function listQueues(
     name: queue.name,
     description: queue.description ?? null,
     signature: queue.signature ?? null,
+    autoSign: queue.autoSign ?? true,
     isDefault: queue.isDefault ?? false,
     isArchived: queue.status === 'archived',
     memberIds: queue.memberIds.map((id) => String(id)),
@@ -128,6 +130,7 @@ export interface QueueInput {
   name: string;
   description?: string | null;
   signature?: string | null;
+  autoSign?: boolean;
   productId?: string | null;
   memberIds?: string[];
   defaultAssigneeId?: string | null;
@@ -155,6 +158,7 @@ export async function createQueue(input: QueueInput): Promise<string> {
     name,
     description: input.description?.trim() || null,
     signature: input.signature?.trim() || null,
+    autoSign: input.autoSign ?? true,
     productId: toOptionalObjectId(input.productId),
     memberIds: (input.memberIds ?? []).filter(Boolean).map((id) => toObjectId(id)),
     defaultAssigneeId: toOptionalObjectId(input.defaultAssigneeId),
@@ -194,6 +198,7 @@ export async function updateQueue(id: string, input: QueueInput): Promise<void> 
         name,
         description: input.description?.trim() || null,
         signature: input.signature?.trim() || null,
+        autoSign: input.autoSign ?? true,
         productId: toOptionalObjectId(input.productId),
         memberIds: (input.memberIds ?? []).filter(Boolean).map((memberId) => toObjectId(memberId)),
         defaultAssigneeId: toOptionalObjectId(input.defaultAssigneeId),

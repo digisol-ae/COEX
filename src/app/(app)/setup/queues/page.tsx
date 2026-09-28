@@ -1,5 +1,6 @@
 import { asUser, requirePermission } from '@/lib/session';
 import { listQueues } from '@/modules/tickets/services/queue.service';
+import { standardSenderLabel } from '@/modules/core/services/email.service';
 import { listUsers } from '@/modules/core/services/user.service';
 import { listProducts } from '@/modules/crm/services/product.service';
 import { Card, CardSection, EmptyState, PageHeader } from '@/components/ui';
@@ -10,7 +11,8 @@ export const metadata = { title: 'Queues · COEX' };
 export default async function QueuesPage() {
   const actor = await requirePermission('tenant.manage');
 
-  const { queues, users, products } = await asUser(actor, async () => ({
+  const { queues, users, products, from } = await asUser(actor, async () => ({
+    from: await standardSenderLabel(),
     queues: await listQueues({ includeArchived: true }),
     users: await listUsers(),
     products: await listProducts(),
@@ -33,6 +35,7 @@ export default async function QueuesPage() {
         ) : null}
 
         <QueueList
+          from={from}
           queues={queues}
           users={users.map((user) => ({ id: user.id, name: user.name }))}
           products={products.map((product) => ({ id: product.id, name: product.name }))}

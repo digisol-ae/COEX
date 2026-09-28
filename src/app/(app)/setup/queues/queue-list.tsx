@@ -5,6 +5,7 @@ import { Badge, Button, Card, CardSection, Field, Input, Notice, Select } from '
 import { IconButton } from '@/components/ui/icon-button';
 import { Avatar } from '@/components/ui/avatar';
 import { formatWorkingMinutes } from '@/modules/tickets/business-hours';
+import { SignatureEditor } from './signature-editor';
 import type { QueueSummary } from '@/modules/tickets/services/queue.service';
 import {
   archiveQueueAction,
@@ -21,7 +22,10 @@ export function QueueList({
   queues,
   users,
   products,
+  from,
 }: {
+  /** The standard sender, for the email preview. */
+  from: string;
   queues: QueueSummary[];
   users: { id: string; name: string }[];
   products: { id: string; name: string }[];
@@ -32,6 +36,7 @@ export function QueueList({
     <div className="space-y-3">
       {editing === 'new' ? (
         <QueueForm
+          from={from}
           users={users}
           products={products}
           onClose={() => setEditing(null)}
@@ -44,6 +49,7 @@ export function QueueList({
       {queues.map((queue) =>
         editing === queue.id ? (
           <QueueForm
+            from={from}
             key={queue.id}
             queue={queue}
             users={users}
@@ -139,7 +145,9 @@ function QueueForm({
   products,
   onClose,
   isOnlyQueue,
+  from,
 }: {
+  from: string;
   queue?: QueueSummary;
   users: { id: string; name: string }[];
   products: { id: string; name: string }[];
@@ -206,9 +214,12 @@ function QueueForm({
             </Field>
           </div>
 
-          <Field label="Signature" hint="Appended by {{signature}} in a saved reply">
-            <Input name="signature" defaultValue={queue?.signature ?? ''} />
-          </Field>
+          <SignatureEditor
+            initial={queue?.signature ?? ''}
+            autoSign={queue?.autoSign ?? true}
+            queueName={queue?.name ?? ''}
+            from={from}
+          />
 
           <fieldset className="rounded-[var(--radius-control)] border border-[var(--color-line)] p-3">
             <legend className="px-1 text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">

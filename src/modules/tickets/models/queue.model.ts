@@ -41,8 +41,10 @@ const queueSchema = new Schema(
     /** Tickets with no obvious owner go here first. */
     defaultAssigneeId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
 
-    /** Replies from this queue carry this signature. */
+    /** Replies from this queue carry this signature. Placeholders: see tickets/email-text. */
     signature: { type: String, default: null },
+    /** Add the signature to every email a customer gets from this queue, without asking. */
+    autoSign: { type: Boolean, default: true },
 
     targets: { type: [targetSchema], default: () => DEFAULT_TARGETS },
 

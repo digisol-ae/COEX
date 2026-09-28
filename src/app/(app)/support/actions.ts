@@ -349,6 +349,7 @@ export async function saveQueueAction(
     name: text(formData, 'name'),
     description: text(formData, 'description') || null,
     signature: text(formData, 'signature') || null,
+    autoSign: formData.get('autoSign') === 'on',
     productId: text(formData, 'productId') || null,
     memberIds: formData.getAll('memberIds').map(String).filter(Boolean),
     defaultAssigneeId: text(formData, 'defaultAssigneeId') || null,

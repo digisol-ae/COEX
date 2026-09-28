@@ -22,7 +22,10 @@ export const PLACEHOLDERS = [
   { token: '{{agent}}', describes: 'the person sending the reply' },
   { token: '{{ticket}}', describes: 'the ticket number' },
   { token: '{{subject}}', describes: 'the ticket subject' },
-  { token: '{{signature}}', describes: "the queue's signature" },
+  {
+    token: '{{signature}}',
+    describes: "the queue's signature (blank when the queue signs every email by itself)",
+  },
 ] as const;
 
 /**
@@ -42,6 +45,8 @@ export function expandCannedReply(body: string, context: ReplyContext): string {
 
   return body.replace(/\{\{\s*(\w+)\s*\}\}/g, (whole, key: string) => {
     const value = values[key];
+    // An empty signature is deliberate: the queue signs by itself, so the slot is simply removed.
+    if (key === 'signature' && value === '') return '';
     return value ? value : whole;
   });
 }

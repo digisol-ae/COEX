@@ -3,7 +3,9 @@
 import { useActionState, useState } from 'react';
 import { Badge, Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
-import { PLACEHOLDERS } from '@/modules/tickets/canned-reply-text';
+import { PLACEHOLDERS, expandCannedReply } from '@/modules/tickets/canned-reply-text';
+import { customerEmailText, renderSignature } from '@/modules/tickets/email-text';
+import { EmailPreview, SAMPLE } from '@/components/ui/email-preview';
 import type { CannedReplySummary } from '@/modules/tickets/services/canned-reply.service';
 import {
   archiveCannedReplyAction,
@@ -14,19 +16,24 @@ import {
 
 const initialState: SupportFormState = {};
 
+type QueueOption = { id: string; name: string; signature: string | null; autoSign: boolean };
+
 export function CannedReplyList({
   replies,
   queues,
+  from,
 }: {
   replies: CannedReplySummary[];
-  queues: { id: string; name: string }[];
+  queues: QueueOption[];
+  /** The standard sender, for the email preview. */
+  from: string;
 }) {
   const [editing, setEditing] = useState<string | null>(null);
 
   return (
     <div className="space-y-3">
       {editing === 'new' ? (
-        <ReplyForm queues={queues} onClose={() => setEditing(null)} />
+        <ReplyForm queues={queues} from={from} onClose={() => setEditing(null)} />
       ) : (
         <Button onClick={() => setEditing('new')}>Add saved reply</Button>
       )}
@@ -47,6 +54,7 @@ export function CannedReplyList({
             key={reply.id}
             reply={reply}
             queues={queues}
+            from={from}
             onClose={() => setEditing(null)}
           />
         ) : (
@@ -111,13 +119,40 @@ export function CannedReplyList({
 function ReplyForm({
   reply,
   queues,
+  from,
   onClose,
 }: {
   reply?: CannedReplySummary;
-  queues: { id: string; name: string }[];
+  queues: QueueOption[];
+  from: string;
   onClose: () => void;
 }) {
   const [state, formAction, pending] = useActionState(saveCannedReplyAction, initialState);
+  const [body, setBody] = useState(reply?.body ?? '');
+  const [queueId, setQueueId] = useState(reply?.queueId ?? '');
+  const [previewing, setPreviewing] = useState(false);
+
+  // Filled the way the reply box fills it, then signed the way the server signs it.
+  const queue = queues.find((option) => option.id === queueId);
+  const signature = queue
+    ? renderSignature(queue.signature, {
+        agentName: SAMPLE.agent,
+        agentTitle: SAMPLE.agentTitle,
+        queueName: queue.name,
+      })
+    : '';
+  const previewText = customerEmailText({
+    body: expandCannedReply(body, {
+      contactName: SAMPLE.customer,
+      organisationName: SAMPLE.company,
+      agentName: SAMPLE.agent,
+      ticketNumber: SAMPLE.ticket,
+      ticketSubject: SAMPLE.subject,
+      signature: queue?.autoSign ? '' : signature,
+    }),
+    signature: queue?.autoSign ? signature : '',
+    ticketNumber: SAMPLE.ticket,
+  });
 
   return (
     <Card>
@@ -131,7 +166,11 @@ function ReplyForm({
             </Field>
 
             <Field label="Queue" hint="Leave open to offer it everywhere">
-              <Select name="queueId" defaultValue={reply?.queueId ?? ''}>
+              <Select
+                name="queueId"
+                value={queueId}
+                onChange={(event) => setQueueId(event.target.value)}
+              >
                 <option value="">Every queue</option>
                 {queues.map((queue) => (
                   <option key={queue.id} value={queue.id}>
@@ -147,7 +186,8 @@ function ReplyForm({
               name="body"
               required
               rows={6}
-              defaultValue={reply?.body}
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
               className="w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)]"
             />
           </Field>
@@ -170,7 +210,30 @@ function ReplyForm({
 
           {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
 
+          {previewing ? (
+            <EmailPreview
+              from={from}
+              to={`${SAMPLE.customer} <${SAMPLE.email}>`}
+              subject={`Re: [${SAMPLE.ticket}] ${SAMPLE.subject}`}
+              text={previewText}
+              note={
+                queue
+                  ? SAMPLE.note
+                  : `${SAMPLE.note} Offered in every queue, so the signature depends on the ticket's queue and is not shown.`
+              }
+              onClose={() => setPreviewing(false)}
+            />
+          ) : null}
+
           <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!body.trim()}
+              onClick={() => setPreviewing(true)}
+            >
+              Preview
+            </Button>
             <Button type="submit" disabled={pending}>
               {pending ? 'Saving' : 'Save reply'}
             </Button>

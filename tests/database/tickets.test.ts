@@ -621,6 +621,35 @@ describe('my profile', () => {
   });
 });
 
+describe('signatures on customer email', () => {
+  it('signs a reply with the queue signature for the person replying', async () => {
+    await EmailSettingsModel.create({ tenantId, outbound: { enabled: true } });
+    const queueId = await runWithContext(context, () =>
+      createQueue({ name: 'Support', signature: 'Kind regards,\n{{agent}}\n{{agent_title}}' }),
+    );
+    await UserModel.updateOne({ _id: userId }, { $set: { title: 'Head of Support' } });
+    const created = await runWithContext(context, () =>
+      createTicket({
+        subject: 'Printer',
+        body: 'Help',
+        queueId,
+        channel: 'email',
+      }),
+    );
+    await TicketModel.updateOne(
+      { _id: created.id },
+      { $set: { requesterEmail: 'customer@example.org' } },
+    );
+    await runWithContext(context, () =>
+      addReply({ ticketId: created.id, body: 'Fixed it.', visibility: 'public' }),
+    );
+    const mail = await EmailOutboxModel.findOne({ kind: 'ticket_reply' });
+    expect(mail?.text).toContain(
+      'Fixed it.\n\nKind regards,\nSyed Ali\nHead of Support\n\n--\nTicket',
+    );
+  });
+});
+
 describe('tenant isolation', () => {
   it('never shows one tenant another tenant’s tickets', async () => {
     const queueId = await aQueue();

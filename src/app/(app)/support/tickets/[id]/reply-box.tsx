@@ -31,7 +31,10 @@ export function ReplyBox({
   context,
   emailTo = null,
   people = [],
+  autoSignature = '',
 }: {
+  /** Added to the customer's email by the server; shown so the agent knows it is there. */
+  autoSignature?: string;
   /** Colleagues who can be @mentioned in an internal note. */
   people?: MentionPerson[];
   /** Where a public reply will be emailed; null when it stays in COEX only. */
@@ -146,6 +149,17 @@ export function ReplyBox({
                 : 'border-[var(--color-line)] bg-[var(--color-surface)]',
             )}
           />
+
+          {!isInternal && autoSignature ? (
+            <div className="rounded-[var(--radius-control)] border border-dashed border-[var(--color-line)] px-3 py-2">
+              <p className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                Added below your reply
+              </p>
+              <p className="mt-1 text-xs whitespace-pre-line text-[var(--color-ink-muted)]">
+                {autoSignature}
+              </p>
+            </div>
+          ) : null}
 
           <label className="flex flex-wrap items-center gap-2 text-[12px] text-[var(--color-ink-muted)]">
             <span className="rounded-[var(--radius-control)] border border-[var(--color-line)] px-2.5 py-1 transition-colors hover:text-[var(--color-ink)]">

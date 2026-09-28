@@ -874,3 +874,11 @@ export async function sendTestEmail(role: SenderRole = 'standard'): Promise<stri
     transport.close();
   }
 }
+
+/** "Name" <address> of the standard sender, for previews of customer email. */
+export async function standardSenderLabel(): Promise<string> {
+  const settings = await settingsFor(getContext().tenantId);
+  const outbound = settings?.outbound;
+  if (!outbound?.fromAddress) return 'The standard sender (not set up yet)';
+  return header(outbound.fromName, outbound.fromAddress);
+}

@@ -3,6 +3,12 @@
 import { useActionState, useState, useTransition } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
 import type { EmailSettingsView, SenderView } from '@/modules/core/services/email.service';
+import { EmailPreview, SAMPLE } from '@/components/ui/email-preview';
+import {
+  customerEmailText,
+  fillAcknowledgement,
+  renderSignature,
+} from '@/modules/tickets/email-text';
 import {
   saveEmailSettingsAction,
   sendTestEmailAction,
@@ -48,7 +54,7 @@ export function EmailSettingsForm({
   queues,
 }: {
   settings: EmailSettingsView;
-  queues: { id: string; name: string }[];
+  queues: { id: string; name: string; signature: string | null; autoSign: boolean }[];
 }) {
   const [state, formAction, pending] = useActionState(saveEmailSettingsAction, initialState);
   const [testResult, setTestResult] = useState<EmailFormState>({});
@@ -58,6 +64,30 @@ export function EmailSettingsForm({
     startTest(async () => setTestResult(await action()));
 
   const { inbound, outbound, customer, staff } = settings;
+  const [intakeQueueId, setIntakeQueueId] = useState(inbound.queueId ?? '');
+  const [ackBody, setAckBody] = useState(customer.autoReplyBody);
+  const [previewing, setPreviewing] = useState(false);
+
+  // Exactly as the worker builds it: filled, then signed by the intake queue with no agent.
+  const intakeQueue = queues.find((queue) => queue.id === intakeQueueId);
+  const ackText = customerEmailText({
+    body: fillAcknowledgement(ackBody, {
+      customer: SAMPLE.customer,
+      ticket: SAMPLE.ticket,
+      subject: SAMPLE.subject,
+    }),
+    signature:
+      intakeQueue && intakeQueue.autoSign
+        ? renderSignature(intakeQueue.signature, { queueName: intakeQueue.name })
+        : '',
+    ticketNumber: SAMPLE.ticket,
+    footer: false,
+  });
+  const fromLabel = outbound.fromAddress
+    ? outbound.fromName
+      ? `"${outbound.fromName}" <${outbound.fromAddress}>`
+      : outbound.fromAddress
+    : 'The standard sender (not set up yet)';
 
   return (
     <form action={formAction} className="space-y-4">
@@ -108,7 +138,11 @@ export function EmailSettingsForm({
               </Field>
             </div>
             <Field label="New email tickets go to">
-              <Select name="inboundQueueId" defaultValue={inbound.queueId ?? ''}>
+              <Select
+                name="inboundQueueId"
+                value={intakeQueueId}
+                onChange={(event) => setIntakeQueueId(event.target.value)}
+              >
                 <option value="">Choose a queue</option>
                 {queues.map((queue) => (
                   <option key={queue.id} value={queue.id}>
@@ -264,11 +298,27 @@ export function EmailSettingsForm({
             >
               <textarea
                 name="autoReplyBody"
-                defaultValue={customer.autoReplyBody}
+                value={ackBody}
+                onChange={(event) => setAckBody(event.target.value)}
                 rows={6}
                 className="w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)]"
               />
             </Field>
+            <div>
+              <Button type="button" variant="secondary" onClick={() => setPreviewing(true)}>
+                Preview the acknowledgement
+              </Button>
+            </div>
+            {previewing ? (
+              <EmailPreview
+                from={fromLabel}
+                to={`${SAMPLE.customer} <${SAMPLE.email}>`}
+                subject={`Re: [${SAMPLE.ticket}] ${SAMPLE.subject}`}
+                text={ackText}
+                note={`${SAMPLE.note} Signed with the intake queue's signature${intakeQueue ? ` (${intakeQueue.name})` : ''}, without agent lines.`}
+                onClose={() => setPreviewing(false)}
+              />
+            ) : null}
           </div>
         </CardSection>
 

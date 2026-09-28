@@ -21,7 +21,12 @@ export default async function EmailSettingsPage() {
       />
       <EmailSettingsForm
         settings={settings}
-        queues={queues.map((queue) => ({ id: queue.id, name: queue.name }))}
+        queues={queues.map((queue) => ({
+          id: queue.id,
+          name: queue.name,
+          signature: queue.signature,
+          autoSign: queue.autoSign,
+        }))}
       />
     </div>
   );

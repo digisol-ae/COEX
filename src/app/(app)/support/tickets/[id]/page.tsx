@@ -6,6 +6,8 @@ import { listQueues } from '@/modules/tickets/services/queue.service';
 import { listCannedReplies } from '@/modules/tickets/services/canned-reply.service';
 import { listUsers } from '@/modules/core/services/user.service';
 import { mentionableUsers } from '@/modules/core/services/mention.service';
+import { getMyProfile } from '@/modules/core/services/user.service';
+import { renderSignature } from '@/modules/tickets/email-text';
 import { listSpaces } from '@/modules/tasks/services/space.service';
 import { STATUS_LABELS, CHANNEL_LABELS } from '@/modules/tickets/labels';
 import { Card, CardSection, PageHeader } from '@/components/ui';
@@ -35,7 +37,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   const canManage = actor.permissions.includes('ticket.manage');
   const replyEmail = canManage ? await asUser(actor, () => customerReplyAddress(id)) : null;
 
-  const { queues, users, spaces, cannedReplies, runningTimer, loggedMinutes, people } =
+  const { queues, users, spaces, cannedReplies, runningTimer, loggedMinutes, people, myTitle } =
     await asUser(actor, async () => ({
       queues: await listQueues(),
       users: await listUsers(),
@@ -44,7 +46,15 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
       runningTimer: await getRunningTimer(),
       loggedMinutes: await loggedMinutesForTicket(id),
       people: canManage ? await mentionableUsers() : [],
+      myTitle: canManage ? (await getMyProfile()).title : null,
     }));
+
+  // The queue's signature as this person's replies will carry it.
+  const signature = renderSignature(ticket.queueSignature, {
+    agentName: actor.name,
+    agentTitle: myTitle,
+    queueName: ticket.queueName,
+  });
 
   const timerRunning = runningTimer?.kind === 'ticket' && runningTimer.itemId === id;
 
@@ -136,8 +146,10 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
                 agentName: actor.name,
                 ticketNumber: ticket.number,
                 ticketSubject: ticket.subject,
-                signature: ticket.queueSignature,
+                // Signed by the server when the queue signs by itself, so the placeholder is blank.
+                signature: ticket.queueAutoSign ? '' : signature,
               }}
+              autoSignature={ticket.queueAutoSign ? signature : ''}
             />
           ) : null}
         </div>

@@ -23,6 +23,7 @@ import { TaskModel } from '@/modules/tasks/models/task.model';
 import { TicketModel } from '../models/ticket.model';
 import { TicketMessageModel } from '../models/ticket-message.model';
 import { unreadAmong } from './unread.service';
+import { customerEmailText, renderSignature } from '../email-text';
 import { QueueModel, DEFAULT_TARGETS } from '../models/queue.model';
 import {
   DEFAULT_CALENDAR,
@@ -602,6 +603,8 @@ export interface TicketDetail extends TicketSummary {
   followsOnFromId: string | null;
   linkedTickets: { id: string; number: string; subject: string; status: string }[];
   queueSignature: string | null;
+  /** The queue adds its signature to customer emails by itself. */
+  queueAutoSign: boolean;
   firstRespondedAt: Date | null;
   resolvedAt: Date | null;
   messages: TicketMessageView[];
@@ -616,7 +619,7 @@ export async function getTicketDetail(id: string): Promise<TicketDetail | null> 
   const [summary] = await decorate([ticket]);
 
   const [queue, messages, linked, task] = await Promise.all([
-    QueueModel.findOne({ _id: ticket.queueId }).select('signature'),
+    QueueModel.findOne({ _id: ticket.queueId }).select('signature autoSign'),
     TicketMessageModel.find({
       tenantId: getContext().tenantId,
       ticketId: ticket._id,
@@ -647,6 +650,7 @@ export async function getTicketDetail(id: string): Promise<TicketDetail | null> 
       status: row.status,
     })),
     queueSignature: queue?.signature ?? null,
+    queueAutoSign: queue?.autoSign ?? true,
     firstRespondedAt: ticket.firstRespondedAt ?? null,
     resolvedAt: ticket.resolvedAt ?? null,
     messages: messages.map((message) => ({
@@ -1057,12 +1061,11 @@ async function emailCustomerReply(
     kind: 'ticket_reply',
     to,
     subject: `Re: [${ticket.number}] ${ticket.subject}`,
-    text: [
-      body.trim(),
-      `\n--\nTicket ${ticket.number}. Please keep [${ticket.number}] in the subject when you reply.`,
-    ]
-      .filter(Boolean)
-      .join('\n'),
+    text: customerEmailText({
+      body,
+      signature: await replySignature(ticket),
+      ticketNumber: ticket.number,
+    }),
     messageId: ownMessageId,
     inReplyTo: lastInbound,
     references: references.slice(-10),
@@ -1077,6 +1080,27 @@ async function emailCustomerReply(
       { $set: { externalMessageId: ownMessageId } },
     );
   }
+}
+
+/**
+ * The queue's signature for the person replying, when the queue signs automatically. Saved replies
+ * with {{signature}} insert nothing in that case, so an email is never signed twice.
+ */
+async function replySignature(ticket: { queueId?: Types.ObjectId | null }): Promise<string> {
+  if (!ticket.queueId) return '';
+  const context = getContext();
+  const [queue, agent] = await Promise.all([
+    QueueModel.findOne({ _id: ticket.queueId, tenantId: context.tenantId }).select(
+      'name signature autoSign',
+    ),
+    UserModel.findOne({ _id: context.userId, tenantId: context.tenantId }).select('name title'),
+  ]);
+  if (!queue || queue.autoSign === false) return '';
+  return renderSignature(queue.signature, {
+    agentName: agent?.name,
+    agentTitle: agent?.title,
+    queueName: queue.name,
+  });
 }
 
 async function alertTicketAssignee(

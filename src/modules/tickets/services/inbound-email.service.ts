@@ -18,6 +18,8 @@ import { TicketMessageModel } from '../models/ticket-message.model';
 import { TicketModel } from '../models/ticket.model';
 import { attachToMessage } from './attachment.service';
 import { createTicket } from './ticket.service';
+import { QueueModel } from '../models/queue.model';
+import { customerEmailText, fillAcknowledgement, renderSignature } from '../email-text';
 
 export interface InboundEmailConfig {
   tenantId: string;
@@ -56,10 +58,6 @@ function isAutomatic(mail: ParsedMail, sender: string): boolean {
     return true;
   }
   return /^(mailer-daemon|postmaster|no-?reply|do-?not-?reply)@/i.test(sender);
-}
-
-function fill(template: string, values: Record<string, string>): string {
-  return template.replace(/\{(\w+)\}/g, (match, name: string) => values[name] ?? match);
 }
 
 /**
@@ -252,13 +250,27 @@ async function acknowledge(input: {
   const values = { customer: input.customer, ticket: ticket.number, subject: input.subject };
   const messageId = await newMessageId();
 
+  // Signed like any reply from the queue, but with no agent: lines naming one are left out.
+  const queue = await QueueModel.findOne({ _id: ticket.queueId, tenantId: ticket.tenantId }).select(
+    'name signature autoSign',
+  );
+  const signature =
+    queue && queue.autoSign !== false
+      ? renderSignature(queue.signature, { queueName: queue.name })
+      : '';
+
   const queued = await queueEmail({
     kind: 'auto_reply',
     to: input.to,
     // Same subject as agent replies: Outlook groups a conversation by subject and ignores the
     // reply headers, so a different acknowledgement subject would split the customer's thread.
     subject: `Re: [${ticket.number}] ${ticket.subject}`,
-    text: fill(customer.autoReplyBody ?? '', values),
+    text: customerEmailText({
+      body: fillAcknowledgement(customer.autoReplyBody ?? '', values),
+      signature,
+      ticketNumber: ticket.number,
+      footer: false,
+    }),
     messageId,
     inReplyTo: input.inReplyTo,
     references: [input.inReplyTo],

@@ -33,6 +33,10 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
   desk, or nobody) and Admin (account mail). Resetting someone's password has a "notify them"
   box that emails them from Admin with a link to choose their own password. John still has to
   enter the Alert and Admin addresses in Setup, Email; until then everything sends as before.
+- Templates, 28 Sep: a signature editor per queue (several lines, the replying agent's name and
+  title, a live preview, "sign every customer email automatically"), the reply box shows the
+  signature that will be added, and Preview buttons show the acknowledgement, saved replies and a
+  signed reply exactly as the customer receives them. Plain text; HTML email is not built.
 - ChatGPT will take over at a later stage: every session keeps CLAUDE.md, FEEDBACK.md and the
   `ai/` files current so the hand-over needs no chat history.
 

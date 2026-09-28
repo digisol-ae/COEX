@@ -85,6 +85,13 @@ The full scope document lives in the Claude project "ECHO System Development" as
     administrators only (default), everyone with ticket.read.all, or nobody. An administrator's
     password reset can email the person (Admin sender) with a 24-hour link to choose their own
     password; the temporary password is never emailed.
+    Signatures and previews (28 Sep 2026): each queue has a multi-line signature with
+    {{agent}}, {{agent_title}} and {{queue}}; a line whose placeholder is empty is dropped. With
+    "sign automatically" (default on) the server adds it to every customer email from the queue,
+    replies and the acknowledgement (which has no agent), and a saved reply's {{signature}} then
+    inserts nothing. All customer-email text is built by tickets/email-text.ts, which the Preview
+    buttons (queue signature, saved replies, acknowledgement) also use, so a preview is what goes
+    out.
 13. Tasks and Tickets are natural partners and stay directly connected: escalation creates a task
     carrying sourceTicketId, and task work updates and completion post internal notes on the
     ticket. This is John's deliberate exception to the rule that modules never import siblings
