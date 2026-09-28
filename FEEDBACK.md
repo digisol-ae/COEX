@@ -37,6 +37,9 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
   title, a live preview, "sign every customer email automatically"), the reply box shows the
   signature that will be added, and Preview buttons show the acknowledgement, saved replies and a
   signed reply exactly as the customer receives them. Plain text; HTML email is not built.
+- Archive a Space, 28 Sep: Space settings, "Archive space…", shows how many folders and tasks go
+  with it, then archives them all (subtasks included); Spaces, Archived spaces restores them.
+  Nothing is deleted and logged time stays. Archiving is refused while a timer runs in the space.
 - ChatGPT will take over at a later stage: every session keeps CLAUDE.md, FEEDBACK.md and the
   `ai/` files current so the hand-over needs no chat history.
 

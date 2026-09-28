@@ -18,8 +18,20 @@ import {
   updateTask,
   type Priority,
 } from '@/modules/tasks/services/task.service';
-import { createSpace, reorderSpaces, updateSpace } from '@/modules/tasks/services/space.service';
-import { archiveFolder, createFolder, reorderFolders, updateFolder } from '@/modules/tasks/services/folder.service';
+import {
+  archiveImpact,
+  archiveSpace,
+  createSpace,
+  reorderSpaces,
+  restoreSpace,
+  updateSpace,
+} from '@/modules/tasks/services/space.service';
+import {
+  archiveFolder,
+  createFolder,
+  reorderFolders,
+  updateFolder,
+} from '@/modules/tasks/services/folder.service';
 
 export interface TaskFormState {
   error?: string;
@@ -77,13 +89,28 @@ export async function createSpaceAction(
   redirect(`/spaces/${id}`);
 }
 
-export async function updateSpaceAction(_previous: TaskFormState, formData: FormData): Promise<TaskFormState> {
+export async function updateSpaceAction(
+  _previous: TaskFormState,
+  formData: FormData,
+): Promise<TaskFormState> {
   const actor = await requirePermission('task.manage');
   const id = text(formData, 'id');
   try {
-    await asUser(actor, () => updateSpace(id, { name: text(formData, 'name'), description: text(formData, 'description'), organisationId: text(formData, 'organisationId') || null, dueDate: text(formData, 'dueDate') || null, memberIds: formData.getAll('memberIds').map(String).filter(Boolean) }));
-  } catch (error) { return { error: error instanceof Error ? error.message : 'Could not update the space.' }; }
-  revalidatePath(`/spaces/${id}`); revalidatePath('/spaces'); return { saved: true };
+    await asUser(actor, () =>
+      updateSpace(id, {
+        name: text(formData, 'name'),
+        description: text(formData, 'description'),
+        organisationId: text(formData, 'organisationId') || null,
+        dueDate: text(formData, 'dueDate') || null,
+        memberIds: formData.getAll('memberIds').map(String).filter(Boolean),
+      }),
+    );
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not update the space.' };
+  }
+  revalidatePath(`/spaces/${id}`);
+  revalidatePath('/spaces');
+  return { saved: true };
 }
 
 /** Persisting a drag reorder of the Spaces list. */
@@ -226,9 +253,7 @@ export async function addTaskCommentAction(
   const id = text(formData, 'taskId');
 
   try {
-    await asUser(actor, () =>
-      addTaskComment(id, text(formData, 'body'), mentionIdsFrom(formData)),
-    );
+    await asUser(actor, () => addTaskComment(id, text(formData, 'body'), mentionIdsFrom(formData)));
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not post the comment.' };
   }
@@ -360,9 +385,7 @@ export async function setSubtaskAssigneeAction(input: {
   const actor = await requirePermission('task.manage');
 
   try {
-    await asUser(actor, () =>
-      setSubtaskAssignee(input.taskId, input.subtaskId, input.assigneeId),
-    );
+    await asUser(actor, () => setSubtaskAssignee(input.taskId, input.subtaskId, input.assigneeId));
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not assign the subtask.' };
   }
@@ -474,7 +497,13 @@ export async function quickAddFolderAction(input: {
   if (!name) return { error: 'A folder needs a name.' };
 
   try {
-    await asUser(actor, () => createFolder({ spaceId: input.spaceId, name, memberIds: input.privateToMe ? [actor.id] : [] }));
+    await asUser(actor, () =>
+      createFolder({
+        spaceId: input.spaceId,
+        name,
+        memberIds: input.privateToMe ? [actor.id] : [],
+      }),
+    );
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not add the folder.' };
   }
@@ -522,4 +551,39 @@ export async function archiveFolderAction(formData: FormData): Promise<void> {
 /** The people picked with @ in a note, sent by the mention picker as one hidden field each. */
 function mentionIdsFrom(formData: FormData): string[] {
   return formData.getAll('mentionIds').map(String).filter(Boolean);
+}
+
+/** How much archiving a Space would take with it, for the confirmation step. */
+export async function spaceArchiveImpactAction(
+  id: string,
+): Promise<{ tasks?: number; folders?: number; error?: string }> {
+  const actor = await requirePermission('task.manage');
+  try {
+    return await asUser(actor, () => archiveImpact(id));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not check the space.' };
+  }
+}
+
+export async function archiveSpaceAction(id: string): Promise<{ error?: string }> {
+  const actor = await requirePermission('task.manage');
+  try {
+    await asUser(actor, () => archiveSpace(id));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not archive the space.' };
+  }
+  // The space leaves the menu, lists and My tasks everywhere.
+  revalidatePath('/', 'layout');
+  return {};
+}
+
+export async function restoreSpaceAction(id: string): Promise<{ error?: string }> {
+  const actor = await requirePermission('task.manage');
+  try {
+    await asUser(actor, () => restoreSpace(id));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not restore the space.' };
+  }
+  revalidatePath('/', 'layout');
+  return {};
 }

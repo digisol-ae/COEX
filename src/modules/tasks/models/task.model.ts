@@ -109,6 +109,8 @@ const taskSchema = new Schema(
 
     createdById: { type: Schema.Types.ObjectId, ref: 'User', default: null },
     deletedAt: { type: Date, default: null, index: true },
+    /** Archived because its Space was, so restoring the Space brings back exactly these. */
+    archivedWithSpace: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

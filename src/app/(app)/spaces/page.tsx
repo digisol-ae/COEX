@@ -1,10 +1,11 @@
 import { asUser, requirePermission } from '@/lib/session';
-import { listSpaces } from '@/modules/tasks/services/space.service';
+import { listArchivedSpaces, listSpaces } from '@/modules/tasks/services/space.service';
 import { listFolders } from '@/modules/tasks/services/folder.service';
 import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { Card, PageHeader } from '@/components/ui';
 import { NewSpacePanel } from './panels';
 import { SpacesTable } from './spaces-table';
+import { ArchivedSpaces } from './archived-spaces';
 import { listUsers } from '@/modules/core/services/user.service';
 
 export const metadata = { title: 'Spaces · COEX' };
@@ -15,17 +16,25 @@ export const metadata = { title: 'Spaces · COEX' };
  * A folder is the only place visibility is decided. Name members on one and it becomes private to
  * exactly those people; leave it empty and everyone who can open the space can see it.
  */
-export default async function SpacesPage() {
+export default async function SpacesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ archived?: string }>;
+}) {
   const actor = await requirePermission('task.read.all');
+  const justArchived = (await searchParams).archived === '1';
 
-  const { spaces, folders, customers, users } = await asUser(actor, async () => ({
+  const { spaces, archived, folders, customers, users } = await asUser(actor, async () => ({
     spaces: await listSpaces(),
+    archived: await listArchivedSpaces(),
     folders: await listFolders(),
     customers: await listOrganisations(),
     users: await listUsers(),
   }));
 
-  const customerNames = Object.fromEntries(customers.map((customer) => [customer.id, customer.name]));
+  const customerNames = Object.fromEntries(
+    customers.map((customer) => [customer.id, customer.name]),
+  );
   const userNames = Object.fromEntries(users.map((user) => [user.id, user.name]));
   const canManage = actor.permissions.includes('task.manage');
 
@@ -68,6 +77,17 @@ export default async function SpacesPage() {
           canManage={canManage}
         />
       </Card>
+
+      <ArchivedSpaces
+        spaces={archived.map((space) => ({
+          id: space.id,
+          name: space.name,
+          archivedAt: space.archivedAt.toISOString(),
+          taskCount: space.taskCount,
+        }))}
+        canManage={canManage}
+        justArchived={justArchived}
+      />
     </div>
   );
 }

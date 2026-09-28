@@ -4,6 +4,8 @@ import { toObjectId, toOptionalObjectId } from '@/lib/ids';
 import { recordAudit } from '@/modules/core/services/audit.service';
 import { SpaceModel } from '../models/space.model';
 import { TaskModel } from '../models/task.model';
+import { FolderModel } from '../models/folder.model';
+import { TimeEntryModel } from '@/modules/time/models/time-entry.model';
 import { visibleFolderFilter } from './folder.service';
 import { getContext } from '@/lib/tenant-context';
 import { actorIsAdministrator } from './access.service';
@@ -58,7 +60,9 @@ export interface SpaceSummary {
 export async function visibleSpaceIds(): Promise<import('mongoose').Types.ObjectId[] | null> {
   await connectToDatabase();
   if (await actorIsAdministrator()) return null;
-  const open = await spaces().find({ memberIds: { $size: 0 } }).select('_id');
+  const open = await spaces()
+    .find({ memberIds: { $size: 0 } })
+    .select('_id');
   const mine = await spaces().find({ memberIds: getContext().userId }).select('_id');
   return [...open, ...mine].map((space) => space._id);
 }
@@ -72,7 +76,11 @@ export async function canOpenSpace(id: string): Promise<boolean> {
   await connectToDatabase();
   const space = await spaces().findById(id);
   if (!space) return false;
-  return space.memberIds.length === 0 || (await actorIsAdministrator()) || space.memberIds.some((member) => String(member) === String(getContext().userId));
+  return (
+    space.memberIds.length === 0 ||
+    (await actorIsAdministrator()) ||
+    space.memberIds.some((member) => String(member) === String(getContext().userId))
+  );
 }
 
 export async function assignableSpaceMemberIds(id: string): Promise<string[] | null> {
@@ -190,13 +198,25 @@ export async function updateSpace(id: string, input: SpaceInput): Promise<void> 
   const name = input.name.trim();
   if (!name) throw new Error('A space needs a name.');
   const memberIds = (input.memberIds ?? []).filter(Boolean).map(toObjectId);
-  await spaces().updateOne({ _id: space._id }, { $set: {
-    name, description: input.description?.trim() || null,
-    organisationId: toOptionalObjectId(input.organisationId),
-    dueDate: input.dueDate ? new Date(input.dueDate) : null, memberIds,
-  }});
-  await recordAudit({ action: 'space.updated', entityType: 'Space', entityId: space._id,
-    before: { name: space.name, private: space.memberIds.length > 0 }, after: { name, private: memberIds.length > 0 } });
+  await spaces().updateOne(
+    { _id: space._id },
+    {
+      $set: {
+        name,
+        description: input.description?.trim() || null,
+        organisationId: toOptionalObjectId(input.organisationId),
+        dueDate: input.dueDate ? new Date(input.dueDate) : null,
+        memberIds,
+      },
+    },
+  );
+  await recordAudit({
+    action: 'space.updated',
+    entityType: 'Space',
+    entityId: space._id,
+    before: { name: space.name, private: space.memberIds.length > 0 },
+    after: { name, private: memberIds.length > 0 },
+  });
 }
 
 /**
@@ -221,16 +241,150 @@ export async function reorderSpaces(orderedIds: string[]): Promise<void> {
   );
 }
 
-export async function archiveSpace(id: string): Promise<void> {
+export interface ArchiveSummary {
+  tasks: number;
+  folders: number;
+}
+
+/** What archiving would take with it, for the confirmation before anyone commits to it. */
+export async function archiveImpact(id: string): Promise<ArchiveSummary> {
   await connectToDatabase();
+  const { tenantId } = getContext();
+  const space = await spaces().findById(id);
+  if (!space) throw new Error('Space not found.');
+  const [tasks, folders] = await Promise.all([
+    TaskModel.countDocuments({ tenantId, spaceId: space._id, deletedAt: null }),
+    FolderModel.countDocuments({ tenantId, spaceId: space._id, status: 'active' }),
+  ]);
+  return { tasks, folders };
+}
 
-  const removed = await spaces().softDelete({ _id: toObjectId(id) });
-  if (!removed) throw new Error('Space not found.');
+/**
+ * Archives a Space with its folders, tasks and their subtasks (John, 28 Sep 2026). Nothing is
+ * deleted: everything disappears from lists, boards, the menu and My tasks, and comes back as it
+ * was on restore. Logged time stays, because timesheets and invoices already count it. A timer
+ * still running inside the Space stops the archive, so nobody's clock ends up on hidden work.
+ */
+export async function archiveSpace(id: string): Promise<ArchiveSummary> {
+  await connectToDatabase();
+  const { tenantId } = getContext();
 
+  const space = await spaces().findById(id);
+  if (!space) throw new Error('Space not found.');
+  if (!(await canOpenSpace(id))) throw new Error('You cannot open this space.');
+
+  const taskIds = (
+    await TaskModel.find({ tenantId, spaceId: space._id, deletedAt: null }).select('_id')
+  ).map((task) => task._id);
+
+  const running = await TimeEntryModel.findOne({
+    tenantId,
+    taskId: { $in: taskIds },
+    running: true,
+  }).populate<{ userId: { name: string } }>('userId', 'name');
+  if (running) {
+    throw new Error(
+      `${running.userId?.name ?? 'Someone'} has a timer running in this space. Stop it before archiving.`,
+    );
+  }
+
+  const now = new Date();
+  const tasks = await TaskModel.updateMany(
+    { tenantId, _id: { $in: taskIds } },
+    { $set: { deletedAt: now, archivedWithSpace: true } },
+  );
+  const folders = await FolderModel.updateMany(
+    { tenantId, spaceId: space._id, status: 'active' },
+    { $set: { status: 'archived', archivedWithSpace: true } },
+  );
+  await SpaceModel.updateOne(
+    { _id: space._id, tenantId },
+    { $set: { deletedAt: now, status: 'archived' } },
+  );
+
+  const summary = { tasks: tasks.modifiedCount, folders: folders.modifiedCount };
   await recordAudit({
     action: 'space.archived',
     entityType: 'Space',
-    entityId: removed._id,
-    before: { name: removed.name },
+    entityId: space._id,
+    before: { name: space.name },
+    after: summary,
   });
+  return summary;
+}
+
+/** Brings a Space back with exactly what was archived with it; earlier archives stay archived. */
+export async function restoreSpace(id: string): Promise<ArchiveSummary> {
+  await connectToDatabase();
+  const { tenantId } = getContext();
+
+  const space = await spaces().findOne(
+    { _id: toObjectId(id), deletedAt: { $ne: null } },
+    { withDeleted: true },
+  );
+  if (!space) throw new Error('Archived space not found.');
+  if (
+    space.memberIds.length > 0 &&
+    !(await actorIsAdministrator()) &&
+    !space.memberIds.some((member) => String(member) === String(getContext().userId))
+  ) {
+    throw new Error('You cannot open this space.');
+  }
+
+  const tasks = await TaskModel.updateMany(
+    { tenantId, spaceId: space._id, archivedWithSpace: true },
+    { $set: { deletedAt: null, archivedWithSpace: false } },
+  );
+  const folders = await FolderModel.updateMany(
+    { tenantId, spaceId: space._id, archivedWithSpace: true },
+    { $set: { status: 'active', archivedWithSpace: false } },
+  );
+  await SpaceModel.updateOne(
+    { _id: space._id, tenantId },
+    { $set: { deletedAt: null, status: 'active' } },
+  );
+
+  const summary = { tasks: tasks.modifiedCount, folders: folders.modifiedCount };
+  await recordAudit({
+    action: 'space.restored',
+    entityType: 'Space',
+    entityId: space._id,
+    after: { name: space.name, ...summary },
+  });
+  return summary;
+}
+
+export interface ArchivedSpace {
+  id: string;
+  name: string;
+  archivedAt: Date;
+  taskCount: number;
+}
+
+/** Archived spaces the person could open, newest first, for the Restore list. */
+export async function listArchivedSpaces(): Promise<ArchivedSpace[]> {
+  await connectToDatabase();
+  const { tenantId, userId } = getContext();
+  const administrator = await actorIsAdministrator();
+  const found = await spaces()
+    .find(
+      {
+        deletedAt: { $ne: null },
+        ...(administrator ? {} : { $or: [{ memberIds: { $size: 0 } }, { memberIds: userId }] }),
+      },
+      { withDeleted: true },
+    )
+    .sort({ deletedAt: -1 });
+  return Promise.all(
+    found.map(async (space) => ({
+      id: String(space._id),
+      name: space.name,
+      archivedAt: space.deletedAt!,
+      taskCount: await TaskModel.countDocuments({
+        tenantId,
+        spaceId: space._id,
+        archivedWithSpace: true,
+      }),
+    })),
+  );
 }

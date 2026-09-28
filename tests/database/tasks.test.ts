@@ -4,10 +4,19 @@ import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
 import { TenantModel } from '@/modules/core/models/tenant.model';
 import { UserModel } from '@/modules/core/models/user.model';
-import { createSpace } from '@/modules/tasks/services/space.service';
+import {
+  archiveSpace,
+  createSpace,
+  listArchivedSpaces,
+  listSpaces,
+  restoreSpace,
+} from '@/modules/tasks/services/space.service';
+import { listFolders } from '@/modules/tasks/services/folder.service';
+import { startTimer, stopTimer } from '@/modules/time/services/time.service';
 import { createFolder, updateFolder } from '@/modules/tasks/services/folder.service';
 import {
   addDocumentLink,
+  archiveTask,
   addSubtask,
   createTask,
   getTask,
@@ -577,5 +586,50 @@ describe('folders, and who can see what', () => {
 
     expect(remaining.map((task) => task.title)).toEqual(['Still needed']);
     expect(remaining[0].folderId).toBeNull();
+  });
+});
+
+describe('archiving a space', () => {
+  it('takes its folders and tasks with it, and restore brings back exactly those', async () => {
+    const spaceId = await runWithContext(context, () => createSpace({ name: 'Old project' }));
+    await runWithContext(context, () => createFolder({ spaceId, name: 'Phase 1' }));
+    const kept = await runWithContext(context, () => createTask({ spaceId, title: 'Keep' }));
+    const earlier = await runWithContext(context, () =>
+      createTask({ spaceId, title: 'Already archived' }),
+    );
+    await runWithContext(context, () => archiveTask(earlier));
+
+    const archived = await runWithContext(context, () => archiveSpace(spaceId));
+    expect(archived).toEqual({ tasks: 1, folders: 1 });
+
+    const afterArchive = await runWithContext(context, async () => ({
+      spaces: (await listSpaces()).map((space) => space.id),
+      tasks: (await listTasks({})).map((task) => task.id),
+      folders: (await listFolders(spaceId)).length,
+      archivedList: (await listArchivedSpaces()).map((space) => space.name),
+    }));
+    expect(afterArchive.spaces).not.toContain(spaceId);
+    expect(afterArchive.tasks).not.toContain(kept);
+    expect(afterArchive.folders).toBe(0);
+    expect(afterArchive.archivedList).toEqual(['Old project']);
+
+    await runWithContext(context, () => restoreSpace(spaceId));
+    const tasks = (await runWithContext(context, () => listTasks({}))).map((task) => task.id);
+    expect(tasks).toContain(kept);
+    // Archived on its own before the space was, so it stays archived.
+    expect(tasks).not.toContain(earlier);
+    expect(await runWithContext(context, () => listFolders(spaceId))).toHaveLength(1);
+  });
+
+  it('refuses while someone has a timer running in it', async () => {
+    const spaceId = await runWithContext(context, () => createSpace({ name: 'Busy' }));
+    const taskId = await runWithContext(context, () => createTask({ spaceId, title: 'Work' }));
+    await runWithContext(context, () => startTimer(taskId));
+    await expect(runWithContext(context, () => archiveSpace(spaceId))).rejects.toThrow(/timer/i);
+    await runWithContext(context, () => stopTimer());
+    await expect(runWithContext(context, () => archiveSpace(spaceId))).resolves.toEqual({
+      tasks: 1,
+      folders: 0,
+    });
   });
 });

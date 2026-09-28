@@ -28,6 +28,8 @@ const folderSchema = new Schema(
 
     status: { type: String, enum: ['active', 'archived'], default: 'active', index: true },
     deletedAt: { type: Date, default: null, index: true },
+    /** Archived because its Space was; see the same field on tasks. */
+    archivedWithSpace: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

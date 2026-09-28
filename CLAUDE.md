@@ -61,6 +61,10 @@ The full scope document lives in the Claude project "ECHO System Development" as
    folder does everything a phase did and adds visibility, so keeping both would give the team two
    ways to group the same work. Portfolios were removed earlier. scripts/migrate-spaces.ts carries
    an older database across.
+   Archiving a Space (28 Sep 2026) takes its folders, tasks and their subtasks with it, marked
+   `archivedWithSpace`, so restoring brings back exactly those and nothing archived before. It is
+   refused while a timer runs inside it; logged time is kept. Settings (gear on the Space) has a
+   two-step "Archive space…", and Spaces lists archived spaces with Restore.
 9. XVERSE integration: COEX writes events to an outbox, a connector sends them. Both sides are ours.
 10. Client tenants will be billed eventually. The model is undecided, so tenant settings carry an
     inert commercial block and nothing more.

@@ -22,4 +22,5 @@ taskCommentSchema.index({ tenantId: 1, taskId: 1, createdAt: 1 });
 export type TaskComment = InferSchemaType<typeof taskCommentSchema>;
 
 export const TaskCommentModel: Model<TaskComment> =
-  (models.TaskComment as Model<TaskComment>) ?? model<TaskComment>('TaskComment', taskCommentSchema);
+  (models.TaskComment as Model<TaskComment>) ??
+  model<TaskComment>('TaskComment', taskCommentSchema);
