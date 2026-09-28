@@ -428,13 +428,13 @@ body {
 .sidebar-glow {
   background: linear-gradient(
     172deg,
-    #fffaf4 0%,
-    #fff1e7 16%,
-    #fdf0f5 32%,
-    #fffbea 48%,
-    #effaf4 64%,
-    #eef5ff 82%,
-    #f5f1ff 100%
+    #fffbf6 0%,
+    #fff4ec 16%,
+    #fdf3f7 32%,
+    #fffcee 48%,
+    #f2fbf6 64%,
+    #f1f7ff 82%,
+    #f7f4ff 100%
   );
 }
 
