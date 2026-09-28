@@ -18,7 +18,7 @@ export function Sidebar({
   canManageTasks: boolean;
 }) {
   return (
-    <aside className="hidden w-60 shrink-0 flex-col border-r border-[var(--color-line)] bg-[var(--color-surface)] md:flex">
+    <aside className="sidebar-glow hidden w-60 shrink-0 flex-col border-r border-[var(--color-line)] md:flex">
       <div className="flex items-center justify-between px-4 py-3">
         <p className="truncate text-sm font-semibold text-[var(--color-ink)]">{tenantName}</p>
       </div>

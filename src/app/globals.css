@@ -418,3 +418,32 @@ body {
     animation: none;
   }
 }
+
+/*
+ * The sidebar behind the menu carries the same sunset, cloud and rainbow mix as the rail's glowing
+ * tile (John, 28 Sep 2026), much paler, so the menu reads as easily as on white. It stays still:
+ * movement across a whole panel beside the work would pull the eye all day. Dark gets the same
+ * idea in deep tints, since pastels would glare there.
+ */
+.sidebar-glow {
+  background: linear-gradient(
+    172deg,
+    #fffaf4 0%,
+    #fff1e7 16%,
+    #fdf0f5 32%,
+    #fffbea 48%,
+    #effaf4 64%,
+    #eef5ff 82%,
+    #f5f1ff 100%
+  );
+}
+
+html[data-theme='dark'] .sidebar-glow {
+  background: linear-gradient(
+    172deg,
+    #221d1b 0%,
+    #221c21 30%,
+    #1d2022 60%,
+    #1e1c26 100%
+  );
+}

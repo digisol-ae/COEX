@@ -175,7 +175,8 @@ never sent to their browser.
   email are refused. The `password_reset` email kind cannot be switched off.
 - The selected item on the dark icon rail glows (`rail-glow` in globals.css, 28 Sep 2026): a light
   pastel tile, cloud white with sunset and rainbow tints, a soft halo, drifting slowly; still for
-  reduced motion.
+  reduced motion. The whole desktop sidebar behind the menu carries a paler, still version of the
+  same mix (`sidebar-glow`), with deep tints in the Dark theme.
 - Menu headings are bold in full ink (`navigation-heading`); the current page carries a red bar
   and red tint (`navigation-active`), in the sidebar, the phone drawer and the Spaces tree.
 
