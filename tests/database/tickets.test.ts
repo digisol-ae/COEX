@@ -650,6 +650,37 @@ describe('signatures on customer email', () => {
   });
 });
 
+describe('closing a ticket', () => {
+  it('closes straight from open, recording the resolution too', async () => {
+    const queueId = await aQueue();
+    const id = await aTicket(queueId);
+    await runWithContext(context, () => changeStatus(id, 'open'));
+    await runWithContext(context, () => changeStatus(id, 'closed'));
+    const ticket = await TicketModel.findById(id);
+    expect(ticket?.status).toBe('closed');
+    expect(ticket?.closedAt).toBeInstanceOf(Date);
+    expect(ticket?.resolvedAt).toBeInstanceOf(Date);
+  });
+
+  it('keeps the resolution time of a ticket that was resolved before closing', async () => {
+    const queueId = await aQueue();
+    const id = await aTicket(queueId);
+    await runWithContext(context, () => changeStatus(id, 'resolved'));
+    const resolvedAt = (await TicketModel.findById(id))?.resolvedAt;
+    await runWithContext(context, () => changeStatus(id, 'closed'));
+    expect((await TicketModel.findById(id))?.resolvedAt).toEqual(resolvedAt);
+  });
+
+  it('never reopens a closed ticket', async () => {
+    const queueId = await aQueue();
+    const id = await aTicket(queueId);
+    await runWithContext(context, () => changeStatus(id, 'closed'));
+    await expect(runWithContext(context, () => changeStatus(id, 'open'))).rejects.toThrow(
+      /follow up/i,
+    );
+  });
+});
+
 describe('tenant isolation', () => {
   it('never shows one tenant another tenant’s tickets', async () => {
     const queueId = await aQueue();

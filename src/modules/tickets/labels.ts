@@ -16,6 +16,26 @@ export const STATUS_LABELS: Record<TicketStatus, string> = {
   closed: 'Closed',
 };
 
+/**
+ * Closing is allowed from any open status (John found tickets could not be closed, 28 Sep 2026):
+ * it used to need Resolved first, and the list swallowed the refusal. Closing an unresolved ticket
+ * records its resolution too, so the service level figures still count it.
+ */
+export const ALLOWED_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
+  new: ['open', 'pending_customer', 'escalated', 'resolved', 'closed'],
+  open: ['pending_customer', 'escalated', 'resolved', 'closed'],
+  pending_customer: ['open', 'escalated', 'resolved', 'closed'],
+  escalated: ['open', 'pending_customer', 'resolved', 'closed'],
+  resolved: ['open', 'closed'],
+  // Nothing leaves Closed. Reopening creates a follow up ticket instead.
+  closed: [],
+};
+
+/** Whether a ticket may move from one status to another; the menus grey out the rest. */
+export function canMoveTo(from: TicketStatus, to: TicketStatus): boolean {
+  return from === to || ALLOWED_TRANSITIONS[from].includes(to);
+}
+
 export const CHANNEL_LABELS: Record<string, string> = {
   agent: 'Raised by us',
   portal: 'Portal',

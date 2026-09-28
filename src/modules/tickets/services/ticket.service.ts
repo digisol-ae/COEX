@@ -23,6 +23,7 @@ import { TaskModel } from '@/modules/tasks/models/task.model';
 import { TicketModel } from '../models/ticket.model';
 import { TicketMessageModel } from '../models/ticket-message.model';
 import { unreadAmong } from './unread.service';
+import { ALLOWED_TRANSITIONS } from '../labels';
 import { customerEmailText, renderSignature } from '../email-text';
 import { QueueModel, DEFAULT_TARGETS } from '../models/queue.model';
 import {
@@ -322,15 +323,6 @@ export async function addReply(input: ReplyInput): Promise<string> {
   return String(message._id);
 }
 
-const ALLOWED_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
-  new: ['open', 'pending_customer', 'escalated', 'resolved'],
-  open: ['pending_customer', 'escalated', 'resolved'],
-  pending_customer: ['open', 'escalated', 'resolved'],
-  escalated: ['open', 'pending_customer', 'resolved'],
-  resolved: ['open', 'closed'],
-  // Nothing leaves Closed. Reopening creates a follow up ticket instead.
-  closed: [],
-};
 
 export async function changeStatus(ticketId: string, status: TicketStatus): Promise<void> {
   await connectToDatabase();
@@ -353,7 +345,7 @@ export async function changeStatus(ticketId: string, status: TicketStatus): Prom
   const now = new Date();
   const update: Record<string, unknown> = { status, lastActivityAt: now };
 
-  if (status === 'resolved') {
+  if (status === 'resolved' || (status === 'closed' && !ticket.resolvedAt)) {
     const calendar = await calendarForTenant();
 
     update.resolvedAt = now;
@@ -376,7 +368,8 @@ export async function changeStatus(ticketId: string, status: TicketStatus): Prom
     ...changedFields({ status: current }, { status }),
   });
 
-  if (status === 'resolved' && ticket.organisationId) {
+  // Closed without a Resolved step is still resolved work on the customer's timeline.
+  if ((status === 'resolved' || (status === 'closed' && !ticket.resolvedAt)) && ticket.organisationId) {
     await recordActivity({
       organisationId: ticket.organisationId,
       contactId: ticket.contactId,

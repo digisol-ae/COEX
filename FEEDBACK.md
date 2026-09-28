@@ -42,6 +42,9 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
   Nothing is deleted and logged time stays. Archiving is refused while a timer runs in the space.
 - Timer window, 28 Sep: the running timer and today's timers moved into a small floating window
   of pastel glass that can be dragged, folds to a clock pill, and keeps its place across pages.
+- Bug, 28 Sep: tickets could not be closed. Closing needed Resolved first and the list hid the
+  refusal. Now any open ticket can be closed (recording its resolution if it had none), the list
+  says why a change was refused, and impossible statuses are greyed out in both menus.
 - ChatGPT will take over at a later stage: every session keeps CLAUDE.md, FEEDBACK.md and the
   `ai/` files current so the hand-over needs no chat history.
 

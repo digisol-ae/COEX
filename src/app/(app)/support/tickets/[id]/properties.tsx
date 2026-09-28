@@ -5,7 +5,7 @@ import { useActionState, useState, useTransition } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
 import { TicketPicker } from './ticket-picker';
-import { STATUS_LABELS } from '@/modules/tickets/labels';
+import { STATUS_LABELS, canMoveTo } from '@/modules/tickets/labels';
 import type { Priority, TicketStatus } from '@/modules/tickets/services/ticket.service';
 import {
   assignAction,
@@ -90,7 +90,11 @@ export function Properties({
                 }
               >
                 {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
+                  <option
+                    key={value}
+                    value={value}
+                    disabled={!canMoveTo(ticket.status, value as TicketStatus)}
+                  >
                     {label}
                   </option>
                 ))}
