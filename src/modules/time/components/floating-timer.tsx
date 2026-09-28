@@ -85,8 +85,11 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
   useLayoutEffect(() => {
     const element = panel.current;
     if (!element) return;
+    // Changing size ends any drag: the clock or bubble that was pressed has been replaced, so it
+    // will never hear the pointer being let go, and a drag left hanging stops this check forever.
+    start.current = null;
     function keepOnScreen() {
-      if (!element || start.current || window.innerWidth < 640) return;
+      if (!element || (start.current && dragged.current) || window.innerWidth < 640) return;
       const { width, height } = element.getBoundingClientRect();
       const current = getSnapshot();
       const right = clamp(current.right, EDGE, window.innerWidth - width - EDGE);
@@ -171,7 +174,7 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
     updateTimerWindow({ mode: 'open' });
   }
 
-  const handle = { onPointerDown, onPointerMove, onPointerUp };
+  const handle = { onPointerDown, onPointerMove, onPointerUp, onLostPointerCapture: onPointerUp };
   const href = (kind: 'task' | 'ticket', id: string) =>
     kind === 'task' ? `/tasks/${id}` : `/support/tickets/${id}`;
 
