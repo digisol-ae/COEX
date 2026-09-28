@@ -1,190 +1,29 @@
 'use client';
 
-import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
-import { startTicketTimerAction, startTimerAction, stopTimerAction } from '@/app/(app)/time/actions';
-
-interface TodayTimer {
-  entryId: string;
-  kind: 'task' | 'ticket';
-  itemId: string;
-  itemNumber: string;
-  itemTitle: string;
-  minutes: number;
-  running: boolean;
-}
+import { toggleTimerWindow } from './floating-timer';
 
 /**
- * Every timer started today, task or ticket, in one place, so switching between things through
- * the day does not mean losing track of what else is still owed a resume.
- *
- * Stopping the running one, or resuming a stopped one, both fetch a fresh list afterward rather
- * than trusting the click alone, because starting a timer always stops whatever else is running,
- * so more than this one row can change from a single click.
+ * The timer button in the header. It opens and closes the floating timer window, which holds the
+ * running clock and today's timers (John, 28 Sep 2026); the dot says a timer is running even when
+ * the window is closed.
  */
-export function TimerTray() {
-  const [open, setOpen] = useState(false);
-  const [timers, setTimers] = useState<TodayTimer[] | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const holder = useRef<HTMLDivElement>(null);
-
-  async function load() {
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/time/today');
-      const data = (await response.json()) as { timers?: TodayTimer[] };
-      setTimers(data.timers ?? []);
-    } catch {
-      setTimers([]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function toggle() {
-    const next = !open;
-    setOpen(next);
-    if (next) await load();
-  }
-
-  async function stop(entryId: string) {
-    setBusyId(entryId);
-    await stopTimerAction();
-    await load();
-    setBusyId(null);
-  }
-
-  async function resume(entryId: string, kind: 'task' | 'ticket', itemId: string) {
-    setBusyId(entryId);
-    const data = new FormData();
-
-    if (kind === 'task') {
-      data.set('taskId', itemId);
-      await startTimerAction(data);
-    } else {
-      data.set('ticketId', itemId);
-      await startTicketTimerAction(data);
-    }
-
-    await load();
-    setBusyId(null);
-  }
-
-  useEffect(() => {
-    if (!open) return;
-
-    function onPointerDown(event: MouseEvent) {
-      if (holder.current && !holder.current.contains(event.target as Node)) setOpen(false);
-    }
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpen(false);
-    }
-
-    document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
-
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [open]);
-
+export function TimerTray({ running = false }: { running?: boolean }) {
   return (
-    <div ref={holder} className="relative">
-      <button
-        type="button"
-        onClick={toggle}
-        aria-expanded={open}
-        aria-label="Today's timers"
-        title="Today's timers"
-        className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-ink-subtle)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
-      >
-        <ListIcon />
-      </button>
-
-      {/* On a phone the button sits mid-header, so a panel anchored to it runs off the left edge;
-          there it spans the screen under the header instead. */}
-      {open ? (
-        <div className="fixed inset-x-4 top-16 z-40 rounded-[var(--radius-card)] sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-1 sm:w-72 border border-[var(--color-line)] bg-[var(--color-surface)] p-2 shadow-[var(--shadow-pop)]">
-          <p className="px-1.5 pb-1.5 text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
-            Today&apos;s timers
-          </p>
-
-          {loading && timers === null ? (
-            <p className="px-1.5 py-2 text-sm text-[var(--color-ink-subtle)]">Loading</p>
-          ) : timers && timers.length === 0 ? (
-            <p className="px-1.5 py-2 text-sm text-[var(--color-ink-subtle)]">
-              Nothing timed yet today.
-            </p>
-          ) : (
-            <ul className="space-y-0.5">
-              {(timers ?? []).map((timer) => (
-                <li
-                  key={timer.entryId}
-                  className="flex items-center gap-2 rounded-[var(--radius-control)] px-1.5 py-1.5 hover:bg-[var(--color-surface-muted)]"
-                >
-                  {timer.running ? (
-                    <span
-                      aria-hidden="true"
-                      className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-status-alert)]"
-                    />
-                  ) : (
-                    <span className="w-1.5 shrink-0" />
-                  )}
-
-                  <span
-                    title={timer.kind === 'task' ? 'Task' : 'Ticket'}
-                    className="shrink-0 text-[10px] tracking-wide text-[var(--color-ink-subtle)] uppercase"
-                  >
-                    {timer.kind === 'task' ? 'Task' : 'Tkt'}
-                  </span>
-
-                  <Link
-                    href={timer.kind === 'task' ? `/tasks/${timer.itemId}` : `/support/tickets/${timer.itemId}`}
-                    onClick={() => setOpen(false)}
-                    className="min-w-0 flex-1 truncate text-sm text-[var(--color-ink)] hover:underline"
-                    title={`${timer.itemNumber} ${timer.itemTitle}`}
-                  >
-                    {timer.itemTitle}
-                  </Link>
-
-                  <span className="shrink-0 text-xs text-[var(--color-ink-subtle)] tabular-nums">
-                    {Math.floor(timer.minutes / 60)}:{String(timer.minutes % 60).padStart(2, '0')}
-                  </span>
-
-                  {timer.running ? (
-                    <button
-                      type="button"
-                      onClick={() => stop(timer.entryId)}
-                      disabled={busyId === timer.entryId}
-                      title="Stop"
-                      aria-label={`Stop the timer for ${timer.itemTitle}`}
-                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-status-alert)] transition-colors hover:bg-[var(--color-status-alert-soft)] disabled:opacity-50"
-                    >
-                      <StopIcon />
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => resume(timer.entryId, timer.kind, timer.itemId)}
-                      disabled={busyId === timer.entryId}
-                      title="Resume"
-                      aria-label={`Resume the timer for ${timer.itemTitle}`}
-                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-status-ok)] transition-colors hover:bg-[var(--color-status-ok-soft)] disabled:opacity-50"
-                    >
-                      <PlayIcon />
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+    <button
+      type="button"
+      onClick={toggleTimerWindow}
+      aria-label={running ? 'Timers (one is running)' : 'Timers'}
+      data-tooltip="Timers"
+      className="has-tooltip relative flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-ink-subtle)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
+    >
+      <ListIcon />
+      {running ? (
+        <span
+          aria-hidden="true"
+          className="absolute top-1.5 right-1.5 h-2 w-2 animate-pulse rounded-full bg-[var(--color-status-alert)]"
+        />
       ) : null}
-    </div>
+    </button>
   );
 }
 
@@ -193,12 +32,7 @@ function ListIcon() {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path d="M6.2 1.5h3.6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
       <path d="M8 1.5v1.7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-      <path
-        d="m12.3 2.7 1 1"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-      />
+      <path d="m12.3 2.7 1 1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
       <circle cx="8" cy="9" r="5.3" stroke="currentColor" strokeWidth="1.3" />
       <path
         d="M8 6.3v2.7l2 1.6"
@@ -207,22 +41,6 @@ function ListIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-    </svg>
-  );
-}
-
-function StopIcon() {
-  return (
-    <svg width="9" height="9" viewBox="0 0 9 9" fill="none" aria-hidden="true">
-      <rect x="0.5" y="0.5" width="8" height="8" rx="1" fill="currentColor" />
-    </svg>
-  );
-}
-
-function PlayIcon() {
-  return (
-    <svg width="9" height="9" viewBox="0 0 9 9" fill="none" aria-hidden="true">
-      <path d="M1.8 0.8v7.4l6-3.7-6-3.7Z" fill="currentColor" />
     </svg>
   );
 }

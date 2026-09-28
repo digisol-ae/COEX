@@ -2,7 +2,7 @@ import { asUser, requireUser } from '@/lib/session';
 import { getRunningTimer } from '@/modules/time/services/time.service';
 import { countMyOpenTasks } from '@/modules/tasks/services/task.service';
 import { countUnreadTickets } from '@/modules/tickets/services/unread.service';
-import { RunningTimer } from '@/modules/time/components/running-timer';
+import { FloatingTimer } from '@/modules/time/components/floating-timer';
 import { TimerTray } from '@/modules/time/components/timer-tray';
 import { IconRail } from '@/components/navigation/icon-rail';
 import { Sidebar } from '@/components/navigation/sidebar';
@@ -75,17 +75,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <QuickSearch />
           </div>
 
-          {timer ? (
-            <RunningTimer
-              kind={timer.kind}
-              itemId={timer.itemId}
-              itemNumber={timer.itemNumber}
-              itemTitle={timer.itemTitle}
-              startedAt={timer.startedAt.toISOString()}
-            />
+          {user.permissions.includes('task.read.own') ? (
+            <TimerTray running={Boolean(timer)} />
           ) : null}
-
-          {user.permissions.includes('task.read.own') ? <TimerTray /> : null}
 
           <ThemeMenu current={user.theme} />
 
@@ -93,6 +85,22 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </header>
 
         <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6">{children}</main>
+
+        {user.permissions.includes('task.read.own') ? (
+          <FloatingTimer
+            running={
+              timer
+                ? {
+                    kind: timer.kind,
+                    itemId: timer.itemId,
+                    itemNumber: timer.itemNumber,
+                    itemTitle: timer.itemTitle,
+                    startedAt: timer.startedAt.toISOString(),
+                  }
+                : null
+            }
+          />
+        ) : null}
       </div>
     </div>
   );

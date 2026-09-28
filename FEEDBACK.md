@@ -40,6 +40,8 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 - Archive a Space, 28 Sep: Space settings, "Archive space…", shows how many folders and tasks go
   with it, then archives them all (subtasks included); Spaces, Archived spaces restores them.
   Nothing is deleted and logged time stays. Archiving is refused while a timer runs in the space.
+- Timer window, 28 Sep: the running timer and today's timers moved into a small floating window
+  of pastel glass that can be dragged, folds to a clock pill, and keeps its place across pages.
 - ChatGPT will take over at a later stage: every session keeps CLAUDE.md, FEEDBACK.md and the
   `ai/` files current so the hand-over needs no chat history.
 
