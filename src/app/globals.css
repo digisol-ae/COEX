@@ -373,3 +373,48 @@ body {
   border-radius: 3px;
   background: var(--color-brand-red);
 }
+
+/*
+ * The selected item on the dark icon rail glows (John, 28 Sep 2026): a light tile of cloud white,
+ * sunset peach and pale rainbow pastels, lit by a soft halo so it reads as fluorescent against the
+ * rail. The colours drift very slowly, like light across clouds, and hold still for anyone who has
+ * asked their device for less motion. The icon and label turn dark to stay readable on it.
+ */
+.rail-glow {
+  color: #1d1d1f;
+  background: linear-gradient(
+    135deg,
+    #fffaf3 0%,
+    #ffdcc6 16%,
+    #ffcfe0 32%,
+    #fff4c8 48%,
+    #d8f6e6 64%,
+    #d3e8ff 80%,
+    #e9e0ff 100%
+  );
+  background-size: 240% 240%;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 60%),
+    0 0 12px 1px rgb(255 205 180 / 45%),
+    0 0 24px 4px rgb(205 225 255 / 28%);
+  animation: rail-glow-drift 10s ease-in-out infinite alternate;
+}
+
+.rail-glow span {
+  font-weight: 600;
+}
+
+@keyframes rail-glow-drift {
+  from {
+    background-position: 0% 30%;
+  }
+  to {
+    background-position: 100% 70%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-glow {
+    animation: none;
+  }
+}

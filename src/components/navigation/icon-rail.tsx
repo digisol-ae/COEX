@@ -95,7 +95,7 @@ export function IconRail({
             className={clsx(
               'relative flex w-14 flex-col items-center gap-1 rounded-[10px] px-1 py-2 transition-colors',
               active
-                ? 'bg-[var(--color-rail-raised)] text-[var(--color-rail-ink)]'
+                ? 'rail-glow'
                 : 'text-[var(--color-rail-ink-muted)] hover:bg-[var(--color-rail-raised)]/60 hover:text-[var(--color-rail-ink)]',
             )}
           >

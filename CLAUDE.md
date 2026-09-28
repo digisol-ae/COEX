@@ -173,6 +173,9 @@ never sent to their browser.
   NIST SP 800-63B (src/modules/core/password-policy.ts): at least 12 characters, up to 128, no
   forced symbols or capitals, and common passwords, simple patterns and the person's own name or
   email are refused. The `password_reset` email kind cannot be switched off.
+- The selected item on the dark icon rail glows (`rail-glow` in globals.css, 28 Sep 2026): a light
+  pastel tile, cloud white with sunset and rainbow tints, a soft halo, drifting slowly; still for
+  reduced motion.
 - Menu headings are bold in full ink (`navigation-heading`); the current page carries a red bar
   and red tint (`navigation-active`), in the sidebar, the phone drawer and the Spaces tree.
 
