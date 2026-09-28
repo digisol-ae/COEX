@@ -38,6 +38,13 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
     });
   }
 
-  cache.connection = await cache.promise;
+  try {
+    cache.connection = await cache.promise;
+  } catch (error) {
+    // Forget the failed attempt, or every later request would reuse it and fail too, and the app
+    // would stay down after the network came back until someone restarted it (found 28 Sep 2026).
+    cache.promise = null;
+    throw error;
+  }
   return cache.connection;
 }

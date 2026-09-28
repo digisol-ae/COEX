@@ -25,6 +25,8 @@ export interface SignedInUser {
   tenantName: string;
   permissions: Permission[];
   theme: Theme;
+  /** The What's new release this person has acknowledged; null for none yet. */
+  releaseNotesSeen: string | null;
 }
 
 export type Theme = 'sunset' | 'light' | 'dark';
@@ -73,6 +75,7 @@ export const getSignedInUser = cache(
         }),
       ],
       theme: (user.theme as Theme | undefined) ?? 'sunset',
+    releaseNotesSeen: user.releaseNotesSeen ?? null,
     };
   },
 );

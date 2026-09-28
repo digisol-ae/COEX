@@ -21,8 +21,14 @@ Confirmed product name. The repository is COEX.
 
 M1 Foundation is accepted. M2 CRM foundation, M3 Tasks and dashboard, M4 Time tracking and M5
 Support are built and accepted by John (24 Sep 2026). The team cuts over from ClickUp and
-osTicket to COEX on 25 Sep 2026 (M8), and did. Batch C (decision 18) was built on 26 Sep 2026.
-Next: John's acceptance of Batch C, then Channels (M6).
+osTicket to COEX on 25 Sep 2026 (M8), and did. Batch C (decision 18) was built on 26 Sep 2026
+and accepted; themes, the profile menu, email password links, three senders, signatures, space
+archiving, the floating timer and What's new followed on 27 and 28 Sep. Handed to ChatGPT on
+28 Sep 2026: see ai/HANDOFF.md. Next: whatever John chooses; Channels (M6) is the next milestone.
+
+What's new: every user-visible change gets an entry at the top of
+src/modules/core/release-notes.ts, in plain words for users. That makes the What's new drawer open
+once more for everyone until they tick "I understand".
 
 Conventions worth knowing before changing CRM code:
 

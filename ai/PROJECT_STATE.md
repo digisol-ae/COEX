@@ -1,5 +1,13 @@
 # COEX — Shared AI Project State
 
+> **Current verified update — 28 Sep 2026 (Claude, handing to ChatGPT).** Supersedes everything
+> below where they conflict. `origin/main` is at `a71cee8`; one local commit on top adds What's new
+> (release notes drawer) and the database reconnect fix. Everything built from 26 to 28 Sep is
+> described in ai/HANDOFF.md and recorded with reasons in CLAUDE.md (decisions 12, 17, 18 and
+> "Interface conventions"). John deploys himself; restart both coex-app and coex-mail. The Mac's
+> connection to MongoDB Atlas was dropping intermittently on 28 Sep, so the last test run and a
+> browser check of What's new are still to do.
+
 > **Current verified update — 26 Sep 2026 (Claude).** Supersedes everything below where they
 > conflict. `origin/main` is deployed through `6fa0730` (unread marks, live refresh, one Outlook
 > thread per ticket, black phone drawer, leftover patch files removed). The team cut over to COEX

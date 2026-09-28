@@ -1,5 +1,12 @@
 # COEX — Current AI Task
 
+> **Current task — 28 Sep 2026: handed to ChatGPT.** Read ai/HANDOFF.md "Current Handoff — 28 Sep
+> 2026" first: it lists what was built, what is pushed (`a71cee8`) and what is only local (What's
+> new and the database reconnect fix), what was not tested because the Mac's connection to Atlas
+> kept dropping, and the open items. First steps: run `npx vitest run` once the connection is
+> stable; check the What's new drawer on the local server; then ask John what is next. No new
+> features without his approval, and do not push or deploy without being asked.
+
 > **Current task — 26 Sep 2026, afternoon (Claude):** Batch C, frosted-glass popups and icon
 > buttons are built, pushed (7c36801) and accepted by John on the local build. John deploys to
 > coex.digisol.ae himself. 27 Sep: themes (Dark, Light, Sunset), bold menu headings and the

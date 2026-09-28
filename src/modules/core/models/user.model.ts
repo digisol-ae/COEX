@@ -44,6 +44,9 @@ const userSchema = new Schema(
     /** The person's colour theme, on the account so it follows them across devices. */
     theme: { type: String, enum: ['sunset', 'light', 'dark'], default: 'sunset' },
 
+    /** The newest What's new release this person ticked "I understand" on. */
+    releaseNotesSeen: { type: String, default: null },
+
     /** Optional link to the customer record, used by the client contact role. */
     organisationId: { type: Schema.Types.ObjectId, ref: 'Organisation', default: null },
 

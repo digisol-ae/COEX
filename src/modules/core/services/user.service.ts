@@ -280,3 +280,12 @@ export async function updateMyProfile(input: { name: string; title: string }): P
     after: diff.after,
   });
 }
+
+/** Records that the signed-in person understood the What's new up to this release. */
+export async function acknowledgeReleaseNotes(releaseId: string): Promise<void> {
+  await connectToDatabase();
+  await users().updateOne(
+    { _id: toObjectId(String(getContext().userId)) },
+    { $set: { releaseNotesSeen: releaseId.slice(0, 40) } },
+  );
+}

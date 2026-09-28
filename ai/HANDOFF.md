@@ -1,5 +1,72 @@
 # COEX — AI Handoff
 
+## Current Handoff — 28 Sep 2026, from Claude to ChatGPT
+
+John asked for everything to be handed to ChatGPT. Read CLAUDE.md first (decisions 12, 17, 18 and
+"Interface conventions" cover everything below), then FEEDBACK.md "Decisions from John, 26 Sep".
+
+### State of the repository
+
+- `origin/main` is at `a71cee8` (pushed 28 Sep). The handover commit on top of it adds What's new
+  and the database reconnect fix and is **committed locally, not pushed**. John pushes and deploys
+  himself; ask before pushing.
+- Live coex.digisol.ae was last confirmed deployed at `6fa0730`; John may have deployed later
+  pushes himself. Deploy: `cd /srv/coex/app && git pull && npm ci && npm run build && pm2 restart
+  coex-app coex-mail` (restart coex-mail too: the email worker changed since `6fa0730`). SSH:
+  `ssh -i ~/Downloads/digisol-zabbix.pem digisol@194.163.137.54`. No migrations are needed; every
+  new field has a default.
+
+### Built since 26 Sep (all in CLAUDE.md with the reasoning)
+
+- Batch C: shared ticket/task conversation with @mentions, My work, reason for time changes,
+  Arrange my menu, task → ticket link.
+- Themes (Sunset, Light, Dark) stored on the user; avatar menu (Edit profile, Arrange my menu,
+  What's new, Sign out); `/profile` page.
+- Passwords only via emailed one-time links (`password-reset.service.ts`, `/forgot-password`,
+  `/reset-password`), rules per NIST SP 800-63B (`core/password-policy.ts`).
+- Three senders (Standard, Alert, Admin) chosen by email kind (`SENDER_FOR` in email.service);
+  new-ticket alert; "notify" on an administrator's password reset.
+- Queue signature editor and previews (`tickets/email-text.ts` builds all customer email text).
+- Archive/restore a Space with its folders and tasks (`archivedWithSpace`).
+- Look: icon buttons with tooltips (`components/ui/icon-button.tsx`), frosted-glass popups
+  (`popup-glass`, `popup-glass-gradient`), rail glow and sidebar gradient, Raise ticket popup.
+- Floating timer window in three sizes (`modules/time/components/floating-timer.tsx`).
+- Tickets can be closed from any open status (`ALLOWED_TRANSITIONS` now in `tickets/labels.ts`).
+- In the handover commit: **What's new** (`core/release-notes.ts` + `navigation/whats-new.tsx`).
+  A right-side drawer opens once per sign-in until the person ticks "I understand"
+  (`user.releaseNotesSeen`); it is always reachable from the avatar menu. **Add a release at the top
+  of RELEASE_NOTES for every user-visible change**; that alone makes it open for everyone again.
+- In the handover commit: `lib/db.ts` no longer caches a failed connection. Before, one failed
+  connect kept every request failing until a restart.
+
+### Tested and not tested
+
+- Passing when last run: unit tests (63), tickets (48 incl. new ones), tasks (30), time (18),
+  email-senders (8), type check, lint (only the four older errors in row-actions.tsx, board.tsx,
+  task-form.tsx), `next build` (26 Sep).
+- **Not run**: the new "closing a ticket" database tests and anything after them, because John's
+  Mac lost its connection to MongoDB Atlas intermittently (`ENOTFOUND`, `queryTxt ETIMEOUT`). Run
+  `npx vitest run` when the connection is stable.
+- **What's new was not seen in a browser**: the local server could not reach Atlas at the time.
+  Check it on the local server: sign in, the drawer should slide in; tick, Done, reload, it should
+  not reopen; avatar menu, What's new, it opens.
+
+### Local set-up used for QA
+
+Local server on port 3100 against a throwaway `coex_qa` database (never `coex_dev`): start with
+`MONGODB_URI` from .env.local with `/coex_dev` replaced by `/coex_qa`. Test user `qa@coex.test`
+(password in Claude's scratchpad, not in the repo; reset it through /forgot-password, whose email
+sits in the `emailoutboxes` collection of coex_qa since no worker runs locally) and `fatima@coex.test`.
+
+### Open items, in John's order of likely interest
+
+1. Accounts marked "must change password" are not forced to change it at first sign-in.
+2. Offer to run the local server on a MongoDB installed on the Mac, so it does not depend on the
+   unreliable connection to Atlas (John would run the install).
+3. Timesheet edit shows "Unknown task" for time logged on a ticket (harmless).
+4. Older: a Prettier pass; the four lint errors; tickets table scrolls sideways below ~1200px;
+   Gantt export; attachment archival at 50 GB; Entra sign-in; M6 Channels.
+
 ## Update — 26 Sep 2026 afternoon, Claude: Batch C
 
 Built (commits 56d5d60, 28ce08d, e6c61de, c62385d, 2e7dd2e): core `mention.service.ts` and the

@@ -10,6 +10,8 @@ import { MobileNavigation } from '@/components/navigation/mobile-navigation';
 import { QuickSearch } from '@/components/navigation/quick-search';
 import { UserMenu } from '@/components/navigation/user-menu';
 import { ThemeMenu } from '@/components/navigation/theme-menu';
+import { WhatsNew } from '@/components/navigation/whats-new';
+import { LATEST_RELEASE_ID } from '@/modules/core/release-notes';
 import { orderGroups, visibleGroups } from '@/components/navigation/navigation';
 import { getNavigationOrder } from '@/modules/core/services/user.service';
 
@@ -81,10 +83,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
           <ThemeMenu current={user.theme} />
 
-          <UserMenu name={user.name} email={user.email} tenantName={user.tenantName} />
+          <UserMenu
+            name={user.name}
+            email={user.email}
+            tenantName={user.tenantName}
+            newsUnseen={user.releaseNotesSeen !== LATEST_RELEASE_ID}
+          />
         </header>
 
         <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6">{children}</main>
+
+        <WhatsNew seen={user.releaseNotesSeen} />
 
         {user.permissions.includes('task.read.own') ? (
           <FloatingTimer
