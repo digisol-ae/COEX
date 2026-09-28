@@ -4,15 +4,18 @@
  */
 
 export interface TimerWindowState {
-  /** open: the full window; pill: folded to the running clock; closed: hidden. */
-  mode: 'open' | 'pill' | 'closed';
+  /** open: the full window; clock: a floating digital clock; mini: a small bubble. */
+  mode: 'open' | 'clock' | 'mini';
   /** Distance from the bottom right corner, so a smaller screen never strands it off the edge. */
   right: number;
   bottom: number;
 }
 
 const STORAGE_KEY = 'coex.timer.window';
-const DEFAULT: TimerWindowState = { mode: 'pill', right: 20, bottom: 20 };
+const DEFAULT: TimerWindowState = { mode: 'clock', right: 20, bottom: 20 };
+
+/** Names used before the three sizes, so a saved choice carries over. */
+const RENAMED: Record<string, TimerWindowState['mode']> = { pill: 'clock', closed: 'mini' };
 
 const listeners = new Set<() => void>();
 let cachedRaw: string | null | undefined;
@@ -32,9 +35,9 @@ export function getSnapshot(): TimerWindowState {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw !== cachedRaw) {
       cachedRaw = raw;
-      cachedValue = raw
-        ? { ...DEFAULT, ...(JSON.parse(raw) as Partial<TimerWindowState>) }
-        : DEFAULT;
+      const saved = raw ? (JSON.parse(raw) as Partial<TimerWindowState>) : {};
+      const mode = saved.mode ? (RENAMED[saved.mode] ?? saved.mode) : DEFAULT.mode;
+      cachedValue = { ...DEFAULT, ...saved, mode };
     }
     return cachedValue;
   } catch {

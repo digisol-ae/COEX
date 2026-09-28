@@ -162,10 +162,11 @@ never sent to their browser.
   sidebar's pastels (28 Sep 2026).
 - A phone has no hover, so nothing may be reachable only on hover.
 - Timers live in a floating window of pastel glass (`FloatingTimer`, 28 Sep 2026): the running
-  clock with stop, and today's timers with stop and resume. It can be dragged (desktop), folds to
-  a pill showing the clock, sits along the bottom on a phone, and remembers its place and state per
-  browser. The header's timer button opens and closes it and shows a dot while a timer runs; the
-  old header clock is gone.
+  clock with stop, and today's timers with stop and resume. Three sizes (28 Sep 2026): Open, the
+  full window; Clock, a floating digital clock only; Minimized, a small bubble with a dot while a
+  timer runs. All three drag on a desktop (a drag never counts as a click), and the place and size
+  are remembered per browser. The header's timer button switches between Open and Minimized and
+  shows a dot while a timer runs; the old header clock is gone.
 - Three themes (27 Sep 2026): Sunset (the original warm tokens in `@theme`), Light and Dark
   (overrides on `html[data-theme=...]` in globals.css). Components use only colour tokens, never
   literal colours, so a theme is only a set of values. The choice is stored on the user (`theme`)

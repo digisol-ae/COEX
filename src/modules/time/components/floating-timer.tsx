@@ -46,10 +46,13 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
   const [version, setVersion] = useState(0);
   const [drag, setDrag] = useState<{ right: number; bottom: number } | null>(null);
   const start = useRef<{ x: number; y: number; right: number; bottom: number } | null>(null);
+  // Set by a drag, so letting go over the clock or bubble does not also count as a click.
+  const dragged = useRef(false);
   const panel = useRef<HTMLDivElement>(null);
   const now = useNow(Boolean(running));
 
-  const mode = prefs.mode === 'pill' && !running ? 'closed' : prefs.mode;
+  // The clock has nothing to show without a running timer, so it waits as the bubble instead.
+  const mode = prefs.mode === 'clock' && !running ? 'mini' : prefs.mode;
   const runningKey = running ? `${running.itemId}:${running.startedAt}` : 'none';
 
   useEffect(() => {
@@ -68,19 +71,24 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
     };
   }, [mode, runningKey, version]);
 
-  if (mode === 'closed') return null;
-
   const position = drag ?? { right: prefs.right, bottom: prefs.bottom };
 
   function onPointerDown(event: PointerEvent<HTMLElement>) {
-    if (window.innerWidth < 640 || (event.target as HTMLElement).closest('button, a')) return;
+    if (window.innerWidth < 640) return;
+    // Buttons inside the handle work as buttons, except the clock and bubble, which are the handle.
+    if ((event.target as HTMLElement).closest('a, button:not([data-drag-handle])')) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     start.current = { x: event.clientX, y: event.clientY, ...position };
+    dragged.current = false;
   }
 
   function onPointerMove(event: PointerEvent<HTMLElement>) {
     if (!start.current || !panel.current) return;
     const { width, height } = panel.current.getBoundingClientRect();
+    const distance =
+      Math.abs(event.clientX - start.current.x) + Math.abs(event.clientY - start.current.y);
+    if (distance < 4 && !dragged.current) return;
+    dragged.current = true;
     setDrag({
       right: clamp(
         start.current.right - (event.clientX - start.current.x),
@@ -122,6 +130,17 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
   }
 
   const clock = running ? elapsed(running.startedAt, now) : null;
+
+  /** Opens the full window, unless the pointer was just used to drag. */
+  function openWindow() {
+    if (dragged.current) {
+      dragged.current = false;
+      return;
+    }
+    updateTimerWindow({ mode: 'open' });
+  }
+
+  const handle = { onPointerDown, onPointerMove, onPointerUp };
   const href = (kind: 'task' | 'ticket', id: string) =>
     kind === 'task' ? `/tasks/${id}` : `/support/tickets/${id}`;
 
@@ -132,55 +151,68 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
       aria-label="Timers"
       style={{ right: position.right, bottom: position.bottom }}
       className={clsx(
-        'popup-glass-gradient fixed z-40 max-sm:!right-4 max-sm:!bottom-4 max-sm:left-4',
-        mode === 'pill' ? 'rounded-full px-1.5 py-1.5 sm:w-auto' : 'w-auto sm:w-80',
+        'popup-glass-gradient fixed z-40 max-sm:!right-4 max-sm:!bottom-4',
+        mode === 'open' && 'w-auto max-sm:left-4 sm:w-80',
+        mode === 'clock' && 'rounded-2xl',
+        mode === 'mini' && 'rounded-full',
         drag ? 'cursor-grabbing select-none' : '',
       )}
     >
-      {mode === 'pill' && running ? (
-        <div
-          className="flex cursor-grab items-center gap-2 pl-2 select-none"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
+      {mode === 'mini' ? (
+        <button
+          type="button"
+          data-drag-handle
+          {...handle}
+          onClick={openWindow}
+          aria-label={running ? 'Open timers (one is running)' : 'Open timers'}
+          data-tooltip="Timers"
+          className="has-tooltip relative flex h-12 w-12 cursor-grab items-center justify-center rounded-full text-[var(--color-ink-muted)] select-none hover:text-[var(--color-ink)]"
         >
+          <StopwatchIcon />
+          {running ? (
+            <span
+              aria-hidden="true"
+              className="absolute top-2.5 right-2.5 h-2 w-2 animate-pulse rounded-full bg-[var(--color-status-alert)]"
+            />
+          ) : null}
+        </button>
+      ) : mode === 'clock' && running ? (
+        <div className="group flex items-center gap-2 py-1.5 pr-1.5 pl-3.5">
           <span
             aria-hidden="true"
             className="h-2 w-2 animate-pulse rounded-full bg-[var(--color-status-alert)]"
           />
           <button
             type="button"
-            onClick={() => updateTimerWindow({ mode: 'open' })}
-            className="min-w-0 text-left"
-            aria-label="Open the timer window"
+            data-drag-handle
+            {...handle}
+            onClick={openWindow}
+            aria-label={`Timer ${running.itemNumber}: open the timer window`}
+            title={`${running.itemNumber} ${running.itemTitle}`}
+            className="cursor-grab px-1 font-mono text-3xl leading-none font-semibold tracking-tight text-[var(--color-ink)] tabular-nums select-none"
+            // The server and the browser draw the clock seconds apart, so it always differs.
+            suppressHydrationWarning
           >
-            {/* The server and the browser draw the clock seconds apart, so it always differs. */}
-            <span
-              className="font-semibold tabular-nums text-[var(--color-ink)]"
-              suppressHydrationWarning
-            >
-              {clock}
-            </span>
-            <span className="ml-2 hidden max-w-40 truncate align-bottom text-xs text-[var(--color-ink-muted)] sm:inline-block">
-              {running.itemTitle}
-            </span>
+            {clock}
           </button>
-          <RoundButton
-            label="Stop timer"
-            tone="stop"
-            onClick={() => stop('running')}
-            disabled={busyId !== null}
-          >
-            <StopIcon />
-          </RoundButton>
+          <div className="flex flex-col opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 max-sm:opacity-100">
+            <RoundButton
+              label="Open the full window"
+              small
+              onClick={() => updateTimerWindow({ mode: 'open' })}
+            >
+              <ExpandIcon />
+            </RoundButton>
+            <RoundButton label="Minimize" small onClick={() => updateTimerWindow({ mode: 'mini' })}>
+              <FoldIcon />
+            </RoundButton>
+          </div>
         </div>
       ) : (
         <div className="p-3">
           <div
             className="flex cursor-grab items-center justify-between gap-2 pb-2 select-none"
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
+            {...handle}
           >
             <p className="text-xs font-semibold tracking-wide text-[var(--color-ink-muted)] uppercase">
               Timers
@@ -188,14 +220,14 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
             <div className="flex items-center gap-0.5">
               {running ? (
                 <RoundButton
-                  label="Fold to the clock"
-                  onClick={() => updateTimerWindow({ mode: 'pill' })}
+                  label="Shrink to a clock"
+                  onClick={() => updateTimerWindow({ mode: 'clock' })}
                 >
-                  <FoldIcon />
+                  <ClockIcon />
                 </RoundButton>
               ) : null}
-              <RoundButton label="Close" onClick={() => updateTimerWindow({ mode: 'closed' })}>
-                <CloseIcon />
+              <RoundButton label="Minimize" onClick={() => updateTimerWindow({ mode: 'mini' })}>
+                <FoldIcon />
               </RoundButton>
             </div>
           </div>
@@ -271,6 +303,7 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
                   {timer.running ? (
                     <RoundButton
                       label={`Stop the timer for ${timer.itemTitle}`}
+                      plainTooltip
                       tone="stop"
                       onClick={() => stop(timer.entryId)}
                       disabled={busyId !== null}
@@ -280,6 +313,7 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
                   ) : (
                     <RoundButton
                       label={`Resume the timer for ${timer.itemTitle}`}
+                      plainTooltip
                       tone="go"
                       onClick={() => resume(timer)}
                       disabled={busyId !== null}
@@ -297,9 +331,9 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
   );
 }
 
-/** Opens or closes the window, for the timer button in the header. */
+/** Opens the window, or minimizes it when it is open, for the timer button in the header. */
 export function toggleTimerWindow(): void {
-  updateTimerWindow({ mode: getSnapshot().mode === 'open' ? 'closed' : 'open' });
+  updateTimerWindow({ mode: getSnapshot().mode === 'open' ? 'mini' : 'open' });
 }
 
 function useNow(ticking: boolean): number {
@@ -328,9 +362,14 @@ function RoundButton({
   tone,
   onClick,
   disabled,
+  small,
+  plainTooltip,
   children,
 }: {
   label: string;
+  small?: boolean;
+  /** The browser's own tooltip, for buttons inside the scrolling list, which would clip ours. */
+  plainTooltip?: boolean;
   tone?: 'stop' | 'go';
   onClick: () => void;
   disabled?: boolean;
@@ -342,9 +381,12 @@ function RoundButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      data-tooltip={label}
+      title={plainTooltip ? label : undefined}
+      data-tooltip={plainTooltip ? undefined : label}
       className={clsx(
-        'has-tooltip flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40',
+        !plainTooltip && 'has-tooltip',
+        'flex shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40',
+        small ? 'h-5 w-5' : 'h-7 w-7',
         tone === 'stop'
           ? 'text-[var(--color-status-alert)] hover:bg-[var(--color-status-alert-soft)]'
           : tone === 'go'
@@ -381,10 +423,39 @@ function FoldIcon() {
   );
 }
 
-function CloseIcon() {
+function ClockIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-      <path d="m3 3 6 6M9 3 3 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <circle cx="7" cy="7" r="5.2" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M7 4.3V7l1.8 1.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ExpandIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <path
+        d="M7 2.5h2.5V5M5 9.5H2.5V7M9.5 2.5 6.8 5.2M2.5 9.5l2.7-2.7"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function StopwatchIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="10" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M8 2.5h4M10 2.5v2M10 8v3l2 1.3M15.2 5.3l1 1"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
