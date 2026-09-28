@@ -2,7 +2,14 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState, useSyncExternalStore, type PointerEvent } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type PointerEvent,
+} from 'react';
 import { clsx } from 'clsx';
 import {
   startTicketTimerAction,
@@ -72,6 +79,30 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
   }, [mode, runningKey, version]);
 
   const position = drag ?? { right: prefs.right, bottom: prefs.bottom };
+
+  // A place chosen for the small bubble can leave the taller full window partly off screen, as can
+  // a smaller browser window later. Whenever the size changes, pull it back fully into view.
+  useLayoutEffect(() => {
+    const element = panel.current;
+    if (!element) return;
+    function keepOnScreen() {
+      if (!element || start.current || window.innerWidth < 640) return;
+      const { width, height } = element.getBoundingClientRect();
+      const current = getSnapshot();
+      const right = clamp(current.right, EDGE, window.innerWidth - width - EDGE);
+      const bottom = clamp(current.bottom, EDGE, window.innerHeight - height - EDGE);
+      if (right !== current.right || bottom !== current.bottom)
+        updateTimerWindow({ right, bottom });
+    }
+    keepOnScreen();
+    const observer = new ResizeObserver(keepOnScreen);
+    observer.observe(element);
+    window.addEventListener('resize', keepOnScreen);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', keepOnScreen);
+    };
+  }, [mode]);
 
   function onPointerDown(event: PointerEvent<HTMLElement>) {
     if (window.innerWidth < 640) return;
