@@ -9,6 +9,7 @@ import { EmailSettingsModel } from '../models/email-settings.model';
 import { EmailOutboxModel } from '../models/email-outbox.model';
 import { UserModel } from '../models/user.model';
 import { recordAudit } from './audit.service';
+import { permissionsFor, type Role } from '../permissions';
 
 /**
  * Email for a tenant: its settings, the outbox every request writes to, and the delivery the email
@@ -26,9 +27,62 @@ export type OutboxKind =
   | 'task_assigned'
   | 'mentioned'
   | 'password_reset'
+  | 'ticket_created'
+  | 'password_set_by_admin'
   | 'test';
 
-type StaffAlert = 'ticket_assigned' | 'customer_replied' | 'task_assigned' | 'mentioned';
+/**
+ * Which address each kind of mail comes from (John, 28 Sep 2026). Customers always hear from the
+ * standard address they write to; staff alerts come from Alert, so people can filter them; account
+ * and security mail comes from Admin, so it is never mistaken for a routine notification.
+ */
+export type SenderRole = 'standard' | 'alert' | 'admin';
+
+const SENDER_FOR: Record<OutboxKind, SenderRole> = {
+  auto_reply: 'standard',
+  ticket_reply: 'standard',
+  test: 'standard',
+  ticket_created: 'alert',
+  ticket_assigned: 'alert',
+  customer_replied: 'alert',
+  task_assigned: 'alert',
+  mentioned: 'alert',
+  password_reset: 'admin',
+  password_set_by_admin: 'admin',
+};
+
+export function senderRoleFor(kind: OutboxKind): SenderRole {
+  return SENDER_FOR[kind];
+}
+
+type StaffAlert =
+  'ticket_assigned' | 'customer_replied' | 'task_assigned' | 'mentioned' | 'ticket_created';
+
+export type NewTicketAlert = 'off' | 'admins' | 'desk';
+
+export interface SenderView {
+  fromName: string;
+  fromAddress: string;
+  ownAccount: boolean;
+  host: string;
+  port: number;
+  secure: boolean;
+  username: string;
+  hasPassword: boolean;
+  lastError: string | null;
+}
+
+export interface SenderInput {
+  fromName: string;
+  fromAddress: string;
+  ownAccount: boolean;
+  host: string;
+  port: number;
+  secure: boolean;
+  username: string;
+  /** Blank keeps the stored password. */
+  password: string;
+}
 
 const MAX_ATTEMPTS = 5;
 
@@ -77,6 +131,7 @@ export interface EmailSettingsView {
     fromAddress: string;
     lastError: string | null;
   };
+  senders: { alert: SenderView; admin: SenderView };
   customer: {
     autoReplyEnabled: boolean;
     autoReplyBody: string;
@@ -87,6 +142,7 @@ export interface EmailSettingsView {
     customerReplied: boolean;
     taskAssigned: boolean;
     mentioned: boolean;
+    ticketCreated: NewTicketAlert;
   };
   pendingCount: number;
   failedCount: number;
@@ -99,6 +155,66 @@ async function settingsDocument() {
     (await EmailSettingsModel.findOne({ tenantId })) ??
     (await EmailSettingsModel.create({ tenantId }))
   );
+}
+
+type StoredSender = {
+  fromName?: string | null;
+  fromAddress?: string | null;
+  ownAccount?: boolean | null;
+  host?: string | null;
+  port?: number | null;
+  secure?: boolean | null;
+  username?: string | null;
+  passwordSealed?: string | null;
+  lastError?: string | null;
+};
+
+function senderView(stored: StoredSender | null | undefined): SenderView {
+  return {
+    fromName: stored?.fromName ?? '',
+    fromAddress: stored?.fromAddress ?? '',
+    ownAccount: stored?.ownAccount ?? false,
+    host: stored?.host ?? '',
+    port: stored?.port ?? 465,
+    secure: stored?.secure ?? true,
+    username: stored?.username ?? '',
+    hasPassword: Boolean(stored?.passwordSealed),
+    lastError: stored?.lastError ?? null,
+  };
+}
+
+function applySender(
+  role: 'alert' | 'admin',
+  input: SenderInput,
+  stored: StoredSender | null | undefined,
+): StoredSender {
+  const label = role === 'alert' ? 'Alert' : 'Admin';
+  const fromAddress = input.fromAddress.trim().toLowerCase();
+  const passwordSealed = input.password
+    ? sealSecret(input.password)
+    : (stored?.passwordSealed ?? null);
+
+  if (fromAddress && !isEmailAddress(fromAddress)) {
+    throw new Error(`Enter a valid address for the ${label} sender.`);
+  }
+  if (fromAddress && input.ownAccount) {
+    if (!input.host.trim()) throw new Error(`The ${label} sender needs an SMTP server.`);
+    if (input.username.trim() && !passwordSealed) {
+      throw new Error(`Enter the ${label} sender's password.`);
+    }
+  }
+
+  return {
+    fromName: input.fromName.trim(),
+    fromAddress,
+    ownAccount: input.ownAccount,
+    host: input.host.trim(),
+    port: input.port || 465,
+    secure: input.secure,
+    username: input.username.trim(),
+    passwordSealed,
+    lastError: input.password ? null : (stored?.lastError ?? null),
+  };
 }
 
 export async function getEmailSettings(): Promise<EmailSettingsView> {
@@ -137,6 +253,10 @@ export async function getEmailSettings(): Promise<EmailSettingsView> {
       fromAddress: outbound.fromAddress ?? '',
       lastError: outbound.lastError ?? null,
     },
+    senders: {
+      alert: senderView(settings.senders?.alert),
+      admin: senderView(settings.senders?.admin),
+    },
     customer: {
       autoReplyEnabled: customer.autoReplyEnabled ?? false,
       autoReplyBody: customer.autoReplyBody ?? '',
@@ -147,6 +267,7 @@ export async function getEmailSettings(): Promise<EmailSettingsView> {
       customerReplied: staff.customerReplied ?? true,
       taskAssigned: staff.taskAssigned ?? true,
       mentioned: staff.mentioned ?? true,
+      ticketCreated: (staff.ticketCreated as NewTicketAlert | undefined) ?? 'admins',
     },
     pendingCount,
     failedCount,
@@ -174,6 +295,7 @@ export interface EmailSettingsInput {
     fromName: string;
     fromAddress: string;
   };
+  senders: { alert: SenderInput; admin: SenderInput };
   customer: EmailSettingsView['customer'];
   staff: EmailSettingsView['staff'];
 }
@@ -239,6 +361,10 @@ export async function saveEmailSettings(input: EmailSettingsInput): Promise<void
   outbound.fromAddress = fromAddress;
   if (input.outbound.password) outbound.lastError = null;
 
+  const alert = applySender('alert', input.senders.alert, settings.senders?.alert);
+  const admin = applySender('admin', input.senders.admin, settings.senders?.admin);
+  settings.set('senders', { alert, admin });
+
   if (input.customer.autoReplyEnabled && !input.customer.autoReplyBody.trim()) {
     throw new Error('Write the automatic reply, or turn it off.');
   }
@@ -262,6 +388,8 @@ export async function saveEmailSettings(input: EmailSettingsInput): Promise<void
       inboundMailbox: inbound.username,
       outboundEnabled: outbound.enabled,
       fromAddress: outbound.fromAddress,
+      alertFrom: alert.fromAddress || null,
+      adminFrom: admin.fromAddress || null,
       autoReply: input.customer.autoReplyEnabled,
       emailPublicReplies: input.customer.emailPublicReplies,
       staff: input.staff,
@@ -315,6 +443,9 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
     customer_replied: settings.staff?.customerReplied ?? true,
     task_assigned: settings.staff?.taskAssigned ?? true,
     mentioned: settings.staff?.mentioned ?? true,
+    ticket_created: (settings.staff?.ticketCreated ?? 'admins') !== 'off',
+    // The account holder was told their password changed; like a reset link, not switchable.
+    password_set_by_admin: true,
     // A password link is the account's own security, so no setting switches it off.
     password_reset: true,
     test: true,
@@ -379,10 +510,15 @@ export async function alertStaff(
   userId: Types.ObjectId | string | null | undefined,
   subject: string,
   lines: string[],
+  /**
+   * For news that did not come from the person acting: an email ticket is created in the name of
+   * the administrator who turned intake on, and they still need to hear about it.
+   */
+  options: { evenIfSelf?: boolean } = {},
 ): Promise<void> {
   if (!userId) return;
   const context = getContext();
-  if (String(userId) === String(context.userId)) return;
+  if (!options.evenIfSelf && String(userId) === String(context.userId)) return;
 
   const user = await UserModel.findOne({ _id: userId, tenantId: context.tenantId }).select(
     'email name',
@@ -397,6 +533,36 @@ export async function alertStaff(
       '\n',
     ),
   });
+}
+
+/**
+ * Who hears about a new ticket, per Setup, Email: administrators only, or everyone who works the
+ * whole desk (ticket.read.all), since an agent limited to their own tickets could not open it.
+ */
+export async function newTicketAlertRecipients(): Promise<Types.ObjectId[]> {
+  const { tenantId } = getContext();
+  const settings = await settingsFor(tenantId);
+  const mode = (settings?.staff?.ticketCreated as NewTicketAlert | undefined) ?? 'admins';
+  if (mode === 'off' || !settings?.outbound?.enabled) return [];
+
+  const staff = await UserModel.find({
+    tenantId,
+    status: 'active',
+    deletedAt: null,
+    role: { $ne: 'client_contact' },
+  }).select('role permissionGrants permissionDenials');
+
+  return staff
+    .filter((user) =>
+      mode === 'admins'
+        ? user.role === 'tenant_admin' || user.role === 'platform_admin'
+        : permissionsFor({
+            role: user.role as Role,
+            permissionGrants: user.permissionGrants,
+            permissionDenials: user.permissionDenials,
+          }).has('ticket.read.all'),
+    )
+    .map((user) => user._id);
 }
 
 /** Adds the attachments of a ticket reply to its queued email once they are stored. */
@@ -415,24 +581,51 @@ export async function attachFilesToQueuedEmail(
  * Delivery. Runs in the email worker, outside any request, so it scopes by tenant explicitly.
  * ---------------------------------------------------------------------------------------------- */
 
-function transportFor(settings: NonNullable<Awaited<ReturnType<typeof settingsFor>>>): Transporter {
+type SettingsDocument = NonNullable<Awaited<ReturnType<typeof settingsFor>>>;
+
+interface Identity {
+  /** Which account's connection sends it: its own, or the standard one. */
+  account: SenderRole;
+  from: string;
+}
+
+function header(name: string | null | undefined, address: string): string {
+  return name ? `"${name.replace(/"/g, '')}" <${address}>` : address;
+}
+
+/**
+ * The sender for a role. A role with no address of its own yet falls back to the standard account,
+ * so setting up Alert and Admin is optional and nothing stops sending meanwhile.
+ */
+function identityFor(settings: SettingsDocument, role: SenderRole): Identity {
   const outbound = settings.outbound!;
-  const password = openSecret(outbound.passwordSealed);
+  const sender = role === 'standard' ? null : settings.senders?.[role];
+  if (!sender?.fromAddress) {
+    return { account: 'standard', from: header(outbound.fromName, outbound.fromAddress!) };
+  }
+  return {
+    account: sender.ownAccount ? role : 'standard',
+    from: header(sender.fromName, sender.fromAddress),
+  };
+}
+
+function transportFor(settings: SettingsDocument, account: SenderRole): Transporter {
+  const connection =
+    account === 'standard' ? settings.outbound! : (settings.senders?.[account] as StoredSender);
+  const password = openSecret(connection.passwordSealed ?? null);
   return nodemailer.createTransport({
-    host: outbound.host,
-    port: outbound.port ?? 465,
-    secure: outbound.secure ?? true,
-    auth: outbound.username ? { user: outbound.username, pass: password ?? '' } : undefined,
+    host: connection.host ?? '',
+    port: connection.port ?? 465,
+    secure: connection.secure ?? true,
+    auth: connection.username ? { user: connection.username, pass: password ?? '' } : undefined,
     connectionTimeout: 20_000,
     greetingTimeout: 20_000,
   });
 }
 
-function fromHeader(settings: NonNullable<Awaited<ReturnType<typeof settingsFor>>>): string {
-  const outbound = settings.outbound!;
-  return outbound.fromName
-    ? `"${outbound.fromName.replace(/"/g, '')}" <${outbound.fromAddress}>`
-    : outbound.fromAddress!;
+/** Where a sending error is shown in Setup, Email: on the account that failed. */
+function errorField(account: SenderRole): string {
+  return account === 'standard' ? 'outbound.lastError' : `senders.${account}.lastError`;
 }
 
 /** Sends due email, a batch at a time. Returns how many were sent. */
@@ -459,12 +652,14 @@ export async function deliverQueuedEmail(limit = 20): Promise<number> {
     if (!row) break;
 
     const settings = await settingsFor(row.tenantId);
+    const role = (row.sender as SenderRole | null) ?? senderRoleFor(row.kind as OutboxKind);
+    const identity = settings ? identityFor(settings, role) : null;
     try {
-      if (!settings?.outbound?.enabled)
+      if (!settings?.outbound?.enabled || !identity)
         throw new Error('Sending email is turned off in Setup, Email.');
 
-      const key = String(row.tenantId);
-      const transport = transports.get(key) ?? transportFor(settings);
+      const key = `${String(row.tenantId)}:${identity.account}`;
+      const transport = transports.get(key) ?? transportFor(settings, identity.account);
       transports.set(key, transport);
 
       const stored =
@@ -479,7 +674,7 @@ export async function deliverQueuedEmail(limit = 20): Promise<number> {
       );
 
       await transport.sendMail({
-        from: fromHeader(settings),
+        from: identity.from,
         to: String(row.to),
         subject: String(row.subject),
         text: String(row.text),
@@ -496,12 +691,10 @@ export async function deliverQueuedEmail(limit = 20): Promise<number> {
         { _id: row._id },
         { $set: { status: 'sent', sentAt: new Date(), lastError: null } },
       );
-      if (settings.outbound.lastError) {
-        await EmailSettingsModel.updateOne(
-          { _id: settings._id },
-          { $set: { 'outbound.lastError': null } },
-        );
-      }
+      await EmailSettingsModel.updateOne(
+        { _id: settings._id },
+        { $set: { [errorField(identity.account)]: null } },
+      );
       sent += 1;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -517,10 +710,10 @@ export async function deliverQueuedEmail(limit = 20): Promise<number> {
           },
         },
       );
-      if (settings) {
+      if (settings && identity) {
         await EmailSettingsModel.updateOne(
           { _id: settings._id },
-          { $set: { 'outbound.lastError': message } },
+          { $set: { [errorField(identity.account)]: message } },
         );
       }
     }
@@ -642,11 +835,12 @@ export async function testMailboxConnection(): Promise<string> {
   }
 }
 
-export async function sendTestEmail(): Promise<string> {
+/** Sends a test from one of the three senders, straight away, to the person testing. */
+export async function sendTestEmail(role: SenderRole = 'standard'): Promise<string> {
   const settings = await settingsDocument();
   const outbound = settings.outbound!;
   if (!outbound.host || !outbound.fromAddress)
-    throw new Error('Save the SMTP server and From address first.');
+    throw new Error('Save the standard SMTP server and From address first.');
 
   const context = getContext();
   const user = await UserModel.findOne({ _id: context.userId, tenantId: context.tenantId }).select(
@@ -654,24 +848,26 @@ export async function sendTestEmail(): Promise<string> {
   );
   if (!user?.email) throw new Error('Your user has no email address to send the test to.');
 
-  const transport = transportFor(settings);
+  const identity = identityFor(settings, role);
+  const transport = transportFor(settings, identity.account);
+  const label = { standard: 'Standard', alert: 'Alert', admin: 'Admin' }[role];
   try {
     await transport.sendMail({
-      from: fromHeader(settings),
+      from: identity.from,
       to: user.email,
-      subject: 'COEX test email',
-      text: 'This is a test from COEX, Setup, Email. If you can read it, sending works.',
+      subject: `COEX test email (${label} sender)`,
+      text: `This is a test of the ${label} sender from COEX, Setup, Email. If you can read it, it works.`,
     });
     await EmailSettingsModel.updateOne(
       { _id: settings._id },
-      { $set: { 'outbound.lastError': null } },
+      { $set: { [errorField(identity.account)]: null } },
     );
-    return `Sent to ${user.email}.`;
+    return `Sent from ${identity.from} to ${user.email}.`;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await EmailSettingsModel.updateOne(
       { _id: settings._id },
-      { $set: { 'outbound.lastError': message } },
+      { $set: { [errorField(identity.account)]: message } },
     );
     throw new Error(`Sending failed: ${message}`);
   } finally {

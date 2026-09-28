@@ -16,6 +16,8 @@ export interface UserFormState {
   createdPassword?: string;
   createdEmail?: string;
   message?: string;
+  /** Whether the person was emailed that their password was reset. */
+  notified?: boolean;
 }
 
 function toRole(value: FormDataEntryValue | null): Role {
@@ -80,13 +82,23 @@ export async function resetPasswordAction(
   const actor = await requirePermission('user.manage');
 
   try {
-    const { password } = await asUser(actor, () =>
-      resetPassword(String(formData.get('userId') ?? '')),
+    const { password, notified } = await asUser(actor, () =>
+      resetPassword(String(formData.get('userId') ?? ''), {
+        notify: formData.get('notify') === 'on',
+      }),
     );
 
     revalidatePath('/security/users');
 
-    return { createdPassword: password, createdEmail: String(formData.get('email') ?? '') };
+    return {
+      createdPassword: password,
+      createdEmail: String(formData.get('email') ?? ''),
+      notified,
+      message:
+        formData.get('notify') === 'on' && !notified
+          ? 'The email could not be queued: sending is off in Setup, Email.'
+          : undefined,
+    };
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not reset the password.' };
   }

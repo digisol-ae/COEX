@@ -6,6 +6,9 @@ import {
   saveEmailSettings,
   sendTestEmail,
   testMailboxConnection,
+  type NewTicketAlert,
+  type SenderInput,
+  type SenderRole,
 } from '@/modules/core/services/email.service';
 
 export interface EmailFormState {
@@ -16,6 +19,24 @@ export interface EmailFormState {
 
 const text = (formData: FormData, name: string) => String(formData.get(name) ?? '');
 const flag = (formData: FormData, name: string) => formData.get(name) === 'on';
+
+/** The Alert or Admin sender's fields, which the form names with that prefix. */
+function sender(formData: FormData, prefix: 'alert' | 'admin'): SenderInput {
+  return {
+    fromName: text(formData, `${prefix}FromName`),
+    fromAddress: text(formData, `${prefix}FromAddress`),
+    ownAccount: flag(formData, `${prefix}OwnAccount`),
+    host: text(formData, `${prefix}Host`),
+    port: Number(text(formData, `${prefix}Port`)) || 465,
+    secure: flag(formData, `${prefix}Secure`),
+    username: text(formData, `${prefix}Username`),
+    password: text(formData, `${prefix}Password`),
+  };
+}
+
+function newTicketAlert(value: string): NewTicketAlert {
+  return value === 'off' || value === 'desk' ? value : 'admins';
+}
 
 export async function saveEmailSettingsAction(
   _previous: EmailFormState,
@@ -45,6 +66,7 @@ export async function saveEmailSettingsAction(
           fromName: text(formData, 'fromName'),
           fromAddress: text(formData, 'fromAddress'),
         },
+        senders: { alert: sender(formData, 'alert'), admin: sender(formData, 'admin') },
         customer: {
           autoReplyEnabled: flag(formData, 'autoReplyEnabled'),
           autoReplyBody: text(formData, 'autoReplyBody'),
@@ -55,6 +77,7 @@ export async function saveEmailSettingsAction(
           customerReplied: flag(formData, 'customerReplied'),
           taskAssigned: flag(formData, 'taskAssigned'),
           mentioned: flag(formData, 'mentioned'),
+          ticketCreated: newTicketAlert(text(formData, 'ticketCreated')),
         },
       }),
     );
@@ -75,10 +98,10 @@ export async function testMailboxAction(): Promise<EmailFormState> {
   }
 }
 
-export async function sendTestEmailAction(): Promise<EmailFormState> {
+export async function sendTestEmailAction(role: SenderRole = 'standard'): Promise<EmailFormState> {
   const actor = await requirePermission('tenant.manage');
   try {
-    return { message: await asUser(actor, sendTestEmail) };
+    return { message: await asUser(actor, () => sendTestEmail(role)) };
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not send the test email.' };
   } finally {

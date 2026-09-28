@@ -1,5 +1,6 @@
 import {
   alertStaff,
+  newTicketAlertRecipients,
   appBaseUrl,
   newMessageId,
   publicRepliesAreEmailed,
@@ -176,7 +177,45 @@ export async function createTicket(input: CreateTicketInput): Promise<CreatedTic
     await safely(() => alertTicketAssignee(created, created.assigneeId!));
   }
 
+  await safely(() =>
+    alertNewTicket(created, queue.name, customerName === 'The customer' ? '' : customerName),
+  );
+
   return { id: String(created._id), firstMessageId: String(firstMessage._id) };
+}
+
+/**
+ * Tells the desk a ticket arrived (John, 28 Sep 2026), from the Alert sender. Whoever it was just
+ * assigned to already has their own email about it, so they are not told twice.
+ */
+async function alertNewTicket(
+  ticket: {
+    _id: Types.ObjectId;
+    number: string;
+    subject: string;
+    channel?: string | null;
+    assigneeId?: Types.ObjectId | null;
+  },
+  queueName: string,
+  from: string,
+): Promise<void> {
+  const fromCustomer = (ticket.channel ?? 'agent') !== 'agent';
+  for (const userId of await newTicketAlertRecipients()) {
+    if (ticket.assigneeId && String(ticket.assigneeId) === String(userId)) continue;
+    await alertStaff(
+      'ticket_created',
+      userId,
+      `[${ticket.number}] New ticket: ${ticket.subject}`,
+      [
+        `A new ticket arrived in ${queueName}${from ? ` from ${from}` : ''}.`,
+        '',
+        ticket.subject,
+        '',
+        `${appBaseUrl()}/support/tickets/${ticket._id}`,
+      ],
+      { evenIfSelf: fromCustomer },
+    );
+  }
 }
 
 export interface ReplyInput {

@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useTransition } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
-import type { EmailSettingsView } from '@/modules/core/services/email.service';
+import type { EmailSettingsView, SenderView } from '@/modules/core/services/email.service';
 import {
   saveEmailSettingsAction,
   sendTestEmailAction,
@@ -135,11 +135,12 @@ export function EmailSettingsForm({
           </div>
         </CardSection>
 
-        <CardSection title="Sending account (outgoing)">
+        <CardSection title="Standard sender (outgoing)">
           <div className="space-y-4">
             <p className="text-sm text-[var(--color-ink-muted)]">
-              Used for customer replies, the automatic acknowledgement and staff alerts. Usually the
-              same mailbox as above.
+              Customer replies and the automatic acknowledgement come from here, usually the same
+              mailbox as above. Staff alerts and account emails come from here too until their own
+              senders below are set up.
             </p>
             <Toggle
               name="outboundEnabled"
@@ -206,11 +207,40 @@ export function EmailSettingsForm({
                 type="button"
                 variant="secondary"
                 disabled={testing}
-                onClick={() => runTest(sendTestEmailAction)}
+                onClick={() => runTest(() => sendTestEmailAction('standard'))}
               >
                 Send me a test email
               </Button>
             </div>
+          </div>
+        </CardSection>
+
+        <CardSection title="Alert and Admin senders">
+          <div className="space-y-6">
+            <p className="text-sm text-[var(--color-ink-muted)]">
+              Separate addresses so people can tell mail apart at a glance. Leave an address blank
+              to send that mail from the standard sender. With Microsoft 365, the standard mailbox
+              needs &ldquo;Send As&rdquo; permission for these addresses, or give each its own
+              sign-in below.
+            </p>
+            <SenderFields
+              prefix="alert"
+              title="Alert"
+              uses="New tickets, assignments, customer replies, task assignments and @mentions."
+              placeholder="alerts@digisolteam.com"
+              sender={settings.senders.alert}
+              testing={testing}
+              onTest={() => runTest(() => sendTestEmailAction('alert'))}
+            />
+            <SenderFields
+              prefix="admin"
+              title="Admin"
+              uses="Password links, and telling someone an administrator reset their password."
+              placeholder="admin@digisolteam.com"
+              sender={settings.senders.admin}
+              testing={testing}
+              onTest={() => runTest(() => sendTestEmailAction('admin'))}
+            />
           </div>
         </CardSection>
 
@@ -245,8 +275,19 @@ export function EmailSettingsForm({
         <CardSection title="Staff alerts">
           <div className="space-y-3">
             <p className="text-sm text-[var(--color-ink-muted)]">
-              Sent to each person&apos;s COEX login email. Nobody is alerted about their own action.
+              Sent from the Alert sender to each person&apos;s COEX login email. Nobody is alerted
+              about their own action.
             </p>
+            <Field
+              label="When a new ticket arrives, tell"
+              hint="Whoever it is assigned to hears anyway, in their own assignment email."
+            >
+              <Select name="ticketCreated" defaultValue={staff.ticketCreated}>
+                <option value="admins">Administrators only</option>
+                <option value="desk">Everyone who works the whole desk</option>
+                <option value="off">Nobody</option>
+              </Select>
+            </Field>
             <Toggle
               name="ticketAssigned"
               label="A ticket is assigned to me"
@@ -284,5 +325,118 @@ export function EmailSettingsForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+/**
+ * One extra sender. Its own sign-in is optional: most set-ups send every address through the
+ * standard mailbox, so those fields stay hidden until asked for.
+ */
+function SenderFields({
+  prefix,
+  title,
+  uses,
+  placeholder,
+  sender,
+  testing,
+  onTest,
+}: {
+  prefix: 'alert' | 'admin';
+  title: string;
+  uses: string;
+  placeholder: string;
+  sender: SenderView;
+  testing: boolean;
+  onTest: () => void;
+}) {
+  const [ownAccount, setOwnAccount] = useState(sender.ownAccount);
+
+  return (
+    <fieldset className="space-y-3 rounded-[var(--radius-card)] border border-[var(--color-line)] p-4">
+      <legend className="px-1 text-sm font-semibold text-[var(--color-ink)]">{title} sender</legend>
+      <p className="text-xs text-[var(--color-ink-subtle)]">{uses}</p>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="From name">
+          <Input
+            name={`${prefix}FromName`}
+            defaultValue={sender.fromName}
+            placeholder={`DigiSol ${title}`}
+          />
+        </Field>
+        <Field label="From address" hint="Blank sends from the standard sender.">
+          <Input
+            name={`${prefix}FromAddress`}
+            defaultValue={sender.fromAddress}
+            placeholder={placeholder}
+          />
+        </Field>
+      </div>
+      <label className="flex items-start gap-2.5 text-sm">
+        <input
+          type="checkbox"
+          name={`${prefix}OwnAccount`}
+          checked={ownAccount}
+          onChange={(event) => setOwnAccount(event.target.checked)}
+          className="mt-0.5 h-4 w-4"
+        />
+        <span>
+          <span className="font-medium text-[var(--color-ink)]">Sign in with its own account</span>
+          <span className="block text-xs text-[var(--color-ink-subtle)]">
+            Off: sent through the standard mailbox&apos;s connection with this From address.
+          </span>
+        </span>
+      </label>
+      {ownAccount ? (
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Field label="SMTP server">
+            <Input
+              name={`${prefix}Host`}
+              defaultValue={sender.host}
+              placeholder="smtp.office365.com"
+            />
+          </Field>
+          <Field label="Port">
+            <Input name={`${prefix}Port`} type="number" defaultValue={sender.port} />
+          </Field>
+          <Field label="Security">
+            <div className="pt-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name={`${prefix}Secure`}
+                  defaultChecked={sender.secure}
+                  className="h-4 w-4"
+                />
+                SSL/TLS (port 465)
+              </label>
+            </div>
+          </Field>
+          <Field label="Username">
+            <Input name={`${prefix}Username`} defaultValue={sender.username} autoComplete="off" />
+          </Field>
+          <div className="sm:col-span-2">
+            <Field
+              label="Password"
+              hint={sender.hasPassword ? 'Stored. Leave blank to keep it.' : 'Not stored yet.'}
+            >
+              <Input name={`${prefix}Password`} type="password" autoComplete="new-password" />
+            </Field>
+          </div>
+        </div>
+      ) : (
+        <>
+          <input type="hidden" name={`${prefix}Host`} value={sender.host} />
+          <input type="hidden" name={`${prefix}Port`} value={sender.port} />
+          {sender.secure ? <input type="hidden" name={`${prefix}Secure`} value="on" /> : null}
+          <input type="hidden" name={`${prefix}Username`} value={sender.username} />
+        </>
+      )}
+      {sender.lastError ? <Notice tone="warn">{sender.lastError}</Notice> : null}
+      <div>
+        <Button type="button" variant="secondary" disabled={testing} onClick={onTest}>
+          Send me a test from {title}
+        </Button>
+      </div>
+    </fieldset>
   );
 }

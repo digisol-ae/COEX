@@ -85,8 +85,15 @@ export function ResetPasswordButton({ userId, email }: { userId: string; email: 
         {state.createdPassword ? (
           <div className="space-y-3">
             <Notice tone="ok">Password reset for {state.createdEmail}.</Notice>
+            {state.notified ? (
+              <p className="text-xs text-[var(--color-ink-muted)]">
+                They were emailed that it was reset, with a link to choose their own password.
+              </p>
+            ) : null}
+            {state.message ? <Notice tone="warn">{state.message}</Notice> : null}
             <p className="text-xs text-[var(--color-ink-muted)]">
-              Give this to them in person or by message. It is shown once.
+              Give them this temporary password in person or by message. It is shown once and is
+              never emailed.
             </p>
             <p className="rounded-[var(--radius-control)] bg-[var(--color-surface-sunken)] px-3 py-2 font-mono text-sm">
               {state.createdPassword}
@@ -102,6 +109,18 @@ export function ResetPasswordButton({ userId, email }: { userId: string; email: 
             <p className="text-sm text-[var(--color-ink-muted)]">
               This immediately signs {email} out everywhere and replaces their password.
             </p>
+            <label className="flex items-start gap-2.5 text-sm">
+              <input type="checkbox" name="notify" defaultChecked className="mt-0.5 h-4 w-4" />
+              <span>
+                <span className="font-medium text-[var(--color-ink)]">
+                  Email them that their password was reset
+                </span>
+                <span className="block text-xs text-[var(--color-ink-subtle)]">
+                  From the Admin sender, to {email}, with a link to choose their own password. The
+                  temporary password is never put in the email.
+                </span>
+              </span>
+            </label>
             {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
             <div className="flex gap-2">
               <Button type="submit" disabled={pending}>
@@ -182,8 +201,8 @@ export function AccessEditor({
         </div>
 
         <p className="mb-4 text-xs text-[var(--color-ink-muted)]">
-          Role: <span className="font-medium">{role.replace('_', ' ')}</span>. "Default" follows
-          the role below; overriding one permission does not touch any other.
+          Role: <span className="font-medium">{role.replace('_', ' ')}</span>. "Default" follows the
+          role below; overriding one permission does not touch any other.
         </p>
 
         <form action={formAction} className="space-y-5">

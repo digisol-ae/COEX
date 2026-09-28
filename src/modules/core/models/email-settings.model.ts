@@ -6,6 +6,27 @@ import { Schema, model, models, type InferSchemaType, type Model } from 'mongoos
  *
  * Passwords are stored sealed (see lib/secret-box) and never sent to a browser.
  */
+/**
+ * An extra sending identity (John, 28 Sep 2026): Alert for staff alerts, Admin for account mail.
+ * Blank means "send from the standard account", so nothing changes until one is set up. It can
+ * reuse the standard account's connection with its own From (the mailbox must allow "Send As"),
+ * or sign in with an account of its own.
+ */
+const senderSchema = new Schema(
+  {
+    fromName: { type: String, default: '' },
+    fromAddress: { type: String, default: '' },
+    ownAccount: { type: Boolean, default: false },
+    host: { type: String, default: '' },
+    port: { type: Number, default: 465 },
+    secure: { type: Boolean, default: true },
+    username: { type: String, default: '' },
+    passwordSealed: { type: String, default: null },
+    lastError: { type: String, default: null },
+  },
+  { _id: false },
+);
+
 const emailSettingsSchema = new Schema(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, unique: true },
@@ -46,6 +67,11 @@ const emailSettingsSchema = new Schema(
       lastError: { type: String, default: null },
     },
 
+    senders: {
+      alert: { type: senderSchema, default: () => ({}) },
+      admin: { type: senderSchema, default: () => ({}) },
+    },
+
     customer: {
       autoReplyEnabled: { type: Boolean, default: false },
       autoReplyBody: {
@@ -61,6 +87,8 @@ const emailSettingsSchema = new Schema(
       customerReplied: { type: Boolean, default: true },
       taskAssigned: { type: Boolean, default: true },
       mentioned: { type: Boolean, default: true },
+      /** Who hears about a new ticket: nobody, administrators, or everyone who works the desk. */
+      ticketCreated: { type: String, enum: ['off', 'admins', 'desk'], default: 'admins' },
     },
 
     updatedById: { type: Schema.Types.ObjectId, ref: 'User', default: null },

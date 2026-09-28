@@ -28,6 +28,11 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
   email (from the profile, and "Forgot your password?" on the sign-in page), with rules following
   the NIST SP 800-63B standard: 12+ characters, common and personal passwords refused, a strength
   meter while typing. Still open: accounts marked "must change password" are not yet forced to.
+- Email senders, 28 Sep: three sending addresses, Standard (helpdesk@digisolteam.com, all customer
+  mail), Alert (staff alerts, including a new "new ticket" alert to administrators only, the whole
+  desk, or nobody) and Admin (account mail). Resetting someone's password has a "notify them"
+  box that emails them from Admin with a link to choose their own password. John still has to
+  enter the Alert and Admin addresses in Setup, Email; until then everything sends as before.
 - ChatGPT will take over at a later stage: every session keeps CLAUDE.md, FEEDBACK.md and the
   `ai/` files current so the hand-over needs no chat history.
 

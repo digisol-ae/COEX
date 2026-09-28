@@ -7,6 +7,7 @@ import { toObjectId } from '@/lib/ids';
 import { UserModel } from '../models/user.model';
 import { recordAudit, changedFields } from './audit.service';
 import { revokeAllSessionsForUser } from './session.service';
+import { notifyPasswordSetByAdmin } from './password-reset.service';
 import type { Role, Permission } from '../permissions';
 import { PERMISSIONS } from '../permissions';
 
@@ -168,7 +169,10 @@ export async function setUserStatus(userId: string, status: 'active' | 'suspende
   });
 }
 
-export async function resetPassword(userId: string): Promise<{ password: string }> {
+export async function resetPassword(
+  userId: string,
+  options: { notify?: boolean } = {},
+): Promise<{ password: string; notified: boolean }> {
   await connectToDatabase();
 
   const user = await users().findById(userId);
@@ -183,13 +187,20 @@ export async function resetPassword(userId: string): Promise<{ password: string 
 
   await revokeAllSessionsForUser(user._id);
 
+  let notified = false;
+  if (options.notify) {
+    const admin = await users().findById(String(getContext().userId)).select('name');
+    notified = await notifyPasswordSetByAdmin(user, admin?.name ?? 'An administrator');
+  }
+
   await recordAudit({
     action: 'user.password_reset',
     entityType: 'User',
     entityId: user._id,
+    after: { notified },
   });
 
-  return { password };
+  return { password, notified };
 }
 
 /** The signed-in person's menu order; empty means the standard order. */

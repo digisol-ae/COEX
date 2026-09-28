@@ -76,6 +76,15 @@ The full scope document lives in the Claude project "ECHO System Development" as
     Every customer email on a ticket, the acknowledgement included, uses the subject
     `Re: [TICKET] <original subject>`: Outlook groups conversations by subject and ignores reply
     headers, so a custom acknowledgement subject split the customer's thread in two (25 Sep 2026).
+    Three senders (28 Sep 2026), each chosen by the kind of mail (`SENDER_FOR` in email.service):
+    Standard (helpdesk@digisolteam.com) for everything a customer receives; Alert for staff alerts
+    (new ticket, assigned, customer replied, task assigned, @mention); Admin for account mail
+    (password links, "an administrator reset your password"). Alert and Admin are optional: blank
+    sends from Standard. Each either reuses Standard's SMTP connection with its own From (needs
+    "Send As" in Microsoft 365) or signs in with its own account. The new-ticket alert goes to
+    administrators only (default), everyone with ticket.read.all, or nobody. An administrator's
+    password reset can email the person (Admin sender) with a 24-hour link to choose their own
+    password; the temporary password is never emailed.
 13. Tasks and Tickets are natural partners and stay directly connected: escalation creates a task
     carrying sourceTicketId, and task work updates and completion post internal notes on the
     ticket. This is John's deliberate exception to the rule that modules never import siblings
