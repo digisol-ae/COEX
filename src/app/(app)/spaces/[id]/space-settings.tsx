@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from 'react';
 import { Button, Field, Input, Notice } from '@/components/ui';
+import { useToast } from '@/components/ui/toast';
 import { updateSpaceAction, type TaskFormState } from '../../tasks/actions';
 import { ArchiveSpace } from './archive-space';
 
@@ -24,12 +25,13 @@ export function SpaceSettings({
 }) {
   const [open, setOpen] = useState(false);
   const [state, action, pending] = useActionState(updateSpaceAction, initialState);
+  const { showToast } = useToast();
   useEffect(() => {
     if (state.saved) {
-      const timer = window.setTimeout(() => setOpen(false), 0);
-      return () => window.clearTimeout(timer);
+      setOpen(false);
+      showToast('Space saved.');
     }
-  }, [state.saved]);
+  }, [state, showToast]);
   if (!open)
     return (
       <button

@@ -28,13 +28,15 @@ export interface NavigationGroup {
 
 /** Sits above the groups, because it is where everyone starts. */
 export const HOME: NavigationItem = { href: '/dashboard', label: 'Dashboard' };
+export const DESK: NavigationItem = { href: '/my-desk', label: 'My desk', permission: 'task.read.own' };
 
 export const GROUPS: NavigationGroup[] = [
   {
     id: 'tasks',
     label: 'Tasks and planning',
     items: [
-      { href: '/tasks', label: 'My tasks', permission: 'task.read.own' },
+      { href: '/personal', label: 'Personal', permission: 'task.read.own' },
+      { href: '/tasks', label: 'All tasks', permission: 'task.read.own' },
       { href: '/spaces', label: 'Spaces', permission: 'task.read.all' },
       { href: '/time', label: 'Timesheet', permission: 'task.read.own' },
       { href: '/time/all', label: 'All timesheets', permission: 'task.read.all' },

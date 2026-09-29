@@ -1,7 +1,8 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
+import { useToast } from '@/components/ui/toast';
 import { createSpaceAction, type TaskFormState } from '../tasks/actions';
 
 const initialState: TaskFormState = {};
@@ -9,6 +10,13 @@ const initialState: TaskFormState = {};
 export function NewSpacePanel({ customers, users }: { customers: { id: string; name: string }[]; users: { id: string; name: string }[] }) {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(createSpaceAction, initialState);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (!state.saved) return;
+    setOpen(false);
+    showToast('Space created.');
+  }, [state, showToast]);
 
   if (!open) {
     return <Button onClick={() => setOpen(true)}>Add space</Button>;

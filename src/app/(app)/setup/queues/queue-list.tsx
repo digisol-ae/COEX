@@ -1,7 +1,8 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { Badge, Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
+import { useToast } from '@/components/ui/toast';
 import { IconButton } from '@/components/ui/icon-button';
 import { Avatar } from '@/components/ui/avatar';
 import { formatWorkingMinutes } from '@/modules/tickets/business-hours';
@@ -155,6 +156,13 @@ function QueueForm({
   isOnlyQueue: boolean;
 }) {
   const [state, formAction, pending] = useActionState(saveQueueAction, initialState);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (!state.saved) return;
+    onClose();
+    showToast(queue ? 'Queue saved.' : 'Queue created.');
+  }, [state, showToast, onClose, queue]);
 
   const targetOf = (priority: string) =>
     queue?.targets.find((target) => target.priority === priority);

@@ -1,7 +1,8 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
+import { useToast } from '@/components/ui/toast';
 import { saveTenantSettingsAction, type TenantFormState } from './actions';
 
 const initialState: TenantFormState = {};
@@ -36,6 +37,11 @@ export function TenantSettingsForm({
   };
 }) {
   const [state, formAction, pending] = useActionState(saveTenantSettingsAction, initialState);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (state.saved) showToast('Tenant settings saved.');
+  }, [state, showToast]);
 
   return (
     <form action={formAction}>
@@ -134,7 +140,6 @@ export function TenantSettingsForm({
             <Button type="submit" disabled={pending}>
               {pending ? 'Saving' : 'Save settings'}
             </Button>
-            {state.saved ? <Notice tone="ok">Saved.</Notice> : null}
             {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
           </div>
         </CardSection>

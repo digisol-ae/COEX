@@ -41,7 +41,7 @@ const EDGE = 8;
 /**
  * The timer in a small floating window of pastel glass (John, 28 Sep 2026): the running clock with
  * its stop button, and every timer from today with stop and resume. It stays where it was dragged
- * as the pages change, folds to a pill showing only the clock, and on a phone sits along the
+ * as the pages change, folds to a dark digital clock showing only elapsed time, and on a phone sits along the
  * bottom of the screen. The list is fetched fresh after every stop or resume, because starting one
  * timer stops whatever else was running.
  */
@@ -185,10 +185,10 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
       aria-label="Timers"
       style={{ right: position.right, bottom: position.bottom }}
       className={clsx(
-        'popup-glass-gradient fixed z-40 max-sm:!right-4 max-sm:!bottom-4',
-        mode === 'open' && 'w-auto max-sm:left-4 sm:w-80',
-        mode === 'clock' && 'rounded-2xl',
-        mode === 'mini' && 'rounded-full',
+        'fixed z-40 max-sm:!right-4 max-sm:!bottom-4',
+        mode === 'open' && 'w-auto overflow-hidden rounded-[var(--radius-card)] border border-[#6e8d69] bg-[#071008] shadow-[0_12px_32px_rgb(0_0_0/45%)] max-sm:left-4 sm:w-80',
+        mode === 'clock' && 'overflow-hidden rounded-2xl border border-[#6e8d69] bg-[#071008] shadow-[0_12px_32px_rgb(0_0_0/45%)]',
+        mode === 'mini' && 'overflow-hidden rounded-full border border-[#6e8d69] bg-[#071008] shadow-[0_10px_24px_rgb(0_0_0/45%)]',
         drag ? 'cursor-grabbing select-none' : '',
       )}
     >
@@ -200,21 +200,21 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
           onClick={openWindow}
           aria-label={running ? 'Open timers (one is running)' : 'Open timers'}
           data-tooltip="Timers"
-          className="has-tooltip relative flex h-12 w-12 cursor-grab items-center justify-center rounded-full text-[var(--color-ink-muted)] select-none hover:text-[var(--color-ink)]"
+          className="has-tooltip relative flex h-14 w-14 cursor-grab items-center justify-center rounded-full bg-[#071008] bg-[radial-gradient(circle,rgb(190_255_100/20%)_1px,transparent_1.2px)] bg-[size:4px_4px] text-[#d8ff8a] drop-shadow-[0_0_5px_rgb(190_255_100/70%)] transition-transform hover:scale-105 hover:text-[#ecffbd] select-none"
         >
           <StopwatchIcon />
           {running ? (
             <span
               aria-hidden="true"
-              className="absolute top-2.5 right-2.5 h-2 w-2 animate-pulse rounded-full bg-[var(--color-status-alert)]"
+              className="absolute top-2.5 right-2.5 h-2.5 w-2.5 animate-pulse rounded-full bg-[var(--color-status-alert)] shadow-[0_0_7px_var(--color-status-alert)]"
             />
           ) : null}
         </button>
       ) : mode === 'clock' && running ? (
-        <div className="group flex items-center gap-2 py-1.5 pr-1.5 pl-3.5">
+        <div className="group relative flex items-center gap-2 overflow-hidden bg-[#071008] bg-[radial-gradient(circle,rgb(190_255_100/18%)_1px,transparent_1.2px)] bg-[size:4px_4px] py-2 pr-1.5 pl-3.5">
           <span
             aria-hidden="true"
-            className="h-2 w-2 animate-pulse rounded-full bg-[var(--color-status-alert)]"
+            className="h-2 w-2 animate-pulse rounded-full bg-[#ff5a5f] shadow-[0_0_8px_#ff5a5f]"
           />
           <button
             type="button"
@@ -223,13 +223,13 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
             onClick={openWindow}
             aria-label={`Timer ${running.itemNumber}: open the timer window`}
             title={`${running.itemNumber} ${running.itemTitle}`}
-            className="cursor-grab px-1 font-mono text-3xl leading-none font-semibold tracking-tight text-[var(--color-ink)] tabular-nums select-none"
+            className="cursor-grab px-1 font-mono text-3xl leading-none font-bold tracking-[0.08em] text-[#d8ff8a] drop-shadow-[0_0_7px_rgb(190_255_100/80%)] tabular-nums select-none"
             // The server and the browser draw the clock seconds apart, so it always differs.
             suppressHydrationWarning
           >
-            {clock}
+            <DotMatrixClock value={clock ?? '0:00:00'} />
           </button>
-          <div className="flex flex-col opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 max-sm:opacity-100">
+          <div className="flex flex-col opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
             <RoundButton
               label="Open the full window"
               small
@@ -243,12 +243,12 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
           </div>
         </div>
       ) : (
-        <div className="p-3">
+        <div className="bg-[#071008] bg-[radial-gradient(circle,rgb(190_255_100/14%)_1px,transparent_1.2px)] bg-[size:4px_4px] p-3">
           <div
             className="flex cursor-grab items-center justify-between gap-2 pb-2 select-none"
             {...handle}
           >
-            <p className="text-xs font-semibold tracking-wide text-[var(--color-ink-muted)] uppercase">
+            <p className="text-xs font-semibold tracking-wide text-[#d8ff8a] uppercase">
               Timers
             </p>
             <div className="flex items-center gap-0.5">
@@ -267,7 +267,7 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
           </div>
 
           {running ? (
-            <div className="mb-3 rounded-2xl bg-[var(--color-surface)]/60 px-3 py-2.5">
+            <div className="mb-3 rounded-2xl border border-[#4f704a] bg-[#0b170b]/90 px-3 py-2.5 shadow-[inset_0_0_14px_rgb(190_255_100/8%)]">
               <div className="flex items-center gap-2">
                 <span
                   aria-hidden="true"
@@ -275,18 +275,18 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
                 />
                 <Link
                   href={href(running.kind, running.itemId)}
-                  className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--color-ink)] hover:underline"
+                  className="min-w-0 flex-1 truncate text-sm font-medium text-[#f1f8ec] hover:underline"
                   title={`${running.itemNumber} ${running.itemTitle}`}
                 >
                   {running.itemTitle}
                 </Link>
               </div>
               <div className="mt-1 flex items-end justify-between">
-                <span className="font-mono text-[11px] text-[var(--color-ink-subtle)]">
+                <span className="font-mono text-[11px] text-[#9dba92]">
                   {running.itemNumber}
                 </span>
                 <span
-                  className="text-2xl font-semibold tabular-nums text-[var(--color-ink)]"
+                  className="font-mono text-2xl font-bold tracking-[0.06em] text-[#d8ff8a] drop-shadow-[0_0_6px_rgb(190_255_100/80%)] tabular-nums"
                   suppressHydrationWarning
                 >
                   {clock}
@@ -302,16 +302,16 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
               </div>
             </div>
           ) : (
-            <p className="mb-2 text-sm text-[var(--color-ink-muted)]">No timer running.</p>
+            <p className="mb-2 text-sm text-[#b8cdb0]">No timer running.</p>
           )}
 
-          <p className="px-1 pb-1 text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
+          <p className="px-1 pb-1 text-[11px] tracking-wide text-[#9dba92] uppercase">
             Today
           </p>
           {timers === null ? (
-            <p className="px-1 py-1 text-sm text-[var(--color-ink-subtle)]">Loading…</p>
+            <p className="px-1 py-1 text-sm text-[#9dba92]">Loading…</p>
           ) : timers.length === 0 ? (
-            <p className="px-1 py-1 text-sm text-[var(--color-ink-subtle)]">
+            <p className="px-1 py-1 text-sm text-[#9dba92]">
               Nothing timed yet today.
             </p>
           ) : (
@@ -319,19 +319,19 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
               {timers.map((timer) => (
                 <li
                   key={timer.entryId}
-                  className="flex items-center gap-2 rounded-xl px-1.5 py-1 hover:bg-[var(--color-surface)]/60"
+                  className="flex items-center gap-2 rounded-xl px-1.5 py-1 hover:bg-[#d8ff8a]/10"
                 >
-                  <span className="w-7 shrink-0 text-[10px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                  <span className="w-7 shrink-0 text-[10px] tracking-wide text-[#9dba92] uppercase">
                     {timer.kind === 'task' ? 'Task' : 'Tkt'}
                   </span>
                   <Link
                     href={href(timer.kind, timer.itemId)}
-                    className="min-w-0 flex-1 truncate text-sm text-[var(--color-ink)] hover:underline"
+                    className="min-w-0 flex-1 truncate text-sm text-[#f1f8ec] hover:underline"
                     title={`${timer.itemNumber} ${timer.itemTitle}`}
                   >
                     {timer.itemTitle}
                   </Link>
-                  <span className="shrink-0 text-xs text-[var(--color-ink-subtle)] tabular-nums">
+                  <span className="shrink-0 font-mono text-xs text-[#c9e7bd] tabular-nums">
                     {Math.floor(timer.minutes / 60)}:{String(timer.minutes % 60).padStart(2, '0')}
                   </span>
                   {timer.running ? (
@@ -387,6 +387,54 @@ function elapsed(startedAt: string, now: number): string {
   return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
+/** A small LED-style matrix keeps the compact clock recognisable at a glance without looking like text. */
+const DOT_MATRIX: Record<string, string[]> = {
+  '0': ['111', '101', '101', '101', '111'],
+  '1': ['010', '110', '010', '010', '111'],
+  '2': ['111', '001', '111', '100', '111'],
+  '3': ['111', '001', '111', '001', '111'],
+  '4': ['101', '101', '111', '001', '001'],
+  '5': ['111', '100', '111', '001', '111'],
+  '6': ['111', '100', '111', '101', '111'],
+  '7': ['111', '001', '010', '010', '010'],
+  '8': ['111', '101', '111', '101', '111'],
+  '9': ['111', '101', '111', '001', '111'],
+  ':': ['0', '1', '0', '1', '0'],
+};
+
+function DotMatrixClock({ value }: { value: string }) {
+  return (
+    <span aria-hidden="true" className="flex items-center gap-1.5">
+      {[...value].map((character, characterIndex) => {
+        const pixels = DOT_MATRIX[character] ?? DOT_MATRIX['0'];
+        const columns = character === ':' ? 1 : 3;
+
+        return (
+          <span
+            key={`${characterIndex}-${character}`}
+            className="grid gap-[2px]"
+            style={{ gridTemplateColumns: `repeat(${columns}, 5px)` }}
+          >
+            {pixels.flatMap((row, rowIndex) =>
+              [...row].map((pixel, columnIndex) => (
+                <i
+                  key={`${rowIndex}-${columnIndex}`}
+                  className={clsx(
+                    'h-[5px] w-[5px] rounded-[1px]',
+                    pixel === '1'
+                      ? 'bg-[#d8ff8a] shadow-[0_0_5px_rgb(190_255_100/95%)]'
+                      : 'bg-[#b0db76]/10',
+                  )}
+                />
+              )),
+            )}
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
 function clamp(value: number, low: number, high: number): number {
   return Math.min(Math.max(value, low), Math.max(low, high));
 }
@@ -425,7 +473,7 @@ function RoundButton({
           ? 'text-[var(--color-status-alert)] hover:bg-[var(--color-status-alert-soft)]'
           : tone === 'go'
             ? 'text-[var(--color-status-ok)] hover:bg-[var(--color-status-ok-soft)]'
-            : 'text-[var(--color-ink-subtle)] hover:bg-[var(--color-surface)]/60 hover:text-[var(--color-ink)]',
+            : 'text-[#9dba92] hover:bg-[#d8ff8a]/10 hover:text-[#d8ff8a]',
       )}
     >
       {children}
@@ -482,7 +530,7 @@ function ExpandIcon() {
 
 function StopwatchIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <svg width="26" height="26" viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <circle cx="10" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.5" />
       <path
         d="M8 2.5h4M10 2.5v2M10 8v3l2 1.3M15.2 5.3l1 1"

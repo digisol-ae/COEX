@@ -22,6 +22,7 @@ import {
   archiveImpact,
   archiveSpace,
   createSpace,
+  personalSpaceForCurrentUser,
   reorderSpaces,
   restoreSpace,
   updateSpace,
@@ -172,6 +173,31 @@ export async function createTaskAction(
   }
 
   revalidatePath(`/spaces/${spaceId}`);
+  revalidatePath('/tasks');
+  revalidatePath('/dashboard');
+  return { saved: true };
+}
+
+/** Captures a task from My tasks without asking the agent to create or choose a Space. */
+export async function createPersonalTaskAction(
+  _previous: TaskFormState,
+  formData: FormData,
+): Promise<TaskFormState> {
+  const actor = await requirePermission('task.manage');
+  try {
+    await asUser(actor, async () => {
+      const spaceId = await personalSpaceForCurrentUser();
+      await createTask({
+        spaceId,
+        title: text(formData, 'title'),
+        priority: toPriority(text(formData, 'priority')),
+        assigneeIds: [actor.id],
+        endAt: text(formData, 'endAt') || null,
+      });
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not create the task.' };
+  }
   revalidatePath('/tasks');
   revalidatePath('/dashboard');
   return { saved: true };

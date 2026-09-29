@@ -74,11 +74,16 @@ type ButtonVariant = 'primary' | 'secondary' | 'danger';
 export function Button({
   variant = 'primary',
   className,
+  children,
+  disabled,
   ...props
 }: ComponentProps<'button'> & { variant?: ButtonVariant }) {
+  const waiting = Boolean(disabled && props.type === 'submit');
   return (
     <button
       {...props}
+      disabled={disabled}
+      aria-busy={waiting || undefined}
       className={clsx(
         'rounded-[var(--radius-control)] px-4 py-2 text-sm font-medium transition-colors disabled:opacity-60',
         variant === 'primary' &&
@@ -90,7 +95,9 @@ export function Button({
           'border border-[var(--color-status-alert)] text-[var(--color-status-alert)] hover:bg-[var(--color-status-alert-soft)]',
         className,
       )}
-    />
+    >
+      {waiting ? <span className="coex-wait" aria-label="Saving">C O E X</span> : children}
+    </button>
   );
 }
 

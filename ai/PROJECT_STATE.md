@@ -1,5 +1,14 @@
 # COEX — Shared AI Project State
 
+> **Current update — 29 Sep 2026 (Codex):** Local feature bundle completed and approved for commit,
+> push and deployment. Added Personal (private per-user task capture; excluded even from admins),
+> All tasks naming, My Desk (user-selected assigned tasks, drag/drop plus mobile add, daily
+> completion snapshot and risk counters; numeric score hidden pending John's final algorithm),
+> shared save confirmations/auto-close behaviour, and timer/UI refinements. `npm run build` passes.
+> Deployment still needs verification on the VPS after pull/restart.
+
+> **QA update — 29 Sep 2026 (Codex):** Full `npx vitest run` on the 28 Sep temporary QA snapshot, configured for `coex_qa`: 188 passed, 1 failed. Failure: `tests/database/time.test.ts:261`, “moves an entry to another day”; `after.entries[0]` is undefined when reading `workDate`. No fix made, no push or deployment. Next: investigate this test failure.
+
 > **Current verified update — 28 Sep 2026 (Claude, handing to ChatGPT).** Supersedes everything
 > below where they conflict. `origin/main` is at `a71cee8`; one local commit on top adds What's new
 > (release notes drawer) and the database reconnect fix. Everything built from 26 to 28 Sep is

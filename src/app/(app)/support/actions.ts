@@ -96,8 +96,6 @@ export async function createTicketAction(
 ): Promise<SupportFormState> {
   const actor = await requirePermission('ticket.manage');
 
-  let id: string;
-
   try {
     const created = await asUser(actor, () =>
       createTicket({
@@ -113,8 +111,6 @@ export async function createTicketAction(
       }),
     );
 
-    id = created.id;
-
     const files = await incomingFiles(formData);
     if (files.length > 0) {
       await asUser(actor, () => attachToMessage(created.firstMessageId, files));
@@ -124,7 +120,7 @@ export async function createTicketAction(
   }
 
   revalidatePath('/support/tickets');
-  redirect(`/support/tickets/${id}`);
+  return { saved: true };
 }
 
 /**

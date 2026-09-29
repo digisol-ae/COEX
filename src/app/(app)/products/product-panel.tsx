@@ -1,7 +1,8 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
+import { useToast } from '@/components/ui/toast';
 import { saveProductAction, type ProductFormState } from './actions';
 
 const initialState: ProductFormState = {};
@@ -9,6 +10,13 @@ const initialState: ProductFormState = {};
 export function ProductPanel() {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(saveProductAction, initialState);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (!state.saved) return;
+    setOpen(false);
+    showToast('Product saved.');
+  }, [state, showToast]);
 
   if (!open) {
     return <Button onClick={() => setOpen(true)}>Add product</Button>;
@@ -65,7 +73,6 @@ export function ProductPanel() {
           </Field>
 
           {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
-          {state.saved ? <Notice tone="ok">Saved.</Notice> : null}
 
           <div className="flex gap-2 pt-1">
             <Button type="submit" disabled={pending}>

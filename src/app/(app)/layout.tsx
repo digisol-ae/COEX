@@ -14,6 +14,7 @@ import { WhatsNew } from '@/components/navigation/whats-new';
 import { LATEST_RELEASE_ID } from '@/modules/core/release-notes';
 import { orderGroups, visibleGroups } from '@/components/navigation/navigation';
 import { getNavigationOrder } from '@/modules/core/services/user.service';
+import { ToastProvider } from '@/components/ui/toast';
 
 /**
  * Shell for every signed in screen.
@@ -49,7 +50,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const groups = orderGroups(visibleGroups(user.permissions), order);
 
   return (
-    <div className="flex min-h-screen">
+    <ToastProvider>
+      <div className="flex min-h-screen">
       <IconRail
         permissions={user.permissions}
         counts={counts}
@@ -111,6 +113,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           />
         ) : null}
       </div>
-    </div>
+      </div>
+    </ToastProvider>
   );
 }

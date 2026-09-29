@@ -1,7 +1,8 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
+import { useToast } from '@/components/ui/toast';
 import { createFieldAction, type FieldFormState } from './actions';
 
 const initialState: FieldFormState = {};
@@ -10,6 +11,13 @@ export function NewFieldPanel() {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState('text');
   const [state, formAction, pending] = useActionState(createFieldAction, initialState);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (!state.saved) return;
+    setOpen(false);
+    showToast('Custom field added.');
+  }, [state, showToast]);
 
   if (!open) {
     return <Button onClick={() => setOpen(true)}>Add field</Button>;
@@ -67,7 +75,6 @@ export function NewFieldPanel() {
           </label>
 
           {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
-          {state.saved ? <Notice tone="ok">Field added.</Notice> : null}
 
           <div className="flex gap-2 pt-1">
             <Button type="submit" disabled={pending}>

@@ -39,10 +39,8 @@ export async function createOrganisationAction(
 ): Promise<CrmFormState> {
   const actor = await requirePermission('customer.manage');
 
-  let id: string;
-
   try {
-    id = await asUser(actor, () =>
+    await asUser(actor, () =>
       createOrganisation({
         name: text(formData, 'name'),
         kind: toKind(formData.get('kind')),
@@ -58,7 +56,7 @@ export async function createOrganisationAction(
   }
 
   revalidatePath('/customers');
-  redirect(`/customers/${id}`);
+  return { saved: true };
 }
 
 export async function updateOrganisationAction(

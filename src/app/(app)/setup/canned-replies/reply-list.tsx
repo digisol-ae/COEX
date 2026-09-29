@@ -1,7 +1,8 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { Badge, Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
+import { useToast } from '@/components/ui/toast';
 import { IconButton } from '@/components/ui/icon-button';
 import { PLACEHOLDERS, expandCannedReply } from '@/modules/tickets/canned-reply-text';
 import { customerEmailText, renderSignature } from '@/modules/tickets/email-text';
@@ -128,9 +129,16 @@ function ReplyForm({
   onClose: () => void;
 }) {
   const [state, formAction, pending] = useActionState(saveCannedReplyAction, initialState);
+  const { showToast } = useToast();
   const [body, setBody] = useState(reply?.body ?? '');
   const [queueId, setQueueId] = useState(reply?.queueId ?? '');
   const [previewing, setPreviewing] = useState(false);
+
+  useEffect(() => {
+    if (!state.saved) return;
+    onClose();
+    showToast(reply ? 'Saved reply updated.' : 'Saved reply created.');
+  }, [state, showToast, onClose, reply]);
 
   // Filled the way the reply box fills it, then signed the way the server signs it.
   const queue = queues.find((option) => option.id === queueId);

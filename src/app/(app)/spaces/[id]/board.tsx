@@ -13,6 +13,7 @@ import {
   Notice,
   Select,
 } from '@/components/ui';
+import { useToast } from '@/components/ui/toast';
 import { Chip, StatusDot, StatusPill } from '@/components/ui/pill';
 import { formatDateTime } from '@/modules/tasks/dates';
 import { formatMinutes } from '@/modules/time/week';
@@ -124,6 +125,13 @@ export function Board({
     setFolderId(activeFolderId);
   }, [activeFolderId]);
   const [state, formAction, pending] = useActionState(createTaskAction, initialState);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (!state.saved) return;
+    setAdding(false);
+    showToast('Task created.');
+  }, [state, showToast]);
   const [, startTransition] = useTransition();
   const [dragging, setDragging] = useState<DragState | null>(null);
   const [dropTarget, setDropTarget] = useState<{ status: string; index: number } | null>(null);

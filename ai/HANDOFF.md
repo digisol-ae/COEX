@@ -1,5 +1,26 @@
 # COEX — AI Handoff
 
+## Current Handoff — 29 Sep 2026, Codex
+
+Local changes are approved by John for commit, push and VPS pull/deployment.
+
+- New Personal page creates/uses a dedicated `isPersonal` backing Space. Personal tasks are only
+  visible to their owner; administrators and platform administrators cannot view another person's
+  Personal area. The local development DB contains old test Personal areas marked `isPersonal`.
+- My Desk is a standalone menu page directly after Dashboard. Users add only assigned tasks,
+  by drag/drop on desktop or + on mobile. Desk tasks have the regular task controls and a red
+  circular remove control. The daily confirmation warns about unfinished desk tasks. Risk counters
+  are visible; numeric score is hidden until a final algorithm is agreed.
+- Shared success toast + automatic close were added for primary create/save panels, and the timer
+  received the requested digital styling.
+- Verified locally with `npm run build` (passes; the four `storage.ts` tracing warnings remain
+  pre-existing). No full database test suite was run in this session.
+
+Deploy after pushing: `/srv/coex/app && git pull && npm ci && npm run build && pm2 restart coex-app coex-mail`.
+
+
+> **QA update — 29 Sep 2026 (Codex):** Full `npx vitest run` on the 28 Sep temporary QA snapshot, configured for `coex_qa`: 188 passed, 1 failed. Failure: `tests/database/time.test.ts:261`, “moves an entry to another day”; `after.entries[0]` is undefined when reading `workDate`. No fix made, no push or deployment. Next: investigate this test failure.
+
 ## Current Handoff — 28 Sep 2026, from Claude to ChatGPT
 
 John asked for everything to be handed to ChatGPT. Read CLAUDE.md first (decisions 12, 17, 18 and

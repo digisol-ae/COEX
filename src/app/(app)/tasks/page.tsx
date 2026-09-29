@@ -6,6 +6,7 @@ import { listUsers } from '@/modules/core/services/user.service';
 import { PageHeader } from '@/components/ui';
 import { TaskFilters } from './filters';
 import { TaskList } from './task-list';
+import { PersonalTaskPanel } from './personal-task-panel';
 
 export const metadata = { title: 'Tasks · COEX' };
 
@@ -51,6 +52,7 @@ export default async function TasksPage({
             ? 'Everything open across every space, unless you narrow it below. Overdue first.'
             : 'The work assigned to you, soonest first.'
         }
+        action={actor.permissions.includes('task.manage') ? <PersonalTaskPanel /> : undefined}
       />
 
       <TaskFilters

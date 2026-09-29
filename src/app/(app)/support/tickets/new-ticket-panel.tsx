@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button, Field, Input, Notice, Select } from '@/components/ui';
+import { useToast } from '@/components/ui/toast';
 import { createTicketAction, type SupportFormState } from '../actions';
 
 const initialState: SupportFormState = {};
@@ -44,6 +45,13 @@ export function NewTicketPanel({
   const [onBehalf, setOnBehalf] = useState(true);
   const [oversizedFiles, setOversizedFiles] = useState<string[]>([]);
   const [state, formAction, pending] = useActionState(createTicketAction, initialState);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (!state.saved) return;
+    setOpen(false);
+    showToast('Ticket created.');
+  }, [state, showToast]);
 
   useEffect(() => {
     if (!organisationId) return;

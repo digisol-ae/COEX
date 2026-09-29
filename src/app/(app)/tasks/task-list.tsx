@@ -26,6 +26,7 @@ import {
   setSubtaskDoneAction,
   setSubtaskAssigneeAction,
 } from './actions';
+import { toggleDeskTaskAction } from '../dashboard/actions';
 
 /**
  * My tasks: one person's work, across every space, grouped by when it is due.
@@ -66,18 +67,33 @@ function groupOf(task: TaskSummary, now: Date): Group {
   return 'later';
 }
 
+function isDueToday(task: TaskSummary) {
+  if (!task.endAt || task.isClosed) return false;
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  const due = new Date(task.endAt);
+  return due >= start && due < end;
+}
+
 export function TaskList({
   tasks,
   users,
   columnsBySpace,
   canManage,
   runningTaskId,
+  deskActionLabel = 'Desk',
+  hideAssignees = false,
 }: {
   tasks: TaskSummary[];
   users: { id: string; name: string }[];
   columnsBySpace: Record<string, TaskColumn[]>;
   canManage: boolean;
   runningTaskId: string | null;
+  /** The same toggle is labelled clearly when this list is rendered inside My Desk. */
+  deskActionLabel?: string;
+  hideAssignees?: boolean;
 }) {
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -110,7 +126,12 @@ export function TaskList({
     users,
     canManage,
     runningTaskId,
-    columnsFor: (task) => columnsBySpace[task.spaceId] ?? [{ name: task.status, isClosed: false }],
+    columnsFor: (task) => columnsBySpace[task.spaceId] ?? [
+      { name: 'To do', isClosed: false },
+      { name: 'In progress', isClosed: false },
+      { name: 'Blocked', isClosed: false },
+      { name: 'Done', isClosed: true },
+    ],
     onOpen: (task) => setOpenTaskId(task.id),
     onPriority: (task, priority: PriorityValue) =>
       patch(task, { priority }, { id: task.id, spaceId: task.spaceId, priority }),
@@ -276,6 +297,7 @@ export function TaskList({
                         </button>
 
                         <span className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--color-ink-subtle)]">
+                          {deskActionLabel === 'Desk' ? <button type="button" className="underline" onClick={() => startTransition(async () => { await toggleDeskTaskAction(task.id); })}>Desk</button> : null}
                           <Link
                             href={`/spaces/${task.spaceId}`}
                             className="hover:text-[var(--color-ink)] hover:underline"
@@ -283,6 +305,9 @@ export function TaskList({
                             {task.spaceName}
                           </Link>
                           {task.folderName ? <span>{task.folderName}</span> : null}
+                          {isDueToday(task) ? (
+                            <span className="font-medium text-[var(--color-status-warn)]">Due today</span>
+                          ) : null}
                           {task.subtaskCount > 0 ? (
                             <span>
                               {task.subtasksDone}/{task.subtaskCount} subtasks
@@ -332,21 +357,34 @@ export function TaskList({
                         {task.plannedMinutes ? formatMinutes(task.plannedMinutes) : ''}
                       </td>
 
-                      <td className="w-24 px-2 py-2 align-middle">
-                        <AssigneePicker
-                          users={users}
-                          selectedIds={task.assigneeIds}
-                          disabled={!canManage}
-                          onChange={(ids) => handlers.onAssignees(task, ids)}
-                        />
-                      </td>
+                      {!hideAssignees ? (
+                        <td className="w-24 px-2 py-2 align-middle">
+                          <AssigneePicker
+                            users={users}
+                            selectedIds={task.assigneeIds}
+                            disabled={!canManage}
+                            onChange={(ids) => handlers.onAssignees(task, ids)}
+                          />
+                        </td>
+                      ) : null}
 
-                      <td className="w-10 px-2 py-2 align-middle">
+                      <td className="w-16 px-2 py-2 align-middle">
                         <PriorityPicker
                           priority={task.priority}
                           disabled={!canManage}
                           onChange={(priority) => handlers.onPriority(task, priority)}
                         />
+                        {deskActionLabel !== 'Desk' ? (
+                          <button
+                            type="button"
+                            aria-label="Remove from My Desk"
+                            title="Remove from My Desk"
+                            className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-[var(--color-status-alert)] text-[17px] leading-none text-[var(--color-status-alert)] hover:bg-[var(--color-status-alert-soft)]"
+                            onClick={() => startTransition(async () => { await toggleDeskTaskAction(task.id); })}
+                          >
+                            ×
+                          </button>
+                        ) : null}
                       </td>
                     </tr>
                   ))}

@@ -1,5 +1,12 @@
 @import 'tailwindcss';
 
+@keyframes coex-wait {
+  0%, 100% { opacity: .45; letter-spacing: .08em; }
+  50% { opacity: 1; letter-spacing: .22em; }
+}
+
+.coex-wait { animation: coex-wait 900ms ease-in-out infinite; font-weight: 700; }
+
 /*
  * COEX design tokens.
  *

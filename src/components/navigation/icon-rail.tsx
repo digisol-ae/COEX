@@ -24,6 +24,7 @@ interface RailItem {
 
 const ITEMS: RailItem[] = [
   { href: '/dashboard', label: 'Home', icon: 'home' },
+  { href: '/my-desk', label: 'My desk', icon: 'tasks', permission: 'task.read.own' },
   { href: '/tasks', label: 'Tasks', icon: 'tasks', permission: 'task.read.own', group: 'tasks' },
   {
     href: '/spaces',

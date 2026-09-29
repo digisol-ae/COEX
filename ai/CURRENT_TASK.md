@@ -1,5 +1,12 @@
 # COEX — Current AI Task
 
+> **29 Sep 2026 — release handoff:** Commit and deploy the approved local feature bundle. After
+> deployment, smoke-test Personal privacy, My Desk task add/remove and daily confirmation, and
+> standard create/save confirmations. My Desk's numeric score is deliberately hidden until John
+> defines the final performance algorithm.
+
+> **QA update — 29 Sep 2026 (Codex):** Full `npx vitest run` on the 28 Sep temporary QA snapshot, configured for `coex_qa`: 188 passed, 1 failed. Failure: `tests/database/time.test.ts:261`, “moves an entry to another day”; `after.entries[0]` is undefined when reading `workDate`. No fix made, no push or deployment. Next: investigate this test failure.
+
 > **Current task — 28 Sep 2026: handed to ChatGPT.** Read ai/HANDOFF.md "Current Handoff — 28 Sep
 > 2026" first: it lists what was built, what is pushed (`a71cee8`) and what is only local (What's
 > new and the database reconnect fix), what was not tested because the Mac's connection to Atlas

@@ -44,6 +44,8 @@ const spaceSchema = new Schema(
     },
 
     ownerId: { type: Schema.Types.ObjectId, ref: 'User', default: null, index: true },
+    /** Invisible backing area for one person's Personal tasks; never visible to administrators. */
+    isPersonal: { type: Boolean, default: false, index: true },
     memberIds: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
 
     startDate: { type: Date, default: null },

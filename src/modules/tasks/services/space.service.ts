@@ -59,7 +59,12 @@ export interface SpaceSummary {
 
 export async function visibleSpaceIds(): Promise<import('mongoose').Types.ObjectId[] | null> {
   await connectToDatabase();
-  if (await actorIsAdministrator()) return null;
+  // Personal work is private even from an administrator. It is an individual's capture pad, not
+  // a private project a manager needs access to administer.
+  if (await actorIsAdministrator()) {
+    const visible = await spaces().find({ $or: [{ isPersonal: { $ne: true } }, { ownerId: getContext().userId }] }).select('_id');
+    return visible.map((space) => space._id);
+  }
   const open = await spaces()
     .find({ memberIds: { $size: 0 } })
     .select('_id');
@@ -76,6 +81,7 @@ export async function canOpenSpace(id: string): Promise<boolean> {
   await connectToDatabase();
   const space = await spaces().findById(id);
   if (!space) return false;
+  if (space.isPersonal) return String(space.ownerId) === String(getContext().userId);
   return (
     space.memberIds.length === 0 ||
     (await actorIsAdministrator()) ||
@@ -93,7 +99,7 @@ export async function listSpaces(): Promise<SpaceSummary[]> {
   await connectToDatabase();
 
   const found = await spaces()
-    .find(await visibleSpaceFilter())
+    .find({ ...(await visibleSpaceFilter()), isPersonal: { $ne: true } })
     .sort({ sortOrder: 1, name: 1 });
 
   // Counts respect folder privacy, so a space does not advertise the size of work the person
@@ -171,6 +177,29 @@ export async function createSpace(input: SpaceInput): Promise<string> {
     after: { name: created.name },
   });
 
+  return String(created._id);
+}
+
+/**
+ * A private, automatic home for work captured from My tasks. The data model keeps every task in
+ * a Space for statuses and access checks, but people should not have to create one just to note a
+ * task for themselves.
+ */
+export async function personalSpaceForCurrentUser(): Promise<string> {
+  await connectToDatabase();
+  const userId = getContext().userId;
+  // Never adopt a normal Space merely because somebody happened to call it “My tasks”. That was
+  // letting ordinary project work leak into Personal for its owner.
+  const existing = await spaces().findOne({ ownerId: userId, isPersonal: true });
+  if (existing) return String(existing._id);
+
+  const created = await spaces().create({
+    name: 'Personal',
+    description: 'Private personal work captured from Personal.',
+    ownerId: userId,
+    isPersonal: true,
+    memberIds: [userId],
+  });
   return String(created._id);
 }
 
