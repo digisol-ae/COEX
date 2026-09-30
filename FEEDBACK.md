@@ -9,7 +9,8 @@
   tasks appear. My Available Tasks opens a preview popup with an Open task icon.
 - QA green (208 full-suite tests, 79 final unit tests, 5 focused desk tests, build/types/lint/
   formatting and local browser behavior). User approved commit, GitHub push, app-server deploy
-  and shutdown after verification. Server access is currently blocked; see ai/HANDOFF.md.
+  and shutdown after verification. Release bd65e26 pushed with green GitHub CI. Deployment and shutdown are blocked by
+  native SSH access; see ai/HANDOFF.md.
 
 Running backlog. Newest at the top. Each item is numbered, has a state and a short note.
 

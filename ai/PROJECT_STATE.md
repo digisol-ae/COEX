@@ -1,5 +1,21 @@
 # COEX — Shared AI Project State
 
+## Verified release outcome — 1 Oct 2026
+
+- Release commit bd65e26dabadb97d9537a215512968e1e4f0484d is pushed to GitHub main.
+- Exact release CI is green (install, types, lint, formatting, unit tests and production build):
+  https://github.com/digisol-ae/COEX/actions/runs/36775161483
+- Full isolated QA passed 208 tests; final unit run passed 79, and the final focused desk/status
+  database run passed 5. Final source/build/browser checks are recorded below.
+- VPS deployment did not happen: the documented SSH key is blocked by macOS privacy access;
+  agent authentication failed, Terminal AppleEvents timed out, and Computer Use denied Terminal.
+  No server configuration, processes or data were changed. Keep the existing authorized release
+  deployment pending until John can resolve native SSH access.
+- Mac shutdown was not performed because the requested deployment could not be completed and
+  verified. Claude's next step is the deployment procedure below, then the authorized shutdown.
+- A documentation-only follow-up records this outcome; use the source release SHA above to
+  identify the tested feature bundle. Temporary QA env copy removed; real env files untouched.
+
 ## Release handoff — 1 Oct 2026 (Codex)
 
 John approved QA, updating Claude's instructions, committing, pushing to GitHub, deploying
