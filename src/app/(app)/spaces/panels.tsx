@@ -1,22 +1,32 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useState } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
 import { createSpaceAction, type TaskFormState } from '../tasks/actions';
 
 const initialState: TaskFormState = {};
 
-export function NewSpacePanel({ customers, users }: { customers: { id: string; name: string }[]; users: { id: string; name: string }[] }) {
+export function NewSpacePanel({
+  customers,
+  users,
+}: {
+  customers: { id: string; name: string }[];
+  users: { id: string; name: string }[];
+}) {
   const [open, setOpen] = useState(false);
-  const [state, formAction, pending] = useActionState(createSpaceAction, initialState);
   const { showToast } = useToast();
-
-  useEffect(() => {
-    if (!state.saved) return;
-    setOpen(false);
-    showToast('Space created.');
-  }, [state, showToast]);
+  const [state, formAction, pending] = useActionState(
+    async (previous: TaskFormState, formData: FormData) => {
+      const result = await createSpaceAction(previous, formData);
+      if (result.saved) {
+        setOpen(false);
+        showToast('Space created.');
+      }
+      return result;
+    },
+    initialState,
+  );
 
   if (!open) {
     return <Button onClick={() => setOpen(true)}>Add space</Button>;
@@ -56,9 +66,20 @@ export function NewSpacePanel({ customers, users }: { customers: { id: string; n
             <Input name="dueDate" type="date" />
           </Field>
 
-          <Field label="Private members" hint="Leave empty for a tenant-wide space. Hold command to select several.">
-            <select name="memberIds" multiple className="h-28 w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2 py-1.5 text-sm text-[var(--color-ink)]">
-              {users.map((user) => <option key={user.id} value={user.id}>{user.name}</option>)}
+          <Field
+            label="Private members"
+            hint="Leave empty for a tenant-wide space. Hold command to select several."
+          >
+            <select
+              name="memberIds"
+              multiple
+              className="h-28 w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2 py-1.5 text-sm text-[var(--color-ink)]"
+            >
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
+                </option>
+              ))}
             </select>
           </Field>
 

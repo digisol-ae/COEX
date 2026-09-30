@@ -44,7 +44,16 @@ export default async function ProductsPage() {
             </thead>
             <tbody>
               {products.map((product) => (
-                <tr key={product.id}>
+                <tr
+                  key={product.id}
+                  data-sort-values={JSON.stringify([
+                    product.name,
+                    product.code,
+                    product.status === 'active' ? product.kind : 'retired',
+                    product.listPriceMinorUnits,
+                    product.billingPeriod,
+                  ])}
+                >
                   <Td>
                     <div className="font-medium text-[var(--color-ink)]">{product.name}</div>
                     {product.description ? (

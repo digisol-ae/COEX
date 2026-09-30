@@ -1,5 +1,29 @@
 # COEX live deployment: state as of 19 Sep 2026
 
+## Release ready; deployment blocked — 1 Oct 2026
+- John authorized commit, push and deployment of the current local bundle, followed by Mac
+  shutdown after verification. Local build/types/lint/format, database and browser QA pass.
+- VPS revision/process status remains unverified. Codex SSH was refused because macOS denied
+  the Downloads SSH key; agent fallback failed. Terminal access is blocked. No live change made.
+- Deployment requires native terminal access to the existing key. Follow ai/HANDOFF.md's
+  newest release section. Preserve Apache/Zabbix; no OS patching or new proxy is required.
+- After a clean --ff-only pull, run npm ci and npm run build, restart both coex-app and coex-mail
+  with --update-env. Start or restart coex-desk-close using npm run desk:worker, then pm2 save.
+  Verify the exact deployed SHA, all processes and public HTTPS before shutting down the Mac.
+
+## Local release preparation — 1 Oct 2026
+- Desk-close scheduling/retry and lint defects fixed locally; TypeScript, 69 unit tests and
+  production build pass. Full database QA last passed on 30 Sep before these fixes.
+- Worker changes are uncommitted; deployment remains unverified. No server access in this
+  continuation. Continue local QA; deployment is not part of the current work.
+
+## Verification — 30 Sep 2026
+- Public login responds HTTP 200.
+- GitHub main is 0f5e858. VPS HEAD and pm2 process state could not be checked because macOS
+  denied access to the SSH key. Do not assume the uncommitted desk-close worker is deployed.
+- Current local QA: 189/189 pass; TypeScript/build pass. CI lint and desk-close timing/retry
+  issues remain release blockers. See ai/HANDOFF.md.
+
 This is what is ACTUALLY running, for a fresh session. It diverges from DEPLOY.md:
 the live box uses pm2 (not systemd) and a single app dir (not releases/current).
 Follow this file for the live server; DEPLOY.md is the original design only.
@@ -40,6 +64,8 @@ Follow this file for the live server; DEPLOY.md is the original design only.
   (mongodump + tar of storage, 14-day retention). Copy off-box periodically.
 
 ## Email worker (from 24 Sep 2026)
+- Third pm2 process `coex-desk-close`: `pm2 start npm --name coex-desk-close -- run desk:worker`,
+  then `pm2 save`. Set `OFFICE_TZ` (default Asia/Dubai) if the office is elsewhere.
 - Second pm2 process `coex-mail`: `pm2 start npm --name coex-mail -- run email:worker`, then
   `pm2 save`. It reads the same /srv/coex/app/.env. Restart it with the app after each redeploy.
 - .env needs `COEX_ENCRYPTION_KEY` (openssl rand -base64 32, never change it) and

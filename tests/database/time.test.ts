@@ -256,7 +256,7 @@ describe('correcting an entry', () => {
       }),
     );
 
-    const after = await runWithContext(context, () => loadTimesheet(new Date(), String(userId)));
+    const after = await runWithContext(context, () => loadTimesheet(yesterday, String(userId)));
 
     expect(toDateKey(after.entries[0].workDate)).toBe(toDateKey(yesterday));
   });

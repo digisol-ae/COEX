@@ -9,11 +9,7 @@ import { useEffect, useRef, useState } from 'react';
  * single click can only mean one thing. Either way this used to be a plain icon with no way to
  * reach the document itself, which is the point of showing it in the first place.
  */
-export function DocumentBadge({
-  links,
-}: {
-  links: { id: string; title: string; url: string }[];
-}) {
+export function DocumentBadge({ links }: { links: { id: string; title: string; url: string }[] }) {
   const [open, setOpen] = useState(false);
   const holder = useRef<HTMLDivElement>(null);
 

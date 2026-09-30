@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useState } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
 import { createOrganisationAction, type CrmFormState } from './actions';
@@ -9,14 +9,18 @@ const initialState: CrmFormState = {};
 
 export function NewCustomerPanel() {
   const [open, setOpen] = useState(false);
-  const [state, formAction, pending] = useActionState(createOrganisationAction, initialState);
   const { showToast } = useToast();
-
-  useEffect(() => {
-    if (!state.saved) return;
-    setOpen(false);
-    showToast('Customer created.');
-  }, [state, showToast]);
+  const [state, formAction, pending] = useActionState(
+    async (previous: CrmFormState, formData: FormData) => {
+      const result = await createOrganisationAction(previous, formData);
+      if (result.saved) {
+        setOpen(false);
+        showToast('Customer created.');
+      }
+      return result;
+    },
+    initialState,
+  );
 
   if (!open) {
     return <Button onClick={() => setOpen(true)}>Add customer</Button>;

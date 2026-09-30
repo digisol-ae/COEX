@@ -201,8 +201,8 @@ export function AccessEditor({
         </div>
 
         <p className="mb-4 text-xs text-[var(--color-ink-muted)]">
-          Role: <span className="font-medium">{role.replace('_', ' ')}</span>. "Default" follows the
-          role below; overriding one permission does not touch any other.
+          Role: <span className="font-medium">{role.replace('_', ' ')}</span>. &quot;Default&quot;
+          follows the role below; overriding one permission does not touch any other.
         </p>
 
         <form action={formAction} className="space-y-5">

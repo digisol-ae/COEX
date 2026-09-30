@@ -1,11 +1,21 @@
 @import 'tailwindcss';
 
 @keyframes coex-wait {
-  0%, 100% { opacity: .45; letter-spacing: .08em; }
-  50% { opacity: 1; letter-spacing: .22em; }
+  0%,
+  100% {
+    opacity: 0.45;
+    letter-spacing: 0.08em;
+  }
+  50% {
+    opacity: 1;
+    letter-spacing: 0.22em;
+  }
 }
 
-.coex-wait { animation: coex-wait 900ms ease-in-out infinite; font-weight: 700; }
+.coex-wait {
+  animation: coex-wait 900ms ease-in-out infinite;
+  font-weight: 700;
+}
 
 /*
  * COEX design tokens.
@@ -446,13 +456,7 @@ body {
 }
 
 html[data-theme='dark'] .sidebar-glow {
-  background: linear-gradient(
-    172deg,
-    #221d1b 0%,
-    #221c21 30%,
-    #1d2022 60%,
-    #1e1c26 100%
-  );
+  background: linear-gradient(172deg, #221d1b 0%, #221c21 30%, #1d2022 60%, #1e1c26 100%);
 }
 
 /*

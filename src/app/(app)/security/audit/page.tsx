@@ -52,7 +52,15 @@ export default async function AuditPage() {
             </thead>
             <tbody>
               {entries.map((entry) => (
-                <tr key={entry.id}>
+                <tr
+                  key={entry.id}
+                  data-sort-values={JSON.stringify([
+                    entry.at.getTime(),
+                    entry.action,
+                    entry.entityType,
+                    entry.actorEmail ?? 'System',
+                  ])}
+                >
                   <Td className="whitespace-nowrap text-[var(--color-ink-muted)]">
                     {entry.at.toLocaleString('en-GB')}
                   </Td>

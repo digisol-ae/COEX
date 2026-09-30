@@ -45,7 +45,12 @@ export function LocationsPanel({
                   <form action={archiveLocationAction}>
                     <input type="hidden" name="id" value={location.id} />
                     <input type="hidden" name="organisationId" value={organisationId} />
-                    <IconButton type="submit" icon="remove" label="Remove this location" tone="danger" />
+                    <IconButton
+                      type="submit"
+                      icon="remove"
+                      label="Remove this location"
+                      tone="danger"
+                    />
                   </form>
                 ) : null}
               </li>

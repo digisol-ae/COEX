@@ -41,7 +41,13 @@ const ITEMS: RailItem[] = [
     group: 'support',
   },
   { href: '/time', label: 'Time', icon: 'time', permission: 'task.read.own', group: 'tasks' },
-  { href: '/customers', label: 'CRM', icon: 'customers', permission: 'customer.read', group: 'crm' },
+  {
+    href: '/customers',
+    label: 'CRM',
+    icon: 'customers',
+    permission: 'customer.read',
+    group: 'crm',
+  },
   { href: '/setup', label: 'Setup', icon: 'settings', permission: 'tenant.manage', group: 'setup' },
 ];
 

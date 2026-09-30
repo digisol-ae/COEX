@@ -1,3 +1,4 @@
+import { Table } from '@/components/ui';
 import { asUser, requirePermission } from '@/lib/session';
 import {
   loadDeskMetrics,
@@ -103,7 +104,7 @@ export default async function DeskMetricsPage({
 
 function RowTable({ rows, withAvatar }: { rows: DeskRow[]; withAvatar?: boolean }) {
   return (
-    <table className="w-full border-collapse text-sm">
+    <Table className="w-full border-collapse text-sm">
       <thead>
         <tr className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
           <th className="border-b border-[var(--color-line)] px-2 py-1.5 text-left font-medium">
@@ -132,7 +133,23 @@ function RowTable({ rows, withAvatar }: { rows: DeskRow[]; withAvatar?: boolean 
 
       <tbody>
         {rows.map((row) => (
-          <tr key={row.id} className="border-b border-[var(--color-line)] last:border-b-0">
+          <tr
+            key={row.id}
+            data-sort-values={JSON.stringify([
+              row.name,
+              row.open,
+              row.resolved,
+              row.firstResponseMet + row.firstResponseMissed
+                ? row.firstResponseMet / (row.firstResponseMet + row.firstResponseMissed)
+                : null,
+              row.resolutionMet + row.resolutionMissed
+                ? row.resolutionMet / (row.resolutionMet + row.resolutionMissed)
+                : null,
+              row.medianFirstResponseMinutes,
+              row.medianResolutionMinutes,
+            ])}
+            className="border-b border-[var(--color-line)] last:border-b-0"
+          >
             <td className="px-2 py-2">
               <span className="flex items-center gap-2">
                 {withAvatar && row.name !== 'Unassigned' ? (
@@ -177,7 +194,7 @@ function RowTable({ rows, withAvatar }: { rows: DeskRow[]; withAvatar?: boolean 
           </tr>
         ))}
       </tbody>
-    </table>
+    </Table>
   );
 }
 

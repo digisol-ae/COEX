@@ -27,7 +27,10 @@ export function PageHeader({
       <div className="flex items-start gap-3">
         {icon ? <span className="mt-1">{icon}</span> : null}
         <div>
-          <div className="flex items-center gap-2"><h1 className="text-xl font-bold text-[var(--color-ink)]">{title}</h1>{titleExtra}</div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-[var(--color-ink)]">{title}</h1>
+            {titleExtra}
+          </div>
           {description ? (
             <p className="mt-1 max-w-2xl text-sm text-[var(--color-ink-muted)]">{description}</p>
           ) : null}
@@ -96,7 +99,13 @@ export function Button({
         className,
       )}
     >
-      {waiting ? <span className="coex-wait" aria-label="Saving">C O E X</span> : children}
+      {waiting ? (
+        <span className="coex-wait" aria-label="Saving">
+          C O E X
+        </span>
+      ) : (
+        children
+      )}
     </button>
   );
 }
@@ -130,25 +139,25 @@ export function Select({ className, ...props }: ComponentProps<'select'>) {
   return <select {...props} className={clsx(CONTROL_CLASSES, className)} />;
 }
 
-export function Table({ children }: { children: ReactNode }) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-sm">{children}</table>
-    </div>
-  );
-}
+export { SortableTable as Table } from './sortable-table';
 
-export function Th({ children }: { children: ReactNode }) {
+export function Th({ children, ...props }: ComponentProps<'th'>) {
   return (
-    <th className="border-b border-[var(--color-line)] px-4 py-2 text-left text-[11px] font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
+    <th
+      {...props}
+      className="border-b border-[var(--color-line)] px-4 py-2 text-left text-[11px] font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase"
+    >
       {children}
     </th>
   );
 }
 
-export function Td({ children, className }: { children: ReactNode; className?: string }) {
+export function Td({ children, className, ...props }: ComponentProps<'td'>) {
   return (
-    <td className={clsx('border-b border-[var(--color-line)] px-4 py-2 align-middle', className)}>
+    <td
+      {...props}
+      className={clsx('border-b border-[var(--color-line)] px-4 py-2 align-middle', className)}
+    >
       {children}
     </td>
   );

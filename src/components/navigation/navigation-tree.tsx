@@ -44,7 +44,12 @@ export function NavigationTree({
         active={isActive(HOME.href)}
         onNavigate={onNavigate}
       />
-      <NavigationLink href={DESK.href} label={DESK.label} active={isActive(DESK.href)} onNavigate={onNavigate} />
+      <NavigationLink
+        href={DESK.href}
+        label={DESK.label}
+        active={isActive(DESK.href)}
+        onNavigate={onNavigate}
+      />
 
       {groups.map((group) => {
         // The group holding the current page stays open whatever was collapsed before, so nobody

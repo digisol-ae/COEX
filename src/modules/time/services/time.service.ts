@@ -131,7 +131,14 @@ export async function listTodaysTimers(): Promise<TodayTimer[]> {
   // a coincidentally equal id string are kept apart by the 't:'/'k:' prefix on the grouping key.
   const byItem = new Map<
     string,
-    { kind: 'task' | 'ticket'; itemId: string; number: string; title: string; minutes: number; running: boolean }
+    {
+      kind: 'task' | 'ticket';
+      itemId: string;
+      number: string;
+      title: string;
+      minutes: number;
+      running: boolean;
+    }
   >();
 
   for (const entry of found) {
@@ -146,7 +153,9 @@ export async function listTodaysTimers(): Promise<TodayTimer[]> {
 
     const existing = byItem.get(key);
     const number =
-      kind === 'task' ? (taskById.get(itemId)?.number ?? '') : (ticketById.get(itemId)?.number ?? '');
+      kind === 'task'
+        ? (taskById.get(itemId)?.number ?? '')
+        : (ticketById.get(itemId)?.number ?? '');
     const title =
       kind === 'task'
         ? (taskById.get(itemId)?.title ?? 'Unknown task')

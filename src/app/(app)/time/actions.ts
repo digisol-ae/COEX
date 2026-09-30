@@ -47,7 +47,10 @@ export async function stopTimerAction(): Promise<void> {
   // to press stop on their own running ticket timer.
   const actor = await requireUser();
 
-  if (!actor.permissions.includes('task.read.own') && !actor.permissions.includes('ticket.read.own')) {
+  if (
+    !actor.permissions.includes('task.read.own') &&
+    !actor.permissions.includes('ticket.read.own')
+  ) {
     redirect('/dashboard?denied=task.read.own');
   }
 

@@ -29,7 +29,13 @@ const TRANSITION_MS = 220;
  * this would be a heavier dependency than the effect is worth. This is the same family of
  * transition macOS Quick Look itself uses for a plain image preview.
  */
-export function AttachmentItem({ ticketId, attachment }: { ticketId: string; attachment: AttachmentView }) {
+export function AttachmentItem({
+  ticketId,
+  attachment,
+}: {
+  ticketId: string;
+  attachment: AttachmentView;
+}) {
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const closeTimer = useRef<number | undefined>(undefined);
@@ -57,7 +63,6 @@ export function AttachmentItem({ ticketId, attachment }: { ticketId: string; att
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted]);
 
   useEffect(() => () => window.clearTimeout(closeTimer.current), []);

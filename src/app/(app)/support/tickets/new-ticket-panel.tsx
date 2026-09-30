@@ -44,14 +44,18 @@ export function NewTicketPanel({
   });
   const [onBehalf, setOnBehalf] = useState(true);
   const [oversizedFiles, setOversizedFiles] = useState<string[]>([]);
-  const [state, formAction, pending] = useActionState(createTicketAction, initialState);
   const { showToast } = useToast();
-
-  useEffect(() => {
-    if (!state.saved) return;
-    setOpen(false);
-    showToast('Ticket created.');
-  }, [state, showToast]);
+  const [state, formAction, pending] = useActionState(
+    async (previous: SupportFormState, formData: FormData) => {
+      const result = await createTicketAction(previous, formData);
+      if (result.saved) {
+        setOpen(false);
+        showToast('Ticket created.');
+      }
+      return result;
+    },
+    initialState,
+  );
 
   useEffect(() => {
     if (!organisationId) return;

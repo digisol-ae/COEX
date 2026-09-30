@@ -19,7 +19,6 @@ import {
   saveNavigationOrder,
   updateMyProfile,
 } from '@/modules/core/services/user.service';
-import { hashPassword } from '@/lib/password';
 import { SessionModel } from '@/modules/core/models/session.model';
 import { createSession } from '@/modules/core/services/session.service';
 import {

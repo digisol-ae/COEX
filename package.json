@@ -18,7 +18,8 @@
     "test:unit": "vitest run tests/unit",
     "test:db": "vitest run tests/database",
     "check": "npm run test && npm run build",
-    "email:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/email-worker.ts"
+    "email:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/email-worker.ts",
+    "desk:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/desk-close-worker.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.1",
@@ -27,6 +28,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "imapflow": "^2.0.6",
+    "jose": "^6.2.12",
     "mailparser": "^3.9.28",
     "mongoose": "^9.10.1",
     "next": "16.3.5",

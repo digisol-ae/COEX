@@ -1,4 +1,5 @@
 'use client';
+import { DeskTaskButton } from '@/components/tasks/desk-task-button';
 
 import { useEffect, useState, useTransition, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -57,6 +58,7 @@ export function EntryRow({
   canEdit: boolean;
   /** Kept for callers; popups no longer need the table's column count. */
   columns?: number;
+  sortValues?: (string | number | null)[];
 }) {
   const [editing, setEditing] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -102,6 +104,7 @@ export function EntryRow({
             {entry.taskNumber}
           </span>{' '}
           <span className="text-[var(--color-ink)]">{entry.taskTitle}</span>
+          <DeskTaskButton taskId={entry.taskId} />
           {entry.note ? (
             <div className="text-xs text-[var(--color-ink-subtle)]">{entry.note}</div>
           ) : null}

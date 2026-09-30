@@ -119,7 +119,14 @@ export function FolderBar({
               aria-label="New folder name"
               className="w-36 rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-2 py-1 text-[12px] text-[var(--color-ink)] focus:outline-none"
             />
-            <label className="ml-2 text-[11px] text-[var(--color-ink-muted)]"><input type="checkbox" checked={privateToMe} onChange={(event) => setPrivateToMe(event.target.checked)} /> private to me</label>
+            <label className="ml-2 text-[11px] text-[var(--color-ink-muted)]">
+              <input
+                type="checkbox"
+                checked={privateToMe}
+                onChange={(event) => setPrivateToMe(event.target.checked)}
+              />{' '}
+              private to me
+            </label>
           </form>
         ) : null}
       </div>

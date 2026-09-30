@@ -1,9 +1,11 @@
 'use client';
 
+import { DeskTaskButton } from '@/components/tasks/desk-task-button';
+
 import Link from 'next/link';
-import { useActionState, useEffect, useState, useTransition } from 'react';
+import { useActionState, useCallback, useEffect, useState, useTransition } from 'react';
 import { clsx } from 'clsx';
-import { Button, Field, Input, Notice } from '@/components/ui';
+import { Button, Input, Notice } from '@/components/ui';
 import { IconButton, IconLink } from '@/components/ui/icon-button';
 import { StatusDot } from '@/components/ui/pill';
 import { formatMinutes } from '@/modules/time/week';
@@ -113,7 +115,7 @@ export function TaskPanel({
       ? users.filter((user) => subtaskAllowed.includes(user.id) || user.id === current)
       : users;
 
-  function loadDetail() {
+  const loadDetail = useCallback(() => {
     let live = true;
 
     fetch(`/api/tasks/${task.id}/panel`)
@@ -128,13 +130,13 @@ export function TaskPanel({
     return () => {
       live = false;
     };
-  }
+  }, [task.id]);
 
   // The panel is mounted per task by its key, so this runs once for each task opened and detail
   // starts empty on its own rather than being cleared here.
   useEffect(() => {
     return loadDetail();
-  }, [task.id]);
+  }, [loadDetail]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -146,9 +148,8 @@ export function TaskPanel({
   }, [onClose]);
 
   useEffect(() => {
-    if (docState.saved) loadDetail();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [docState.saved]);
+    if (docState.saved) return loadDetail();
+  }, [docState, loadDetail]);
 
   function removeLink(linkId: string) {
     startTransition(async () => {
@@ -194,6 +195,8 @@ export function TaskPanel({
               Ticket {detail.sourceTicket.number}
             </Link>
           ) : null}
+
+          <DeskTaskButton taskId={task.id} assigneeIds={task.assigneeIds} />
 
           <IconLink
             icon="open"

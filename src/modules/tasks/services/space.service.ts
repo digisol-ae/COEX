@@ -1,3 +1,4 @@
+import { assertUsedStatusesPreserved, validateSpaceStatuses, type SpaceStatus } from '../statuses';
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { toObjectId, toOptionalObjectId } from '@/lib/ids';
@@ -62,7 +63,9 @@ export async function visibleSpaceIds(): Promise<import('mongoose').Types.Object
   // Personal work is private even from an administrator. It is an individual's capture pad, not
   // a private project a manager needs access to administer.
   if (await actorIsAdministrator()) {
-    const visible = await spaces().find({ $or: [{ isPersonal: { $ne: true } }, { ownerId: getContext().userId }] }).select('_id');
+    const visible = await spaces()
+      .find({ $or: [{ isPersonal: { $ne: true } }, { ownerId: getContext().userId }] })
+      .select('_id');
     return visible.map((space) => space._id);
   }
   const open = await spaces()
@@ -154,6 +157,7 @@ export interface SpaceInput {
   organisationId?: string | null;
   dueDate?: string | null;
   memberIds?: string[];
+  statuses?: SpaceStatus[];
 }
 
 export async function createSpace(input: SpaceInput): Promise<string> {
@@ -226,6 +230,15 @@ export async function updateSpace(id: string, input: SpaceInput): Promise<void> 
   if (!space) throw new Error('Space not found.');
   const name = input.name.trim();
   if (!name) throw new Error('A space needs a name.');
+  if (!(await canOpenSpace(id))) throw new Error('You cannot open this space.');
+  const statuses = input.statuses ? validateSpaceStatuses(input.statuses) : null;
+  if (statuses) {
+    const used = await TaskModel.distinct('status', {
+      tenantId: getContext().tenantId,
+      spaceId: space._id,
+    });
+    assertUsedStatusesPreserved(space.statuses, statuses, used);
+  }
   const memberIds = (input.memberIds ?? []).filter(Boolean).map(toObjectId);
   await spaces().updateOne(
     { _id: space._id },
@@ -234,8 +247,16 @@ export async function updateSpace(id: string, input: SpaceInput): Promise<void> 
         name,
         description: input.description?.trim() || null,
         organisationId: toOptionalObjectId(input.organisationId),
-        dueDate: input.dueDate ? new Date(input.dueDate) : null,
+        dueDate:
+          input.dueDate === undefined
+            ? space.dueDate
+            : input.dueDate
+              ? new Date(input.dueDate)
+              : null,
         memberIds,
+        ...(statuses
+          ? { statuses: statuses.map((status, sortOrder) => ({ ...status, sortOrder })) }
+          : {}),
       },
     },
   );
@@ -243,8 +264,8 @@ export async function updateSpace(id: string, input: SpaceInput): Promise<void> 
     action: 'space.updated',
     entityType: 'Space',
     entityId: space._id,
-    before: { name: space.name, private: space.memberIds.length > 0 },
-    after: { name, private: memberIds.length > 0 },
+    before: { name: space.name, private: space.memberIds.length > 0, statuses: space.statuses },
+    after: { name, private: memberIds.length > 0, statuses: statuses ?? space.statuses },
   });
 }
 

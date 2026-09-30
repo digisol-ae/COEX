@@ -51,7 +51,9 @@ export function SpacesTable({
   const [, startTransition] = useTransition();
 
   if (order.length === 0) {
-    return <EmptyState message="No spaces yet. Create one such as dOne Platform or Project Management." />;
+    return (
+      <EmptyState message="No spaces yet. Create one such as dOne Platform or Project Management." />
+    );
   }
 
   function moveTo(targetId: string) {
@@ -99,6 +101,16 @@ export function SpacesTable({
           return (
             <tr
               key={space.id}
+              data-sort-values={JSON.stringify([
+                ...(canManage ? [''] : []),
+                space.name,
+                inside.map((folder) => folder.name).join(', '),
+                space.organisationId ? customerNames[space.organisationId] : null,
+                space.memberIds.map((id) => userNames[id]).join(', ') || 'Everyone',
+                space.progressPercent,
+                space.openTaskCount,
+                space.dueDate ? new Date(space.dueDate).getTime() : null,
+              ])}
               draggable={canManage}
               onDragStart={() => setDraggingId(space.id)}
               onDragOver={(event) => {

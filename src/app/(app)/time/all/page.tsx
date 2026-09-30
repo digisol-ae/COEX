@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
 import { listUsers } from '@/modules/core/services/user.service';
 import { loadTimesheet } from '@/modules/time/services/timesheet.service';
-import { formatMinutes, startOfWeek, toDateKey } from '@/modules/time/week';
+import { daysOfWeek, formatMinutes, startOfWeek, toDateKey } from '@/modules/time/week';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
 
@@ -43,11 +43,12 @@ export default async function AllTimesheetsPage({
     .sort((a, b) => b.sheet.totalMinutes - a.sheet.totalMinutes);
 
   const weekKey = toDateKey(weekStart);
+  const days = daysOfWeek(weekStart);
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekEnd.getDate() + 6);
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader
         title="All timesheets"
         description="Every active person's hours for the week, logged or not."
@@ -80,6 +81,15 @@ export default async function AllTimesheetsPage({
             <thead>
               <tr>
                 <Th>Person</Th>
+                {days.map((day) => (
+                  <Th key={toDateKey(day)}>
+                    {day.toLocaleDateString('en-GB', {
+                      weekday: 'short',
+                      day: 'numeric',
+                      month: 'short',
+                    })}
+                  </Th>
+                ))}
                 <Th>Total</Th>
                 <Th>Billable</Th>
                 <Th>Status</Th>
@@ -88,7 +98,20 @@ export default async function AllTimesheetsPage({
             </thead>
             <tbody>
               {rows.map(({ person, sheet }) => (
-                <tr key={person.id}>
+                <tr
+                  key={person.id}
+                  data-sort-values={JSON.stringify([
+                    person.name,
+                    ...days.map(
+                      (day) =>
+                        sheet.byDay.find((item) => toDateKey(item.date) === toDateKey(day))
+                          ?.minutes ?? 0,
+                    ),
+                    sheet.totalMinutes,
+                    sheet.billableMinutes,
+                    sheet.totalMinutes === 0 ? 'Nothing logged' : sheet.locked ? 'Locked' : 'Open',
+                  ])}
+                >
                   <Td>
                     <div className="flex items-center gap-3">
                       <Avatar name={person.name} size="small" />
@@ -100,6 +123,17 @@ export default async function AllTimesheetsPage({
                       </div>
                     </div>
                   </Td>
+                  {days.map((day) => (
+                    <Td
+                      key={toDateKey(day)}
+                      className="whitespace-nowrap text-[var(--color-ink-muted)] tabular-nums"
+                    >
+                      {formatMinutes(
+                        sheet.byDay.find((item) => toDateKey(item.date) === toDateKey(day))
+                          ?.minutes ?? 0,
+                      )}
+                    </Td>
+                  ))}
                   <Td className="text-[var(--color-ink-muted)] tabular-nums">
                     {formatMinutes(sheet.totalMinutes)}
                   </Td>

@@ -44,7 +44,12 @@ export function DocumentLinks({
                   <form action={removeDocumentAction}>
                     <input type="hidden" name="taskId" value={taskId} />
                     <input type="hidden" name="linkId" value={link.id} />
-                    <IconButton type="submit" icon="remove" label="Remove this link" tone="danger" />
+                    <IconButton
+                      type="submit"
+                      icon="remove"
+                      label="Remove this link"
+                      tone="danger"
+                    />
                   </form>
                 ) : null}
               </li>

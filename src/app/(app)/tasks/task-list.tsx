@@ -3,11 +3,11 @@
 import Link from 'next/link';
 import { useOptimistic, useState, useTransition } from 'react';
 import { clsx } from 'clsx';
-import { Card, EmptyState, Notice } from '@/components/ui';
+import { Card, EmptyState, Notice, Table, Th } from '@/components/ui';
 import { StatusDot } from '@/components/ui/pill';
 import { DocumentBadge } from '@/components/ui/task-badges';
 import { CardTimerButton } from '@/modules/time/components/card-timer-button';
-import { formatDateTime } from '@/modules/tasks/dates';
+import { formatCompactDate, formatDateTime } from '@/modules/tasks/dates';
 import { formatMinutes } from '@/modules/time/week';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
 import {
@@ -26,7 +26,7 @@ import {
   setSubtaskDoneAction,
   setSubtaskAssigneeAction,
 } from './actions';
-import { toggleDeskTaskAction } from '../dashboard/actions';
+import { DeskTaskButton } from '@/components/tasks/desk-task-button';
 
 /**
  * My tasks: one person's work, across every space, grouped by when it is due.
@@ -126,12 +126,13 @@ export function TaskList({
     users,
     canManage,
     runningTaskId,
-    columnsFor: (task) => columnsBySpace[task.spaceId] ?? [
-      { name: 'To do', isClosed: false },
-      { name: 'In progress', isClosed: false },
-      { name: 'Blocked', isClosed: false },
-      { name: 'Done', isClosed: true },
-    ],
+    columnsFor: (task) =>
+      columnsBySpace[task.spaceId] ?? [
+        { name: 'To do', isClosed: false },
+        { name: 'In progress', isClosed: false },
+        { name: 'Blocked', isClosed: false },
+        { name: 'Done', isClosed: true },
+      ],
     onOpen: (task) => setOpenTaskId(task.id),
     onPriority: (task, priority: PriorityValue) =>
       patch(task, { priority }, { id: task.id, spaceId: task.spaceId, priority }),
@@ -269,12 +270,132 @@ export function TaskList({
               </span>
             </div>
 
-            <Card>
-              <table className="w-full border-collapse text-sm">
+            <div className="space-y-2 md:hidden">
+              {inGroup.map((task) => (
+                <Card key={task.id} className="p-3">
+                  <div className="flex min-w-0 items-start gap-2">
+                    <StatusPicker
+                      status={task.status}
+                      columns={handlers.columnsFor(task)}
+                      disabled={!canManage}
+                      onChange={(status) => handlers.onStatus(task, status)}
+                      trigger={<StatusDot status={task.status} isClosed={task.isClosed} />}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handlers.onOpen(task)}
+                      title={task.title}
+                      className="line-clamp-2 min-w-0 flex-1 text-left text-[13px] leading-5 font-medium text-[var(--color-ink)] underline-offset-4 active:underline"
+                    >
+                      {task.title}
+                    </button>
+                    {deskActionLabel !== 'Desk' ? (
+                      <DeskTaskButton taskId={task.id} removeOnly />
+                    ) : null}
+                  </div>
+                  <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 text-[12px] text-[var(--color-ink-muted)]">
+                    {deskActionLabel === 'Desk' ? (
+                      <DeskTaskButton taskId={task.id} assigneeIds={task.assigneeIds} />
+                    ) : null}
+                    <SchedulePicker
+                      startAt={task.startAt}
+                      endAt={task.endAt}
+                      disabled={!canManage}
+                      onChange={(value) => handlers.onSchedule(task, value)}
+                      trigger={
+                        <span
+                          title={task.endAt ? formatDateTime(task.endAt) : 'Set date'}
+                          className={clsx(
+                            'flex items-center gap-1 whitespace-nowrap tabular-nums',
+                            task.endAt
+                              ? task.isOverdue
+                                ? 'text-[var(--color-status-alert)]'
+                                : 'text-[var(--color-ink-muted)]'
+                              : 'text-[var(--color-ink-subtle)]',
+                          )}
+                        >
+                          <CalendarIcon />
+                          {task.endAt ? formatCompactDate(task.endAt) : 'Set date'}
+                        </span>
+                      }
+                    />
+                    <PriorityPicker
+                      priority={task.priority}
+                      disabled={!canManage}
+                      onChange={(priority) => handlers.onPriority(task, priority)}
+                    />
+                    <CardTimerButton
+                      taskId={task.id}
+                      running={handlers.runningTaskId === task.id}
+                      loggedMinutes={task.loggedMinutes}
+                    />
+                    {!hideAssignees ? (
+                      <AssigneePicker
+                        users={users}
+                        selectedIds={task.assigneeIds}
+                        disabled={!canManage}
+                        onChange={(ids) => handlers.onAssignees(task, ids)}
+                      />
+                    ) : null}
+                    {isDueToday(task) ? (
+                      <span className="font-medium text-[var(--color-status-warn)]">Due today</span>
+                    ) : null}
+                  </div>
+                  <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[var(--color-ink-subtle)]">
+                    <Link
+                      href={`/spaces/${task.spaceId}`}
+                      className="max-w-36 truncate hover:underline"
+                      title={task.spaceName}
+                    >
+                      {task.spaceName}
+                    </Link>
+                    {task.folderName ? (
+                      <span className="max-w-32 truncate" title={task.folderName}>
+                        {task.folderName}
+                      </span>
+                    ) : null}
+                    {task.subtaskCount > 0 ? (
+                      <span>
+                        {task.subtasksDone}/{task.subtaskCount} subtasks
+                      </span>
+                    ) : null}
+                    <DocumentBadge links={task.documentLinks} />
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            <Card className="hidden md:block">
+              <Table>
+                <thead>
+                  <tr>
+                    <Th>Status</Th>
+                    <Th>Task</Th>
+                    <Th>Due</Th>
+                    <Th>Time</Th>
+                    {!hideAssignees ? <Th>Assignees</Th> : null}
+                    <Th>Priority</Th>
+                  </tr>
+                </thead>
                 <tbody>
                   {inGroup.map((task) => (
                     <tr
                       key={task.id}
+                      data-sort-values={JSON.stringify([
+                        task.status,
+                        task.title,
+                        task.endAt ? new Date(task.endAt).getTime() : null,
+                        task.loggedMinutes,
+                        ...(!hideAssignees
+                          ? [
+                              users
+                                .filter((user) => task.assigneeIds.includes(user.id))
+                                .map((user) => user.name)
+                                .join(', '),
+                            ]
+                          : []),
+                        task.priority,
+                      ])}
                       className="group border-b border-[var(--color-line)] last:border-b-0 hover:bg-[var(--color-surface-muted)]/60"
                     >
                       <td className="w-8 px-3 py-2 align-middle">
@@ -297,7 +418,9 @@ export function TaskList({
                         </button>
 
                         <span className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--color-ink-subtle)]">
-                          {deskActionLabel === 'Desk' ? <button type="button" className="underline" onClick={() => startTransition(async () => { await toggleDeskTaskAction(task.id); })}>Desk</button> : null}
+                          {deskActionLabel === 'Desk' ? (
+                            <DeskTaskButton taskId={task.id} assigneeIds={task.assigneeIds} />
+                          ) : null}
                           <Link
                             href={`/spaces/${task.spaceId}`}
                             className="hover:text-[var(--color-ink)] hover:underline"
@@ -306,7 +429,9 @@ export function TaskList({
                           </Link>
                           {task.folderName ? <span>{task.folderName}</span> : null}
                           {isDueToday(task) ? (
-                            <span className="font-medium text-[var(--color-status-warn)]">Due today</span>
+                            <span className="font-medium text-[var(--color-status-warn)]">
+                              Due today
+                            </span>
                           ) : null}
                           {task.subtaskCount > 0 ? (
                             <span>
@@ -375,21 +500,13 @@ export function TaskList({
                           onChange={(priority) => handlers.onPriority(task, priority)}
                         />
                         {deskActionLabel !== 'Desk' ? (
-                          <button
-                            type="button"
-                            aria-label="Remove from My Desk"
-                            title="Remove from My Desk"
-                            className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-[var(--color-status-alert)] text-[17px] leading-none text-[var(--color-status-alert)] hover:bg-[var(--color-status-alert-soft)]"
-                            onClick={() => startTransition(async () => { await toggleDeskTaskAction(task.id); })}
-                          >
-                            ×
-                          </button>
+                          <DeskTaskButton taskId={task.id} removeOnly />
                         ) : null}
                       </td>
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </Table>
             </Card>
           </div>
         );

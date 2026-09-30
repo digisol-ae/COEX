@@ -8,12 +8,40 @@ import { loginAction, type LoginState } from './actions';
 
 const initialState: LoginState = {};
 
-export function LoginForm() {
+export function LoginForm({
+  entraEnabled = false,
+  entraError,
+}: {
+  entraEnabled?: boolean;
+  entraError?: string;
+}) {
   const [state, formAction, pending] = useActionState(loginAction, initialState);
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <form action={formAction} className="mt-8 space-y-4">
+      {entraError ? (
+        <Notice tone="alert">
+          {entraError === 'account'
+            ? 'Your Microsoft account is not authorised for COEX.'
+            : entraError === 'not-configured'
+              ? 'Microsoft sign-in is not configured yet.'
+              : 'Microsoft sign-in was not completed. Please try again.'}
+        </Notice>
+      ) : null}
+      {entraEnabled ? (
+        <>
+          <a
+            href="/api/auth/entra"
+            className="block w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] px-4 py-2.5 text-center text-sm font-medium text-[var(--color-ink)] hover:bg-[var(--color-surface-muted)]"
+          >
+            Continue with Microsoft
+          </a>
+          <div className="flex items-center gap-3 text-xs text-[var(--color-ink-subtle)] before:h-px before:flex-1 before:bg-[var(--color-line)] after:h-px after:flex-1 after:bg-[var(--color-line)]">
+            or
+          </div>
+        </>
+      ) : null}
       <Field label="Email address">
         <Input name="email" type="email" autoComplete="username" required />
       </Field>

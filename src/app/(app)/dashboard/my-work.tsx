@@ -1,3 +1,4 @@
+import { DeskTaskButton } from '@/components/tasks/desk-task-button';
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import { Card, CardSection, EmptyState } from '@/components/ui';
@@ -88,6 +89,8 @@ export function MyWork({
                     <Due item={item} />
                   </p>
                 </div>
+
+                {item.kind === 'task' ? <DeskTaskButton taskId={item.id} own /> : null}
 
                 <span className="hidden shrink-0 text-xs text-[var(--color-ink-muted)] sm:inline">
                   {item.status}

@@ -92,9 +92,7 @@ export function Timesheet({
             <Select
               value={timesheet.userId}
               onChange={(event) =>
-                router.push(
-                  `/time?week=${timesheet.weekStart.slice(0, 10)}&user=${event.currentTarget.value}`,
-                )
+                router.push(`/time?week=${toDateKey(weekStart)}&user=${event.currentTarget.value}`)
               }
               className="max-w-48"
               aria-label="Whose timesheet"
@@ -111,7 +109,7 @@ export function Timesheet({
             icon="download"
             label="Download this week as CSV"
             prefetch={false}
-            href={`/time/export?week=${timesheet.weekStart.slice(0, 10)}&user=${timesheet.userId}`}
+            href={`/time/export?week=${toDateKey(weekStart)}&user=${timesheet.userId}`}
           />
 
           {canLock && !timesheet.locked ? (
@@ -156,6 +154,13 @@ export function Timesheet({
               {timesheet.entries.map((entry) => (
                 <EntryRow
                   key={entry.id}
+                  sortValues={[
+                    new Date(entry.workDate).getTime(),
+                    entry.taskTitle,
+                    entry.organisationName ?? entry.spaceName,
+                    entry.minutes,
+                    entry.billable ? 1 : 0,
+                  ]}
                   entry={entry}
                   tasks={tasks}
                   canEdit={canEditThisSheet && !timesheet.locked}

@@ -186,9 +186,12 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
       style={{ right: position.right, bottom: position.bottom }}
       className={clsx(
         'fixed z-40 max-sm:!right-4 max-sm:!bottom-4',
-        mode === 'open' && 'w-auto overflow-hidden rounded-[var(--radius-card)] border border-[#6e8d69] bg-[#071008] shadow-[0_12px_32px_rgb(0_0_0/45%)] max-sm:left-4 sm:w-80',
-        mode === 'clock' && 'overflow-hidden rounded-2xl border border-[#6e8d69] bg-[#071008] shadow-[0_12px_32px_rgb(0_0_0/45%)]',
-        mode === 'mini' && 'overflow-hidden rounded-full border border-[#6e8d69] bg-[#071008] shadow-[0_10px_24px_rgb(0_0_0/45%)]',
+        mode === 'open' &&
+          'w-auto overflow-hidden rounded-[var(--radius-card)] border border-[#6e8d69] bg-[#071008] shadow-[0_12px_32px_rgb(0_0_0/45%)] max-sm:left-4 sm:w-80',
+        mode === 'clock' &&
+          'overflow-hidden rounded-2xl border border-[#6e8d69] bg-[#071008] shadow-[0_12px_32px_rgb(0_0_0/45%)]',
+        mode === 'mini' &&
+          'overflow-hidden rounded-full border border-[#6e8d69] bg-[#071008] shadow-[0_10px_24px_rgb(0_0_0/45%)]',
         drag ? 'cursor-grabbing select-none' : '',
       )}
     >
@@ -248,9 +251,7 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
             className="flex cursor-grab items-center justify-between gap-2 pb-2 select-none"
             {...handle}
           >
-            <p className="text-xs font-semibold tracking-wide text-[#d8ff8a] uppercase">
-              Timers
-            </p>
+            <p className="text-xs font-semibold tracking-wide text-[#d8ff8a] uppercase">Timers</p>
             <div className="flex items-center gap-0.5">
               {running ? (
                 <RoundButton
@@ -282,9 +283,7 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
                 </Link>
               </div>
               <div className="mt-1 flex items-end justify-between">
-                <span className="font-mono text-[11px] text-[#9dba92]">
-                  {running.itemNumber}
-                </span>
+                <span className="font-mono text-[11px] text-[#9dba92]">{running.itemNumber}</span>
                 <span
                   className="font-mono text-2xl font-bold tracking-[0.06em] text-[#d8ff8a] drop-shadow-[0_0_6px_rgb(190_255_100/80%)] tabular-nums"
                   suppressHydrationWarning
@@ -305,15 +304,11 @@ export function FloatingTimer({ running }: { running: RunningTimerInfo | null })
             <p className="mb-2 text-sm text-[#b8cdb0]">No timer running.</p>
           )}
 
-          <p className="px-1 pb-1 text-[11px] tracking-wide text-[#9dba92] uppercase">
-            Today
-          </p>
+          <p className="px-1 pb-1 text-[11px] tracking-wide text-[#9dba92] uppercase">Today</p>
           {timers === null ? (
             <p className="px-1 py-1 text-sm text-[#9dba92]">Loading…</p>
           ) : timers.length === 0 ? (
-            <p className="px-1 py-1 text-sm text-[#9dba92]">
-              Nothing timed yet today.
-            </p>
+            <p className="px-1 py-1 text-sm text-[#9dba92]">Nothing timed yet today.</p>
           ) : (
             <ul className="max-h-60 space-y-0.5 overflow-x-hidden overflow-y-auto">
               {timers.map((timer) => (

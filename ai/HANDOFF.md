@@ -1,324 +1,115 @@
 # COEX — AI Handoff
 
+## Release handoff — 1 Oct 2026 (Codex)
+
+John approved QA, updating Claude's instructions, committing, pushing to GitHub, deploying
+to the app server, then shutting down the Mac. This release is ready locally; VPS access
+is blocked. No shutdown until deployment is verified.
+
+### Delivered
+- After today's first saved snapshot, My Desk says **Update today’s summary**.
+- One status per task; statuses are configurable per Space in Space settings, shared by
+  Board/List/Gantt. Add, order and remove stages; choose exactly one completed stage.
+  Used stages cannot be renamed/removed or change completion meaning until their tasks move.
+  Completion uses isClosed, never guesses from names such as "Incomplete".
+- Shared table headings toggle ascending/descending sorting, with Reset sort. Explicit
+  numeric/date values sort hours and dates correctly. Task/subtask row groups stay together;
+  sorting preserves React row state and disables manual dragging until reset.
+- All Timesheets shows Monday–Sunday hours for the selected week alongside weekly totals.
+  Timesheet export/person navigation preserves the local week date instead of slicing UTC.
+- Desk icons with tooltips add/remove the signed-in person's eligible tasks from lists,
+  boards, detail panels/pages, dashboard, timesheets, linked tickets and global search.
+  Checked icon indicates selection. Adds are idempotent and service-enforce assignment.
+- My Available Tasks titles open an in-place native modal preview with loaded description,
+  dates, status, time, tags, documents and subtasks. Open task icon navigates only if requested.
+- Includes earlier local Performance History, office close scheduling/retry, mobile and Entra
+  preparation. Entra remains inactive without the secret and exact production callback.
+- Formatting cleanup resolves the pre-existing CI formatting failures.
+
+### Verification
+- Full suite: 21 files / 208 tests passed in 572.32s using isolated
+  coex_test_8d3b94_* databases. Shared coex_qa, coex_dev and production were untouched.
+- Final unit run: 79 passed. Final focused desk/status DB run: 5 passed in 64.33s.
+- TypeScript, ESLint with zero warnings, CI Prettier check, production build and diff check pass.
+- Local Codex browser functional QA (no screenshots): updated confirmation label; available
+  task preview loads and closes without navigation, Open task link; daily week columns;
+  timesheet numeric ascending/descending order; custom status add/edit/cancel; Space list
+  heading sorting and eligible desk icons. Read-only checks did not change existing task data.
+- Existing storage tracing warnings remain. Pixel/device visual QA was not performed.
+
+### Claude's next action
+1. Confirm the newest GitHub main commit and CI result; this session commits/pushes after
+   this handoff is written. Preserve all unrelated work and never commit env/credentials.
+2. Deployment is authorized, but Codex could not authenticate: macOS denied reading
+   ~/Downloads/digisol-zabbix.pem. SSH-agent fallback also failed. Terminal automation timed
+   out and Computer Use denied Terminal access for safety reasons. Use John's authorized
+   native terminal after the local permission issue is resolved; do not bypass safety controls.
+3. Follow deploy/DEPLOYMENT-STATUS.md (Apache + pm2, /srv/coex/app, port 3001), not DEPLOY.md.
+   Check remote HEAD and dirty state, pull with --ff-only, npm ci, build, restart coex-app and
+   coex-mail. Start/restart coex-desk-close and pm2 save. Do not alter Entra secrets/settings.
+4. Verify target SHA, all three pm2 processes, HTTPS login and the deployed My Desk/status/
+   timesheet behavior. Update deployment status and this handoff with the result.
+5. Only after deployment succeeds, carry out the authorized Mac shutdown. Until then leave it
+   running. No OS patching or Apache changes are part of this release.
+
+## Local fixes — 1 Oct 2026 (Codex)
+
+- Continue locally only. John questioned server access; no SSH or live-server operations were
+  performed in this continuation.
+- Desk-close now schedules 23:59:59 in OFFICE_TZ (default Asia/Dubai), prevents overlapping
+  closes, and retries failures after 30 seconds without advancing its completed date.
+- Failed users are reported while other users continue. Retries preserve the original close
+  timestamp and office workDate even after midnight. Desk scoring uses office-day boundaries
+  and the close timestamp rather than the host timezone/current retry time.
+- Save confirmations now close panels in action callbacks rather than effects. Board folder
+  navigation and task-form refresh synchronize state during render when their input changes.
+  Fixed unescaped quotes and hook/unused warnings.
+- Validation: 69 unit tests pass, including six new scheduler/service regressions; ESLint
+  has 0 errors and 0 warnings; TypeScript and the normal production build pass. The temporary
+  build failed on symlink resolution; the actual checkout build passed. Existing storage
+  tracing warnings remain. git diff --check passes.
+- The 30 Sep full database QA result remains 189/189 on coex_qa, predating these fixes; it
+  was not rerun in this continuation. No browser/device QA performed.
+- All changes remain local and uncommitted. No push or deployment. Next: local My Desk
+  regression QA (same-day accumulation, carryover and history) against coex_qa.
+
+## Verified continuation — 30 Sep 2026 (Codex)
+
+- Live login at https://coex.digisol.ae/login returns HTTP 200. Local HEAD and GitHub main
+  both resolve to 0f5e858; newer local work remains uncommitted.
+- Full QA on a temporary copy of the current working tree, with the test harness restricted
+  to exactly coex_qa: **16 files, 189 tests passed**, 531.08 seconds. No test writes to coex_dev.
+  Unit-only run: 63 passed. TypeScript and production build pass.
+- Latest GitHub CI at 0f5e858 failed with 13 lint errors and 3 warnings:
+  https://github.com/digisol-ae/COEX/actions/runs/36519498320
+- Review blockers in the local desk-close worker: it triggers during 23:59 rather than at
+  the requested 23:59:59, and sets lastClosedDate before success, preventing same-day retries.
+  closeOfficeDay also suppresses per-user errors. No fixes made during this QA continuation.
+- SSH process/revision verification was blocked: macOS denied reading the documented key
+  (Operation not permitted). VPS commit and coex-desk-close status remain unverified.
+- Next: fix and test desk-close timing/retry handling and CI lint; verify VPS HEAD and pm2
+  processes from John's terminal. No commit, push or deployment performed.
+
 ## Current Handoff — 29 Sep 2026, Codex
 
-Local changes are approved by John for commit, push and VPS pull/deployment.
-
-- New Personal page creates/uses a dedicated `isPersonal` backing Space. Personal tasks are only
-  visible to their owner; administrators and platform administrators cannot view another person's
-  Personal area. The local development DB contains old test Personal areas marked `isPersonal`.
-- My Desk is a standalone menu page directly after Dashboard. Users add only assigned tasks,
-  by drag/drop on desktop or + on mobile. Desk tasks have the regular task controls and a red
-  circular remove control. The daily confirmation warns about unfinished desk tasks. Risk counters
-  are visible; numeric score is hidden until a final algorithm is agreed.
-- Shared success toast + automatic close were added for primary create/save panels, and the timer
-  received the requested digital styling.
-- Verified locally with `npm run build` (passes; the four `storage.ts` tracing warnings remain
-  pre-existing). No full database test suite was run in this session.
-
-Deploy after pushing: `/srv/coex/app && git pull && npm ci && npm run build && pm2 restart coex-app coex-mail`.
-
-
-> **QA update — 29 Sep 2026 (Codex):** Full `npx vitest run` on the 28 Sep temporary QA snapshot, configured for `coex_qa`: 188 passed, 1 failed. Failure: `tests/database/time.test.ts:261`, “moves an entry to another day”; `after.entries[0]` is undefined when reading `workDate`. No fix made, no push or deployment. Next: investigate this test failure.
-
-## Current Handoff — 28 Sep 2026, from Claude to ChatGPT
-
-John asked for everything to be handed to ChatGPT. Read CLAUDE.md first (decisions 12, 17, 18 and
-"Interface conventions" cover everything below), then FEEDBACK.md "Decisions from John, 26 Sep".
-
-### State of the repository
-
-- `origin/main` is at `a71cee8` (pushed 28 Sep). The handover commit on top of it adds What's new
-  and the database reconnect fix and is **committed locally, not pushed**. John pushes and deploys
-  himself; ask before pushing.
-- Live coex.digisol.ae was last confirmed deployed at `6fa0730`; John may have deployed later
-  pushes himself. Deploy: `cd /srv/coex/app && git pull && npm ci && npm run build && pm2 restart
-  coex-app coex-mail` (restart coex-mail too: the email worker changed since `6fa0730`). SSH:
-  `ssh -i ~/Downloads/digisol-zabbix.pem digisol@194.163.137.54`. No migrations are needed; every
-  new field has a default.
-
-### Built since 26 Sep (all in CLAUDE.md with the reasoning)
-
-- Batch C: shared ticket/task conversation with @mentions, My work, reason for time changes,
-  Arrange my menu, task → ticket link.
-- Themes (Sunset, Light, Dark) stored on the user; avatar menu (Edit profile, Arrange my menu,
-  What's new, Sign out); `/profile` page.
-- Passwords only via emailed one-time links (`password-reset.service.ts`, `/forgot-password`,
-  `/reset-password`), rules per NIST SP 800-63B (`core/password-policy.ts`).
-- Three senders (Standard, Alert, Admin) chosen by email kind (`SENDER_FOR` in email.service);
-  new-ticket alert; "notify" on an administrator's password reset.
-- Queue signature editor and previews (`tickets/email-text.ts` builds all customer email text).
-- Archive/restore a Space with its folders and tasks (`archivedWithSpace`).
-- Look: icon buttons with tooltips (`components/ui/icon-button.tsx`), frosted-glass popups
-  (`popup-glass`, `popup-glass-gradient`), rail glow and sidebar gradient, Raise ticket popup.
-- Floating timer window in three sizes (`modules/time/components/floating-timer.tsx`).
-- Tickets can be closed from any open status (`ALLOWED_TRANSITIONS` now in `tickets/labels.ts`).
-- In the handover commit: **What's new** (`core/release-notes.ts` + `navigation/whats-new.tsx`).
-  A right-side drawer opens once per sign-in until the person ticks "I understand"
-  (`user.releaseNotesSeen`); it is always reachable from the avatar menu. **Add a release at the top
-  of RELEASE_NOTES for every user-visible change**; that alone makes it open for everyone again.
-- In the handover commit: `lib/db.ts` no longer caches a failed connection. Before, one failed
-  connect kept every request failing until a restart.
-
-### Tested and not tested
-
-- Passing when last run: unit tests (63), tickets (48 incl. new ones), tasks (30), time (18),
-  email-senders (8), type check, lint (only the four older errors in row-actions.tsx, board.tsx,
-  task-form.tsx), `next build` (26 Sep).
-- **Not run**: the new "closing a ticket" database tests and anything after them, because John's
-  Mac lost its connection to MongoDB Atlas intermittently (`ENOTFOUND`, `queryTxt ETIMEOUT`). Run
-  `npx vitest run` when the connection is stable.
-- **What's new was not seen in a browser**: the local server could not reach Atlas at the time.
-  Check it on the local server: sign in, the drawer should slide in; tick, Done, reload, it should
-  not reopen; avatar menu, What's new, it opens.
-
-### Local set-up used for QA
-
-Local server on port 3100 against a throwaway `coex_qa` database (never `coex_dev`): start with
-`MONGODB_URI` from .env.local with `/coex_dev` replaced by `/coex_qa`. Test user `qa@coex.test`
-(password in Claude's scratchpad, not in the repo; reset it through /forgot-password, whose email
-sits in the `emailoutboxes` collection of coex_qa since no worker runs locally) and `fatima@coex.test`.
-
-### Open items, in John's order of likely interest
-
-1. Accounts marked "must change password" are not forced to change it at first sign-in.
-2. Offer to run the local server on a MongoDB installed on the Mac, so it does not depend on the
-   unreliable connection to Atlas (John would run the install).
-3. Timesheet edit shows "Unknown task" for time logged on a ticket (harmless).
-4. Older: a Prettier pass; the four lint errors; tickets table scrolls sideways below ~1200px;
-   Gantt export; attachment archival at 50 GB; Entra sign-in; M6 Channels.
-
-## Update — 26 Sep 2026 afternoon, Claude: Batch C
-
-Built (commits 56d5d60, 28ce08d, e6c61de, c62385d, 2e7dd2e): core `mention.service.ts` and the
-`mentioned` staff alert; `components/ui/mention-textarea.tsx`; task comments read and write the
-source ticket's internal notes (`listTaskComments`, `addTaskComment`, `sourceTicketFor`,
-`mentionableForTask` in task.service); `addReply` takes `mentionIds` and bumps the linked task;
-`tasks/services/my-work.service.ts` and `dashboard/my-work.tsx`; `updateEntry`/`removeEntry`
-require a reason (audit `after.reason`, shown by `describeChanges`); user `navigationOrder`,
-`orderGroups` in navigation.ts, `/menu-order` page, rail follows the order. Tests: 163 pass (new
-ones in tickets.test.ts, time.test.ts, unit/navigation-order.test.ts); type check, lint (only the
-four older errors) and `next build` pass. Checked live against a throwaway `coex_qa` database at
-375px and desktop. A dev server on port 3100 was started from the Claude app at 08:53 against
-`coex_dev`; QA ran from a separate copy on port 3101 to leave it alone.
-
-## Update — 26 Sep 2026 later, Claude
-
-QA fixes deployed and verified live (`6fa0730`), including a timer start/stop on the Test ticket.
-FEEDBACK.md brought current (26 Sep decisions, stale open items moved to Done, Batch C annotated
-with what exists). Next: Batch C, once John answers the scoping questions. For a later ChatGPT
-hand-over, CLAUDE.md, FEEDBACK.md and these ai/ files are the complete state; nothing lives only in
-chat.
-
-## Update — 26 Sep 2026, Claude: post-cutover QA
-
-Changed: `timer-tray.tsx` (phone: fixed full-width panel under the header), `ticket-row-actions.tsx`
-(minimum widths so Status/Priority text is not clipped), tickets `page.tsx` (subject column
-truncates instead of widening the table), `reply-box.tsx` and `new-ticket-panel.tsx` (3MB
-warning), the screenshot test (image under 3MB, over 2000px), CLAUDE.md decision 13. Tests: 151/151,
-type check and lint pass; checked live at 375px, 1024px and 1440px. Superseded: the "known open
-item" below about Tasks importing Tickets models; John confirmed direct reads both ways are
-intended. Open: a Prettier pass (several files already fail it); the tickets table still scrolls
-sideways inside its card below about 1200px, as before.
-
-## Update — 24 Sep 2026 night, Claude: email
-
-New: core `email.service.ts` (settings, outbox, delivery, alerts), models `email-settings` and
-`email-outbox`, `lib/secret-box.ts`, tickets `mailbox.service.ts` (UID based sync) and a rewritten
-`inbound-email.service.ts` (subject token threading, reopen on customer reply, requesterEmail,
-acknowledgement), `scripts/email-worker.ts`, Setup, Email screen. Public replies email the customer
-(reply box shows the address); ticket and task assignment alerts. Type check (with
-@types/nodemailer) and lint pass on the changed files; not yet run against a live mailbox.
-`scripts/import-inbound-email.ts` is superseded by the worker.
-
-## Update — 24 Sep 2026 evening, Claude
-
-Added: `assignableUserIdsForTask` / `assignableUserIdsForSubtask` in `task.service.ts`,
-enforced in `setSubtaskAssignee`, and `patchTask` now checks Space membership too. Pickers use
-them on the task page, the slide over panel (via the panel API) and the board/list (via
-`spaceMemberIds` + folder members). My tasks row picker still lists everyone, but the service
-refuses a non member. Mobile logo 148x50. For ChatGPT if asked: Gantt export (low priority).
-
-## Update — 24 Sep 2026, Claude
-
-QA fixes applied and accepted by John: `task.service.ts` (createTask accepts `sourceTicketId`;
-`sourceTicketIdFor` helper used by work updates and completion), `ticket.service.ts` (escalation
-passes the ticket id), `mobile-navigation.tsx` (drawer via `createPortal`), `next.config.ts`
-(comment corrected). The two service files were also Prettier-formatted. Known open item: the
-Tasks module imports Tickets models directly, against the module-boundary rule; move to an
-outbox event or core service when John schedules it.
-
-## Current Handoff — 24 Sep 2026
-
-### From
-
-ChatGPT
-
-### To
-
-Claude
-
-### State
-
-The local implementation and this documentation are committed as a stable handoff baseline.
-No GitHub push or server deployment is authorised yet.
-
-Included local work:
-
-- Per-user permission grants/denials and product read/manage permissions.
-- Private Spaces, member settings, multi-assignee Tasks, and folder rename.
-- Task/ticket timers and grouped timer tray.
-- Attachment previews, transparent image overlay, safe downloads, 3 MB per file / 10 MB per
-  message limit, and image re-encoding.
-- Ticket Status/Priority/Agent controls, required reassignment reason, and responsive ticket cards.
-- Internal Task work updates mirrored to source tickets and internal completion events.
-- IMAP email importer with Message-ID deduplication, threading, existing CRM matching, and a local
-  UID safety watermark. It is not scheduled for production.
-- Phone development-host support and header touch/layering adjustment.
-
-Verification: `npm run build` passes. Four known dynamic filesystem tracing warnings from
-`src/lib/storage.ts` remain.
-
-Do next: retest the phone header; test Task-to-Ticket note flow; obtain John's UI acceptance; then
-prepare any push/deployment as a separate, explicitly approved step.
-
-Excluded: `.env.local` and the untracked `*.patch` scratch artifacts. Preserve those patches
-locally but do not add or delete them without John's direction.
-
----
-
-## Historical Handoff — 2026-09-23
-
-This file is the explicit handover channel between Claude and ChatGPT.
-
-The active AI must update this file when handing work to another AI.
-
----
-
-## Current Handoff
-
-### From
-
-Claude
-
-### To
-
-Whoever continues Batch B (Claude, ChatGPT, or John reviewing)
-
-### Date
-
-2026-09-23
-
-### Task
-
-Batch B: space visibility (option B, chosen by John on 22 Sep) plus the private-folder and
-private-space assignment rules that go with it. Reference: `FEEDBACK.md`, items B1 and B2.
-
-### Important: nothing below is on GitHub yet
-
-`origin/main` is still at `4b1104d` (the docs trim commit). Everything in this handoff is
-**uncommitted, local-only code sitting in Claude's working sandbox for this conversation**. It has
-not been committed, not been pushed, and does not exist anywhere else. If work continues in a
-different session or a different AI, this code must be re-created from this description or handed
-across as a patch file; do not assume it is retrievable from GitHub.
-
-### What Has Been Done (uncommitted, local only)
-
-Service layer, mirroring the existing folder-visibility pattern exactly:
-
-- New file `src/modules/tasks/services/access.service.ts`: a shared `actorIsAdministrator()`,
-  moved out of `folder.service.ts` so both folders and spaces use the same check.
-- `folder.service.ts`: refactored to import the shared helper instead of its own copy. Behaviour
-  unchanged; verified brace-balanced.
-- `space.service.ts`, the core of Batch B:
-  - Added `visibleSpaceIds()`, `visibleSpaceFilter(field)`, `canOpenSpace(id)`,
-    `assignableSpaceMemberIds(id)`, mirroring the folder functions of the same shape.
-  - `listSpaces()` now enforces visibility and returns `isPrivate` / `memberIds` on each summary.
-  - `getSpace(id)` now returns `null` if the space exists but the caller may not open it (the space
-    page already does `if (!space) notFound()`, so no page change was needed there).
-  - `createSpace` now accepts `memberIds`.
-  - Replaced the dead `renameSpace` (verified zero callers anywhere in the app; there was no space
-    edit UI at all before this) with a full `updateSpace(id, { name, description, organisationId,
-    dueDate, memberIds })`, including the same "cannot go private while it strands an open task
-    assigned to a non-member" guard that `updateFolder` already has.
-- `task.service.ts`:
-  - `listTasks` now composes `visibleSpaceFilter('spaceId')` together with the existing
-    `visibleFolderFilter()`, so a private space's tasks no longer leak through "My tasks" or any
-    other task listing.
-  - `getTask(id)` is now gated by `canOpenSpace` and, when the task has a folder, `canOpenFolder`
-    too, so a direct task URL can no longer bypass either rule.
-  - `assertAssignable` now takes a `spaceId` and checks `assignableSpaceMemberIds` alongside the
-    existing folder check, so a private space's tasks can only be assigned to its members, the same
-    way a private folder already worked. All four call sites updated: `createTask`, `updateTask`,
-    and both branches inside `patchTask` (the folderId-change branch and the assigneeIds branch).
-
-### What Remains
-
-- `actions.ts`: `createSpaceAction` needs a `memberIds` param; a new `updateSpaceAction` is needed
-  to back the settings panel below; `quickAddFolderAction` needs a "private to me" flag for B2.
-- UI, all of it still to build:
-  - A members checkbox field on `NewSpacePanel` (space creation).
-  - A space settings panel reachable from the space page header. None exists today; `renameSpace`
-    had no UI, so this is new, not an edit.
-  - A "private to me" toggle on the folder quick-add bar (`FolderBar`), the fast path for B2.
-  - A minimal manage-access panel for existing folders. None exists today either; `updateFolder`'s
-    member-editing was never wired to a screen.
-- Deferred, not started, and should stay explicit rather than silently dropped: the subtask
-  assignee dropdown (added in Batch A) is not yet restricted by space membership, only by folder
-  membership. Cosmetic risk only, not a visibility leak, since the assignee still cannot open a
-  space or folder they are not a member of even if the dropdown lets it be selected.
-
-### Findings Worth Keeping
-
-- `renameSpace` had zero callers anywhere before this change: there was no space-editing UI at all.
-- There was no folder-editing UI either: `updateFolder`'s member list was never reachable from a
-  screen, only set at folder creation.
-- No database migration is needed for B1. `space.memberIds` already existed in the schema with a
-  `[]` default before this work started, so every existing space document already reads as open
-  under the new rule without a backfill script.
-
-### What Whoever Continues Must Do
-
-1. Read `ai/PROJECT_STATE.md`, `ai/CURRENT_TASK.md`, this file, `CLAUDE.md`, and `FEEDBACK.md`
-   (items B1/B2).
-2. Do not assume the service-layer changes above exist in the repository; they do not, per the
-   note above. Ask for the diff or re-implement from this description.
-3. Finish the actions layer, then the UI, in the order listed under "What Remains".
-4. Do not touch Batch C (the timer tray); it is a separate, unstarted piece.
-5. Update this file again when the code is committed and pushed, and remove the "nothing below is
-   on GitHub yet" warning once that is true.
-
-### Next Step
-
-Continue the actions layer (`createSpaceAction`, new `updateSpaceAction`, `quickAddFolderAction`),
-then the UI, then produce a verified patch for John to apply, build, commit, and push, the same
-way Batch A shipped.
-
----
-
-## Handoff History
-
-### 2026-09-22 — ChatGPT → Claude
-
-Initial collaboration setup.
-
-No application code changed.
-
-Shared state established in:
-
-- `ai/PROJECT_STATE.md`
-- `ai/CURRENT_TASK.md`
-- `ai/HANDOFF.md`
-
-Claude performed a read-only reconciliation of project state.
-
----
-
-## Last Updated
-
-2026-09-23
-
-Updated by:
-
-Claude, mid Batch B. Code described above is local and uncommitted; origin/main is unchanged at
-`4b1104d`.
+### Follow-up: My Desk history (local, not yet committed)
+
+- My Desk now has **Today's desk** and **Performance history** tabs. History is visible only to
+  the signed-in user and shows their saved daily snapshot date, desk-task count, on-time,
+  overdue, tomorrow and due-soon counters.
+- Numeric score remains stored internally but is not shown anywhere; John is deciding the final
+  performance algorithm.
+- `npm run build` passed. The existing four `storage.ts` Turbopack tracing warnings remain.
+- Do not push/deploy this follow-up until John asks. Once approved, commit the four feature files
+  plus these handoff updates, push, then redeploy both `coex-app` and `coex-mail`.
+- Snapshot policy agreed by John: ordinary users never edit history. Re-running “I am done” on
+  the same date refreshes that date's snapshot. Historical corrections, if built later, are
+  administrator-only and require a reason plus an audit record.
+- Built (local, 29 Sep 2026): confirming "I am done" archives completed desk tasks into that day's
+  Performance History and removes them from the active desk; incomplete tasks stay for the next
+  day, condition recorded; same-day confirmations accumulate. The `coex-desk-close` worker closes
+  the day automatically at 23:59 office time. Test time.test.ts:261 also fixed. Not pushed.
+- QA 30 Sep: `npm run check:db` connected successfully. The corrected single database test passes
+  after resetting only `coex_test_time`. The full Vitest runner did not reach a final summary in
+  this Codex execution environment; it was terminated early. Run `npx vitest run` in the Mac
+  terminal before approving a commit or deployment.

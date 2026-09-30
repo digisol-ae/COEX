@@ -1,4 +1,5 @@
 'use client';
+import { DeskTaskButton } from '@/components/tasks/desk-task-button';
 
 import Link from 'next/link';
 import { useActionState, useState, useTransition } from 'react';
@@ -198,7 +199,7 @@ function EscalatePanel({
             >
               {ticket.escalatedTaskNumber ?? 'the linked task'}
             </Link>
-            .
+            <DeskTaskButton taskId={ticket.escalatedTaskId} />.
           </p>
         </CardSection>
       </Card>

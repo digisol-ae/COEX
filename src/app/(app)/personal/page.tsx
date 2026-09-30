@@ -21,5 +21,27 @@ export default async function PersonalPage() {
       runningTimer: await getRunningTimer(),
     };
   });
-  return <div className="mx-auto max-w-5xl"><PageHeader title="Personal" description="Only you can see these tasks." action={<PersonalTaskPanel />} /><TaskList tasks={tasks} users={users.map(({ id, name }) => ({ id, name }))} columnsBySpace={{ [spaceId]: [{ name: 'To do', isClosed: false }, { name: 'In progress', isClosed: false }, { name: 'Blocked', isClosed: false }, { name: 'Done', isClosed: true }] }} canManage runningTaskId={runningTimer?.kind === 'task' ? runningTimer.itemId : null} /></div>;
+  return (
+    <div className="mx-auto max-w-5xl">
+      <PageHeader
+        title="Personal"
+        description="Only you can see these tasks."
+        action={<PersonalTaskPanel />}
+      />
+      <TaskList
+        tasks={tasks}
+        users={users.map(({ id, name }) => ({ id, name }))}
+        columnsBySpace={{
+          [spaceId]: [
+            { name: 'To do', isClosed: false },
+            { name: 'In progress', isClosed: false },
+            { name: 'Blocked', isClosed: false },
+            { name: 'Done', isClosed: true },
+          ],
+        }}
+        canManage
+        runningTaskId={runningTimer?.kind === 'task' ? runningTimer.itemId : null}
+      />
+    </div>
+  );
 }

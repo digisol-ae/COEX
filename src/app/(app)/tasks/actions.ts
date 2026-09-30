@@ -1,4 +1,5 @@
 'use server';
+import { validateSpaceStatuses } from '@/modules/tasks/statuses';
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -102,8 +103,11 @@ export async function updateSpaceAction(
         name: text(formData, 'name'),
         description: text(formData, 'description'),
         organisationId: text(formData, 'organisationId') || null,
-        dueDate: text(formData, 'dueDate') || null,
+        dueDate: formData.has('dueDate') ? text(formData, 'dueDate') || null : undefined,
         memberIds: formData.getAll('memberIds').map(String).filter(Boolean),
+        statuses: formData.has('statuses')
+          ? validateSpaceStatuses(JSON.parse(text(formData, 'statuses')))
+          : undefined,
       }),
     );
   } catch (error) {
@@ -111,6 +115,8 @@ export async function updateSpaceAction(
   }
   revalidatePath(`/spaces/${id}`);
   revalidatePath('/spaces');
+  revalidatePath('/tasks');
+  revalidatePath('/my-desk');
   return { saved: true };
 }
 

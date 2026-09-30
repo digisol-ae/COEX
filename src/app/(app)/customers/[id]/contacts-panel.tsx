@@ -52,7 +52,12 @@ export function ContactsPanel({
                   <form action={archiveContactAction}>
                     <input type="hidden" name="id" value={contact.id} />
                     <input type="hidden" name="organisationId" value={organisationId} />
-                    <IconButton type="submit" icon="remove" label="Remove this contact" tone="danger" />
+                    <IconButton
+                      type="submit"
+                      icon="remove"
+                      label="Remove this contact"
+                      tone="danger"
+                    />
                   </form>
                 ) : null}
               </li>

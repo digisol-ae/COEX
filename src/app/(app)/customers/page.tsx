@@ -58,7 +58,16 @@ export default async function CustomersPage({
             </thead>
             <tbody>
               {organisations.map((organisation) => (
-                <tr key={organisation.id}>
+                <tr
+                  key={organisation.id}
+                  data-sort-values={JSON.stringify([
+                    organisation.name,
+                    organisation.kind,
+                    organisation.industry,
+                    organisation.contactCount,
+                    organisation.locationCount,
+                  ])}
+                >
                   <Td>
                     <Link
                       href={`/customers/${organisation.id}`}

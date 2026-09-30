@@ -40,7 +40,10 @@ export function TaskComments({
             {ticket ? (
               <>
                 Internal notes, shared with ticket{' '}
-                <Link href={`/support/tickets/${ticket.id}`} className="font-medium text-[var(--color-ink-muted)] underline underline-offset-4">
+                <Link
+                  href={`/support/tickets/${ticket.id}`}
+                  className="font-medium text-[var(--color-ink-muted)] underline underline-offset-4"
+                >
                   {ticket.number}
                 </Link>
                 : a note on either one shows on both. The customer never sees them.
@@ -57,10 +60,16 @@ export function TaskComments({
                   <Avatar name={comment.authorName} size="small" />
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-baseline gap-x-2">
-                      <span className="font-medium text-[var(--color-ink)]">{comment.authorName}</span>
-                      <span className="text-xs text-[var(--color-ink-subtle)]">{formatDateTime(comment.createdAt)}</span>
+                      <span className="font-medium text-[var(--color-ink)]">
+                        {comment.authorName}
+                      </span>
+                      <span className="text-xs text-[var(--color-ink-subtle)]">
+                        {formatDateTime(comment.createdAt)}
+                      </span>
                     </div>
-                    <p className="mt-1 whitespace-pre-wrap text-[var(--color-ink-muted)]">{comment.body}</p>
+                    <p className="mt-1 whitespace-pre-wrap text-[var(--color-ink-muted)]">
+                      {comment.body}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -70,12 +79,35 @@ export function TaskComments({
           )}
 
           {canComment ? (
-            <form ref={formRef} action={formAction} className="border-t border-[var(--color-line)] pt-3">
+            <form
+              ref={formRef}
+              action={formAction}
+              className="border-t border-[var(--color-line)] pt-3"
+            >
               <input type="hidden" name="taskId" value={taskId} />
-              <label className="text-sm font-medium text-[var(--color-ink)]" htmlFor="task-comment">Add an update</label>
-              <MentionTextarea people={people} id="task-comment" name="body" required maxLength={4000} rows={3} placeholder="What did you do, find, or need next? Type @ to mention someone." className="mt-1.5 w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] outline-none" />
-              {state.error ? <div className="mt-2"><Notice tone="warn">{state.error}</Notice></div> : null}
-              <div className="mt-2 flex justify-end"><Button type="submit" disabled={pending}>{pending ? 'Posting…' : 'Post update'}</Button></div>
+              <label className="text-sm font-medium text-[var(--color-ink)]" htmlFor="task-comment">
+                Add an update
+              </label>
+              <MentionTextarea
+                people={people}
+                id="task-comment"
+                name="body"
+                required
+                maxLength={4000}
+                rows={3}
+                placeholder="What did you do, find, or need next? Type @ to mention someone."
+                className="mt-1.5 w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] outline-none"
+              />
+              {state.error ? (
+                <div className="mt-2">
+                  <Notice tone="warn">{state.error}</Notice>
+                </div>
+              ) : null}
+              <div className="mt-2 flex justify-end">
+                <Button type="submit" disabled={pending}>
+                  {pending ? 'Posting…' : 'Post update'}
+                </Button>
+              </div>
             </form>
           ) : null}
         </div>

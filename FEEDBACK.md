@@ -1,8 +1,42 @@
 # FEEDBACK
 
+## Feedback implemented — 1 Oct 2026
+- Saved today's snapshot: button becomes Update today’s summary.
+- John chose one task status with configurable statuses per Space, shared by board/list views.
+  Status editor and safeguards implemented; "Incomplete" cannot be archived by name matching.
+- Table headings sort both ways; weekly All Timesheets includes all seven daily totals.
+- My Desk uses a meaningful desk icon, tooltip and checked selection, available wherever eligible
+  tasks appear. My Available Tasks opens a preview popup with an Open task icon.
+- QA green (208 full-suite tests, 79 final unit tests, 5 focused desk tests, build/types/lint/
+  formatting and local browser behavior). User approved commit, GitHub push, app-server deploy
+  and shutdown after verification. Server access is currently blocked; see ai/HANDOFF.md.
+
 Running backlog. Newest at the top. Each item is numbered, has a state and a short note.
 
+## My Desk — local follow-up, 1 Oct 2026
+
+- Archival/carryover remains implemented locally, awaiting local regression acceptance.
+- Automatic close now targets 23:59:59 office time; failed users are reported and retried
+  after 30 seconds with the original office date retained across midnight.
+- Local validation: lint clean, 69 unit tests, TypeScript and production build pass.
+- No deployment performed.
+
+## My Desk — 29 Sep 2026 (John feedback, pending implementation)
+
+- When the user confirms **I am done**, completed tasks must disappear from My Desk and be
+  included in that day's Performance History snapshot.
+- If the user selects more tasks and confirms **I am done** again on the same day, those completed
+  tasks must be accumulated into the same day's history rather than replacing the earlier record.
+- At 23:59:59, the system must automatically close that office day and create/update the user's
+  daily performance snapshot. Incomplete tasks remain on My Desk for the next day, while the
+  previous day's history records their incomplete/overdue state.
+
 ## Decisions from John, 26 Sep 2026
+
+- Entra preparation, 29 Sep: John has registered a URL in Entra. COEX's local integration is
+  ready but is deliberately inactive until the exact production callback, Client ID, Directory
+  (tenant) ID and client-secret value are configured on the VPS. SSO signs in existing active
+  COEX users only; it never provisions accounts.
 
 - Cutover happened on 25 Sep: the team works in COEX. Email intake (`coex-mail`, IMAP IDLE) and
   outbound email are live on coex.digisol.ae.

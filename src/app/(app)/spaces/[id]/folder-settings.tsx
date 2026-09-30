@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useState } from 'react';
 import { Button, Field, Input, Notice } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
 import { saveFolderAction, type TaskFormState } from '../../tasks/actions';
@@ -22,15 +22,18 @@ export function FolderSettings({
   users: { id: string; name: string }[];
 }) {
   const [open, setOpen] = useState(false);
-  const [state, action, pending] = useActionState(saveFolderAction, initialState);
   const { showToast } = useToast();
-
-  useEffect(() => {
-    if (state.saved) {
-      setOpen(false);
-      showToast('Folder saved.');
-    }
-  }, [state, showToast]);
+  const [state, action, pending] = useActionState(
+    async (previous: TaskFormState, formData: FormData) => {
+      const result = await saveFolderAction(previous, formData);
+      if (result.saved) {
+        setOpen(false);
+        showToast('Folder saved.');
+      }
+      return result;
+    },
+    initialState,
+  );
 
   if (!open) {
     return (
@@ -65,10 +68,7 @@ export function FolderSettings({
       aria-modal="true"
       aria-label="Folder settings"
     >
-      <form
-        action={action}
-        className="w-full max-w-lg popup-glass p-5 text-left"
-      >
+      <form action={action} className="w-full max-w-lg popup-glass p-5 text-left">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-semibold text-[var(--color-ink)]">Folder settings</h2>
           <button

@@ -58,7 +58,9 @@ timeEntrySchema.pre('validate', async function () {
   const hasTicket = Boolean(this.ticketId);
 
   if (hasTask === hasTicket) {
-    throw new Error('A time entry belongs to exactly one of a task or a ticket, not both or neither.');
+    throw new Error(
+      'A time entry belongs to exactly one of a task or a ticket, not both or neither.',
+    );
   }
 });
 

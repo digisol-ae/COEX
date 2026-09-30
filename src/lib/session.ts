@@ -75,7 +75,7 @@ export const getSignedInUser = cache(
         }),
       ],
       theme: (user.theme as Theme | undefined) ?? 'sunset',
-    releaseNotesSeen: user.releaseNotesSeen ?? null,
+      releaseNotesSeen: user.releaseNotesSeen ?? null,
     };
   },
 );

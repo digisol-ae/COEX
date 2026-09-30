@@ -1,5 +1,8 @@
 import { asUser, getSignedInUser } from '@/lib/session';
-import { attachmentForDownload, PROCESSED_IMAGE_TYPES } from '@/modules/tickets/services/attachment.service';
+import {
+  attachmentForDownload,
+  PROCESSED_IMAGE_TYPES,
+} from '@/modules/tickets/services/attachment.service';
 import { getTicketDetail } from '@/modules/tickets/services/ticket.service';
 
 /**

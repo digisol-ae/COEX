@@ -1,3 +1,4 @@
+import { Table } from '@/components/ui';
 import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
 import {
@@ -113,138 +114,65 @@ export default async function TicketsPage({
           <EmptyState message="Nothing here. Try another queue, or widen the filters." />
         ) : (
           <>
-          <div className="divide-y divide-[var(--color-line)] md:hidden">
-            {tickets.map((ticket) => (
-              <article key={ticket.id} className="space-y-3 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
-                    <Link
-                      href={`/support/tickets/${ticket.id}`}
-                      className="mt-2 block text-sm font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
-                    >
-                      {ticket.unread ? <UnreadMark /> : null}
-                      {ticket.subject}
-                    </Link>
-                    <p className="mt-1 truncate text-xs text-[var(--color-ink-subtle)]">
-                      {[ticket.organisationName, ticket.contactName, ticket.queueName]
-                        .filter(Boolean)
-                        .join(' · ')}
-                    </p>
-                  </div>
-                  <div className="shrink-0">
-                    {canManage ? (
-                      <AgentControl
-                        ticketId={ticket.id}
-                        assigneeId={ticket.assigneeId}
-                        assigneeName={ticket.assigneeName}
-                        users={users.map((user) => ({ id: user.id, name: user.name }))}
-                      />
-                    ) : ticket.assigneeName ? (
-                      <Avatar name={ticket.assigneeName} size="small" />
-                    ) : null}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <div>
-                    <p className="mb-1 text-[10px] font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">Status</p>
-                    {canManage ? (
-                      <TicketRowActions ticket={{ id: ticket.id, status: ticket.status }} />
-                    ) : (
-                      <span className={statusClass(ticket.status)}>{STATUS_LABELS[ticket.status]}</span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="mb-1 text-[10px] font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">Priority</p>
-                    {canManage ? (
-                      <PriorityControl ticketId={ticket.id} priority={ticket.priority} />
-                    ) : (
-                      <span className={priorityClass(ticket.priority)}>{ticket.priority}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-end justify-between gap-3 text-xs text-[var(--color-ink-muted)]">
-                  <div className="flex flex-col gap-0.5">
-                    <SlaChip label="Reply" state={ticket.firstResponseState} dueAt={ticket.firstResponseDueAt} />
-                    <SlaChip label="Resolve" state={ticket.resolutionState} dueAt={ticket.resolutionDueAt} />
-                  </div>
-                  <span className="text-right">{formatDateTime(ticket.lastActivityAt)}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          <div className="hidden overflow-x-auto md:block">
-          <table className="min-w-[980px] w-full border-collapse text-sm">
-            <thead>
-              <tr className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                <th className="w-[12ch] border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
-                  Number
-                </th>
-                <th className="border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
-                  Subject
-                </th>
-                <th className="w-52 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
-                  Status
-                </th>
-                <th className="w-32 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
-                  Priority
-                </th>
-                <th className="w-44 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
-                  Service level
-                </th>
-                <th className="w-28 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
-                  Agent
-                </th>
-                <th className="w-32 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
-                  Last activity
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
+            <div className="divide-y divide-[var(--color-line)] md:hidden">
               {tickets.map((ticket) => (
-                <tr
-                  key={ticket.id}
-                  className="group border-b border-[var(--color-line)] last:border-b-0 hover:bg-[var(--color-surface-muted)]/60"
-                >
-                  <td className="px-3 py-2 align-top">
-                    <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
-                  </td>
-
-                  {/* max-w-0 with w-full lets the subject take whatever the other columns leave and
-                      truncate within it; without it a long subject widens the table past the screen. */}
-                  <td className="w-full max-w-0 px-3 py-2 align-top">
-                    <div className="flex items-start gap-2">
-                      <div className="min-w-48 flex-1">
-                        <Link
-                          href={`/support/tickets/${ticket.id}`}
-                          className="block truncate font-medium text-[var(--color-ink)] underline-offset-4 group-hover:underline"
-                        >
-                          {ticket.unread ? <UnreadMark /> : null}
-                          {ticket.subject}
-                        </Link>
-
-                        <p className="truncate text-[11px] text-[var(--color-ink-subtle)]">
-                          {[ticket.organisationName, ticket.contactName, ticket.queueName]
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </p>
-                      </div>
+                <article key={ticket.id} className="space-y-3 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
+                      <Link
+                        href={`/support/tickets/${ticket.id}`}
+                        className="mt-2 block text-sm font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
+                      >
+                        {ticket.unread ? <UnreadMark /> : null}
+                        {ticket.subject}
+                      </Link>
+                      <p className="mt-1 truncate text-xs text-[var(--color-ink-subtle)]">
+                        {[ticket.organisationName, ticket.contactName, ticket.queueName]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </p>
                     </div>
-                  </td>
+                    <div className="shrink-0">
+                      {canManage ? (
+                        <AgentControl
+                          ticketId={ticket.id}
+                          assigneeId={ticket.assigneeId}
+                          assigneeName={ticket.assigneeName}
+                          users={users.map((user) => ({ id: user.id, name: user.name }))}
+                        />
+                      ) : ticket.assigneeName ? (
+                        <Avatar name={ticket.assigneeName} size="small" />
+                      ) : null}
+                    </div>
+                  </div>
 
-                  <td className="px-3 py-2 align-top">
-                    {canManage ? <TicketRowActions ticket={{ id: ticket.id, status: ticket.status }} /> : <span className={statusClass(ticket.status)}>{STATUS_LABELS[ticket.status]}</span>}
-                  </td>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div>
+                      <p className="mb-1 text-[10px] font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                        Status
+                      </p>
+                      {canManage ? (
+                        <TicketRowActions ticket={{ id: ticket.id, status: ticket.status }} />
+                      ) : (
+                        <span className={statusClass(ticket.status)}>
+                          {STATUS_LABELS[ticket.status]}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="mb-1 text-[10px] font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                        Priority
+                      </p>
+                      {canManage ? (
+                        <PriorityControl ticketId={ticket.id} priority={ticket.priority} />
+                      ) : (
+                        <span className={priorityClass(ticket.priority)}>{ticket.priority}</span>
+                      )}
+                    </div>
+                  </div>
 
-                  <td className="px-3 py-2 align-top">
-                    {canManage ? <PriorityControl ticketId={ticket.id} priority={ticket.priority} /> : <span className={priorityClass(ticket.priority)}>{ticket.priority}</span>}
-                  </td>
-
-                  <td className="px-3 py-2 align-top">
+                  <div className="flex items-end justify-between gap-3 text-xs text-[var(--color-ink-muted)]">
                     <div className="flex flex-col gap-0.5">
                       <SlaChip
                         label="Reply"
@@ -257,31 +185,146 @@ export default async function TicketsPage({
                         dueAt={ticket.resolutionDueAt}
                       />
                     </div>
-                  </td>
-
-                  <td className="px-3 py-2 align-top">
-                    {canManage ? <AgentControl ticketId={ticket.id} assigneeId={ticket.assigneeId} assigneeName={ticket.assigneeName} users={users.map((user) => ({ id: user.id, name: user.name }))} /> : ticket.assigneeName ? (
-                      <span className="flex items-center gap-1.5">
-                        <Avatar name={ticket.assigneeName} size="small" />
-                        <span className="truncate text-[12px] text-[var(--color-ink-muted)]">
-                          {ticket.assigneeName.split(' ')[0]}
-                        </span>
-                      </span>
-                    ) : (
-                      <span className="text-[12px] text-[var(--color-status-warn)]">
-                        Unassigned
-                      </span>
-                    )}
-                  </td>
-
-                  <td className="px-3 py-2 align-top text-[12px] text-[var(--color-ink-muted)]">
-                    {formatDateTime(ticket.lastActivityAt)}
-                  </td>
-                </tr>
+                    <span className="text-right">{formatDateTime(ticket.lastActivityAt)}</span>
+                  </div>
+                </article>
               ))}
-            </tbody>
-          </table>
-          </div>
+            </div>
+
+            <div className="hidden overflow-x-auto md:block">
+              <Table className="min-w-[980px] w-full border-collapse text-sm">
+                <thead>
+                  <tr className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                    <th className="w-[12ch] border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
+                      Number
+                    </th>
+                    <th className="border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
+                      Subject
+                    </th>
+                    <th className="w-52 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
+                      Status
+                    </th>
+                    <th className="w-32 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
+                      Priority
+                    </th>
+                    <th className="w-44 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
+                      Service level
+                    </th>
+                    <th className="w-28 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
+                      Agent
+                    </th>
+                    <th className="w-32 border-b border-[var(--color-line)] px-3 py-2 text-left font-medium">
+                      Last activity
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {tickets.map((ticket) => (
+                    <tr
+                      key={ticket.id}
+                      data-sort-values={JSON.stringify([
+                        ticket.number,
+                        ticket.subject,
+                        STATUS_LABELS[ticket.status],
+                        ticket.priority,
+                        ticket.firstResponseDueAt
+                          ? new Date(ticket.firstResponseDueAt).getTime()
+                          : null,
+                        ticket.assigneeName,
+                        new Date(ticket.lastActivityAt).getTime(),
+                      ])}
+                      className="group border-b border-[var(--color-line)] last:border-b-0 hover:bg-[var(--color-surface-muted)]/60"
+                    >
+                      <td className="px-3 py-2 align-top">
+                        <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
+                      </td>
+
+                      {/* max-w-0 with w-full lets the subject take whatever the other columns leave and
+                      truncate within it; without it a long subject widens the table past the screen. */}
+                      <td className="w-full max-w-0 px-3 py-2 align-top">
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-48 flex-1">
+                            <Link
+                              href={`/support/tickets/${ticket.id}`}
+                              className="block truncate font-medium text-[var(--color-ink)] underline-offset-4 group-hover:underline"
+                            >
+                              {ticket.unread ? <UnreadMark /> : null}
+                              {ticket.subject}
+                            </Link>
+
+                            <p className="truncate text-[11px] text-[var(--color-ink-subtle)]">
+                              {[ticket.organisationName, ticket.contactName, ticket.queueName]
+                                .filter(Boolean)
+                                .join(' · ')}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-3 py-2 align-top">
+                        {canManage ? (
+                          <TicketRowActions ticket={{ id: ticket.id, status: ticket.status }} />
+                        ) : (
+                          <span className={statusClass(ticket.status)}>
+                            {STATUS_LABELS[ticket.status]}
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="px-3 py-2 align-top">
+                        {canManage ? (
+                          <PriorityControl ticketId={ticket.id} priority={ticket.priority} />
+                        ) : (
+                          <span className={priorityClass(ticket.priority)}>{ticket.priority}</span>
+                        )}
+                      </td>
+
+                      <td className="px-3 py-2 align-top">
+                        <div className="flex flex-col gap-0.5">
+                          <SlaChip
+                            label="Reply"
+                            state={ticket.firstResponseState}
+                            dueAt={ticket.firstResponseDueAt}
+                          />
+                          <SlaChip
+                            label="Resolve"
+                            state={ticket.resolutionState}
+                            dueAt={ticket.resolutionDueAt}
+                          />
+                        </div>
+                      </td>
+
+                      <td className="px-3 py-2 align-top">
+                        {canManage ? (
+                          <AgentControl
+                            ticketId={ticket.id}
+                            assigneeId={ticket.assigneeId}
+                            assigneeName={ticket.assigneeName}
+                            users={users.map((user) => ({ id: user.id, name: user.name }))}
+                          />
+                        ) : ticket.assigneeName ? (
+                          <span className="flex items-center gap-1.5">
+                            <Avatar name={ticket.assigneeName} size="small" />
+                            <span className="truncate text-[12px] text-[var(--color-ink-muted)]">
+                              {ticket.assigneeName.split(' ')[0]}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-[12px] text-[var(--color-status-warn)]">
+                            Unassigned
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="px-3 py-2 align-top text-[12px] text-[var(--color-ink-muted)]">
+                        {formatDateTime(ticket.lastActivityAt)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
           </>
         )}
       </Card>

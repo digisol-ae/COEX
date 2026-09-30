@@ -1,5 +1,175 @@
 # COEX — Current AI Task
 
+## Release handoff — 1 Oct 2026 (Codex)
+
+John approved QA, updating Claude's instructions, committing, pushing to GitHub, deploying
+to the app server, then shutting down the Mac. This release is ready locally; VPS access
+is blocked. No shutdown until deployment is verified.
+
+### Delivered
+- After today's first saved snapshot, My Desk says **Update today’s summary**.
+- One status per task; statuses are configurable per Space in Space settings, shared by
+  Board/List/Gantt. Add, order and remove stages; choose exactly one completed stage.
+  Used stages cannot be renamed/removed or change completion meaning until their tasks move.
+  Completion uses isClosed, never guesses from names such as "Incomplete".
+- Shared table headings toggle ascending/descending sorting, with Reset sort. Explicit
+  numeric/date values sort hours and dates correctly. Task/subtask row groups stay together;
+  sorting preserves React row state and disables manual dragging until reset.
+- All Timesheets shows Monday–Sunday hours for the selected week alongside weekly totals.
+  Timesheet export/person navigation preserves the local week date instead of slicing UTC.
+- Desk icons with tooltips add/remove the signed-in person's eligible tasks from lists,
+  boards, detail panels/pages, dashboard, timesheets, linked tickets and global search.
+  Checked icon indicates selection. Adds are idempotent and service-enforce assignment.
+- My Available Tasks titles open an in-place native modal preview with loaded description,
+  dates, status, time, tags, documents and subtasks. Open task icon navigates only if requested.
+- Includes earlier local Performance History, office close scheduling/retry, mobile and Entra
+  preparation. Entra remains inactive without the secret and exact production callback.
+- Formatting cleanup resolves the pre-existing CI formatting failures.
+
+### Verification
+- Full suite: 21 files / 208 tests passed in 572.32s using isolated
+  coex_test_8d3b94_* databases. Shared coex_qa, coex_dev and production were untouched.
+- Final unit run: 79 passed. Final focused desk/status DB run: 5 passed in 64.33s.
+- TypeScript, ESLint with zero warnings, CI Prettier check, production build and diff check pass.
+- Local Codex browser functional QA (no screenshots): updated confirmation label; available
+  task preview loads and closes without navigation, Open task link; daily week columns;
+  timesheet numeric ascending/descending order; custom status add/edit/cancel; Space list
+  heading sorting and eligible desk icons. Read-only checks did not change existing task data.
+- Existing storage tracing warnings remain. Pixel/device visual QA was not performed.
+
+### Claude's next action
+1. Confirm the newest GitHub main commit and CI result; this session commits/pushes after
+   this handoff is written. Preserve all unrelated work and never commit env/credentials.
+2. Deployment is authorized, but Codex could not authenticate: macOS denied reading
+   ~/Downloads/digisol-zabbix.pem. SSH-agent fallback also failed. Terminal automation timed
+   out and Computer Use denied Terminal access for safety reasons. Use John's authorized
+   native terminal after the local permission issue is resolved; do not bypass safety controls.
+3. Follow deploy/DEPLOYMENT-STATUS.md (Apache + pm2, /srv/coex/app, port 3001), not DEPLOY.md.
+   Check remote HEAD and dirty state, pull with --ff-only, npm ci, build, restart coex-app and
+   coex-mail. Start/restart coex-desk-close and pm2 save. Do not alter Entra secrets/settings.
+4. Verify target SHA, all three pm2 processes, HTTPS login and the deployed My Desk/status/
+   timesheet behavior. Update deployment status and this handoff with the result.
+5. Only after deployment succeeds, carry out the authorized Mac shutdown. Until then leave it
+   running. No OS patching or Apache changes are part of this release.
+
+## Local fixes — 1 Oct 2026 (Codex)
+
+- Continue locally only. John questioned server access; no SSH or live-server operations were
+  performed in this continuation.
+- Desk-close now schedules 23:59:59 in OFFICE_TZ (default Asia/Dubai), prevents overlapping
+  closes, and retries failures after 30 seconds without advancing its completed date.
+- Failed users are reported while other users continue. Retries preserve the original close
+  timestamp and office workDate even after midnight. Desk scoring uses office-day boundaries
+  and the close timestamp rather than the host timezone/current retry time.
+- Save confirmations now close panels in action callbacks rather than effects. Board folder
+  navigation and task-form refresh synchronize state during render when their input changes.
+  Fixed unescaped quotes and hook/unused warnings.
+- Validation: 69 unit tests pass, including six new scheduler/service regressions; ESLint
+  has 0 errors and 0 warnings; TypeScript and the normal production build pass. The temporary
+  build failed on symlink resolution; the actual checkout build passed. Existing storage
+  tracing warnings remain. git diff --check passes.
+- The 30 Sep full database QA result remains 189/189 on coex_qa, predating these fixes; it
+  was not rerun in this continuation. No browser/device QA performed.
+- All changes remain local and uncommitted. No push or deployment. Next: local My Desk
+  regression QA (same-day accumulation, carryover and history) against coex_qa.
+
+## Verified continuation — 30 Sep 2026 (Codex)
+
+- Live login at https://coex.digisol.ae/login returns HTTP 200. Local HEAD and GitHub main
+  both resolve to 0f5e858; newer local work remains uncommitted.
+- Full QA on a temporary copy of the current working tree, with the test harness restricted
+  to exactly coex_qa: **16 files, 189 tests passed**, 531.08 seconds. No test writes to coex_dev.
+  Unit-only run: 63 passed. TypeScript and production build pass.
+- Latest GitHub CI at 0f5e858 failed with 13 lint errors and 3 warnings:
+  https://github.com/digisol-ae/COEX/actions/runs/36519498320
+- Review blockers in the local desk-close worker: it triggers during 23:59 rather than at
+  the requested 23:59:59, and sets lastClosedDate before success, preventing same-day retries.
+  closeOfficeDay also suppresses per-user errors. No fixes made during this QA continuation.
+- SSH process/revision verification was blocked: macOS denied reading the documented key
+  (Operation not permitted). VPS commit and coex-desk-close status remain unverified.
+- Next: fix and test desk-close timing/retry handling and CI lint; verify VPS HEAD and pm2
+  processes from John's terminal. No commit, push or deployment performed.
+
+> **>>> HANDOVER TO CHATGPT (Codex), 29 Sep 2026 <<<**
+> Claude did two things this session, both local and uncommitted. Please pick up from here.
+>
+> **Next action for you (Codex):** run the full QA and confirm it is green.
+> `npx vitest run` on the Mac (native) or on a Linux checkout with a fresh `npm ci`. Claude could
+> not run vitest from the bridge VM: the mounted `node_modules` holds the Mac's native rolldown
+> binding, so the Linux VM throws `Cannot find module './rolldown-binding.wasi.cjs'`. Expected
+> result now: 189 pass (was 188 pass / 1 fail, and that 1 was the test fixed below).
+>
+> **What Claude changed (local only, not committed, not pushed, not deployed):**
+> 1. `tests/database/time.test.ts` "moves an entry to another day" (line ~261): was date-fragile,
+>    failed on Mondays because "yesterday" is in the previous week. It now loads the week that
+>    contains the moved entry. App logic in time.service was already correct.
+> 2. "I am done" archival in `src/modules/tasks/services/desk.service.ts`: `finishMyDesk` now
+>    archives completed desk tasks into that day's snapshot and removes them from the active desk;
+>    incomplete tasks stay for the next day with their condition recorded; same-day confirmations
+>    accumulate (union of archived task ids), they do not overwrite. Shared `isDeskTaskDone` added.
+> 3. New `src/modules/tasks/services/desk-close.service.ts` (`closeOfficeDay`) and
+>    `scripts/desk-close-worker.ts` (pm2 `coex-desk-close`, `npm run desk:worker`, `OFFICE_TZ`
+>    default Asia/Dubai) run the close automatically at 23:59 office time.
+> 4. `package.json` gained the `desk:worker` script. `deploy/DEPLOYMENT-STATUS.md` documents the
+>    new pm2 process. `npx tsc --noEmit` passes.
+>
+> **Waiting on John (do not proceed without him):**
+> - Entra client secret. Place `AUTH_MICROSOFT_ENTRA_ID_SECRET` in the VPS env (never in chat or a
+>   commit), add redirect URI `https://coex.digisol.ae/api/auth/entra/callback` in Azure. App ID
+>   and Tenant ID are already configured. Env vars the code reads: `AUTH_MICROSOFT_ENTRA_ID_ISSUER`,
+>   `AUTH_MICROSOFT_ENTRA_ID_ID`, `AUTH_MICROSOFT_ENTRA_ID_SECRET`, `AUTH_URL`.
+> - Explicit approval to commit, push and deploy. Admin-only historical corrections remain deferred.
+
+
+> **29 Sep 2026 done (Claude, local only):** Two items completed.
+> 1. Test fix: `tests/database/time.test.ts` "moves an entry to another day" was date-fragile
+>    (it failed on Mondays, because "yesterday" falls in the previous week). It now loads the week
+>    containing the moved entry. The app logic in time.service was correct; only the test changed.
+> 2. "I am done" archival: `finishMyDesk` now archives completed desk tasks into that day's
+>    Performance History and removes them from the active desk. Incomplete tasks stay on the desk
+>    for the next day, with their current condition recorded in the same snapshot. Same-day
+>    confirmations accumulate (union of archived task ids); they do not overwrite. New
+>    `closeOfficeDay` service and `scripts/desk-close-worker.ts` (pm2 `coex-desk-close`,
+>    `npm run desk:worker`, OFFICE_TZ default Asia/Dubai) run the close at 23:59 office time.
+>    Admin-only historical corrections remain deferred. `npx tsc --noEmit` passes. Not committed,
+>    not pushed, not deployed, awaiting John's approval.
+
+
+> **29 Sep 2026 — current local work:** My Desk now has a **Performance history** tab. It lists
+> the signed-in user's saved daily desk snapshots (date, selected-task count and operational
+> counters), while deliberately hiding the numeric score until John approves its algorithm.
+> `npm run build` passes. This follow-up is local only: commit, push and VPS deployment require
+> John's next explicit approval.
+
+> **Decision, 29 Sep 2026:** Do not add normal History editing. Same-day “I am done” refreshes
+> that day's snapshot after live-task corrections; prior dates are immutable. Any later admin
+> correction must require a reason and write an audit trail.
+
+> **New feedback, 29 Sep 2026 (pending implementation):** “I am done” should archive completed
+> desk tasks into that day's Performance History and remove them from the active desk. Multiple
+> confirmations on one day must accumulate, not overwrite. An automatic 23:59:59 office-day close
+> should create/update the daily snapshot. John decided incomplete desk tasks remain on My Desk
+> for the next day; their prior-day condition stays recorded in history.
+
+> **Mobile update, 29 Sep 2026:** Shared task lists now render compact cards on phones instead of
+> a wide table. Titles, Space and Folder labels truncate with an ellipsis rather than extending
+> off-screen. This covers All tasks, Personal and My Desk. `npm run build` passes.
+
+> **Entra SSO preparation, 29 Sep 2026 (local, not activated):** COEX now has a Microsoft Entra
+> authorization-code + PKCE flow at `/api/auth/entra`, returning through
+> `/api/auth/entra/callback`. It verifies Entra's signed ID token, creates the existing COEX
+> session and audits the sign-in. Only one existing active COEX user with the matching email can
+> link/sign in; no account is created automatically. Activation needs the production Entra Client
+> ID, Tenant ID in the issuer, Client Secret on the VPS and the exact redirect URI below.
+> John supplied the production Application ID `5f29d831-1d5b-463a-845d-4da36c7e2394` and Tenant
+> ID `3788e905-c187-4e8b-bafb-84b7e0ec3f1c`; they are now configured locally. The client secret
+> is currently empty and must be created/entered privately before a real sign-in test.
+
+> **QA, 30 Sep 2026 (Codex):** The corrected `moves an entry to another day` test passes in a
+> freshly reset `coex_test_time` database. The configured database connection is healthy. The
+> full Vitest runner is terminated by this execution environment before producing a final summary,
+> so run `npx vitest run` in the Mac terminal before approving a commit/deployment.
+
 > **29 Sep 2026 — release handoff:** Commit and deploy the approved local feature bundle. After
 > deployment, smoke-test Personal privacy, My Desk task add/remove and daily confirmation, and
 > standard create/save confirmations. My Desk's numeric score is deliberately hidden until John

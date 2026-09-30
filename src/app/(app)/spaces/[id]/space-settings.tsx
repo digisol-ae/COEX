@@ -1,6 +1,7 @@
 'use client';
+import { StatusEditor } from '@/components/tasks/status-editor';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useState } from 'react';
 import { Button, Field, Input, Notice } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
 import { updateSpaceAction, type TaskFormState } from '../../tasks/actions';
@@ -18,20 +19,25 @@ export function SpaceSettings({
     name: string;
     description: string | null;
     memberIds: string[];
+    statuses: { name: string; isClosed: boolean }[];
     organisationId: string | null;
   };
   users: { id: string; name: string }[];
   customers: { id: string; name: string }[];
 }) {
   const [open, setOpen] = useState(false);
-  const [state, action, pending] = useActionState(updateSpaceAction, initialState);
   const { showToast } = useToast();
-  useEffect(() => {
-    if (state.saved) {
-      setOpen(false);
-      showToast('Space saved.');
-    }
-  }, [state, showToast]);
+  const [state, action, pending] = useActionState(
+    async (previous: TaskFormState, formData: FormData) => {
+      const result = await updateSpaceAction(previous, formData);
+      if (result.saved) {
+        setOpen(false);
+        showToast('Space saved.');
+      }
+      return result;
+    },
+    initialState,
+  );
   if (!open)
     return (
       <button
@@ -63,7 +69,7 @@ export function SpaceSettings({
       aria-modal="true"
       aria-label="Space settings"
     >
-      <form action={action} className="w-full max-w-lg popup-glass p-5 text-left">
+      <form action={action} className="w-full max-w-xl popup-glass p-5 text-left">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-semibold text-[var(--color-ink)]">Space settings</h2>
           <button
@@ -113,13 +119,14 @@ export function SpaceSettings({
             ))}
           </select>
         </Field>
+        <StatusEditor initial={space.statuses} />
         {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
         <div className="mt-4 flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
             Cancel
           </Button>
           <Button type="submit" disabled={pending}>
-            {pending ? 'Saving' : 'Save access'}
+            {pending ? 'Saving' : 'Save settings'}
           </Button>
         </div>
         <ArchiveSpace spaceId={space.id} spaceName={space.name} />

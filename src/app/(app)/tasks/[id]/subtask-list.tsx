@@ -58,7 +58,11 @@ export function SubtaskList({
                     onChange={(event) => {
                       const assigneeId = event.target.value || null;
                       startTransition(async () => {
-                        await setSubtaskAssigneeAction({ taskId, subtaskId: subtask.id, assigneeId });
+                        await setSubtaskAssigneeAction({
+                          taskId,
+                          subtaskId: subtask.id,
+                          assigneeId,
+                        });
                       });
                     }}
                     className="max-w-40 truncate rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2 py-1 text-xs text-[var(--color-ink-muted)]"

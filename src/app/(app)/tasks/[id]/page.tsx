@@ -1,3 +1,4 @@
+import { DeskTaskButton } from '@/components/tasks/desk-task-button';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
@@ -103,6 +104,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
           }
           action={
             <div className="flex flex-wrap items-center gap-2">
+              <DeskTaskButton taskId={id} assigneeIds={assignedIds} />
               <TimerButton taskId={id} running={timer?.kind === 'task' && timer?.itemId === id} />
               <Badge tone={task.isClosed ? 'ok' : 'info'}>{task.status}</Badge>
               {task.priority !== 'normal' ? (

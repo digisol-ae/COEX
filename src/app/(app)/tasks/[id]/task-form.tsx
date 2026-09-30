@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useState } from 'react';
 import { Button, Field, Input, Notice, Select } from '@/components/ui';
 import { archiveTaskAction, updateTaskAction, type TaskFormState } from '../actions';
 
@@ -49,7 +49,9 @@ export function TaskForm({
    * the same risk. Holding each field's value in state, refreshed only when the server actually
    * hands back new data, sidesteps that reset entirely: a controlled field is never touched by it.
    */
-  useEffect(() => {
+  const [previousTask, setPreviousTask] = useState(task);
+  if (previousTask !== task) {
+    setPreviousTask(task);
     setTitle(task.title);
     setDescription(task.description);
     setAssigneeIds(task.assigneeIds);
@@ -59,7 +61,7 @@ export function TaskForm({
     setEstimateHours(task.estimateHours);
     setFolderId(task.folderId);
     setTags(task.tags);
-  }, [task]);
+  }
 
   if (!canManage) {
     return (
@@ -86,7 +88,12 @@ export function TaskForm({
         <input type="hidden" name="id" value={task.id} />
 
         <Field label="Title">
-          <Input name="title" value={title} onChange={(event) => setTitle(event.target.value)} required />
+          <Input
+            name="title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            required
+          />
         </Field>
 
         <Field label="Description">
@@ -119,7 +126,11 @@ export function TaskForm({
         </Field>
 
         <Field label="Priority">
-          <Select name="priority" value={priority} onChange={(event) => setPriority(event.target.value)}>
+          <Select
+            name="priority"
+            value={priority}
+            onChange={(event) => setPriority(event.target.value)}
+          >
             <option value="urgent">Urgent</option>
             <option value="high">High</option>
             <option value="normal">Normal</option>
@@ -163,7 +174,11 @@ export function TaskForm({
 
         {folders.length > 0 ? (
           <Field label="Folder" hint="Which folder inside the space this belongs to">
-            <Select name="folderId" value={folderId} onChange={(event) => setFolderId(event.target.value)}>
+            <Select
+              name="folderId"
+              value={folderId}
+              onChange={(event) => setFolderId(event.target.value)}
+            >
               <option value="">No folder</option>
               {folders.map((folder) => (
                 <option key={folder.id} value={folder.id}>

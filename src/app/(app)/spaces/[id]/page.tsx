@@ -70,6 +70,10 @@ export default async function SpacePage({
                     name: space.name,
                     description: space.description ?? null,
                     memberIds: space.memberIds.map(String),
+                    statuses: space.statuses.map((status) => ({
+                      name: status.name,
+                      isClosed: status.isClosed,
+                    })),
                     organisationId: space.organisationId ? String(space.organisationId) : null,
                   }}
                   users={users.map((user) => ({ id: user.id, name: user.name }))}

@@ -100,7 +100,10 @@ function Group({
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.id || row.label}>
+                <tr
+                  key={row.id || row.label}
+                  data-sort-values={JSON.stringify([row.label, row.minutes, row.billableMinutes])}
+                >
                   <Td className="text-[var(--color-ink)]">{row.label}</Td>
                   <Td className="tabular-nums text-[var(--color-ink-muted)]">
                     {formatMinutes(row.minutes)}

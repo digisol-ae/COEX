@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useState } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
 import { saveProductAction, type ProductFormState } from './actions';
@@ -9,14 +9,18 @@ const initialState: ProductFormState = {};
 
 export function ProductPanel() {
   const [open, setOpen] = useState(false);
-  const [state, formAction, pending] = useActionState(saveProductAction, initialState);
   const { showToast } = useToast();
-
-  useEffect(() => {
-    if (!state.saved) return;
-    setOpen(false);
-    showToast('Product saved.');
-  }, [state, showToast]);
+  const [state, formAction, pending] = useActionState(
+    async (previous: ProductFormState, formData: FormData) => {
+      const result = await saveProductAction(previous, formData);
+      if (result.saved) {
+        setOpen(false);
+        showToast('Product saved.');
+      }
+      return result;
+    },
+    initialState,
+  );
 
   if (!open) {
     return <Button onClick={() => setOpen(true)}>Add product</Button>;

@@ -1,4 +1,5 @@
 'use client';
+import { DeskTaskButton } from '@/components/tasks/desk-task-button';
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -138,28 +139,32 @@ export function QuickSearch() {
                 </p>
               ) : (
                 results.map((result, index) => (
-                  <button
-                    key={`${result.href}-${index}`}
-                    type="button"
-                    onMouseEnter={() => setActive(index)}
-                    onClick={() => choose(result)}
-                    className={clsx(
-                      'flex w-full items-center gap-3 px-4 py-2.5 text-left',
-                      index === active ? 'bg-[var(--color-surface-muted)]' : 'bg-transparent',
-                    )}
-                  >
-                    <span className="w-16 shrink-0 text-[11px] text-[var(--color-ink-subtle)]">
-                      {result.type}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm text-[var(--color-ink)]">
-                        {result.label}
+                  <div className="flex items-center" key={`${result.href}-${index}`}>
+                    <button
+                      type="button"
+                      onMouseEnter={() => setActive(index)}
+                      onClick={() => choose(result)}
+                      className={clsx(
+                        'flex min-w-0 flex-1 items-center gap-3 px-4 py-2.5 text-left',
+                        index === active ? 'bg-[var(--color-surface-muted)]' : 'bg-transparent',
+                      )}
+                    >
+                      <span className="w-16 shrink-0 text-[11px] text-[var(--color-ink-subtle)]">
+                        {result.type}
                       </span>
-                      <span className="block truncate text-xs text-[var(--color-ink-subtle)]">
-                        {result.detail}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm text-[var(--color-ink)]">
+                          {result.label}
+                        </span>
+                        <span className="block truncate text-xs text-[var(--color-ink-subtle)]">
+                          {result.detail}
+                        </span>
                       </span>
-                    </span>
-                  </button>
+                    </button>
+                    {result.type === 'Task' ? (
+                      <DeskTaskButton taskId={result.href.split('/').pop()!} />
+                    ) : null}
+                  </div>
                 ))
               )}
             </div>

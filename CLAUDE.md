@@ -279,3 +279,21 @@ never run `npm install` from its Linux sandbox into this folder: packages such a
 leaves node_modules unusable on macOS and the build fails with "Cannot find module
 '../lightningcss.darwin-arm64.node'". The cure is `rm -rf node_modules package-lock.json` followed
 by `npm install` on the Mac.
+
+## Product and release decisions — 1 Oct 2026
+- A task has one status. Each Space configures its workflow; boards and other views share it.
+  Exactly one configured stage marks completion. Never infer completion from the status name.
+  Prevent renaming/removing used stages or changing their completion flag until tasks move.
+- Table column headings toggle ascending/descending order. Use real numeric/date sort values;
+  keep task/subtask groups together and retain row editor state. Reset sort restores manual order.
+- All Timesheets includes Monday–Sunday hours for the chosen week. Calendar date keys must not
+  come from slicing UTC timestamps when the value represents a local week/day.
+- My Desk's secondary task action is a desk icon with an accessible tooltip and selection mark.
+  Only the signed-in user's eligible tasks can be added; idempotent selection never toggles an
+  already-added task off accidentally. Available-task titles preview in a popup without navigation.
+- After a same-day snapshot exists, the primary label is Update today’s summary.
+- John authorized this release's commit/push/deploy and subsequent Mac shutdown. This is scoped
+  release authorization, not standing permission for unrelated server work. Deployment remains
+  blocked by SSH-key access; preserve the running Mac until deployment can be verified.
+- Keep communication short and commands-first; no screenshots. Read the newest ai/HANDOFF.md
+  section before continuing. Follow actual pm2/Apache deployment status, not the original design.

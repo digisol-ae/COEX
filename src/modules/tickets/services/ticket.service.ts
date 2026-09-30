@@ -323,7 +323,6 @@ export async function addReply(input: ReplyInput): Promise<string> {
   return String(message._id);
 }
 
-
 export async function changeStatus(ticketId: string, status: TicketStatus): Promise<void> {
   await connectToDatabase();
 
@@ -369,7 +368,10 @@ export async function changeStatus(ticketId: string, status: TicketStatus): Prom
   });
 
   // Closed without a Resolved step is still resolved work on the customer's timeline.
-  if ((status === 'resolved' || (status === 'closed' && !ticket.resolvedAt)) && ticket.organisationId) {
+  if (
+    (status === 'resolved' || (status === 'closed' && !ticket.resolvedAt)) &&
+    ticket.organisationId
+  ) {
     await recordActivity({
       organisationId: ticket.organisationId,
       contactId: ticket.contactId,

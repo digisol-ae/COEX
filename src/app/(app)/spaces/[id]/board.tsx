@@ -1,7 +1,10 @@
 'use client';
 
+import { DeskTaskButton } from '@/components/tasks/desk-task-button';
+import { Table } from '@/components/ui';
+
 import Link from 'next/link';
-import { useActionState, useEffect, useOptimistic, useState, useTransition } from 'react';
+import { useActionState, useOptimistic, useState, useTransition } from 'react';
 import { clsx } from 'clsx';
 import {
   Button,
@@ -121,17 +124,24 @@ export function Board({
    * the board call `setFolderId` directly and already work without this, since they never leave
    * the page.
    */
-  useEffect(() => {
+  const [previousFolderId, setPreviousFolderId] = useState(activeFolderId);
+  if (previousFolderId !== activeFolderId) {
+    setPreviousFolderId(activeFolderId);
     setFolderId(activeFolderId);
-  }, [activeFolderId]);
-  const [state, formAction, pending] = useActionState(createTaskAction, initialState);
+  }
   const { showToast } = useToast();
+  const [state, formAction, pending] = useActionState(
+    async (previous: TaskFormState, formData: FormData) => {
+      const result = await createTaskAction(previous, formData);
+      if (result.saved) {
+        setAdding(false);
+        showToast('Task created.');
+      }
+      return result;
+    },
+    initialState,
+  );
 
-  useEffect(() => {
-    if (!state.saved) return;
-    setAdding(false);
-    showToast('Task created.');
-  }, [state, showToast]);
   const [, startTransition] = useTransition();
   const [dragging, setDragging] = useState<DragState | null>(null);
   const [dropTarget, setDropTarget] = useState<{ status: string; index: number } | null>(null);
@@ -640,6 +650,7 @@ function TaskCard({
         >
           {task.title}
         </button>
+        <DeskTaskButton taskId={task.id} assigneeIds={task.assigneeIds} />
 
         <Link
           href={`/tasks/${task.id}`}
@@ -794,7 +805,7 @@ function ListView({
                     onDropOn(column.name, inColumn.length);
                   }}
                 >
-                  <table className="w-full border-collapse text-sm">
+                  <Table className="w-full border-collapse text-sm">
                     <thead>
                       <tr className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
                         <th className="w-6 border-b border-[var(--color-line)] px-2 py-1.5" />
@@ -823,6 +834,17 @@ function ListView({
                         return (
                           <Row key={task.id}>
                             <tr
+                              data-sort-values={JSON.stringify([
+                                '',
+                                task.title,
+                                users
+                                  .filter((user) => task.assigneeIds.includes(user.id))
+                                  .map((user) => user.name)
+                                  .join(', '),
+                                task.endAt ? new Date(task.endAt).getTime() : null,
+                                task.plannedMinutes,
+                                task.priority,
+                              ])}
                               draggable={canManage}
                               onDragStart={() => onDragStart(task.id, column.name)}
                               onDragEnd={onDragEnd}
@@ -880,6 +902,7 @@ function ListView({
                                   >
                                     {task.title}
                                   </button>
+                                  <DeskTaskButton taskId={task.id} assigneeIds={task.assigneeIds} />
 
                                   {task.subtaskCount > 0 ? (
                                     <Chip title="Subtasks done">
@@ -1013,7 +1036,7 @@ function ListView({
                         </tr>
                       ) : null}
                     </tbody>
-                  </table>
+                  </Table>
                 </div>
               </Card>
             ) : null}
