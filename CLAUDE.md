@@ -167,6 +167,11 @@ never sent to their browser.
   `popup-glass-gradient`: bright frosted glass behind, and a panel of glass tinted with the
   sidebar's pastels (28 Sep 2026).
 - A phone has no hover, so nothing may be reachable only on hover.
+- Tooltips (1 Oct 2026): one component, `GlobalTooltip`, draws every tooltip (`title`,
+  `data-tooltip`, or an icon-only control's `aria-label`) and keeps it inside the window. Never
+  add a CSS pseudo-element tooltip; it cannot avoid the screen edge.
+- Back (1 Oct 2026): the header's back arrow (`BackButton`) returns to the previous screen on
+  every page, and to the dashboard when the page was opened directly.
 - Timers live in a floating window of pastel glass (`FloatingTimer`, 28 Sep 2026): the running
   clock with stop, and today's timers with stop and resume. Three sizes (28 Sep 2026): Open, the
   full window; Clock, a floating digital clock only; Minimized, a small bubble with a dot while a

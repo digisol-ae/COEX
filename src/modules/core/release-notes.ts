@@ -16,6 +16,21 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-01-b',
+    date: '1 October 2026',
+    title: 'A Back button, task status on the task page, and tooltips that stay on screen',
+    sections: [
+      {
+        heading: 'Improvements',
+        items: [
+          'A Back arrow at the top of every screen takes you to the screen you came from.',
+          'Change a task’s status straight from the full task page, using the status at the top right.',
+          'Tooltips near the edge of the screen now stay fully visible.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-01',
     date: '1 October 2026',
     title: 'My Desk, Personal tasks and over 10 UI improvements',

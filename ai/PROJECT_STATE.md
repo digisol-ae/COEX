@@ -1,5 +1,17 @@
 # COEX — Shared AI Project State
 
+## John feedback built — 1 Oct 2026, after deployment (Claude)
+
+- Tooltips stay on screen: `src/components/ui/global-tooltip.tsx` now handles `data-tooltip` too,
+  measures itself and clamps to the window; the `.has-tooltip::after` CSS in globals.css is gone.
+- Back arrow on every screen: `src/components/navigation/back-button.tsx`, placed in the header
+  by `src/app/(app)/layout.tsx`; new `back` icon in icon-button.tsx.
+- Status picker on the full task page: `src/app/(app)/tasks/[id]/task-status.tsx` and
+  `setTaskStatusAction` in tasks/actions.ts (uses `moveTask`, the board's service).
+- What's new entry `2026-10-01-b`. FEEDBACK.md and CLAUDE.md updated.
+- Checked: TypeScript, ESLint (zero warnings) and Prettier on a scratch copy. Not run: the
+  database test suite, a production build, browser QA. Not deployed; needs John's review.
+
 ## Deployed and verified — 1 Oct 2026 (Claude)
 
 - VPS /srv/coex/app is at 7afa81e, the same as GitHub main. John ran the deployment by hand:

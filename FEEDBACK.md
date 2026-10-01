@@ -1,5 +1,17 @@
 # FEEDBACK
 
+## John feedback, 1 Oct 2026 (after deployment) — built, not deployed
+1. Tooltips near a corner or edge went off screen. Built: every tooltip (title, data-tooltip,
+   icon-only aria-label) is drawn by GlobalTooltip, measured and kept inside the window: above
+   the control if it fits, else below, slid sideways near an edge. The CSS `::after` tooltip on
+   `.has-tooltip` is gone. It sits in the top layer (popover), so it also shows over dialogs.
+2. A Back button to the previous screen, across the whole program. Built: a back arrow in the
+   header on every screen. It returns along the screens visited in this tab; a page opened
+   directly (email link, bookmark) goes to the dashboard instead, so Back never leaves COEX.
+3. Change a task's status from the full task page. Built: the status at the top right is a
+   picker of the Space's workflow for anyone with task.manage, using the same service as the
+   board (refusals shown as a message). Read-only users still see the badge.
+
 ## Feedback implemented — 1 Oct 2026
 - Saved today's snapshot: button becomes Update today’s summary.
 - John chose one task status with configurable statuses per Space, shared by board/list views.
