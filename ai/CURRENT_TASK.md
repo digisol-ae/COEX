@@ -1,5 +1,14 @@
 # COEX — Current AI Task
 
+> **1 Oct 2026, M6.1 WhatsApp foundations built (Claude, local, NOT pushed; John pushes on order):**
+> New `src/modules/channels` (canonical Channel API with zod, HMAC request signing, ChannelSettings and
+> ChannelMessage models, mock and XVERSE providers, outbox with lease/ack/backoff), signed endpoints
+> `/api/channels/[tenant]/{inbound,status,outbox,outbox/ack}`, `scripts/channel-worker.ts`
+> (`npm run channels:worker`, pm2 `coex-channels`), Setup, WhatsApp page with test mode
+> (simulate incoming, queue outgoing, recent messages). 17 new unit tests; 95/95 unit, tsc, eslint,
+> prettier and `next build` pass. Spec: docs/M6-CHANNELS-SPEC.md. Next: M6.2 incoming creates tickets.
+> On deploy: start `pm2 start npm --name coex-channels -- run channels:worker` then `pm2 save`.
+
 > **1 Oct 2026, John feedback (Claude, local, not committed):** Task preview now closes with an X
 > icon (new `close` icon). New `GlobalTooltip` in the app layout gives a styled tooltip on every
 > screen for any `title` and any icon-only control with an `aria-label`; My available tasks rows

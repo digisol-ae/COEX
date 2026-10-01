@@ -80,6 +80,8 @@ Follow this file for the live server; DEPLOY.md is the original design only.
   (mongodump + tar of storage, 14-day retention). Copy off-box periodically.
 
 ## Email worker (from 24 Sep 2026)
+- Fourth pm2 process `coex-channels` (from M6.1): `pm2 start npm --name coex-channels -- run channels:worker`,
+  then `pm2 save`. Sends the WhatsApp outbox in test mode or XVERSE Case A.
 - Third pm2 process `coex-desk-close`: `pm2 start npm --name coex-desk-close -- run desk:worker`,
   then `pm2 save`. Set `OFFICE_TZ` (default Asia/Dubai) if the office is elsewhere.
 - Second pm2 process `coex-mail`: `pm2 start npm --name coex-mail -- run email:worker`, then

@@ -297,3 +297,10 @@ by `npm install` on the Mac.
   blocked by SSH-key access; preserve the running Mac until deployment can be verified.
 - Keep communication short and commands-first; no screenshots. Read the newest ai/HANDOFF.md
   section before continuing. Follow actual pm2/Apache deployment status, not the original design.
+
+## M6 Channels decisions — 1 Oct 2026 (John)
+- Two WhatsApp numbers: Support (tickets) and CRM (contact conversations). See docs/M6-CHANNELS-SPEC.md.
+- Unknown senders open a ticket automatically (Support) or an Unidentified contact (CRM).
+- Ticket received is sent automatically on WhatsApp; every other notification is optional.
+- Whether XVERSE already has an inbound webhook and send API is unconfirmed: build the canonical
+  Channel API and a Mock provider first, so the connector can live in COEX or in XVERSE.
