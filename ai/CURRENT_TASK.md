@@ -1,14 +1,19 @@
 # COEX — Current AI Task
 
+## Deployed — 1 Oct 2026, 126767a (Claude)
+
+- PR https://github.com/digisol-ae/COEX/pull/1 merged into main as `126767a` (CI green) and
+  deployed by John: pull, npm ci, build, restart of coex-app, coex-mail and coex-desk-close with
+  --update-env, pm2 save. VPS HEAD `126767a`; pm2 shows one of each, all online.
+- Live now: Back arrow, task status picker on the task page, tooltips kept on screen, Personal
+  and Space pages listing only their own tasks, What's new `2026-10-01-b`.
+- Open item: `npm ci` on the VPS reports "1 critical severity vulnerability". Not investigated
+  yet; never run `npm audit fix --force` on the server.
+
 ## Active task — 1 Oct 2026
 
-Merge https://github.com/digisol-ae/COEX/pull/1 (`claude/festive-cori-oru2lg`) into main and
-deploy it. John accepted the feedback items; the branch also fixes Personal and Space pages
-listing every visible task (`listTasks` filter merge, now `$and`).
-Details, deploy commands and the QA method are in ai/HANDOFF.md under START HERE.
-
-(The earlier note "John feedback, local, not committed" about the X close icon, GlobalTooltip,
-larger flag and desk icons is out of date: that work is in `7afa81e` and is live.)
+None in flight. PR #1 is merged and live at `126767a`. Open item: the critical npm audit
+finding reported by `npm ci` on the VPS. Next milestone: Channels (M6), when John chooses.
 
 ## John feedback built and accepted — 1 Oct 2026, after deployment (Claude)
 

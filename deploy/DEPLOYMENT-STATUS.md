@@ -1,7 +1,16 @@
 # COEX live deployment
 
-Live at `7afa81e` since 1 Oct 2026. Pending: https://github.com/digisol-ae/COEX/pull/1
-(`claude/festive-cori-oru2lg`), to deploy after it is merged into main. See ai/HANDOFF.md, START HERE.
+Live at `126767a` since 1 Oct 2026 (PR #1). Nothing pending. See ai/HANDOFF.md, START HERE.
+
+## Deployed — 1 Oct 2026, 126767a (Claude)
+
+- PR https://github.com/digisol-ae/COEX/pull/1 merged into main as `126767a` (CI green) and
+  deployed by John: pull, npm ci, build, restart of coex-app, coex-mail and coex-desk-close with
+  --update-env, pm2 save. VPS HEAD `126767a`; pm2 shows one of each, all online.
+- Live now: Back arrow, task status picker on the task page, tooltips kept on screen, Personal
+  and Space pages listing only their own tasks, What's new `2026-10-01-b`.
+- Open item: `npm ci` on the VPS reports "1 critical severity vulnerability". Not investigated
+  yet; never run `npm audit fix --force` on the server.
 
 ## Deployed and verified — 1 Oct 2026 (Claude)
 
