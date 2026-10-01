@@ -306,6 +306,11 @@ by `npm install` on the Mac.
   score. `listTeamDeskHistory` checks the permission itself.
   It is deliberately not in What's new (John, 1 Oct 2026): it is for the few people granted the
   permission, so it is announced to them directly, not to everyone.
+- Task origin (John, 1 Oct 2026): every task shows who created it (`createdById`) and who
+  assigned each current assignee (`assignments`: userId, assignedById, assignedAt, kept in step
+  with assigneeIds by createTask, updateTask and patchTask). The viewer reads "Assigned to you
+  by". Assignee changes are also in the audit log. Assignments before 1 Oct were never recorded
+  and are not guessed. Shown on the task page, the preview and the side panel (`TaskOriginLines`).
 - John authorized this release's commit/push/deploy and subsequent Mac shutdown. This is scoped
   release authorization, not standing permission for unrelated server work. Deployment remains
   blocked by SSH-key access; preserve the running Mac until deployment can be verified.

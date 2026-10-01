@@ -1,7 +1,7 @@
 # COEX live deployment
 
-Live at `dd037e6` since 1 Oct 2026 (PR #2, Team history; PR #1 before it). Nothing pending.
-See ai/HANDOFF.md, START HERE.
+Live at `dd037e6` since 1 Oct 2026 (PR #2, Team history; PR #1 before it). Pending: PR #3
+(task origin), merged to main, waiting for John's deploy. See ai/HANDOFF.md, START HERE.
 
 ## Deployed — 1 Oct 2026, 126767a (Claude)
 

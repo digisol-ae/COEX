@@ -26,7 +26,10 @@ import {
   moveTaskToPosition,
   patchTask,
   countMyOpenTasks,
+  taskOrigin,
 } from '@/modules/tasks/services/task.service';
+import { AuditLogModel } from '@/modules/core/models/audit-log.model';
+import { TaskModel } from '@/modules/tasks/models/task.model';
 import { loadDashboard } from '@/modules/tasks/services/dashboard.service';
 
 const tenantId = new Types.ObjectId();
@@ -491,6 +494,55 @@ describe('listing one space', () => {
     );
 
     expect(listed.map((task) => task.title)).toEqual(['Call the bank']);
+  });
+});
+
+describe('who created and assigned a task', () => {
+  const asAdmin = { tenantId, userId: adminId, isPlatformAdmin: false };
+
+  it('records the creator and who assigned each person, kept through later changes', async () => {
+    const spaceId = await aSpace();
+    const id = await runWithContext(context, () =>
+      createTask({ spaceId, title: 'Draft the email', assigneeIds: [String(strangerId)] }),
+    );
+
+    // The administrator adds a second person later; the first keeps Syed as their assigner.
+    await runWithContext(asAdmin, () =>
+      patchTask(id, { assigneeIds: [String(strangerId), String(userId)] }),
+    );
+
+    const origin = await runWithContext(context, async () => taskOrigin((await getTask(id))!));
+    expect(origin.createdBy?.name).toBe('Syed Ali');
+    expect(origin.assignedBy.map((entry) => [entry.userId, entry.byName])).toEqual([
+      [String(strangerId), 'Syed Ali'],
+      [String(userId), 'Admin'],
+    ]);
+
+    // Taken off the task, a person drops out of the record.
+    await runWithContext(asAdmin, () => patchTask(id, { assigneeIds: [String(userId)] }));
+    const after = await runWithContext(context, async () => taskOrigin((await getTask(id))!));
+    expect(after.assignedBy.map((entry) => entry.userId)).toEqual([String(userId)]);
+  });
+
+  it('writes assignee changes to the audit log', async () => {
+    const spaceId = await aSpace();
+    const id = await runWithContext(context, () => createTask({ spaceId, title: 'Audit me' }));
+    await runWithContext(context, () => patchTask(id, { assigneeIds: [String(strangerId)] }));
+
+    const entry = await AuditLogModel.findOne({ entityId: id, action: 'task.updated' }).lean();
+    expect(entry?.after).toMatchObject({ assigneeIds: [String(strangerId)] });
+  });
+
+  it('shows no assigner for people assigned before the record existed', async () => {
+    const spaceId = await aSpace();
+    const id = await runWithContext(context, () =>
+      createTask({ spaceId, title: 'Older task', assigneeIds: [String(strangerId)] }),
+    );
+    await TaskModel.updateOne({ _id: id }, { $set: { assignments: [] } });
+
+    const origin = await runWithContext(context, async () => taskOrigin((await getTask(id))!));
+    expect(origin.assignedBy).toEqual([]);
+    expect(origin.createdBy?.name).toBe('Syed Ali');
   });
 });
 

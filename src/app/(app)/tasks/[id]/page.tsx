@@ -1,4 +1,5 @@
 import { DeskTaskButton } from '@/components/tasks/desk-task-button';
+import { TaskOriginLines } from '@/components/tasks/task-origin';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
@@ -9,6 +10,7 @@ import {
   listTaskComments,
   mentionableForTask,
   sourceTicketFor,
+  taskOrigin,
 } from '@/modules/tasks/services/task.service';
 import { getSpace } from '@/modules/tasks/services/space.service';
 import { listFolders } from '@/modules/tasks/services/folder.service';
@@ -42,6 +44,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
     subtaskOwnerIds,
     mentionable,
     sourceTicket,
+    origin,
   } = await asUser(actor, async () => ({
     space: await getSpace(String(task.spaceId)),
     folders: await listFolders(String(task.spaceId)),
@@ -53,6 +56,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
     subtaskOwnerIds: await assignableUserIdsForSubtask(task),
     mentionable: await mentionableForTask(id),
     sourceTicket: await sourceTicketFor(task),
+    origin: await taskOrigin(task),
   }));
 
   const canManage = actor.permissions.includes('task.manage');
@@ -126,6 +130,13 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
           }
         />
       </div>
+
+      <TaskOriginLines
+        origin={origin}
+        viewerId={actor.id}
+        people={users.map(({ id, name }) => ({ id, name }))}
+        className="-mt-4 mb-6 space-y-0.5 text-sm text-[var(--color-ink-muted)]"
+      />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
         <div className="space-y-6">

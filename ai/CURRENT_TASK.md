@@ -1,5 +1,20 @@
 # COEX — Current AI Task
 
+## Task origin built and merged — 1 Oct 2026 (Claude), deploy pending
+
+- John: "I don't know who created and assigned the task to me." `createdById` existed but was
+  never shown; assignments were not recorded anywhere (audit covered only title/priority/dates).
+- Built: `assignments` on the task model; `assignmentsAfter` keeps it in step in createTask,
+  updateTask, patchTask (ticket escalation goes through createTask); `taskOrigin` resolves names;
+  `TaskOriginLines` (src/components/tasks/task-origin.tsx) on the task page, the My Desk preview
+  and the task side panel (data from /api/tasks/[id]/panel). Assignee changes now audited.
+  What's new `2026-10-01-d`. No migration: older tasks show the creator only.
+- Tests: 3 new in tests/database/tasks.test.ts; full suite 219/219 on MongoDB 8.0; build,
+  TypeScript, ESLint, Prettier pass. Browser: preview, task page and side panel show "Created by"
+  and "Assigned to you by"; assigning someone in the form records the signed-in person as their
+  assigner; no browser errors.
+- John authorized Claude to finish and merge; John runs the server deploy (git pull etc.).
+
 ## Team history built — 1 Oct 2026 (Claude), live at dd037e6
 
 - John's request: managers see everyone's My Desk Performance history. His choices: access by a
@@ -33,7 +48,7 @@
 
 ## Active task — 1 Oct 2026
 
-None in flight. PR #1 (`126767a`) and PR #2 (`dd037e6`, Team history) are merged and live. Open
+Task origin is merged to main (PR #3); John deploys it on the VPS. Then nothing in flight. Open
 item: the critical npm audit finding reported by `npm ci` on the VPS. Next milestone: Channels
 (M6), when John chooses.
 

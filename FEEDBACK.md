@@ -1,5 +1,12 @@
 # FEEDBACK
 
+## John, 1 Oct 2026 — who created and assigned a task (live after deploy)
+6. "I don't know who created and assigned the task to me." The creator was stored but never shown;
+   the assigner was never recorded, not even in the audit log. Built: tasks record who assigned
+   each person and when; the task page, preview and side panel show "Created by" and "Assigned to
+   you by"; assignee changes are audited. Earlier assignments cannot be recovered and show only
+   the creator. John gave Claude authority to finish and merge; John runs the server deploy.
+
 ## John, 1 Oct 2026 — team Performance history (live at dd037e6)
 5. Managers and above want to see everyone's My Desk Performance history. John chose: chosen
    people only (new permission `desk.read.all`, granted per person, in no role by default), and
