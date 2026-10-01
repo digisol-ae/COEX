@@ -321,7 +321,7 @@ async function leaseNext(tenantId: Types.ObjectId): Promise<StoredMessage | null
       $set: { status: 'sending', leaseUntil: new Date(now.getTime() + LEASE_MS) },
       $inc: { attempts: 1 },
     },
-    { sort: { createdAt: 1 }, new: true },
+    { sort: { createdAt: 1 }, returnDocument: 'after' },
   ).lean()) as StoredMessage | null;
 }
 

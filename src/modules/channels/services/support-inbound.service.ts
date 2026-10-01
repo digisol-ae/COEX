@@ -99,7 +99,7 @@ async function claim(id: Types.ObjectId): Promise<Stored | null> {
       $or: [{ leaseUntil: null }, { leaseUntil: { $lt: now } }],
     },
     { $set: { leaseUntil: new Date(now.getTime() + LEASE_MS) } },
-    { new: true },
+    { returnDocument: 'after' },
   ).lean()) as Stored | null;
 }
 
