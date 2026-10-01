@@ -6,6 +6,20 @@
 > say "Click to preview, or drag onto My Desk". Removed the "score is being refined" sentence.
 > Priority flag 12px to 16px with stronger colour; desk icon 18px to 22px. tsc, eslint, prettier pass.
 
+## Deployed and verified — 1 Oct 2026 (Claude)
+
+- VPS /srv/coex/app is at 7afa81e, the same as GitHub main. John ran the deployment by hand:
+  ff-only pull, npm ci and npm run build (only the four known storage.ts tracing warnings),
+  then restarted coex-app and coex-mail with --update-env.
+- coex-desk-close was already running, so `pm2 start` added a second copy. The extra copy was
+  deleted, the remaining one restarted with --update-env, and pm2 save run again. pm2 now shows
+  exactly one each of coex-app, coex-mail and coex-desk-close, all online. The desk-close
+  worker logs "starting (office tz Asia/Dubai)". ".env.local not found" in its error log is
+  harmless.
+- https://coex.digisol.ae/login returns HTTP/1.1 200 OK.
+- On future redeploys, run `pm2 restart coex-desk-close --update-env`; never `pm2 start` it again.
+- The deployment blocker is cleared. The authorized Mac shutdown may proceed.
+
 ## Verified release outcome — 1 Oct 2026
 
 - Release commit bd65e26dabadb97d9537a215512968e1e4f0484d is pushed to GitHub main.
