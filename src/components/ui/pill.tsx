@@ -115,18 +115,18 @@ export function PriorityFlag({ priority }: { priority: string }) {
 
   return (
     <span title={`${priority} priority`} className="inline-flex items-center">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 12 12" fill="none" aria-hidden="true">
         <path
           d="M3 1.5v9"
           stroke={colour}
-          strokeWidth="1.5"
+          strokeWidth="1.6"
           strokeLinecap="round"
-          opacity={priority === 'low' ? 0.5 : 1}
+          opacity={priority === 'low' ? 0.7 : 1}
         />
         <path
           d="M3 2.2h5.4a.4.4 0 0 1 .32.64L7.5 4.4l1.22 1.56a.4.4 0 0 1-.32.64H3z"
           fill={colour}
-          opacity={priority === 'low' || priority === 'normal' ? 0.45 : 1}
+          opacity={priority === 'low' ? 0.6 : priority === 'normal' ? 0.8 : 1}
         />
       </svg>
       <span className="sr-only">{priority} priority</span>

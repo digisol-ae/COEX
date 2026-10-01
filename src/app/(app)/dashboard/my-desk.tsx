@@ -51,8 +51,7 @@ export function MyDesk({
         <CardSection title="My desk">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-[var(--color-ink-muted)]">
-              Drop a task here to commit it to your day. The score is being refined and is hidden
-              for now.
+              Drop a task here to commit it to your day.
             </p>
             <Button type="button" disabled={pending} onClick={() => setConfirming(true)}>
               {updated ? 'Update today’s summary' : 'I am done'}
@@ -138,7 +137,7 @@ export function AvailableDeskTasks({ tasks }: { tasks: TaskSummary[] }) {
                   <button
                     type="button"
                     className="min-w-0 flex-1 truncate text-left hover:underline"
-                    title={task.title}
+                    title={`${task.title}\nClick to preview, or drag onto My Desk`}
                     onClick={() => setPreview(task)}
                   >
                     ⋮⋮ {task.title}

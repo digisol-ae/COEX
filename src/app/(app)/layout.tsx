@@ -17,6 +17,7 @@ import { LATEST_RELEASE_ID } from '@/modules/core/release-notes';
 import { orderGroups, visibleGroups } from '@/components/navigation/navigation';
 import { getNavigationOrder } from '@/modules/core/services/user.service';
 import { ToastProvider } from '@/components/ui/toast';
+import { GlobalTooltip } from '@/components/ui/global-tooltip';
 
 /**
  * Shell for every signed in screen.
@@ -107,6 +108,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6">{children}</main>
 
             <WhatsNew seen={user.releaseNotesSeen} />
+
+            <GlobalTooltip />
 
             {user.permissions.includes('task.read.own') ? (
               <FloatingTimer

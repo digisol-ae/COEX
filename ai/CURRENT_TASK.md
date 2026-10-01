@@ -1,5 +1,11 @@
 # COEX — Current AI Task
 
+> **1 Oct 2026, John feedback (Claude, local, not committed):** Task preview now closes with an X
+> icon (new `close` icon). New `GlobalTooltip` in the app layout gives a styled tooltip on every
+> screen for any `title` and any icon-only control with an `aria-label`; My available tasks rows
+> say "Click to preview, or drag onto My Desk". Removed the "score is being refined" sentence.
+> Priority flag 12px to 16px with stronger colour; desk icon 18px to 22px. tsc, eslint, prettier pass.
+
 ## Verified release outcome — 1 Oct 2026
 
 - Release commit bd65e26dabadb97d9537a215512968e1e4f0484d is pushed to GitHub main.

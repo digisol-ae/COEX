@@ -77,7 +77,7 @@ export function DeskTaskButton({
       title={label}
       disabled={pending}
       className={
-        'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] disabled:opacity-40 ' +
+        'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] disabled:opacity-40 ' +
         (selected ? 'text-[var(--color-status-ok)]' : '')
       }
       onClick={(event) => {
@@ -94,12 +94,12 @@ export function DeskTaskButton({
       }}
     >
       <svg
-        width="18"
-        height="18"
+        width="22"
+        height="22"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="1.9"
         strokeLinecap="round"
         strokeLinejoin="round"
         aria-hidden="true"

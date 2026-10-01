@@ -56,7 +56,7 @@ export function TaskPreview({ task, onClose }: { task: TaskSummary; onClose: () 
         <div className="flex shrink-0 items-center gap-1">
           <DeskTaskButton taskId={task.id} assigneeIds={task.assigneeIds} />
           <IconLink icon="open" label="Open task" href={'/tasks/' + task.id} />
-          <IconButton icon="remove" label="Close preview" onClick={onClose} />
+          <IconButton icon="close" label="Close preview" onClick={onClose} />
         </div>
       </header>
       <dl className="my-4 grid grid-cols-2 gap-3 text-sm">

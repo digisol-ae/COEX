@@ -16,6 +16,30 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-01',
+    date: '1 October 2026',
+    title: 'My Desk, Personal tasks and over 10 UI improvements',
+    sections: [
+      {
+        heading: 'New',
+        items: [
+          'My Desk: pick the tasks you commit to today, then choose I am done. Finished tasks move to your Performance History; unfinished ones stay for tomorrow.',
+          'The day closes automatically at 23:59, so your history is saved even if you forget.',
+          'Personal tasks: a private list only you can see.',
+          'Forgot your password? Reset it yourself from the sign in page.',
+          'Each Space can now have its own task statuses.',
+        ],
+      },
+      {
+        heading: 'Improvements',
+        items: [
+          'Over 10 UI improvements, including tooltips on every action, larger and clearer icons and colours, quick task previews, easier closing of popups, and compact task cards on phones.',
+          'Timesheets can be sorted and show daily and weekly totals.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-09-28',
     date: '28 September 2026',
     title: 'Timers you can place anywhere, and a lighter look',
