@@ -265,6 +265,30 @@ export async function reorderTaskAction(input: {
   revalidatePath('/dashboard');
 }
 
+/**
+ * Status from the full task page. Returns the refusal rather than throwing, so the page can say
+ * why a change did not stick instead of showing a generic error.
+ */
+export async function setTaskStatusAction(input: {
+  id: string;
+  spaceId: string;
+  status: string;
+}): Promise<{ error?: string }> {
+  const actor = await requirePermission('task.manage');
+
+  try {
+    await asUser(actor, () => moveTask(input.id, input.status));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'The status could not be changed.' };
+  }
+
+  revalidatePath(`/spaces/${input.spaceId}`);
+  revalidatePath(`/tasks/${input.id}`);
+  revalidatePath('/tasks');
+  revalidatePath('/dashboard');
+  return {};
+}
+
 export async function moveTaskAction(formData: FormData): Promise<void> {
   const actor = await requirePermission('task.manage');
   const id = text(formData, 'id');

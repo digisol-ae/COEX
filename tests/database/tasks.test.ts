@@ -8,6 +8,7 @@ import {
   archiveSpace,
   createSpace,
   listArchivedSpaces,
+  personalSpaceForCurrentUser,
   listSpaces,
   restoreSpace,
 } from '@/modules/tasks/services/space.service';
@@ -456,6 +457,40 @@ describe('the badge on the rail', () => {
     const count = await runWithContext(context, () => countMyOpenTasks(String(userId)));
 
     expect(count).toBe(1);
+  });
+});
+
+describe('listing one space', () => {
+  // Every list used to come back with every visible space's tasks: the visibility filter was
+  // merged in under the same spaceId key and replaced the space asked for (John, 1 Oct 2026).
+  it('returns only the tasks of the space asked for', async () => {
+    const implementation = await aSpace();
+    const support = await runWithContext(context, () => createSpace({ name: 'Support' }));
+
+    await runWithContext(context, () =>
+      createTask({ spaceId: implementation, title: 'Implementation work' }),
+    );
+    await runWithContext(context, () => createTask({ spaceId: support, title: 'Support work' }));
+
+    const listed = await runWithContext(context, () => listTasks({ spaceId: support }));
+
+    expect(listed.map((task) => task.title)).toEqual(['Support work']);
+  });
+
+  it('shows only my personal tasks on Personal', async () => {
+    const project = await aSpace();
+    await runWithContext(context, () =>
+      createTask({ spaceId: project, title: 'Project work', assigneeIds: [String(userId)] }),
+    );
+
+    const personal = await runWithContext(context, () => personalSpaceForCurrentUser());
+    await runWithContext(context, () => createTask({ spaceId: personal, title: 'Call the bank' }));
+
+    const listed = await runWithContext(context, () =>
+      listTasks({ spaceId: personal, includeClosed: true }),
+    );
+
+    expect(listed.map((task) => task.title)).toEqual(['Call the bank']);
   });
 });
 

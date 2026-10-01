@@ -1,4 +1,21 @@
-# COEX live deployment: state as of 19 Sep 2026
+# COEX live deployment
+
+Live at `7afa81e` since 1 Oct 2026. Pending: https://github.com/digisol-ae/COEX/pull/1
+(`claude/festive-cori-oru2lg`), to deploy after it is merged into main. See ai/HANDOFF.md, START HERE.
+
+## Deployed and verified — 1 Oct 2026 (Claude)
+
+- VPS /srv/coex/app is at 7afa81e, the same as GitHub main. John ran the deployment by hand:
+  ff-only pull, npm ci and npm run build (only the four known storage.ts tracing warnings),
+  then restarted coex-app and coex-mail with --update-env.
+- coex-desk-close was already running, so `pm2 start` added a second copy. The extra copy was
+  deleted, the remaining one restarted with --update-env, and pm2 save run again. pm2 now shows
+  exactly one each of coex-app, coex-mail and coex-desk-close, all online. The desk-close
+  worker logs "starting (office tz Asia/Dubai)". ".env.local not found" in its error log is
+  harmless.
+- https://coex.digisol.ae/login returns HTTP/1.1 200 OK.
+- On future redeploys, run `pm2 restart coex-desk-close --update-env`; never `pm2 start` it again.
+- The deployment blocker is cleared. The authorized Mac shutdown may proceed.
 
 ## Verified release outcome — 1 Oct 2026
 
@@ -89,7 +106,8 @@ Follow this file for the live server; DEPLOY.md is the original design only.
 - Mailbox and SMTP details are entered in COEX, Setup, Email, not in .env.
 
 ## Redeploy after a git push to main
-    cd /srv/coex/app && git pull && npm ci && npm run build && pm2 restart coex-app
+    cd /srv/coex/app && git pull --ff-only && npm ci && npm run build
+    pm2 restart coex-app coex-mail coex-desk-close --update-env && pm2 save
 
 ## Watch out for
 - 183 pending apt updates; patch during a quiet hour before the test ends.

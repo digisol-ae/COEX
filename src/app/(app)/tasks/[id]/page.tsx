@@ -22,6 +22,7 @@ import { TaskForm } from './task-form';
 import { SubtaskList } from './subtask-list';
 import { DocumentLinks } from './document-links';
 import { TaskComments } from './task-comments';
+import { TaskStatus } from './task-status';
 
 export default async function TaskPage({ params }: { params: Promise<{ id: string }> }) {
   const actor = await requirePermission('task.read.own');
@@ -106,7 +107,18 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
             <div className="flex flex-wrap items-center gap-2">
               <DeskTaskButton taskId={id} assigneeIds={assignedIds} />
               <TimerButton taskId={id} running={timer?.kind === 'task' && timer?.itemId === id} />
-              <Badge tone={task.isClosed ? 'ok' : 'info'}>{task.status}</Badge>
+              {canManage && space ? (
+                <TaskStatus
+                  taskId={id}
+                  spaceId={String(task.spaceId)}
+                  status={task.status}
+                  statuses={[...space.statuses]
+                    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+                    .map((stage) => ({ name: stage.name, isClosed: stage.isClosed ?? false }))}
+                />
+              ) : (
+                <Badge tone={task.isClosed ? 'ok' : 'info'}>{task.status}</Badge>
+              )}
               {task.priority !== 'normal' ? (
                 <Badge tone={task.priority === 'urgent' ? 'alert' : 'warn'}>{task.priority}</Badge>
               ) : null}

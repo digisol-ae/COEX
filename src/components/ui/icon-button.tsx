@@ -27,7 +27,8 @@ export type IconName =
   | 'add'
   | 'archive'
   | 'restore'
-  | 'close';
+  | 'close'
+  | 'back';
 
 const PATHS: Record<IconName, ReactNode> = {
   previous: <path d="M10 3.5 5.5 8l4.5 4.5" />,
@@ -84,6 +85,7 @@ const PATHS: Record<IconName, ReactNode> = {
     </>
   ),
   close: <path d="M4 4l8 8M12 4l-8 8" />,
+  back: <path d="M13 8H3.5M7.5 4 3.5 8l4 4" />,
   restore: (
     <>
       <path d="M3 8a5 5 0 1 0 1.5-3.5" />

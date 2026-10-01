@@ -1,10 +1,52 @@
 # COEX — Current AI Task
 
-> **1 Oct 2026, John feedback (Claude, local, not committed):** Task preview now closes with an X
-> icon (new `close` icon). New `GlobalTooltip` in the app layout gives a styled tooltip on every
-> screen for any `title` and any icon-only control with an `aria-label`; My available tasks rows
-> say "Click to preview, or drag onto My Desk". Removed the "score is being refined" sentence.
-> Priority flag 12px to 16px with stronger colour; desk icon 18px to 22px. tsc, eslint, prettier pass.
+## Active task — 1 Oct 2026
+
+Merge https://github.com/digisol-ae/COEX/pull/1 (`claude/festive-cori-oru2lg`) into main and
+deploy it. John accepted the feedback items; the branch also fixes Personal and Space pages
+listing every visible task (`listTasks` filter merge, now `$and`).
+Details, deploy commands and the QA method are in ai/HANDOFF.md under START HERE.
+
+(The earlier note "John feedback, local, not committed" about the X close icon, GlobalTooltip,
+larger flag and desk icons is out of date: that work is in `7afa81e` and is live.)
+
+## John feedback built and accepted — 1 Oct 2026, after deployment (Claude)
+
+- Tooltips stay on screen: `src/components/ui/global-tooltip.tsx` now handles `data-tooltip` too,
+  measures itself and clamps to the window; the `.has-tooltip::after` CSS in globals.css is gone.
+- Back arrow on every screen: `src/components/navigation/back-button.tsx`, placed in the header
+  by `src/app/(app)/layout.tsx`; new `back` icon in icon-button.tsx.
+- Status picker on the full task page: `src/app/(app)/tasks/[id]/task-status.tsx` and
+  `setTaskStatusAction` in tasks/actions.ts (uses `moveTask`, the board's service).
+- What's new entry `2026-10-01-b`. FEEDBACK.md and CLAUDE.md updated.
+- QA (Claude, cloud sandbox, throwaway MongoDB in Docker, never coex_qa/dev/production):
+  full suite 21 files / 210 tests passed on MongoDB 8.0 (twice); production build passes (the
+  4 known storage.ts warnings); TypeScript, ESLint (zero warnings), Prettier pass.
+- Browser QA (Playwright, built app): sign in; My Desk > preview > Open task; status picker lists
+  the Space's stages, changes To do > In progress with a confirmation and survives reload; Back
+  returns to My Desk (also after a refresh); a page opened directly offers Back to dashboard;
+  no arrow on the dashboard at the start; arrow fits at phone width; tooltips (Theme, Timers,
+  floating timer, desk icon, Back, Open task over the preview dialog) and a long tooltip in all
+  four corners stay inside the window; no browser errors. MongoDB 8.0 segfaults in the sandbox
+  during long runs, so browser QA ran on MongoDB 7.0.
+- Two defects found by that QA and fixed: tooltips never showed when the pointer was over an
+  icon's SVG (pre-existing, hidden by the old CSS tooltips); Back forgot its trail on refresh
+  (now kept per tab in sessionStorage).
+- Accepted by John on 1 Oct 2026. Not deployed yet: merge to main, then deploy.
+
+## Deployed and verified — 1 Oct 2026 (Claude)
+
+- VPS /srv/coex/app is at 7afa81e, the same as GitHub main. John ran the deployment by hand:
+  ff-only pull, npm ci and npm run build (only the four known storage.ts tracing warnings),
+  then restarted coex-app and coex-mail with --update-env.
+- coex-desk-close was already running, so `pm2 start` added a second copy. The extra copy was
+  deleted, the remaining one restarted with --update-env, and pm2 save run again. pm2 now shows
+  exactly one each of coex-app, coex-mail and coex-desk-close, all online. The desk-close
+  worker logs "starting (office tz Asia/Dubai)". ".env.local not found" in its error log is
+  harmless.
+- https://coex.digisol.ae/login returns HTTP/1.1 200 OK.
+- On future redeploys, run `pm2 restart coex-desk-close --update-env`; never `pm2 start` it again.
+- The deployment blocker is cleared. The authorized Mac shutdown may proceed.
 
 ## Verified release outcome — 1 Oct 2026
 

@@ -124,9 +124,16 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   if (filter.unassignedOnly) query.assigneeIds = { $size: 0 };
 
   // Private folders are filtered here rather than in a screen, so nothing that reads tasks can
-  // forget to apply it.
+  // forget to apply it. The conditions are joined with $and, never spread into one object: the
+  // space visibility filter also sets spaceId, and spreading it replaced the space asked for, so
+  // Personal and every Space page listed every visible task (fixed 1 Oct 2026).
+  const conditions = [
+    query,
+    await visibleFolderFilter(),
+    await visibleSpaceFilter('spaceId'),
+  ].filter((condition) => Object.keys(condition).length > 0);
   const found = await tasks()
-    .find({ ...query, ...(await visibleFolderFilter()), ...(await visibleSpaceFilter('spaceId')) })
+    .find(conditions.length > 0 ? { $and: conditions } : {})
     .sort({ sortOrder: 1, endAt: 1, createdAt: -1 });
 
   const spaceNames = new Map(
