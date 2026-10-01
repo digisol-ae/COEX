@@ -1,6 +1,33 @@
 # COEX — Shared AI Project State
 
-## John feedback built — 1 Oct 2026, after deployment (Claude)
+## START HERE — state at end of 1 Oct 2026 (Claude)
+
+- **Live:** VPS and GitHub main are at `7afa81e`. pm2: one each of coex-app, coex-mail,
+  coex-desk-close, all online. https://coex.digisol.ae answers 200.
+- **Accepted, not yet live:** branch `claude/festive-cori-oru2lg` (head after `693d43d`) holds
+  John's 1 Oct feedback: Back arrow on every screen, status picker on the full task page,
+  tooltips kept on screen. John accepted it ("all good") after full QA. It is NOT on main.
+- **Next step:** merge `claude/festive-cori-oru2lg` into main (pull request or John's merge),
+  confirm CI is green, then deploy as below. Nothing else is in flight.
+- **Deploy (John runs, from his Mac terminal):**
+  `ssh -i ~/Downloads/digisol-zabbix.pem digisol@194.163.137.54`, then
+  `cd /srv/coex/app && git status --short` (must be empty),
+  `git pull --ff-only && npm ci && npm run build`,
+  `pm2 restart coex-app coex-mail coex-desk-close --update-env && pm2 save`, `pm2 status`
+  (exactly three processes), `git rev-parse --short HEAD`. Never `pm2 start` an existing process:
+  it creates a duplicate (happened once on 1 Oct and was cleaned up).
+- **How Claude QA'd from the cloud sandbox (reusable):** copy of the repo in a scratch folder
+  (never `npm install` into the real folder), `npm ci` there; throwaway MongoDB in Docker
+  (`docker run -d -p 27017:27017 mongo:8.0` for the test suite; 8.0 segfaults in that sandbox
+  during long runs, so `mongo:7.0` for browser QA); `.env.local` pointing at it with fresh
+  random secrets; `npx vitest run`; `npm run build`; `next start --port 3100`; `npm run seed`
+  then Playwright with Chromium at /opt/pw-browsers. Stop the old server by its pid
+  (`next-server`) before restarting, or a stale server serves a mismatched build.
+- **Standing rules worth remembering:** one tooltip component (`GlobalTooltip`), never a CSS
+  pseudo-element tooltip; every user-visible change gets a What's new entry; John runs server
+  commands himself; keep replies short and commands-first.
+
+## John feedback built and accepted — 1 Oct 2026, after deployment (Claude)
 
 - Tooltips stay on screen: `src/components/ui/global-tooltip.tsx` now handles `data-tooltip` too,
   measures itself and clamps to the window; the `.has-tooltip::after` CSS in globals.css is gone.
@@ -22,7 +49,7 @@
 - Two defects found by that QA and fixed: tooltips never showed when the pointer was over an
   icon's SVG (pre-existing, hidden by the old CSS tooltips); Back forgot its trail on refresh
   (now kept per tab in sessionStorage).
-- Not deployed; needs John's review and a merge to main.
+- Accepted by John on 1 Oct 2026. Not deployed yet: merge to main, then deploy.
 
 ## Deployed and verified — 1 Oct 2026 (Claude)
 

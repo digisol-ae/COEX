@@ -1,4 +1,7 @@
-# COEX live deployment: state as of 19 Sep 2026
+# COEX live deployment
+
+Live at `7afa81e` since 1 Oct 2026. Pending: branch `claude/festive-cori-oru2lg` (accepted by
+John), to deploy after it is merged into main. See ai/HANDOFF.md, START HERE.
 
 ## Deployed and verified — 1 Oct 2026 (Claude)
 

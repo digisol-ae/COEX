@@ -1,6 +1,6 @@
 # FEEDBACK
 
-## John feedback, 1 Oct 2026 (after deployment) — built, not deployed
+## John feedback, 1 Oct 2026 (after deployment) — built, accepted by John, awaiting merge and deploy
 1. Tooltips near a corner or edge went off screen. Built: every tooltip (title, data-tooltip,
    icon-only aria-label) is drawn by GlobalTooltip, measured and kept inside the window: above
    the control if it fits, else below, slid sideways near an edge. The CSS `::after` tooltip on

@@ -1,12 +1,14 @@
 # COEX — Current AI Task
 
-> **1 Oct 2026, John feedback (Claude, local, not committed):** Task preview now closes with an X
-> icon (new `close` icon). New `GlobalTooltip` in the app layout gives a styled tooltip on every
-> screen for any `title` and any icon-only control with an `aria-label`; My available tasks rows
-> say "Click to preview, or drag onto My Desk". Removed the "score is being refined" sentence.
-> Priority flag 12px to 16px with stronger colour; desk icon 18px to 22px. tsc, eslint, prettier pass.
+## Active task — 1 Oct 2026
 
-## John feedback built — 1 Oct 2026, after deployment (Claude)
+Merge `claude/festive-cori-oru2lg` into main and deploy it. John accepted it after full QA.
+Details, deploy commands and the QA method are in ai/HANDOFF.md under START HERE.
+
+(The earlier note "John feedback, local, not committed" about the X close icon, GlobalTooltip,
+larger flag and desk icons is out of date: that work is in `7afa81e` and is live.)
+
+## John feedback built and accepted — 1 Oct 2026, after deployment (Claude)
 
 - Tooltips stay on screen: `src/components/ui/global-tooltip.tsx` now handles `data-tooltip` too,
   measures itself and clamps to the window; the `.has-tooltip::after` CSS in globals.css is gone.
@@ -28,7 +30,7 @@
 - Two defects found by that QA and fixed: tooltips never showed when the pointer was over an
   icon's SVG (pre-existing, hidden by the old CSS tooltips); Back forgot its trail on refresh
   (now kept per tab in sessionStorage).
-- Not deployed; needs John's review and a merge to main.
+- Accepted by John on 1 Oct 2026. Not deployed yet: merge to main, then deploy.
 
 ## Deployed and verified — 1 Oct 2026 (Claude)
 
