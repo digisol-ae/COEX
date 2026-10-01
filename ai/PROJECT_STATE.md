@@ -1,6 +1,6 @@
 # COEX — Shared AI Project State
 
-## Team history built — 1 Oct 2026 (Claude), not deployed
+## Team history built — 1 Oct 2026 (Claude), live at dd037e6
 
 - John's request: managers see everyone's My Desk Performance history. His choices: access by a
   new per-person permission `desk.read.all` (no role has it; platform admins hold all), and both
@@ -18,8 +18,8 @@
 - Browser (tenant admin): no tab and nothing via ?view=team without the permission; after a
   grant the tab, table by date range, person link to full history, Back to everyone, phone width
   without sideways scroll; tab gone after a denial; no browser errors.
-- Next: merge PR #2 and deploy (normal deploy commands; no data migration). Then John grants the
-  permission to the chosen people in Users and roles.
+- Merged as PR #2 and deployed at `dd037e6`. John grants the permission to chosen people in Users
+  and roles.
 
 ## Deployed — 1 Oct 2026, 126767a (Claude)
 
@@ -33,12 +33,12 @@
 
 ## START HERE — state at end of 1 Oct 2026 (Claude)
 
-- **Live:** VPS and GitHub main are at `126767a` (PR #1 merged and deployed). pm2: one each of
-  coex-app, coex-mail, coex-desk-close, all online.
-- **Waiting:** PR https://github.com/digisol-ae/COEX/pull/2 (Team history on My Desk, plus the
-  deployment notes). Built and tested; merge, then deploy.
-- **Next step:** merge PR #2 and deploy. Open item: the critical npm audit finding on the VPS.
-  Channels (M6) is the next milestone.
+- **Live:** VPS and GitHub main are at `dd037e6` (PR #2 merged and deployed 1 Oct 2026): Team
+  history on My Desk, on top of PR #1 (`126767a`). pm2: coex-app, coex-mail, coex-desk-close.
+  Nothing is waiting to deploy.
+- **Next step:** whatever John chooses. John grants `desk.read.all` to chosen people in Users and
+  roles. Open item: the critical npm audit finding reported by `npm ci` on the VPS. Channels (M6)
+  is the next milestone.
 - **Deploy (John runs, from his Mac terminal):**
   `ssh -i ~/Downloads/digisol-zabbix.pem digisol@194.163.137.54`, then
   `cd /srv/coex/app && git status --short` (must be empty),

@@ -1,6 +1,6 @@
 # COEX — Current AI Task
 
-## Team history built — 1 Oct 2026 (Claude), not deployed
+## Team history built — 1 Oct 2026 (Claude), live at dd037e6
 
 - John's request: managers see everyone's My Desk Performance history. His choices: access by a
   new per-person permission `desk.read.all` (no role has it; platform admins hold all), and both
@@ -33,8 +33,9 @@
 
 ## Active task — 1 Oct 2026
 
-Merge and deploy PR #2 (Team history on My Desk). PR #1 is live at `126767a`. Open item: the critical npm audit
-finding reported by `npm ci` on the VPS. Next milestone: Channels (M6), when John chooses.
+None in flight. PR #1 (`126767a`) and PR #2 (`dd037e6`, Team history) are merged and live. Open
+item: the critical npm audit finding reported by `npm ci` on the VPS. Next milestone: Channels
+(M6), when John chooses.
 
 ## John feedback built and accepted — 1 Oct 2026, after deployment (Claude)
 

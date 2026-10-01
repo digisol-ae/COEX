@@ -1,6 +1,6 @@
 # FEEDBACK
 
-## John, 1 Oct 2026 — team Performance history (built, not deployed)
+## John, 1 Oct 2026 — team Performance history (live at dd037e6)
 5. Managers and above want to see everyone's My Desk Performance history. John chose: chosen
    people only (new permission `desk.read.all`, granted per person, in no role by default), and
    both views (team table by day with date range, and a person's full history). Built: Team

@@ -1,6 +1,7 @@
 # COEX live deployment
 
-Live at `126767a` since 1 Oct 2026 (PR #1). Nothing pending. See ai/HANDOFF.md, START HERE.
+Live at `dd037e6` since 1 Oct 2026 (PR #2, Team history; PR #1 before it). Nothing pending.
+See ai/HANDOFF.md, START HERE.
 
 ## Deployed — 1 Oct 2026, 126767a (Claude)
 
