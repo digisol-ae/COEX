@@ -1,5 +1,18 @@
 # COEX — Shared AI Project State
 
+## Current state — 1 Oct 2026, end of session (Claude)
+
+- `main` on GitHub: `0637b6b`. The 1 Oct release (`bd65e26`) is pushed with green CI but is
+  **not deployed**; SSH access from the Mac was blocked (details below).
+- `feat/channels` on GitHub: M6.1 WhatsApp channel foundations, M6.2 Support inbound (WhatsApp
+  messages create and thread tickets), and browser notifications. Tests run on the Mac: channels
+  11/11, email-senders 10/10, unit 98/98. Not merged, not deployed.
+- Browser notifications: staff alerts also record a `Notification`; the app polls
+  `/api/notifications` every 30 s while switched on from the avatar menu; desktop notifications for
+  task assigned, ticket assigned and new ticket. Not yet tried in a real browser.
+- Deploy (when SSH works): `cd /srv/coex/app && git pull && npm ci && npm run build && pm2 restart
+  coex-app coex-mail`. Merge `feat/channels` to `main` first if John wants it live.
+
 ## Verified release outcome — 1 Oct 2026
 
 - Release commit bd65e26dabadb97d9537a215512968e1e4f0484d is pushed to GitHub main.

@@ -1,5 +1,13 @@
 # COEX — Current AI Task
 
+> **1 Oct 2026, end of session (Claude) — start here.** Branch `feat/channels` is pushed to GitHub
+> and holds, on top of `main` (`0637b6b`): M6.1 WhatsApp foundations, M6.2 Support inbound (WhatsApp
+> messages become tickets), and browser notifications (task assigned, ticket assigned, new ticket).
+> `tests/database/channels.test.ts` now RUN on the Mac: 11/11 pass. Notifications: 10/10
+> email-senders tests, 98/98 unit. Not yet merged to `main`, not deployed. Deployment of the
+> 1 Oct release (`bd65e26`) is still pending SSH access (see PROJECT_STATE). Next: John decides
+> whether to merge `feat/channels` into `main` and deploy, or continue M6.3+.
+
 > **1 Oct 2026, M6.2 Support inbound built (Claude, local, NOT pushed):** `support-inbound.service.ts`
 > turns Support-number messages into tickets: contact matched by E.164 mobile; unknown senders keep
 > `requesterPhone`/`requesterName` on the ticket (new Ticket field, shown as "Not linked to a customer

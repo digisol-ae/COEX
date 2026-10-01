@@ -8,8 +8,9 @@ no longer requires email to be on. `GET /api/notifications?after=` returns the p
 task_assigned, ticket_assigned and ticket_created items. `BrowserNotifications` (mounted in the app
 layout) polls every 30 s while switched on from the avatar menu ("Browser notifications", per
 browser, needs the browser's permission) and shows desktop notifications; clicking opens the item.
-Tests: email-senders 10/10 (2 new), unit pass. Not checked in a real browser (permission prompt).
-What's new entry `2026-10-01-notifications` added. Not pushed.
+Tests: email-senders 10/10 (2 new), unit 98/98; channels.test.ts (M6.2) also run: 11/11.
+Not checked in a real browser (permission prompt). What's new entry `2026-10-01-notifications`.
+Pushed to `feat/channels`; not merged to `main`, not deployed.
 
 ## Verified release outcome — 1 Oct 2026
 
