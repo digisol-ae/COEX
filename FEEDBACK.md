@@ -8,6 +8,7 @@
 2. A Back button to the previous screen, across the whole program. Built: a back arrow in the
    header on every screen. It returns along the screens visited in this tab; a page opened
    directly (email link, bookmark) goes to the dashboard instead, so Back never leaves COEX.
+   The trail is kept per tab, so Back still works after a refresh.
 3. Change a task's status from the full task page. Built: the status at the top right is a
    picker of the Space's workflow for anyone with task.manage, using the same service as the
    board (refusals shown as a message). Read-only users still see the badge.

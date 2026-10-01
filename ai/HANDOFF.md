@@ -9,8 +9,20 @@
 - Status picker on the full task page: `src/app/(app)/tasks/[id]/task-status.tsx` and
   `setTaskStatusAction` in tasks/actions.ts (uses `moveTask`, the board's service).
 - What's new entry `2026-10-01-b`. FEEDBACK.md and CLAUDE.md updated.
-- Checked: TypeScript, ESLint (zero warnings) and Prettier on a scratch copy. Not run: the
-  database test suite, a production build, browser QA. Not deployed; needs John's review.
+- QA (Claude, cloud sandbox, throwaway MongoDB in Docker, never coex_qa/dev/production):
+  full suite 21 files / 210 tests passed on MongoDB 8.0 (twice); production build passes (the
+  4 known storage.ts warnings); TypeScript, ESLint (zero warnings), Prettier pass.
+- Browser QA (Playwright, built app): sign in; My Desk > preview > Open task; status picker lists
+  the Space's stages, changes To do > In progress with a confirmation and survives reload; Back
+  returns to My Desk (also after a refresh); a page opened directly offers Back to dashboard;
+  no arrow on the dashboard at the start; arrow fits at phone width; tooltips (Theme, Timers,
+  floating timer, desk icon, Back, Open task over the preview dialog) and a long tooltip in all
+  four corners stay inside the window; no browser errors. MongoDB 8.0 segfaults in the sandbox
+  during long runs, so browser QA ran on MongoDB 7.0.
+- Two defects found by that QA and fixed: tooltips never showed when the pointer was over an
+  icon's SVG (pre-existing, hidden by the old CSS tooltips); Back forgot its trail on refresh
+  (now kept per tab in sessionStorage).
+- Not deployed; needs John's review and a merge to main.
 
 ## Deployed and verified — 1 Oct 2026 (Claude)
 

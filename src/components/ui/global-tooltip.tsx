@@ -21,8 +21,13 @@ const GAP = 6;
 const MARGIN = 8;
 
 function tipFor(target: Element | null): { el: HTMLElement; text: string } | null {
-  let node = target instanceof HTMLElement ? target : null;
+  // The pointer is usually over an icon's SVG, not the button itself, so start from any element.
+  let node: Element | null = target instanceof Element ? target : null;
   while (node && node !== document.body) {
+    if (!(node instanceof HTMLElement)) {
+      node = node.parentElement;
+      continue;
+    }
     const drawn = node.dataset.tooltip;
     if (drawn && drawn.trim()) return { el: node, text: drawn.trim() };
     const stored = node.dataset.tipTitle;
