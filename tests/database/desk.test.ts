@@ -10,9 +10,11 @@ import {
   finishMyDesk,
   listDeskTaskIds,
   listMyDeskHistory,
+  listTeamDeskHistory,
   setDeskTaskSelected,
 } from '@/modules/tasks/services/desk.service';
 import { closeOfficeDay } from '@/modules/tasks/services/desk-close.service';
+import { DeskSnapshotModel } from '@/modules/tasks/models/desk-snapshot.model';
 const tenantId = new Types.ObjectId(),
   userId = new Types.ObjectId(),
   otherId = new Types.ObjectId();
@@ -131,5 +133,60 @@ describe('configured Space statuses', () => {
       ),
     ).rejects.toThrow('Move tasks');
     expect((await asMe(() => getTask(original.id)))?.status).toBe('Review');
+  });
+});
+
+describe('team performance history', () => {
+  async function snapshot(owner: Types.ObjectId, workDate: string, completedOnTime: number) {
+    await DeskSnapshotModel.create({
+      tenantId,
+      userId: owner,
+      workDate,
+      score: 50,
+      completedOnTime,
+      overdue: 0,
+      dueTomorrowNotStarted: 0,
+      dueSoonInProgress: 0,
+      taskIds: [],
+    });
+  }
+  const grant = (grants: string[], denials: string[] = []) =>
+    UserModel.updateOne(
+      { _id: userId },
+      { $set: { permissionGrants: grants, permissionDenials: denials } },
+    );
+
+  it('is refused to a manager who has not been granted it', async () => {
+    await snapshot(otherId, '2026-09-30', 1);
+    await expect(asMe(() => listTeamDeskHistory())).rejects.toThrow('permission');
+  });
+
+  it('is refused to a tenant administrator by role alone', async () => {
+    await UserModel.updateOne({ _id: userId }, { $set: { role: 'tenant_admin' } });
+    await expect(asMe(() => listTeamDeskHistory())).rejects.toThrow('permission');
+  });
+
+  it('shows everyone to a person granted it, filtered by person and date, without the score', async () => {
+    await grant(['desk.read.all']);
+    await snapshot(userId, '2026-09-29', 1);
+    await snapshot(otherId, '2026-09-30', 2);
+    await snapshot(otherId, '2026-09-01', 3);
+
+    const everyone = await asMe(() =>
+      listTeamDeskHistory({ from: '2026-09-15', to: '2026-09-30' }),
+    );
+    expect(everyone.map((row) => [row.workDate, row.userName])).toEqual([
+      ['2026-09-30', 'Other owner'],
+      ['2026-09-29', 'Desk owner'],
+    ]);
+    expect(everyone[0]).not.toHaveProperty('score');
+
+    const one = await asMe(() => listTeamDeskHistory({ userId: String(otherId) }));
+    expect(one.map((row) => row.completedOnTime)).toEqual([2, 3]);
+  });
+
+  it('is refused again once the permission is denied', async () => {
+    await grant(['desk.read.all'], ['desk.read.all']);
+    await expect(asMe(() => listTeamDeskHistory())).rejects.toThrow('permission');
   });
 });

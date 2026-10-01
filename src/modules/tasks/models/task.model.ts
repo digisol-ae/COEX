@@ -58,6 +58,24 @@ const taskSchema = new Schema(
     },
 
     assigneeIds: { type: [Schema.Types.ObjectId], ref: 'User', default: [], index: true },
+    /**
+     * Who put each current assignee on the task, and when (John, 1 Oct 2026: people could not tell
+     * who had given them work). One entry per current assignee, kept in step with assigneeIds by
+     * the task service; tasks assigned before this existed have none and show only their creator.
+     */
+    assignments: {
+      type: [
+        new Schema(
+          {
+            userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+            assignedById: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+            assignedAt: { type: Date, required: true },
+          },
+          { _id: false },
+        ),
+      ],
+      default: [],
+    },
     primaryAssigneeId: { type: Schema.Types.ObjectId, ref: 'User', default: null, index: true },
     watcherIds: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
 

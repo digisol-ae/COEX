@@ -16,6 +16,36 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-01-d',
+    date: '1 October 2026',
+    title: 'See who created a task and who assigned it to you',
+    sections: [
+      {
+        heading: 'Improvements',
+        items: [
+          'Every task now shows who created it and who assigned it to you, with the date: on the task page, in the quick preview and in the side panel.',
+          'Assignments are recorded from today. Tasks assigned earlier show their creator; the person who assigned them was not recorded at the time.',
+        ],
+      },
+    ],
+  },
+  {
+    id: '2026-10-01-b',
+    date: '1 October 2026',
+    title: 'A Back button, task status on the task page, and the right tasks on every list',
+    sections: [
+      {
+        heading: 'Improvements',
+        items: [
+          'A Back arrow at the top of every screen takes you to the screen you came from.',
+          'Change a task’s status straight from the full task page, using the status at the top right.',
+          'Tooltips near the edge of the screen now stay fully visible.',
+          'Personal now shows only your personal tasks, and each Space shows only its own tasks.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-01',
     date: '1 October 2026',
     title: 'My Desk, Personal tasks and over 10 UI improvements',

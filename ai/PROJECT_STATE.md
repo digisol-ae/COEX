@@ -1,5 +1,115 @@
 # COEX — Shared AI Project State
 
+## Task origin built and merged — 1 Oct 2026 (Claude), deploy pending
+
+- John: "I don't know who created and assigned the task to me." `createdById` existed but was
+  never shown; assignments were not recorded anywhere (audit covered only title/priority/dates).
+- Built: `assignments` on the task model; `assignmentsAfter` keeps it in step in createTask,
+  updateTask, patchTask (ticket escalation goes through createTask); `taskOrigin` resolves names;
+  `TaskOriginLines` (src/components/tasks/task-origin.tsx) on the task page, the My Desk preview
+  and the task side panel (data from /api/tasks/[id]/panel). Assignee changes now audited.
+  What's new `2026-10-01-d`. No migration: older tasks show the creator only.
+- Tests: 3 new in tests/database/tasks.test.ts; full suite 219/219 on MongoDB 8.0; build,
+  TypeScript, ESLint, Prettier pass. Browser: preview, task page and side panel show "Created by"
+  and "Assigned to you by"; assigning someone in the form records the signed-in person as their
+  assigner; no browser errors.
+- John authorized Claude to finish and merge; John runs the server deploy (git pull etc.).
+
+## Team history built — 1 Oct 2026 (Claude), live at dd037e6
+
+- John's request: managers see everyone's My Desk Performance history. His choices: access by a
+  new per-person permission `desk.read.all` (no role has it; platform admins hold all), and both
+  a team table and a per-person view.
+- Files: core/permissions.ts and permission-labels.ts (new permission, appears in Users and
+  roles automatically); tasks/services/access.service.ts (`actorHasPermission`, read from the
+  account); desk.service.ts (`listTeamDeskHistory`, refuses without the permission);
+  app/(app)/my-desk/page.tsx, my-desk-tabs.tsx, team-history.tsx, format-desk-date.ts. Filters
+  live in the address: `/my-desk?view=team&from=&to=&person=`.
+- Deliberately NOT in What's new (John): only granted people use it, so it is announced to them
+  directly. Do not add a release note for it; the newest entry stays `2026-10-01-b`.
+- Tests: 4 new in tests/database/desk.test.ts (manager refused, tenant admin refused by role
+  alone, granted sees all with person/date filters and no score, denial wins). Full suite
+  216/216 on MongoDB 8.0; build passes; TypeScript, ESLint, Prettier pass.
+- Browser (tenant admin): no tab and nothing via ?view=team without the permission; after a
+  grant the tab, table by date range, person link to full history, Back to everyone, phone width
+  without sideways scroll; tab gone after a denial; no browser errors.
+- Merged as PR #2 and deployed at `dd037e6`. John grants the permission to chosen people in Users
+  and roles.
+
+## Deployed — 1 Oct 2026, 126767a (Claude)
+
+- PR https://github.com/digisol-ae/COEX/pull/1 merged into main as `126767a` (CI green) and
+  deployed by John: pull, npm ci, build, restart of coex-app, coex-mail and coex-desk-close with
+  --update-env, pm2 save. VPS HEAD `126767a`; pm2 shows one of each, all online.
+- Live now: Back arrow, task status picker on the task page, tooltips kept on screen, Personal
+  and Space pages listing only their own tasks, What's new `2026-10-01-b`.
+- Open item: `npm ci` on the VPS reports "1 critical severity vulnerability". Not investigated
+  yet; never run `npm audit fix --force` on the server.
+
+## START HERE — state at end of 1 Oct 2026 (Claude)
+
+- **Live on the VPS:** `dd037e6` (Team history, PR #2).
+- **Merged to main, deploy pending:** PR #3, task origin ("Created by", "Assigned to you by")
+  plus docs. John deploys with the commands below; no migration is needed.
+- **Next step:** John deploys; then whatever John chooses. John grants `desk.read.all` to chosen
+  people. Open item: the critical npm audit finding reported by `npm ci` on the VPS. Channels
+  (M6) is the next milestone.
+- **Deploy (John runs, from his Mac terminal):**
+  `ssh -i ~/Downloads/digisol-zabbix.pem digisol@194.163.137.54`, then
+  `cd /srv/coex/app && git status --short` (must be empty),
+  `git pull --ff-only && npm ci && npm run build`,
+  `pm2 restart coex-app coex-mail coex-desk-close --update-env && pm2 save`, `pm2 status`
+  (exactly three processes), `git rev-parse --short HEAD`. Never `pm2 start` an existing process.
+  `git pull` saying "Already up to date" means the work is not merged into main yet.
+- **How Claude QA'd from the cloud sandbox (reusable):** copy of the repo in a scratch folder
+  (never `npm install` into the real folder), `npm ci` there; throwaway MongoDB in Docker
+  (`docker run -d -p 27017:27017 mongo:8.0` for the test suite; 8.0 segfaults in that sandbox
+  during long runs, so `mongo:7.0` for browser QA); `.env.local` pointing at it with fresh
+  random secrets; `npx vitest run`; `npm run build`; `next start --port 3100`; `npm run seed`
+  then Playwright with Chromium at /opt/pw-browsers. Stop the old server by its pid
+  (`next-server`) before restarting, or a stale server serves a mismatched build.
+- **Standing rules worth remembering:** one tooltip component (`GlobalTooltip`), never a CSS
+  pseudo-element tooltip; every user-visible change gets a What's new entry; John runs server
+  commands himself; keep replies short and commands-first.
+
+## John feedback built and accepted — 1 Oct 2026, after deployment (Claude)
+
+- Tooltips stay on screen: `src/components/ui/global-tooltip.tsx` now handles `data-tooltip` too,
+  measures itself and clamps to the window; the `.has-tooltip::after` CSS in globals.css is gone.
+- Back arrow on every screen: `src/components/navigation/back-button.tsx`, placed in the header
+  by `src/app/(app)/layout.tsx`; new `back` icon in icon-button.tsx.
+- Status picker on the full task page: `src/app/(app)/tasks/[id]/task-status.tsx` and
+  `setTaskStatusAction` in tasks/actions.ts (uses `moveTask`, the board's service).
+- What's new entry `2026-10-01-b`. FEEDBACK.md and CLAUDE.md updated.
+- QA (Claude, cloud sandbox, throwaway MongoDB in Docker, never coex_qa/dev/production):
+  full suite 21 files / 210 tests passed on MongoDB 8.0 (twice); production build passes (the
+  4 known storage.ts warnings); TypeScript, ESLint (zero warnings), Prettier pass.
+- Browser QA (Playwright, built app): sign in; My Desk > preview > Open task; status picker lists
+  the Space's stages, changes To do > In progress with a confirmation and survives reload; Back
+  returns to My Desk (also after a refresh); a page opened directly offers Back to dashboard;
+  no arrow on the dashboard at the start; arrow fits at phone width; tooltips (Theme, Timers,
+  floating timer, desk icon, Back, Open task over the preview dialog) and a long tooltip in all
+  four corners stay inside the window; no browser errors. MongoDB 8.0 segfaults in the sandbox
+  during long runs, so browser QA ran on MongoDB 7.0.
+- Two defects found by that QA and fixed: tooltips never showed when the pointer was over an
+  icon's SVG (pre-existing, hidden by the old CSS tooltips); Back forgot its trail on refresh
+  (now kept per tab in sessionStorage).
+- Accepted by John on 1 Oct 2026. Not deployed yet: merge to main, then deploy.
+
+## Deployed and verified — 1 Oct 2026 (Claude)
+
+- VPS /srv/coex/app is at 7afa81e, the same as GitHub main. John ran the deployment by hand:
+  ff-only pull, npm ci and npm run build (only the four known storage.ts tracing warnings),
+  then restarted coex-app and coex-mail with --update-env.
+- coex-desk-close was already running, so `pm2 start` added a second copy. The extra copy was
+  deleted, the remaining one restarted with --update-env, and pm2 save run again. pm2 now shows
+  exactly one each of coex-app, coex-mail and coex-desk-close, all online. The desk-close
+  worker logs "starting (office tz Asia/Dubai)". ".env.local not found" in its error log is
+  harmless.
+- https://coex.digisol.ae/login returns HTTP/1.1 200 OK.
+- On future redeploys, run `pm2 restart coex-desk-close --update-env`; never `pm2 start` it again.
+- The deployment blocker is cleared. The authorized Mac shutdown may proceed.
+
 ## Verified release outcome — 1 Oct 2026
 
 - Release commit bd65e26dabadb97d9537a215512968e1e4f0484d is pushed to GitHub main.

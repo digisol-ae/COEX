@@ -10,6 +10,7 @@ import { IconRail } from '@/components/navigation/icon-rail';
 import { Sidebar } from '@/components/navigation/sidebar';
 import { MobileNavigation } from '@/components/navigation/mobile-navigation';
 import { QuickSearch } from '@/components/navigation/quick-search';
+import { BackButton } from '@/components/navigation/back-button';
 import { UserMenu } from '@/components/navigation/user-menu';
 import { ThemeMenu } from '@/components/navigation/theme-menu';
 import { WhatsNew } from '@/components/navigation/whats-new';
@@ -82,6 +83,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 canManageTasks={user.permissions.includes('task.manage')}
                 unreadTickets={counts['/support/tickets']}
               />
+
+              <BackButton />
 
               <p className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--color-ink)] sm:hidden">
                 {user.tenantName}

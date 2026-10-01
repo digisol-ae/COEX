@@ -17,6 +17,7 @@ export const PERMISSION_GROUPS: {
       { id: 'task.read.own', label: 'View own tasks and timesheet' },
       { id: 'task.read.all', label: 'View every space, task and timesheet' },
       { id: 'task.manage', label: 'Create and edit tasks, spaces and folders' },
+      { id: 'desk.read.all', label: "View everyone's My Desk performance history" },
     ],
   },
   {
