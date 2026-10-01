@@ -74,7 +74,9 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           description={
             ticket.organisationName
               ? `${ticket.organisationName}${ticket.contactName ? ` · ${ticket.contactName}` : ''}`
-              : 'No customer on this ticket yet.'
+              : ticket.requester
+                ? `Not linked to a customer yet · ${ticket.requester}`
+                : 'No customer on this ticket yet.'
           }
           action={
             <div className="flex flex-col items-end gap-1">

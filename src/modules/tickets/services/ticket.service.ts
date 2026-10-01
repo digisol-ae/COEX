@@ -436,6 +436,8 @@ export interface TicketSummary {
   organisationId: string | null;
   organisationName: string | null;
   contactName: string | null;
+  /** Who wrote in when no CRM contact is linked yet: WhatsApp name and number, or email. */
+  requester: string | null;
   assigneeId: string | null;
   assigneeName: string | null;
   firstResponseDueAt: Date | null;
@@ -548,6 +550,11 @@ async function decorate(found: Awaited<ReturnType<ReturnType<typeof tickets>['fi
       ? (organisationNames.get(String(ticket.organisationId)) ?? null)
       : null,
     contactName: ticket.contactId ? (contactNames.get(String(ticket.contactId)) ?? null) : null,
+    requester: ticket.contactId
+      ? null
+      : [ticket.requesterName, ticket.requesterPhone ?? ticket.requesterEmail]
+          .filter((part, index, all) => Boolean(part) && all.indexOf(part) === index)
+          .join(' · ') || null,
     assigneeId: ticket.assigneeId ? String(ticket.assigneeId) : null,
     assigneeName: ticket.assigneeId ? (userNames.get(String(ticket.assigneeId)) ?? null) : null,
     firstResponseDueAt: ticket.firstResponseDueAt ?? null,

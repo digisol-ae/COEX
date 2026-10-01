@@ -1,4 +1,5 @@
 import { deliverPendingChannelMessages } from '../src/modules/channels/services/channel-messages.service';
+import { processAllPendingSupportInbound } from '../src/modules/channels/services/support-inbound.service';
 
 /**
  * The WhatsApp channel worker (pm2 name: coex-channels). Every ten seconds it sends the outbox for
@@ -16,6 +17,10 @@ async function tick() {
   if (running) return;
   running = true;
   try {
+    const inbound = await processAllPendingSupportInbound();
+    if (inbound.processed || inbound.failed) {
+      log(`incoming: ${inbound.processed} turned into tickets, ${inbound.failed} failed.`);
+    }
     const result = await deliverPendingChannelMessages();
     if (result.sent || result.retrying || result.failed || result.waiting) {
       log(

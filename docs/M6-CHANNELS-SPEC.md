@@ -1,6 +1,6 @@
 # M6 Channels: WhatsApp through XVERSE
 
-Status: M6.1 Foundations built locally 1 Oct 2026 (not pushed). M6.2 onwards not started.
+Status: M6.1 Foundations and M6.2 Support inbound built locally 1 Oct 2026 (not pushed). M6.3 onwards not started.
 
 ## 1. Decisions (John, 1 Oct 2026)
 

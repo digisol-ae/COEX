@@ -128,7 +128,11 @@ export default async function TicketsPage({
                         {ticket.subject}
                       </Link>
                       <p className="mt-1 truncate text-xs text-[var(--color-ink-subtle)]">
-                        {[ticket.organisationName, ticket.contactName, ticket.queueName]
+                        {[
+                          ticket.organisationName,
+                          ticket.contactName ?? ticket.requester,
+                          ticket.queueName,
+                        ]
                           .filter(Boolean)
                           .join(' · ')}
                       </p>
@@ -254,7 +258,11 @@ export default async function TicketsPage({
                             </Link>
 
                             <p className="truncate text-[11px] text-[var(--color-ink-subtle)]">
-                              {[ticket.organisationName, ticket.contactName, ticket.queueName]
+                              {[
+                                ticket.organisationName,
+                                ticket.contactName ?? ticket.requester,
+                                ticket.queueName,
+                              ]
                                 .filter(Boolean)
                                 .join(' · ')}
                             </p>

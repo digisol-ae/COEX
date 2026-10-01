@@ -10,6 +10,7 @@ import {
   queueChannelMessage,
   simulateInbound,
 } from '@/modules/channels/services/channel-messages.service';
+import { processPendingSupportInbound } from '@/modules/channels/services/support-inbound.service';
 
 export interface ChannelFormState {
   error?: string;
@@ -76,10 +77,19 @@ export async function simulateInboundAction(
 ): Promise<ChannelFormState> {
   const actor = await requirePermission('tenant.manage');
   try {
-    const result = await asUser(actor, () => simulateInbound({ account, from, text: body }));
+    const result = await asUser(actor, async () => {
+      const stored = await simulateInbound({ account, from, text: body });
+      if (account === 'support') await processPendingSupportInbound();
+      return stored;
+    });
     revalidatePath('/setup/whatsapp');
     if (result.rejected.length) return { error: result.rejected[0].error };
-    return { message: 'Test message received.' };
+    return {
+      message:
+        account === 'support'
+          ? 'Test message received. Check Support, Tickets for the WhatsApp ticket.'
+          : 'Test message received. CRM conversations arrive with milestone M6.5.',
+    };
   } catch (error) {
     return failed(error);
   }

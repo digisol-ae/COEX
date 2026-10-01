@@ -1,5 +1,16 @@
 # COEX — Current AI Task
 
+> **1 Oct 2026, M6.2 Support inbound built (Claude, local, NOT pushed):** `support-inbound.service.ts`
+> turns Support-number messages into tickets: contact matched by E.164 mobile; unknown senders keep
+> `requesterPhone`/`requesterName` on the ticket (new Ticket field, shown as "Not linked to a customer
+> yet"); messages thread into the open WhatsApp ticket; Resolved/Pending reopen; after Closed a new
+> ticket with `followsOnFromId`; "Ticket received" WhatsApp text queued plus internal note; media
+> downloaded (16 MB cap) or an internal note with the link. Runs in the webhook and in the channel
+> worker sweep (leased, 5 attempts). CRM-number messages stay unprocessed for M6.5.
+> Checks: 98/98 unit, tsc, eslint, prettier, next build pass. NEW `tests/database/channels.test.ts`
+> (11 tests) NOT YET RUN: the cloud sandbox cannot download MongoDB. Run on the Mac:
+> `npx vitest run tests/database/channels.test.ts`.
+
 > **1 Oct 2026, M6.1 WhatsApp foundations built (Claude, local, NOT pushed; John pushes on order):**
 > New `src/modules/channels` (canonical Channel API with zod, HMAC request signing, ChannelSettings and
 > ChannelMessage models, mock and XVERSE providers, outbox with lease/ack/backoff), signed endpoints

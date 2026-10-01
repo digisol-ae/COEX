@@ -174,3 +174,28 @@ describe('outbox delivery', () => {
     ).rejects.toBeInstanceOf(ProviderNotReadyError);
   });
 });
+
+describe('WhatsApp messages on tickets (M6.2)', async () => {
+  const { messageBody, ticketSubject, acknowledgementText } =
+    await import('@/modules/channels/services/support-inbound.service');
+
+  it('shows text, media with captions, and other types in words', () => {
+    expect(messageBody({ type: 'text', text: ' Hi ' })).toBe('Hi');
+    expect(messageBody({ type: 'image', text: 'Screen', media: { fileName: 'error.jpg' } })).toBe(
+      'Screen\n\n[Image: error.jpg]',
+    );
+    expect(messageBody({ type: 'document', media: {} })).toBe('[Document]');
+    expect(messageBody({ type: 'location' })).toBe('[Location shared]');
+  });
+
+  it('builds a short subject from the sender and the first words', () => {
+    expect(ticketSubject('Ahmed', 'Printer   not working')).toBe(
+      'WhatsApp from Ahmed: Printer not working',
+    );
+    expect(ticketSubject('+971501234567', 'x'.repeat(80))).toMatch(/…$/);
+  });
+
+  it('acknowledges with the ticket number', () => {
+    expect(acknowledgementText('DigiSol', 'DGS-S-42')).toContain('ticket DGS-S-42');
+  });
+});

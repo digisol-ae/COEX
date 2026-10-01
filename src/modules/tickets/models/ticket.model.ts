@@ -44,6 +44,8 @@ const ticketSchema = new Schema(
     /** Who emailed us, kept so replies reach them before they are added to the CRM. */
     requesterEmail: { type: String, default: null, lowercase: true, trim: true },
     requesterName: { type: String, default: null },
+    /** WhatsApp: the sender's E.164 number, kept until an agent links a CRM contact (M6.2). */
+    requesterPhone: { type: String, default: null, index: true },
     locationId: { type: Schema.Types.ObjectId, ref: 'Location', default: null },
     productId: { type: Schema.Types.ObjectId, ref: 'Product', default: null },
 
