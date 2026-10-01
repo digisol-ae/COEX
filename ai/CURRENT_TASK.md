@@ -1,6 +1,6 @@
 # COEX — Current AI Task
 
-> **1 Oct 2026, M6.2 Support inbound built (Claude, local, NOT pushed):** `support-inbound.service.ts`
+> **1 Oct 2026, M6.2 Support inbound built (Claude):** `support-inbound.service.ts`
 > turns Support-number messages into tickets: contact matched by E.164 mobile; unknown senders keep
 > `requesterPhone`/`requesterName` on the ticket (new Ticket field, shown as "Not linked to a customer
 > yet"); messages thread into the open WhatsApp ticket; Resolved/Pending reopen; after Closed a new
@@ -8,8 +8,14 @@
 > downloaded (16 MB cap) or an internal note with the link. Runs in the webhook and in the channel
 > worker sweep (leased, 5 attempts). CRM-number messages stay unprocessed for M6.5.
 > Checks: 98/98 unit, tsc, eslint, prettier, next build pass. NEW `tests/database/channels.test.ts`
-> (11 tests) NOT YET RUN: the cloud sandbox cannot download MongoDB. Run on the Mac:
-> `npx vitest run tests/database/channels.test.ts`.
+> (11 tests) passed on the Mac.
+
+> **1 Oct 2026, M6.1 and M6.2 pushed (Claude):** John pushed both commits as `feat/channels`.
+> Branch `claude/dreamy-carson-86yxhh` adds a merge of main (Team history, task origin) and
+> replaces the deprecated Mongoose `new: true` with `returnDocument: 'after'`. On the Mac:
+> tsc passes; full suite 231 passed, with four files timing out on the Atlas connection
+> (custom-fields, email-senders, desk, tickets); those four re-run alone: 73/73 pass. Next:
+> pull request into main, then deploy with the new `coex-channels` pm2 process.
 
 > **1 Oct 2026, M6.1 WhatsApp foundations built (Claude, local, NOT pushed; John pushes on order):**
 > New `src/modules/channels` (canonical Channel API with zod, HMAC request signing, ChannelSettings and
