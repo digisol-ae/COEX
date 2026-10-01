@@ -9,6 +9,7 @@ import { EmailSettingsModel } from '../models/email-settings.model';
 import { EmailOutboxModel } from '../models/email-outbox.model';
 import { UserModel } from '../models/user.model';
 import { recordAudit } from './audit.service';
+import { recordNotification } from './notification.service';
 import { permissionsFor, type Role } from '../permissions';
 
 /**
@@ -520,6 +521,16 @@ export async function alertStaff(
   const context = getContext();
   if (!options.evenIfSelf && String(userId) === String(context.userId)) return;
 
+  // The browser hears about it too, whether or not email is switched on (John, 1 Oct 2026).
+  const url = lines.find((line) => /^https?:\/\//.test(line));
+  await recordNotification({
+    userId,
+    kind,
+    title: subject.replace(/^\[[^\]]+\]\s*/, ''),
+    body: lines.find((line) => line.trim() && line !== url) ?? '',
+    link: url ? new URL(url).pathname : null,
+  });
+
   const user = await UserModel.findOne({ _id: userId, tenantId: context.tenantId }).select(
     'email name',
   );
@@ -543,7 +554,8 @@ export async function newTicketAlertRecipients(): Promise<Types.ObjectId[]> {
   const { tenantId } = getContext();
   const settings = await settingsFor(tenantId);
   const mode = (settings?.staff?.ticketCreated as NewTicketAlert | undefined) ?? 'admins';
-  if (mode === 'off' || !settings?.outbound?.enabled) return [];
+  // Not tied to email being on: the same people get the browser notification.
+  if (mode === 'off') return [];
 
   const staff = await UserModel.find({
     tenantId,

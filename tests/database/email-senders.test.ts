@@ -11,6 +11,8 @@ import { deliverQueuedEmail, queueEmail } from '@/modules/core/services/email.se
 import { resetPassword } from '@/modules/core/services/user.service';
 import { createQueue } from '@/modules/tickets/services/queue.service';
 import { createTicket } from '@/modules/tickets/services/ticket.service';
+import { alertStaff } from '@/modules/core/services/email.service';
+import { notificationsSince } from '@/modules/core/services/notification.service';
 
 // Capture what would have gone out, and through which account, instead of talking to a server.
 const sent: { account: string; from: string; to: string; kind: string }[] = [];
@@ -225,5 +227,35 @@ describe('an administrator resets a password', () => {
     await settings();
     await runWithContext(admin, () => resetPassword(String(agentId)));
     expect(await EmailOutboxModel.countDocuments({ kind: 'password_set_by_admin' })).toBe(0);
+  });
+});
+
+describe('browser notifications', () => {
+  it('records each alert for the person, with a link, even with email switched off', async () => {
+    const before = new Date(Date.now() - 1000);
+    await runWithContext(admin, () =>
+      alertStaff('task_assigned', agentId, '[DGS-T-9] Assigned to you: Fix the printer', [
+        'Task DGS-T-9 has been assigned to you.',
+        '',
+        'https://coex.digisol.ae/tasks/abc',
+      ]),
+    );
+    const items = await runWithContext(agent, () => notificationsSince(before));
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({
+      title: 'Assigned to you: Fix the printer',
+      body: 'Task DGS-T-9 has been assigned to you.',
+      link: '/tasks/abc',
+    });
+    // Only the person it was for sees it.
+    expect(await runWithContext(admin, () => notificationsSince(before))).toHaveLength(0);
+  });
+
+  it('notifies about a new ticket even when email sending is off', async () => {
+    const before = new Date(Date.now() - 1000);
+    const queueId = await runWithContext(admin, () => createQueue({ name: 'Support' }));
+    await runWithContext(agent, () => createTicket({ subject: 'VPN down', body: 'Help', queueId }));
+    const items = await runWithContext(admin, () => notificationsSince(before));
+    expect(items.map((item) => item.title)).toEqual(['New ticket: VPN down']);
   });
 });

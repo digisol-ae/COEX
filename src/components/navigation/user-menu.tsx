@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { logoutAction } from '@/app/login/actions';
 import { Avatar } from '@/components/ui/avatar';
 import { openWhatsNew } from './whats-new';
+import { toggleBrowserNotifications, useNotificationState } from './browser-notifications';
 
 /**
  * The person's own menu, at the top right: their avatar opens a menu holding the profile, the menu
@@ -24,6 +25,7 @@ export function UserMenu({
   newsUnseen?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const notifications = useNotificationState();
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -123,6 +125,35 @@ export function UserMenu({
                 </span>
               ) : null}
             </button>
+            {notifications !== 'unsupported' ? (
+              <button
+                type="button"
+                role="menuitemcheckbox"
+                aria-checked={notifications === 'on'}
+                disabled={notifications === 'blocked'}
+                onClick={() => void toggleBrowserNotifications()}
+                title={
+                  notifications === 'blocked'
+                    ? 'Blocked in this browser: allow notifications for this site in its settings.'
+                    : 'Desktop notifications for tasks given to you and new tickets'
+                }
+                className="flex w-full items-center gap-2.5 rounded-[var(--radius-control)] px-2.5 py-2 text-left text-sm text-[var(--color-ink)] transition-colors hover:bg-[var(--color-surface-muted)] disabled:opacity-60"
+              >
+                <span className="text-[var(--color-ink-subtle)]">
+                  <BellIcon />
+                </span>
+                <span className="flex-1">Browser notifications</span>
+                <span
+                  className={
+                    notifications === 'on'
+                      ? 'text-xs font-semibold text-[var(--color-status-ok)]'
+                      : 'text-xs text-[var(--color-ink-subtle)]'
+                  }
+                >
+                  {notifications === 'on' ? 'On' : notifications === 'blocked' ? 'Blocked' : 'Off'}
+                </span>
+              </button>
+            ) : null}
           </div>
 
           <form action={logoutAction} className="border-t border-[var(--color-line)] pt-1">
@@ -205,6 +236,14 @@ function SparkleIcon() {
         d="M8 1.8 9.3 6l4.2 1.3-4.2 1.3L8 12.8 6.7 8.6 2.5 7.3 6.7 6zM12.8 11.5l.5 1.5 1.5.5-1.5.5-.5 1.5-.5-1.5-1.5-.5 1.5-.5z"
         {...stroke}
       />
+    </svg>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M4 11.5V7a4 4 0 0 1 8 0v4.5l1 1.2H3zM6.5 14a1.5 1.5 0 0 0 3 0" {...stroke} />
     </svg>
   );
 }

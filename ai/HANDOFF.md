@@ -1,5 +1,16 @@
 # COEX — AI Handoff
 
+## Update — 1 Oct 2026, Claude: browser notifications
+
+On `feat/channels`. Every staff alert (`alertStaff`) now also records a `Notification`
+(core/models/notification.model.ts, 30-day TTL), even with email off; `newTicketAlertRecipients`
+no longer requires email to be on. `GET /api/notifications?after=` returns the person's
+task_assigned, ticket_assigned and ticket_created items. `BrowserNotifications` (mounted in the app
+layout) polls every 30 s while switched on from the avatar menu ("Browser notifications", per
+browser, needs the browser's permission) and shows desktop notifications; clicking opens the item.
+Tests: email-senders 10/10 (2 new), unit pass. Not checked in a real browser (permission prompt).
+What's new entry `2026-10-01-notifications` added. Not pushed.
+
 ## Verified release outcome — 1 Oct 2026
 
 - Release commit bd65e26dabadb97d9537a215512968e1e4f0484d is pushed to GitHub main.

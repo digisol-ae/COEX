@@ -16,6 +16,20 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-01-notifications',
+    date: '1 October 2026',
+    title: 'Desktop notifications',
+    sections: [
+      {
+        heading: 'Notifications',
+        items: [
+          'COEX can tell you on your desktop when a task is given to you, a ticket is assigned to you, or a new ticket arrives, while COEX is open in any tab.',
+          'Switch it on from your avatar menu, Browser notifications, and allow it when the browser asks. Click a notification to open the task or ticket.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-01',
     date: '1 October 2026',
     title: 'My Desk, Personal tasks and over 10 UI improvements',

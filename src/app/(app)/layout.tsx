@@ -13,6 +13,7 @@ import { QuickSearch } from '@/components/navigation/quick-search';
 import { UserMenu } from '@/components/navigation/user-menu';
 import { ThemeMenu } from '@/components/navigation/theme-menu';
 import { WhatsNew } from '@/components/navigation/whats-new';
+import { BrowserNotifications } from '@/components/navigation/browser-notifications';
 import { LATEST_RELEASE_ID } from '@/modules/core/release-notes';
 import { orderGroups, visibleGroups } from '@/components/navigation/navigation';
 import { getNavigationOrder } from '@/modules/core/services/user.service';
@@ -108,6 +109,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6">{children}</main>
 
             <WhatsNew seen={user.releaseNotesSeen} />
+            <BrowserNotifications />
 
             <GlobalTooltip />
 
