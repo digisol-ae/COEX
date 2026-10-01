@@ -298,6 +298,11 @@ by `npm install` on the Mac.
   Only the signed-in user's eligible tasks can be added; idempotent selection never toggles an
   already-added task off accidentally. Available-task titles preview in a popup without navigation.
 - After a same-day snapshot exists, the primary label is Update today’s summary.
+- Team history (John, 1 Oct 2026): everyone's My Desk Performance history is visible only to
+  people granted `desk.read.all` per person in Users and roles; no role has it by default
+  (platform administrators hold every permission). My Desk shows a Team history tab: a table by
+  day for a date range, and a person's full history. Same counts as a person's own history, no
+  score. `listTeamDeskHistory` checks the permission itself.
 - John authorized this release's commit/push/deploy and subsequent Mac shutdown. This is scoped
   release authorization, not standing permission for unrelated server work. Deployment remains
   blocked by SSH-key access; preserve the running Mac until deployment can be verified.

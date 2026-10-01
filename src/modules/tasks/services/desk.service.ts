@@ -4,6 +4,8 @@ import { toObjectId } from '@/lib/ids';
 import { DeskEntryModel } from '../models/desk-entry.model';
 import { DeskSnapshotModel } from '../models/desk-snapshot.model';
 import { getTask, listTasks, type TaskSummary } from './task.service';
+import { actorHasPermission } from './access.service';
+import { UserModel } from '@/modules/core/models/user.model';
 
 import { nextOfficeDate, officeDate, officeInstant } from '../office-day';
 
@@ -82,6 +84,60 @@ export async function listMyDeskHistory(limit = 60): Promise<DeskHistoryItem[]> 
     dueTomorrowNotStarted: snapshot.dueTomorrowNotStarted,
     dueSoonInProgress: snapshot.dueSoonInProgress,
   }));
+}
+
+export type TeamDeskHistoryItem = DeskHistoryItem & { userId: string; userName: string };
+
+/**
+ * Everyone's daily desk summaries, for the people John chooses (`desk.read.all`, granted per
+ * person, in no role by default; 1 Oct 2026). The same counts each person sees on their own
+ * history and, as there, no score. The check lives here, so no screen can skip it.
+ *
+ * Dates are office dates (YYYY-MM-DD), inclusive. Naming one person returns their history only.
+ */
+export async function listTeamDeskHistory(
+  filter: { from?: string; to?: string; userId?: string } = {},
+  limit = 1000,
+): Promise<TeamDeskHistoryItem[]> {
+  await connectToDatabase();
+  if (!(await actorHasPermission('desk.read.all'))) {
+    throw new Error("You do not have permission to view other people's performance history.");
+  }
+  const context = getContext();
+  const workDate: Record<string, string> = {};
+  if (filter.from) workDate.$gte = filter.from;
+  if (filter.to) workDate.$lte = filter.to;
+
+  const snapshots = await DeskSnapshotModel.find({
+    tenantId: context.tenantId,
+    ...(filter.userId ? { userId: toObjectId(filter.userId) } : {}),
+    ...(Object.keys(workDate).length ? { workDate } : {}),
+  })
+    .sort({ workDate: -1 })
+    .limit(limit)
+    .lean();
+
+  const people = await UserModel.find({
+    tenantId: context.tenantId,
+    _id: { $in: [...new Set(snapshots.map((snapshot) => String(snapshot.userId)))] },
+  })
+    .select('name')
+    .lean();
+  const names = new Map(people.map((person) => [String(person._id), person.name]));
+
+  return snapshots
+    .map((snapshot) => ({
+      id: String(snapshot._id),
+      userId: String(snapshot.userId),
+      userName: names.get(String(snapshot.userId)) ?? 'Former user',
+      workDate: snapshot.workDate,
+      taskCount: snapshot.taskIds.length,
+      completedOnTime: snapshot.completedOnTime,
+      overdue: snapshot.overdue,
+      dueTomorrowNotStarted: snapshot.dueTomorrowNotStarted,
+      dueSoonInProgress: snapshot.dueSoonInProgress,
+    }))
+    .sort((a, b) => b.workDate.localeCompare(a.workDate) || a.userName.localeCompare(b.userName));
 }
 
 export function score(tasks: TaskSummary[], now = new Date()) {

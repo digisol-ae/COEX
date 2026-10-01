@@ -30,6 +30,7 @@ export const PERMISSIONS = [
   'task.read.own',
   'task.read.all',
   'task.manage',
+  'desk.read.all',
   'ticket.read.own',
   'ticket.read.all',
   'ticket.manage',

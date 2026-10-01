@@ -1,5 +1,11 @@
 # FEEDBACK
 
+## John, 1 Oct 2026 — team Performance history (built, not deployed)
+5. Managers and above want to see everyone's My Desk Performance history. John chose: chosen
+   people only (new permission `desk.read.all`, granted per person, in no role by default), and
+   both views (team table by day with date range, and a person's full history). Built: Team
+   history tab on My Desk; no score shown. Tests 216/216; browser checked.
+
 ## John feedback, 1 Oct 2026 (after deployment) — accepted and live at 126767a
 1. Tooltips near a corner or edge went off screen. Built: every tooltip (title, data-tooltip,
    icon-only aria-label) is drawn by GlobalTooltip, measured and kept inside the window: above

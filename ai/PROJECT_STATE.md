@@ -1,5 +1,24 @@
 # COEX — Shared AI Project State
 
+## Team history built — 1 Oct 2026 (Claude), not deployed
+
+- John's request: managers see everyone's My Desk Performance history. His choices: access by a
+  new per-person permission `desk.read.all` (no role has it; platform admins hold all), and both
+  a team table and a per-person view.
+- Files: core/permissions.ts and permission-labels.ts (new permission, appears in Users and
+  roles automatically); tasks/services/access.service.ts (`actorHasPermission`, read from the
+  account); desk.service.ts (`listTeamDeskHistory`, refuses without the permission);
+  app/(app)/my-desk/page.tsx, my-desk-tabs.tsx, team-history.tsx, format-desk-date.ts. What's new
+  `2026-10-01-c`. Filters live in the address: `/my-desk?view=team&from=&to=&person=`.
+- Tests: 4 new in tests/database/desk.test.ts (manager refused, tenant admin refused by role
+  alone, granted sees all with person/date filters and no score, denial wins). Full suite
+  216/216 on MongoDB 8.0; build passes; TypeScript, ESLint, Prettier pass.
+- Browser (tenant admin): no tab and nothing via ?view=team without the permission; after a
+  grant the tab, table by date range, person link to full history, Back to everyone, phone width
+  without sideways scroll; tab gone after a denial; no browser errors.
+- Next: merge PR #2 and deploy (normal deploy commands; no data migration). Then John grants the
+  permission to the chosen people in Users and roles.
+
 ## Deployed — 1 Oct 2026, 126767a (Claude)
 
 - PR https://github.com/digisol-ae/COEX/pull/1 merged into main as `126767a` (CI green) and
@@ -13,8 +32,10 @@
 ## START HERE — state at end of 1 Oct 2026 (Claude)
 
 - **Live:** VPS and GitHub main are at `126767a` (PR #1 merged and deployed). pm2: one each of
-  coex-app, coex-mail, coex-desk-close, all online. Nothing is waiting to deploy.
-- **Next step:** whatever John chooses. Open item: the critical npm audit finding on the VPS.
+  coex-app, coex-mail, coex-desk-close, all online.
+- **Waiting:** PR https://github.com/digisol-ae/COEX/pull/2 (Team history on My Desk, plus the
+  deployment notes). Built and tested; merge, then deploy.
+- **Next step:** merge PR #2 and deploy. Open item: the critical npm audit finding on the VPS.
   Channels (M6) is the next milestone.
 - **Deploy (John runs, from his Mac terminal):**
   `ssh -i ~/Downloads/digisol-zabbix.pem digisol@194.163.137.54`, then
