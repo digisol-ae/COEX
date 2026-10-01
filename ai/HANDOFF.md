@@ -7,7 +7,12 @@
 - **Accepted, not yet live:** branch `claude/festive-cori-oru2lg` (head after `693d43d`) holds
   John's 1 Oct feedback: Back arrow on every screen, status picker on the full task page,
   tooltips kept on screen. John accepted it ("all good") after full QA. It is NOT on main.
-- **Next step:** merge `claude/festive-cori-oru2lg` into main (pull request or John's merge),
+- **Also on the branch (fixed after John's acceptance):** Personal, every Space page and the
+  Spaces tree listed every visible task. `listTasks` in task.service.ts spread the visibility
+  filter over the requested spaceId; it now joins conditions with `$and`. Tests: 212/212 on
+  MongoDB 8.0 (2 new in tests/database/tasks.test.ts, failing before the fix); build passes;
+  browser check: Personal shows only the personal task, a Space only its own task.
+- **Next step:** merge pull request https://github.com/digisol-ae/COEX/pull/1 into main,
   confirm CI is green, then deploy as below. Nothing else is in flight.
 - **Deploy (John runs, from his Mac terminal):**
   `ssh -i ~/Downloads/digisol-zabbix.pem digisol@194.163.137.54`, then

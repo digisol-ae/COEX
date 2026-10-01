@@ -12,6 +12,12 @@
 3. Change a task's status from the full task page. Built: the status at the top right is a
    picker of the Space's workflow for anyone with task.manage, using the same service as the
    board (refusals shown as a message). Read-only users still see the badge.
+4. Personal showed every task, not only personal ones (John, 1 Oct 2026). Cause: `listTasks`
+   spread the space visibility filter (`spaceId: {$in: visible}`) over the requested
+   `spaceId`, replacing it. Every Space page and the Spaces tree had the same fault since
+   `0352459`; no task leaked beyond what the person may see. Fixed by joining the conditions
+   with `$and`; two database tests cover it. Built, tested, awaiting merge and deploy.
+
 
 ## Feedback implemented — 1 Oct 2026
 - Saved today's snapshot: button becomes Update today’s summary.

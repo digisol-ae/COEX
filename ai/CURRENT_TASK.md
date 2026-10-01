@@ -2,7 +2,9 @@
 
 ## Active task — 1 Oct 2026
 
-Merge `claude/festive-cori-oru2lg` into main and deploy it. John accepted it after full QA.
+Merge https://github.com/digisol-ae/COEX/pull/1 (`claude/festive-cori-oru2lg`) into main and
+deploy it. John accepted the feedback items; the branch also fixes Personal and Space pages
+listing every visible task (`listTasks` filter merge, now `$and`).
 Details, deploy commands and the QA method are in ai/HANDOFF.md under START HERE.
 
 (The earlier note "John feedback, local, not committed" about the X close icon, GlobalTooltip,
