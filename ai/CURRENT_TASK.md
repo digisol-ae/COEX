@@ -1,14 +1,40 @@
 # COEX — Current AI Task
 
+## Team history built — 1 Oct 2026 (Claude), not deployed
+
+- John's request: managers see everyone's My Desk Performance history. His choices: access by a
+  new per-person permission `desk.read.all` (no role has it; platform admins hold all), and both
+  a team table and a per-person view.
+- Files: core/permissions.ts and permission-labels.ts (new permission, appears in Users and
+  roles automatically); tasks/services/access.service.ts (`actorHasPermission`, read from the
+  account); desk.service.ts (`listTeamDeskHistory`, refuses without the permission);
+  app/(app)/my-desk/page.tsx, my-desk-tabs.tsx, team-history.tsx, format-desk-date.ts. Filters
+  live in the address: `/my-desk?view=team&from=&to=&person=`.
+- Deliberately NOT in What's new (John): only granted people use it, so it is announced to them
+  directly. Do not add a release note for it; the newest entry stays `2026-10-01-b`.
+- Tests: 4 new in tests/database/desk.test.ts (manager refused, tenant admin refused by role
+  alone, granted sees all with person/date filters and no score, denial wins). Full suite
+  216/216 on MongoDB 8.0; build passes; TypeScript, ESLint, Prettier pass.
+- Browser (tenant admin): no tab and nothing via ?view=team without the permission; after a
+  grant the tab, table by date range, person link to full history, Back to everyone, phone width
+  without sideways scroll; tab gone after a denial; no browser errors.
+- Next: merge PR #2 and deploy (normal deploy commands; no data migration). Then John grants the
+  permission to the chosen people in Users and roles.
+
+## Deployed — 1 Oct 2026, 126767a (Claude)
+
+- PR https://github.com/digisol-ae/COEX/pull/1 merged into main as `126767a` (CI green) and
+  deployed by John: pull, npm ci, build, restart of coex-app, coex-mail and coex-desk-close with
+  --update-env, pm2 save. VPS HEAD `126767a`; pm2 shows one of each, all online.
+- Live now: Back arrow, task status picker on the task page, tooltips kept on screen, Personal
+  and Space pages listing only their own tasks, What's new `2026-10-01-b`.
+- Open item: `npm ci` on the VPS reports "1 critical severity vulnerability". Not investigated
+  yet; never run `npm audit fix --force` on the server.
+
 ## Active task — 1 Oct 2026
 
-Merge https://github.com/digisol-ae/COEX/pull/1 (`claude/festive-cori-oru2lg`) into main and
-deploy it. John accepted the feedback items; the branch also fixes Personal and Space pages
-listing every visible task (`listTasks` filter merge, now `$and`).
-Details, deploy commands and the QA method are in ai/HANDOFF.md under START HERE.
-
-(The earlier note "John feedback, local, not committed" about the X close icon, GlobalTooltip,
-larger flag and desk icons is out of date: that work is in `7afa81e` and is live.)
+Merge and deploy PR #2 (Team history on My Desk). PR #1 is live at `126767a`. Open item: the critical npm audit
+finding reported by `npm ci` on the VPS. Next milestone: Channels (M6), when John chooses.
 
 ## John feedback built and accepted — 1 Oct 2026, after deployment (Claude)
 

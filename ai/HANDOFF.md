@@ -1,26 +1,51 @@
 # COEX — AI Handoff
 
+## Team history built — 1 Oct 2026 (Claude), not deployed
+
+- John's request: managers see everyone's My Desk Performance history. His choices: access by a
+  new per-person permission `desk.read.all` (no role has it; platform admins hold all), and both
+  a team table and a per-person view.
+- Files: core/permissions.ts and permission-labels.ts (new permission, appears in Users and
+  roles automatically); tasks/services/access.service.ts (`actorHasPermission`, read from the
+  account); desk.service.ts (`listTeamDeskHistory`, refuses without the permission);
+  app/(app)/my-desk/page.tsx, my-desk-tabs.tsx, team-history.tsx, format-desk-date.ts. Filters
+  live in the address: `/my-desk?view=team&from=&to=&person=`.
+- Deliberately NOT in What's new (John): only granted people use it, so it is announced to them
+  directly. Do not add a release note for it; the newest entry stays `2026-10-01-b`.
+- Tests: 4 new in tests/database/desk.test.ts (manager refused, tenant admin refused by role
+  alone, granted sees all with person/date filters and no score, denial wins). Full suite
+  216/216 on MongoDB 8.0; build passes; TypeScript, ESLint, Prettier pass.
+- Browser (tenant admin): no tab and nothing via ?view=team without the permission; after a
+  grant the tab, table by date range, person link to full history, Back to everyone, phone width
+  without sideways scroll; tab gone after a denial; no browser errors.
+- Next: merge PR #2 and deploy (normal deploy commands; no data migration). Then John grants the
+  permission to the chosen people in Users and roles.
+
+## Deployed — 1 Oct 2026, 126767a (Claude)
+
+- PR https://github.com/digisol-ae/COEX/pull/1 merged into main as `126767a` (CI green) and
+  deployed by John: pull, npm ci, build, restart of coex-app, coex-mail and coex-desk-close with
+  --update-env, pm2 save. VPS HEAD `126767a`; pm2 shows one of each, all online.
+- Live now: Back arrow, task status picker on the task page, tooltips kept on screen, Personal
+  and Space pages listing only their own tasks, What's new `2026-10-01-b`.
+- Open item: `npm ci` on the VPS reports "1 critical severity vulnerability". Not investigated
+  yet; never run `npm audit fix --force` on the server.
+
 ## START HERE — state at end of 1 Oct 2026 (Claude)
 
-- **Live:** VPS and GitHub main are at `7afa81e`. pm2: one each of coex-app, coex-mail,
-  coex-desk-close, all online. https://coex.digisol.ae answers 200.
-- **Accepted, not yet live:** branch `claude/festive-cori-oru2lg` (head after `693d43d`) holds
-  John's 1 Oct feedback: Back arrow on every screen, status picker on the full task page,
-  tooltips kept on screen. John accepted it ("all good") after full QA. It is NOT on main.
-- **Also on the branch (fixed after John's acceptance):** Personal, every Space page and the
-  Spaces tree listed every visible task. `listTasks` in task.service.ts spread the visibility
-  filter over the requested spaceId; it now joins conditions with `$and`. Tests: 212/212 on
-  MongoDB 8.0 (2 new in tests/database/tasks.test.ts, failing before the fix); build passes;
-  browser check: Personal shows only the personal task, a Space only its own task.
-- **Next step:** merge pull request https://github.com/digisol-ae/COEX/pull/1 into main,
-  confirm CI is green, then deploy as below. Nothing else is in flight.
+- **Live:** VPS and GitHub main are at `126767a` (PR #1 merged and deployed). pm2: one each of
+  coex-app, coex-mail, coex-desk-close, all online.
+- **Waiting:** PR https://github.com/digisol-ae/COEX/pull/2 (Team history on My Desk, plus the
+  deployment notes). Built and tested; merge, then deploy.
+- **Next step:** merge PR #2 and deploy. Open item: the critical npm audit finding on the VPS.
+  Channels (M6) is the next milestone.
 - **Deploy (John runs, from his Mac terminal):**
   `ssh -i ~/Downloads/digisol-zabbix.pem digisol@194.163.137.54`, then
   `cd /srv/coex/app && git status --short` (must be empty),
   `git pull --ff-only && npm ci && npm run build`,
   `pm2 restart coex-app coex-mail coex-desk-close --update-env && pm2 save`, `pm2 status`
-  (exactly three processes), `git rev-parse --short HEAD`. Never `pm2 start` an existing process:
-  it creates a duplicate (happened once on 1 Oct and was cleaned up).
+  (exactly three processes), `git rev-parse --short HEAD`. Never `pm2 start` an existing process.
+  `git pull` saying "Already up to date" means the work is not merged into main yet.
 - **How Claude QA'd from the cloud sandbox (reusable):** copy of the repo in a scratch folder
   (never `npm install` into the real folder), `npm ci` there; throwaway MongoDB in Docker
   (`docker run -d -p 27017:27017 mongo:8.0` for the test suite; 8.0 segfaults in that sandbox

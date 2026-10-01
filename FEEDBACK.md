@@ -1,6 +1,13 @@
 # FEEDBACK
 
-## John feedback, 1 Oct 2026 (after deployment) — built, accepted by John, awaiting merge and deploy
+## John, 1 Oct 2026 — team Performance history (built, not deployed)
+5. Managers and above want to see everyone's My Desk Performance history. John chose: chosen
+   people only (new permission `desk.read.all`, granted per person, in no role by default), and
+   both views (team table by day with date range, and a person's full history). Built: Team
+   history tab on My Desk; no score shown. Tests 216/216; browser checked. Not announced in
+   What's new, by John's choice; documented here, in CLAUDE.md and in ai/.
+
+## John feedback, 1 Oct 2026 (after deployment) — accepted and live at 126767a
 1. Tooltips near a corner or edge went off screen. Built: every tooltip (title, data-tooltip,
    icon-only aria-label) is drawn by GlobalTooltip, measured and kept inside the window: above
    the control if it fits, else below, slid sideways near an edge. The CSS `::after` tooltip on
@@ -16,7 +23,7 @@
    spread the space visibility filter (`spaceId: {$in: visible}`) over the requested
    `spaceId`, replacing it. Every Space page and the Spaces tree had the same fault since
    `0352459`; no task leaked beyond what the person may see. Fixed by joining the conditions
-   with `$and`; two database tests cover it. Built, tested, awaiting merge and deploy.
+   with `$and`; two database tests cover it. Live at 126767a.
 
 
 ## Feedback implemented — 1 Oct 2026
