@@ -1,6 +1,21 @@
 # COEX — AI Handoff
 
-## Team history built — 1 Oct 2026 (Claude), not deployed
+## Task origin built and merged — 1 Oct 2026 (Claude), deploy pending
+
+- John: "I don't know who created and assigned the task to me." `createdById` existed but was
+  never shown; assignments were not recorded anywhere (audit covered only title/priority/dates).
+- Built: `assignments` on the task model; `assignmentsAfter` keeps it in step in createTask,
+  updateTask, patchTask (ticket escalation goes through createTask); `taskOrigin` resolves names;
+  `TaskOriginLines` (src/components/tasks/task-origin.tsx) on the task page, the My Desk preview
+  and the task side panel (data from /api/tasks/[id]/panel). Assignee changes now audited.
+  What's new `2026-10-01-d`. No migration: older tasks show the creator only.
+- Tests: 3 new in tests/database/tasks.test.ts; full suite 219/219 on MongoDB 8.0; build,
+  TypeScript, ESLint, Prettier pass. Browser: preview, task page and side panel show "Created by"
+  and "Assigned to you by"; assigning someone in the form records the signed-in person as their
+  assigner; no browser errors.
+- John authorized Claude to finish and merge; John runs the server deploy (git pull etc.).
+
+## Team history built — 1 Oct 2026 (Claude), live at dd037e6
 
 - John's request: managers see everyone's My Desk Performance history. His choices: access by a
   new per-person permission `desk.read.all` (no role has it; platform admins hold all), and both
@@ -18,8 +33,8 @@
 - Browser (tenant admin): no tab and nothing via ?view=team without the permission; after a
   grant the tab, table by date range, person link to full history, Back to everyone, phone width
   without sideways scroll; tab gone after a denial; no browser errors.
-- Next: merge PR #2 and deploy (normal deploy commands; no data migration). Then John grants the
-  permission to the chosen people in Users and roles.
+- Merged as PR #2 and deployed at `dd037e6`. John grants the permission to chosen people in Users
+  and roles.
 
 ## Deployed — 1 Oct 2026, 126767a (Claude)
 
@@ -33,12 +48,12 @@
 
 ## START HERE — state at end of 1 Oct 2026 (Claude)
 
-- **Live:** VPS and GitHub main are at `126767a` (PR #1 merged and deployed). pm2: one each of
-  coex-app, coex-mail, coex-desk-close, all online.
-- **Waiting:** PR https://github.com/digisol-ae/COEX/pull/2 (Team history on My Desk, plus the
-  deployment notes). Built and tested; merge, then deploy.
-- **Next step:** merge PR #2 and deploy. Open item: the critical npm audit finding on the VPS.
-  Channels (M6) is the next milestone.
+- **Live on the VPS:** `dd037e6` (Team history, PR #2).
+- **Merged to main, deploy pending:** PR #3, task origin ("Created by", "Assigned to you by")
+  plus docs. John deploys with the commands below; no migration is needed.
+- **Next step:** John deploys; then whatever John chooses. John grants `desk.read.all` to chosen
+  people. Open item: the critical npm audit finding reported by `npm ci` on the VPS. Channels
+  (M6) is the next milestone.
 - **Deploy (John runs, from his Mac terminal):**
   `ssh -i ~/Downloads/digisol-zabbix.pem digisol@194.163.137.54`, then
   `cd /srv/coex/app && git status --short` (must be empty),

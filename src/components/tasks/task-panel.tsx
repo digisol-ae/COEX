@@ -10,7 +10,8 @@ import { IconButton, IconLink } from '@/components/ui/icon-button';
 import { StatusDot } from '@/components/ui/pill';
 import { formatMinutes } from '@/modules/time/week';
 import { formatDateTime } from '@/modules/tasks/dates';
-import type { TaskSummary } from '@/modules/tasks/services/task.service';
+import type { TaskOrigin, TaskSummary } from '@/modules/tasks/services/task.service';
+import { TaskOriginLines } from './task-origin';
 import {
   addDocumentAction,
   removeDocumentAction,
@@ -53,6 +54,8 @@ interface PanelDetail {
   subtaskAssignableUserIds: string[] | null;
   /** The ticket this task was raised from, linked from the panel header. */
   sourceTicket: { id: string; number: string } | null;
+  origin: TaskOrigin;
+  viewerId: string;
 }
 
 export interface PanelHandlers {
@@ -236,6 +239,18 @@ export function TaskPanel({
             }}
             className="w-full resize-none rounded-[var(--radius-control)] border border-transparent bg-transparent px-2 py-1 text-lg font-medium text-[var(--color-ink)] hover:border-[var(--color-line)] focus:border-[var(--color-line-strong)] focus:outline-none"
           />
+
+          {detail ? (
+            <TaskOriginLines
+              origin={detail.origin}
+              viewerId={detail.viewerId}
+              people={task.assigneeIds.map((id, index) => ({
+                id,
+                name: task.assigneeNames[index] ?? '',
+              }))}
+              className="space-y-0.5 px-2 text-xs text-[var(--color-ink-muted)]"
+            />
+          ) : null}
 
           <dl className="space-y-2 text-[13px]">
             <Row label="Owner">

@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import type { TaskSummary } from '@/modules/tasks/services/task.service';
+import type { TaskOrigin, TaskSummary } from '@/modules/tasks/services/task.service';
 import { formatDateTime } from '@/modules/tasks/dates';
 import { formatMinutes } from '@/modules/time/week';
 import { IconButton, IconLink } from '@/components/ui/icon-button';
 import { DeskTaskButton } from './desk-task-button';
+import { TaskOriginLines } from './task-origin';
 
 type Detail = {
   description: string | null;
@@ -12,6 +13,8 @@ type Detail = {
   documentLinks: { id: string; url: string; title: string }[];
   loggedMinutes: number;
   sourceTicket: { id: string; number: string } | null;
+  origin: TaskOrigin;
+  viewerId: string;
 };
 
 export function TaskPreview({ task, onClose }: { task: TaskSummary; onClose: () => void }) {
@@ -87,6 +90,15 @@ export function TaskPreview({ task, onClose }: { task: TaskSummary; onClose: () 
         </p>
       ) : (
         <>
+          <TaskOriginLines
+            origin={detail.origin}
+            viewerId={detail.viewerId}
+            people={task.assigneeIds.map((id, index) => ({
+              id,
+              name: task.assigneeNames[index] ?? '',
+            }))}
+            className="mb-3 space-y-0.5 text-xs text-[var(--color-ink-muted)]"
+          />
           <p className="whitespace-pre-wrap text-sm text-[var(--color-ink-muted)]">
             {detail.description || 'No description.'}
           </p>

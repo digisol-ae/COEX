@@ -281,6 +281,42 @@ export async function sourceTicketFor(task: {
  * conversation both screens show and answer (John, 26 Sep 2026), so nothing is stored twice and
  * nothing drifts apart. Other tasks keep their own notes. Neither is ever emailed to a customer.
  */
+export type TaskOrigin = {
+  createdBy: { name: string; at: string } | null;
+  /** One per current assignee whose assignment was recorded. */
+  assignedBy: { userId: string; byName: string; at: string }[];
+};
+
+/**
+ * Who created a task and who gave it to each assignee, in names a person can read (John,
+ * 1 Oct 2026). A missing creator or assigner is left out rather than guessed.
+ */
+export async function taskOrigin(task: {
+  createdById?: Types.ObjectId | null;
+  createdAt?: Date | null;
+  assignments?: Iterable<Assignment> | null;
+}): Promise<TaskOrigin> {
+  const assignments = Array.from(task.assignments ?? []);
+  const ids = [
+    ...(task.createdById ? [String(task.createdById)] : []),
+    ...assignments.flatMap((entry) => (entry.assignedById ? [String(entry.assignedById)] : [])),
+  ];
+  const people = await UserModel.find({ _id: { $in: [...new Set(ids)] } }).select('name');
+  const names = new Map(people.map((person) => [String(person._id), person.name]));
+
+  const creator = task.createdById ? names.get(String(task.createdById)) : undefined;
+  return {
+    createdBy:
+      creator && task.createdAt ? { name: creator, at: task.createdAt.toISOString() } : null,
+    assignedBy: assignments.flatMap((entry) => {
+      const byName = entry.assignedById ? names.get(String(entry.assignedById)) : undefined;
+      return byName
+        ? [{ userId: String(entry.userId), byName, at: entry.assignedAt.toISOString() }]
+        : [];
+    }),
+  };
+}
+
 export async function listTaskComments(taskId: string): Promise<TaskCommentView[]> {
   const task = await getTask(taskId);
   if (!task) return [];
@@ -514,6 +550,13 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     createdById: getContext().userId,
   });
 
+  // Written straight after creation: the repository's create typing takes Mongoose's own
+  // sub-document array, and the plain record is what every other write already uses.
+  await tasks().updateOne(
+    { _id: created._id },
+    { $set: { assignments: assignmentsAfter([], assigneeIds, []) } },
+  );
+
   await recordAudit({
     action: 'task.created',
     entityType: 'Task',
@@ -657,6 +700,11 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
         description: input.description?.trim() || null,
         priority: input.priority,
         assigneeIds,
+        assignments: assignmentsAfter(
+          before.assignments ?? [],
+          assigneeIds,
+          before.assigneeIds.map(String),
+        ),
         primaryAssigneeId: assigneeIds[0] ?? null,
         startAt,
         endAt,
@@ -679,12 +727,14 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
         priority: before.priority,
         startAt: before.startAt,
         endAt: before.endAt,
+        assigneeIds: before.assigneeIds.map(String),
       },
       {
         title: after?.title,
         priority: after?.priority,
         startAt: after?.startAt,
         endAt: after?.endAt,
+        assigneeIds: after?.assigneeIds.map(String),
       },
     ),
   });
@@ -748,6 +798,11 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
 
     const assigneeIds = patch.assigneeIds.filter(Boolean).map((value) => toObjectId(value));
     set.assigneeIds = assigneeIds;
+    set.assignments = assignmentsAfter(
+      before.assignments ?? [],
+      assigneeIds,
+      before.assigneeIds.map(String),
+    );
     set.primaryAssigneeId = assigneeIds[0] ?? null;
   }
 
@@ -780,8 +835,18 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
     entityType: 'Task',
     entityId: before._id,
     ...changedFields(
-      { priority: before.priority, startAt: before.startAt, endAt: before.endAt },
-      { priority: set.priority, startAt: set.startAt, endAt: set.endAt },
+      {
+        priority: before.priority,
+        startAt: before.startAt,
+        endAt: before.endAt,
+        ...(patch.assigneeIds ? { assigneeIds: before.assigneeIds.map(String) } : {}),
+      },
+      {
+        priority: set.priority,
+        startAt: set.startAt,
+        endAt: set.endAt,
+        ...(patch.assigneeIds ? { assigneeIds: patch.assigneeIds.filter(Boolean) } : {}),
+      },
     ),
   });
 }
@@ -961,6 +1026,41 @@ export async function archiveTask(id: string): Promise<void> {
  * Emails the people newly given a task. Anyone already on it heard the first time, and a failed
  * email never stops the assignment itself from saving.
  */
+type Assignment = {
+  userId: Types.ObjectId;
+  assignedById?: Types.ObjectId | null;
+  assignedAt: Date;
+};
+
+/**
+ * The assignment record after the assignees change: people who stay keep who assigned them and
+ * when, newcomers are recorded as assigned now by whoever is acting, and people taken off drop
+ * out. Someone assigned before the record existed keeps no entry rather than a guessed one.
+ */
+function assignmentsAfter(
+  previous: Iterable<Assignment>,
+  nextIds: readonly Types.ObjectId[],
+  beforeIds: readonly string[],
+): Assignment[] {
+  const at = new Date();
+  const actor = getContext().userId ?? null;
+  const earlier = Array.from(previous);
+  return nextIds.flatMap((userId): Assignment[] => {
+    const kept = earlier.find((entry) => String(entry.userId) === String(userId));
+    if (kept) {
+      return [
+        {
+          userId: kept.userId,
+          assignedById: kept.assignedById ?? null,
+          assignedAt: kept.assignedAt,
+        },
+      ];
+    }
+    if (beforeIds.includes(String(userId))) return [];
+    return [{ userId, assignedById: actor, assignedAt: at }];
+  });
+}
+
 async function alertNewAssignees(
   task: { _id: Types.ObjectId; number: string; title: string },
   beforeIds: string[],
