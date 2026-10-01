@@ -8,8 +8,10 @@
 - Files: core/permissions.ts and permission-labels.ts (new permission, appears in Users and
   roles automatically); tasks/services/access.service.ts (`actorHasPermission`, read from the
   account); desk.service.ts (`listTeamDeskHistory`, refuses without the permission);
-  app/(app)/my-desk/page.tsx, my-desk-tabs.tsx, team-history.tsx, format-desk-date.ts. What's new
-  `2026-10-01-c`. Filters live in the address: `/my-desk?view=team&from=&to=&person=`.
+  app/(app)/my-desk/page.tsx, my-desk-tabs.tsx, team-history.tsx, format-desk-date.ts. Filters
+  live in the address: `/my-desk?view=team&from=&to=&person=`.
+- Deliberately NOT in What's new (John): only granted people use it, so it is announced to them
+  directly. Do not add a release note for it; the newest entry stays `2026-10-01-b`.
 - Tests: 4 new in tests/database/desk.test.ts (manager refused, tenant admin refused by role
   alone, granted sees all with person/date filters and no score, denial wins). Full suite
   216/216 on MongoDB 8.0; build passes; TypeScript, ESLint, Prettier pass.

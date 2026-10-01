@@ -16,20 +16,6 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
-    id: '2026-10-01-c',
-    date: '1 October 2026',
-    title: 'Team history on My Desk',
-    sections: [
-      {
-        heading: 'New',
-        items: [
-          'People given access can now see everyone’s My Desk Performance history, in a new Team history tab: a table by day for any date range, and each person’s full history with one click.',
-          'Access is off for everyone until an administrator turns on “View everyone’s My Desk performance history” for a person in Users and roles.',
-        ],
-      },
-    ],
-  },
-  {
     id: '2026-10-01-b',
     date: '1 October 2026',
     title: 'A Back button, task status on the task page, and the right tasks on every list',
