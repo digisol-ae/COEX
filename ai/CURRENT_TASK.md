@@ -1,6 +1,6 @@
 # COEX — Current AI Task
 
-## Senior agent role — 2 Oct 2026 (Claude), local, uncommitted
+## Senior agent role — 2 Oct 2026 (Claude), merged (PR #4), deployed by John; see ai/HANDOFF.md
 
 - John: an elevated user, still an agent, who can assign any ticket or task to anyone. His
   choices: direct assignment with the normal alert (not an accept/approve request), a new role,

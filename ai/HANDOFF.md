@@ -1,5 +1,36 @@
 # COEX — AI Handoff
 
+## Handoff to ChatGPT — 2 Oct 2026 (Claude): Senior agent, merged and deployed by John
+
+- John's request: an elevated user, still an agent, who can assign any ticket or task to anyone.
+  His choices: direct assignment with the normal alert (not an accept/approve request), a new
+  role, tasks included, private Space/Folder member limits still respected (decision 14), and he
+  decides who sees what: everyone's hours are a separate per-person permission.
+- Built, merged as PR #4 (main d43ad11): role `senior_agent` in src/modules/core/permissions.ts
+  (agent permissions plus `ticket.read.all` and `task.read.all`; assigning needs only
+  `ticket.manage` / `task.manage`, so no assignment code changed). New permission
+  `timesheet.read.all` (labels in permission-labels.ts) now guards All timesheets, the Time
+  report, their exports and other people's timesheets (time/page.tsx, time/all, time/report,
+  both export routes, navigation.ts). Tenant administrator and manager hold it by default; a
+  senior agent only when John grants it per person in Users and roles. Decision is in CLAUDE.md.
+  Deliberately not in What's new.
+- Tests: first commit passed on John's Mac: unit 98/98, database files tickets, desk,
+  email-senders, custom-fields 73/73, tsc, lint. The `timesheet.read.all` commit adds one unit
+  test and was NOT run by anyone before merge. Prettier flags email.service.ts and
+  ticket.service.ts, which this work did not touch.
+- Deploy: John runs it on the App server (git pull --ff-only, npm ci, npm run build, pm2 restart
+  of coex-app coex-mail coex-desk-close, pm2 save). Server revision after deploy was not
+  confirmed back to Claude; verify it is d43ad11. Server address and key path are in the
+  Deploy section history above, not repeated here.
+- Known side effects: a person with `task.read.all` granted individually (not via role) lost the
+  timesheet pages and needs `timesheet.read.all`. `read.all` still counts a senior agent in
+  unread marks for unassigned tickets and in the new-ticket alert when that is set to everyone
+  with ticket.read.all.
+- Assignment alerts already existed (ticket_assigned, task assigned, via the Alert sender) and
+  fire for a senior agent's assignments; not yet tested end to end.
+- Recommended next: run `npx vitest run tests/unit` on main; John grants Senior agent to a real
+  person and checks tickets, tasks, Spaces, hidden timesheets and the assignee's email.
+
 ## Task origin built and merged — 1 Oct 2026 (Claude), deploy pending
 
 - John: "I don't know who created and assigned the task to me." `createdById` existed but was
