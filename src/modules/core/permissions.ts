@@ -10,6 +10,7 @@ export const ROLES = [
   'platform_admin',
   'tenant_admin',
   'manager',
+  'senior_agent',
   'agent',
   'client_contact',
 ] as const;
@@ -62,6 +63,18 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'customer.manage',
     'products.read',
     'products.manage',
+    'task.read.all',
+    'task.manage',
+    'ticket.read.all',
+    'ticket.manage',
+  ],
+  // An agent who also sees, and so can assign, every ticket and task to anyone allowed to hold it.
+  // Assignment itself needs only ticket.manage and task.manage; what an ordinary agent lacks is
+  // sight of work that is not already theirs, so the elevation is the two read.all permissions.
+  senior_agent: [
+    'tenant.read',
+    'customer.read',
+    'products.read',
     'task.read.all',
     'task.manage',
     'ticket.read.all',
