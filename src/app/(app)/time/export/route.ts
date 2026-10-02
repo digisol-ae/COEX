@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   const week = url.searchParams.get('week');
   const subject = url.searchParams.get('user') ?? user.id;
 
-  if (subject !== user.id && !user.permissions.includes('task.read.all')) {
+  if (subject !== user.id && !user.permissions.includes('timesheet.read.all')) {
     return new Response('You may only export your own timesheet.', { status: 403 });
   }
 
