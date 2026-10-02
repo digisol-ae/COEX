@@ -30,6 +30,7 @@ export const PERMISSIONS = [
   'products.manage',
   'task.read.own',
   'task.read.all',
+  'timesheet.read.all',
   'task.manage',
   'desk.read.all',
   'ticket.read.own',
@@ -52,6 +53,7 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'products.read',
     'products.manage',
     'task.read.all',
+    'timesheet.read.all',
     'task.manage',
     'ticket.read.all',
     'ticket.manage',
@@ -64,6 +66,7 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'products.read',
     'products.manage',
     'task.read.all',
+    'timesheet.read.all',
     'task.manage',
     'ticket.read.all',
     'ticket.manage',
@@ -71,6 +74,7 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   // An agent who also sees, and so can assign, every ticket and task to anyone allowed to hold it.
   // Assignment itself needs only ticket.manage and task.manage; what an ordinary agent lacks is
   // sight of work that is not already theirs, so the elevation is the two read.all permissions.
+  // Everyone's timesheets are left out: John grants timesheet.read.all per person.
   senior_agent: [
     'tenant.read',
     'customer.read',

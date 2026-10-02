@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     return new Response('Sign in first.', { status: 401 });
   }
 
-  if (!user.permissions.includes('task.read.all')) {
+  if (!user.permissions.includes('timesheet.read.all')) {
     return new Response('You may not export the whole tenant.', { status: 403 });
   }
 

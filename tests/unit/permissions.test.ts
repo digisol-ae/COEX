@@ -53,8 +53,16 @@ describe('permissions', () => {
       'tenant.manage',
       'audit.read',
       'desk.read.all',
+      'timesheet.read.all',
     ] as const)
       expect(granted.has(permission)).toBe(false);
+
+    expect(
+      permissionsFor({ role: 'senior_agent', permissionGrants: ['timesheet.read.all'] }).has(
+        'timesheet.read.all',
+      ),
+    ).toBe(true);
+    expect(can({ role: 'manager' }, 'timesheet.read.all')).toBe(true);
   });
 
   it('keeps a client contact to their own tickets and nothing else', () => {

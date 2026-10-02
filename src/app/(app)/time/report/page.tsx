@@ -19,7 +19,7 @@ export default async function TimeReportPage({
 }: {
   searchParams: Promise<{ from?: string; to?: string }>;
 }) {
-  const actor = await requirePermission('task.read.all');
+  const actor = await requirePermission('timesheet.read.all');
   const params = await searchParams;
 
   const from = params.from ? new Date(params.from) : startOfWeek(new Date());

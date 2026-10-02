@@ -21,14 +21,15 @@ export default async function TimePage({
   const actor = await requirePermission('task.read.own');
   const params = await searchParams;
 
-  const canSeeOthers = actor.permissions.includes('task.read.all');
+  const canSeeOthers = actor.permissions.includes('timesheet.read.all');
+  const seesEveryTask = actor.permissions.includes('task.read.all');
   const subject = canSeeOthers && params.user ? params.user : actor.id;
   const week = params.week ? new Date(params.week) : new Date();
 
   const { timesheet, users, tasks } = await asUser(actor, async () => ({
     timesheet: await loadTimesheet(week, subject),
     users: canSeeOthers ? await listUsers() : [],
-    tasks: await listTasks({ assigneeId: canSeeOthers ? undefined : actor.id }),
+    tasks: await listTasks({ assigneeId: seesEveryTask ? undefined : actor.id }),
   }));
 
   return (
