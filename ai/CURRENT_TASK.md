@@ -1,5 +1,29 @@
 # COEX — Current AI Task
 
+## START HERE — committed release for Claude — 3 Oct 2026 (Codex)
+
+- Feature commit: `955ea3f` (44 files), branch `claude/dreamy-carson-86yxhh`.
+  Includes today's customer creation, CC, attachments, previews, timer/sender, ticket analytics,
+  task badge/creator and colors. To do = yellow; In progress = blue. Full inventory:
+  `ai/RELEASE-2026-10-03.md`. Earlier Claude channel commits remain on this branch.
+- Verified at commit: 18 unit files / 109 tests, TypeScript, full ESLint, full source/test
+  formatting and diff checks passed. Production build blocked twice by sandbox worker-port
+  permissions. New database regressions and browser acceptance have NOT been verified.
+- John authorized commit/push and proceeding to app-server pull. Feature commit exists locally;
+  no push, CI result or deployment is confirmed. GitHub/Microsoft account actions stay with John.
+- John was given this Mac sequence: `npm run build`, then
+  `npx vitest run tests/database/ticket-collaborators.test.ts tests/database/tasks.test.ts`,
+  then (only on success) `git push origin HEAD:main`. Test databases are forced to
+  `coex_test_ticket_cc_1003` and `coex_test_tasks`; never clear shared databases.
+- Next: obtain command output, verify remote exact SHA and main CI. If push is rejected because
+  main advanced, reconcile safely; never force-push or discard another AI's work.
+- Then verify VPS /srv/coex/app has clean status, record actual HEAD/PM2, pull --ff-only,
+  npm ci/build and restart coex-app/coex-mail/coex-desk-close with --update-env, pm2 save.
+  Inspect coex-channels before restarting/creating it; avoid duplicate workers. Verify deployed
+  SHA, processes and HTTPS. Follow deploy/DEPLOYMENT-STATUS.md; keep Apache/Zabbix intact.
+- Last documented live baseline: dd037e6; actual current server revision remains unverified.
+- This handover is a documentation-only follow-up commit. No code changes after feature commit.
+
 ## Release commit preparation — 3 Oct 2026 (Codex)
 
 - John authorized committing today's bundle, pushing and proceeding to app-server pull.

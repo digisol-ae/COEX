@@ -2,7 +2,8 @@
 
 ## Release pending — 3 Oct 2026
 
-John authorized today’s commit/push and server pull. Local unit/types/lint/format checks pass.
+John authorized today’s commit/push and server pull. Feature commit `955ea3f` exists locally
+on `claude/dreamy-carson-86yxhh`; documentation-only handover follow-up follows it. Local unit/types/lint/format checks pass.
 Native build, focused DB tests and GitHub CI remain required before live pull. Server HEAD and
 process state have not been reverified; last documented live revision remains dd037e6.
 No push or deployment performed by this preparation.
