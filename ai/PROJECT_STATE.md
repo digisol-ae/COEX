@@ -1,5 +1,152 @@
 # COEX — Shared AI Project State
 
+## Release commit preparation — 3 Oct 2026 (Codex)
+
+- John authorized committing today's bundle, pushing and proceeding to app-server pull.
+- Includes today's ticket/customer/CC/attachments/preview/timer/sender/analytics and task
+  badge/creator/colors changes. Existing branch also contains Claude's M6.1/M6.2 channel work.
+- Verified: 18 unit files / 109 tests, TypeScript, full ESLint and source/test formatting pass.
+- Production build blocked twice by sandbox local-port permission (Turbopack CSS worker).
+  Database and browser acceptance still pending. Run native Mac build and focused DB tests
+  before push. No push or server change performed; GitHub credentials stay with John.
+- Next: native checks, fast-forward push HEAD to main, confirm CI, then clean ff-only VPS pull,
+  npm ci/build and restart app/mail/desk workers. Inspect channels worker before adding/restarting.
+
+## Ticket analytics counts — 3 Oct 2026 (Codex, local only)
+
+- Replaced Mine/All open/Unassigned/Missed/Everything scope buttons with green Opened, amber
+  Delayed and red Missed count buttons. Each selects its corresponding ticket list.
+- Opened = active tickets (excludes resolved/closed); Delayed = SLA due_soon (within 60 minutes),
+  excluding Missed; Missed = breached reply or resolution SLA. Definitions in tooltips.
+- Counts share matching queue/search/priority/status and permissions with the list, without
+  the former 200-record cap. Personal agents remain server-restricted to their assignments.
+- Queue/search/status/priority controls retained; clicking analytics clears status, and choosing
+  a specific status enables that status view so resolved/closed tickets stay reachable.
+- Files: tickets/page.tsx, filters.tsx, tickets/analytics.ts, new unit tests and release notes.
+- Verified: TypeScript, focused ESLint zero warnings, formatting/diff checks; 109 unit tests.
+  Browser acceptance remains unverified due previous browser policy block. No push/deploy.
+- Added to today's single cumulative release. Next: refresh Tickets and check colored counts.
+
+
+## Tasks badge and fixed creator — 3 Oct 2026 (Codex, local only)
+
+- Tasks rail badge is an open-assigned-work count, not unread notifications. Tooltip now
+  explains it; clicking opens /tasks?mine=1 and the page shows the matching open-task count.
+- countMyOpenTasks applies the same Space/Folder visibility as listTasks, avoiding counts
+  for hidden work that cannot appear in the list. All tasks remains available via the sidebar.
+- John clarified: creator remains fixed; reassignment is allowed. createdById is now immutable
+  in the Mongoose schema; the editable Owner row is renamed Assignees. Created by remains
+  read-only in existing origin lines. Task update services already whitelist editable fields.
+- Files: icon-rail.tsx, tasks/page.tsx, task-panel.tsx, task model/service, release-notes.ts,
+  tests/database/tasks.test.ts. Added DB regressions for immutable creator/reassignment and
+  visibility-aligned badge counts; NOT RUN due prior database-test execution restrictions.
+- Checks: TypeScript, focused ESLint zero warnings, formatting/diff checks and 107 unit tests
+  passed. Browser and database regression QA remain pending. No push/deploy.
+- Added to cumulative 3 October release entry and ai/RELEASE-2026-10-03.md.
+- Next: local acceptance; restart dev when reloading model schemas; run
+  `npx vitest run tests/database/tasks.test.ts` on Mac using isolated coex_test_tasks.
+
+
+## Cumulative release notes — 3 Oct 2026 (Codex)
+
+- Accumulated changes since last documented live pull dd037e6 into one What's new entry
+  dated 3 October 2026, id 2026-10-03: task origin, WhatsApp preparation and all today's
+  ticket/customer/CC/attachment/preview/timer/sender improvements. Earlier live history kept.
+- Full technical/change inventory and QA limitations: ai/RELEASE-2026-10-03.md.
+- Verified baseline-to-HEAD Git history and diff; actual VPS revision is unverified.
+- Files: release-notes.ts, dated release inventory, shared AI docs and FEEDBACK.md.
+- Validation: release-note formatting and diff check. No new application code, push/deploy.
+- Next: use dated inventory for local QA and verify the server baseline before release.
+
+
+## Compact ticket preview — 3 Oct 2026 (Codex, local only)
+
+- Replaced the tall label/value grid with wrapping icon-and-value chips, tooltips and
+  screen-reader labels. Hidden empty customer/contact fields and zero attachment count.
+- Smaller padding/title, narrower popup; brief limited to four lines and latest message to
+  three, with redundant repeated message omitted. Full ticket remains accessible via Open.
+- Files: ticket-preview-button.tsx, shared icon-button.tsx and release-notes.ts.
+- Checks: TypeScript, focused ESLint zero warnings, Prettier and diff check passed.
+  Visual/browser QA not performed (previous browser URL-policy block). No new tests for
+  this presentation-only change. No database writes, push or deployment.
+- Next: refresh localhost and reopen a ticket preview for local acceptance.
+
+
+## Ticket preview, timer clock and reply sender — 3 Oct 2026 (Codex, local only)
+
+- Eye icon on desktop ticket rows, phone cards and the full ticket opens a native modal preview
+  without navigating or marking the ticket read. Brief, latest permitted message, customer,
+  agent, status, priority, queue, attachment count and logged time; Open full ticket link.
+- New /api/tickets/[id]/preview checks sign-in, ticket.read.own, tenant scope and assignment
+  unless ticket.read.all. Internal notes and their files are excluded without ticket.manage.
+- TicketTimerButton now shows HH:MM:SS alongside Stop timer using the real startedAt.
+- Reply to customer has Send from: current Standard sender stays default; configured Alert
+  and Admin addresses are optional choices. Only address/name/role sent to the browser, no
+  credentials. Selected configured role validated before saving; persisted in the email outbox
+  for existing delivery routing. Internal notes ignore sender and never queue customer mail.
+- Files: new ticket-preview-button, preview API, tickets/preview.ts, time/elapsed-clock.ts;
+  icon-button, TicketTimerButton, ticket list/detail/reply UI, support actions, ticket and
+  email services, release notes; new preview/clock unit tests; sender DB test added to ticket CC suite.
+- Verification: TypeScript, focused ESLint zero warnings, formatting and diff check passed;
+  full unit suite 17 files / 107 tests passed, including preview access/privacy and clock rollover.
+- DB sender integration and browser/live-send QA NOT RUN. Previous browser policy and
+  DB-test permission review timeouts remain unresolved. No customer mail sent; no push/deploy.
+- Next: refresh localhost, check preview/open/close and timer start/stop; run
+  `npx vitest run tests/database/ticket-collaborators.test.ts` on Mac (disposable test DB),
+  then verify the configured sender on a disposable ticket before release.
+
+
+## Customer creation and CC collaborators — 3 Oct 2026 (Codex, local only)
+
+- New-ticket Customer dropdown now offers Create customer: requires name and valid email,
+  saves a client customer and selects it while keeping the ticket draft. Editable later in CRM.
+- Multiple CC collaborators on new/existing tickets; search active team/customer/branch contacts
+  in the current tenant or enter an email. Explicit Save CC collaborators on existing tickets.
+- Ticket ccEmails persist; public replies queue CC on EmailOutbox and SMTP sends them.
+  Primary recipient is excluded from CC; duplicates normalize. Internal notes queue no customer
+  mail. Customer email is the fallback recipient when no contact/requester email exists.
+- Files: support actions, ticket list/detail/new-ticket UI, new collaborator-picker and
+  collaborators-panel; tickets/collaborators.ts and collaborator.service.ts; Ticket and
+  EmailOutbox models; ticket/email services; release notes; new unit/database test files.
+- Verified: TypeScript passed; full unit suite 15 files / 101 tests passed; focused ESLint
+  zero warnings; formatted changed source/tests; diff check passed.
+- Database integration tests NOT RUN: automatic permission review timed out twice before
+  launching tests. Run `npx vitest run tests/database/ticket-collaborators.test.ts` on Mac;
+  harness forces disposable coex_test_ticket_cc_1003. No coex_dev writes or live emails sent.
+- Interactive browser QA remains blocked by the previously reported browser URL policy.
+- Next: restart local dev server to reload Mongoose schemas, run integration tests, then
+  verify customer creation/editing and CC save/reply on a disposable ticket. No push/deploy.
+
+
+## Ticket attachment picker — 3 Oct 2026 (Codex, local only)
+
+- Fixed repeated file selection replacing earlier selections. Replies/internal notes and new
+  tickets now share a click/drop area, accumulating files with icons, names, sizes and removal.
+- Files: `src/components/ui/ticket-attachment-picker.tsx`, ticket `reply-box.tsx`,
+  `new-ticket-panel.tsx`, and `src/modules/core/release-notes.ts` (What's new entry).
+- Uses an accumulated FileList on the form's files input; the separate picker clears each batch.
+  Form reset clears selection. Existing server limits remain; UI warns at 3 MB/file and 10 MB total.
+- Verification: TypeScript, focused ESLint (zero warnings), Prettier and diff check passed.
+  No database writes or customer replies sent. Browser automation rejected the local ticket
+  URL under its URL policy; interactive drag/drop, sending and visual QA remain unverified.
+- Next: refresh the local ticket page; add two files separately, drop another, remove one,
+  and verify remaining attachments send using a disposable test ticket. No push/deploy.
+- Earlier customer dropdown creation request remains pending implementation.
+
+
+## Local QA — 3 Oct 2026 (Codex): customer creation from ticket dropdown
+
+- Requested feature is absent at HEAD `ec2cd09`: `new-ticket-panel.tsx` lists No customer
+  and existing customers, with no Create customer option. Requirement fails source inspection.
+- No feature code changed. Working tree was clean before QA; Claude's channel work preserved.
+- Checks run here: `npx tsc --noEmit` passed; `npm run test:unit` passed, 14 files / 98 tests.
+  These are baseline checks, not verification of the missing feature. No database writes/tests.
+- Started local `npm run dev` on port 3100 and requested the Tickets page in Codex's browser
+  panel. Interactive browser QA and customer persistence/editing remain unverified.
+- Next: implement Create customer in the new-ticket dropdown with name-only entry, select
+  the saved customer, retain the ticket draft, and verify later editing in CRM. No push/deploy.
+
+
 ## Task origin built and merged — 1 Oct 2026 (Claude), deploy pending
 
 - John: "I don't know who created and assigned the task to me." `createdById` existed but was

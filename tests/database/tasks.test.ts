@@ -720,3 +720,37 @@ describe('archiving a space', () => {
     });
   });
 });
+
+it('keeps task creator fixed when reassigning or attempting to change the stored creator', async () => {
+  await runWithContext(context, async () => {
+    const spaceId = await createSpace({ name: 'Creator test' });
+    const id = await createTask({ spaceId, title: 'Creator fixed', assigneeIds: [String(userId)] });
+    await patchTask(id, { assigneeIds: [String(strangerId)] });
+    await TaskModel.updateOne({ _id: id, tenantId }, { $set: { createdById: strangerId } });
+    const task = await getTask(id);
+    expect(String(task?.createdById)).toBe(String(userId));
+    expect(task?.assigneeIds.map(String)).toEqual([String(strangerId)]);
+  });
+});
+
+it('counts exactly the visible open assigned task list for the Tasks badge', async () => {
+  const spaceId = await aSpace();
+  await runWithContext(context, async () => {
+    await createTask({ spaceId, title: 'Visible', assigneeIds: [String(userId)] });
+    const folderId = await createFolder({ spaceId, name: 'Private', memberIds: [String(userId)] });
+    const privateTaskId = await createTask({
+      spaceId,
+      folderId,
+      title: 'Private',
+      assigneeIds: [String(userId)],
+    });
+    // Simulate an older inconsistent assignment after membership changed; it must not leak in the badge.
+    const { FolderModel } = await import('@/modules/tasks/models/folder.model');
+    await FolderModel.updateOne({ _id: folderId, tenantId }, { $set: { memberIds: [strangerId] } });
+    expect(privateTaskId).toBeTruthy();
+    expect(await countMyOpenTasks(String(userId))).toBe(
+      (await listTasks({ assigneeId: String(userId) })).length,
+    );
+    expect(await countMyOpenTasks(String(userId))).toBe(1);
+  });
+});

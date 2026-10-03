@@ -1,3 +1,4 @@
+import { normaliseCc } from '../collaborators';
 import {
   alertStaff,
   newTicketAlertRecipients,
@@ -5,6 +6,8 @@ import {
   newMessageId,
   publicRepliesAreEmailed,
   queueEmail,
+  validateCustomerReplySender,
+  type SenderRole,
 } from '@/modules/core/services/email.service';
 import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
@@ -60,6 +63,7 @@ async function calendarForTenant(): Promise<WorkingCalendar> {
 }
 
 export interface CreateTicketInput {
+  ccEmails?: string[];
   subject: string;
   body: string;
   queueId: string;
@@ -110,6 +114,7 @@ export async function createTicket(input: CreateTicketInput): Promise<CreatedTic
   const created = await tickets().create({
     number: await nextNumber('ticket'),
     subject: input.subject.trim(),
+    ccEmails: normaliseCc(input.ccEmails ?? []),
     queueId: queue._id,
     status: 'new',
     priority,
@@ -221,6 +226,7 @@ async function alertNewTicket(
 }
 
 export interface ReplyInput {
+  sender?: string;
   ticketId: string;
   body: string;
   visibility: 'public' | 'internal';
@@ -244,6 +250,9 @@ export async function addReply(input: ReplyInput): Promise<string> {
   const context = getContext();
   const ticket = await tickets().findById(input.ticketId);
   if (!ticket) throw new Error('Ticket not found.');
+
+  const sender =
+    input.visibility === 'public' ? await validateCustomerReplySender(input.sender) : undefined;
 
   const author = await UserModel.findOne({ _id: context.userId }).select('name');
   const now = new Date();
@@ -278,7 +287,7 @@ export async function addReply(input: ReplyInput): Promise<string> {
   await tickets().updateOne({ _id: ticket._id }, { $set: update });
 
   if (input.visibility === 'public') {
-    await safely(() => emailCustomerReply(ticket, message._id, input.body));
+    await safely(() => emailCustomerReply(ticket, message._id, input.body, sender));
   }
 
   if (input.visibility === 'internal') {
@@ -393,6 +402,7 @@ export async function createFollowOn(ticketId: string): Promise<string> {
 
   const followOn = await createTicket({
     subject: `${original.subject} (follow up)`,
+    ccEmails: original.ccEmails ?? [],
     body: `Follow up to ${original.number}.`,
     queueId: String(original.queueId),
     priority: original.priority as Priority,
@@ -596,6 +606,7 @@ export interface TicketMessageView {
 }
 
 export interface TicketDetail extends TicketSummary {
+  ccEmails: string[];
   contactId: string | null;
   productId: string | null;
   tags: string[];
@@ -638,6 +649,7 @@ export async function getTicketDetail(id: string): Promise<TicketDetail | null> 
 
   return {
     ...summary,
+    ccEmails: ticket.ccEmails ?? [],
     contactId: ticket.contactId ? String(ticket.contactId) : null,
     productId: ticket.productId ? String(ticket.productId) : null,
     tags: ticket.tags ?? [],
@@ -1001,6 +1013,8 @@ async function safely(work: () => Promise<unknown>): Promise<void> {
 }
 
 interface EmailableTicket {
+  ccEmails?: string[];
+  organisationId?: Types.ObjectId | null;
   _id: Types.ObjectId;
   tenantId: Types.ObjectId;
   number: string;
@@ -1018,7 +1032,16 @@ async function recipientFor(ticket: EmailableTicket): Promise<string | null> {
     }).select('email');
     if (contact?.email) return contact.email;
   }
-  return ticket.requesterEmail ?? null;
+  if (ticket.requesterEmail) return ticket.requesterEmail;
+  if (ticket.organisationId) {
+    const customer = await OrganisationModel.findOne({
+      _id: ticket.organisationId,
+      tenantId: ticket.tenantId,
+      deletedAt: null,
+    }).select('email');
+    return customer?.email ?? null;
+  }
+  return null;
 }
 
 /** Where a public reply on this ticket will be emailed, or null when it will not be emailed. */
@@ -1037,6 +1060,7 @@ async function emailCustomerReply(
   ticket: EmailableTicket,
   messageId: Types.ObjectId,
   body: string,
+  sender?: SenderRole,
 ): Promise<void> {
   const to = await recipientFor(ticket);
   if (!to) return;
@@ -1061,7 +1085,9 @@ async function emailCustomerReply(
 
   const queued = await queueEmail({
     kind: 'ticket_reply',
+    sender,
     to,
+    cc: normaliseCc(ticket.ccEmails ?? [], to),
     subject: `Re: [${ticket.number}] ${ticket.subject}`,
     text: customerEmailText({
       body,

@@ -125,7 +125,7 @@ const taskSchema = new Schema(
     /** Drives the ageing view: anything untouched for more than seven days. */
     lastActivityAt: { type: Date, default: Date.now, index: true },
 
-    createdById: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+    createdById: { type: Schema.Types.ObjectId, ref: 'User', default: null, immutable: true },
     deletedAt: { type: Date, default: null, index: true },
     /** Archived because its Space was, so restoring the Space brings back exactly these. */
     archivedWithSpace: { type: Boolean, default: false },

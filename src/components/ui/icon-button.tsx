@@ -13,6 +13,15 @@ import type { ComponentProps, ReactNode } from 'react';
  */
 
 export type IconName =
+  | 'status'
+  | 'priority'
+  | 'queue'
+  | 'customer'
+  | 'contact'
+  | 'clock'
+  | 'attachment'
+  | 'message'
+  | 'preview'
   | 'previous'
   | 'next'
   | 'edit'
@@ -31,6 +40,48 @@ export type IconName =
   | 'back';
 
 const PATHS: Record<IconName, ReactNode> = {
+  status: (
+    <>
+      <circle cx="8" cy="8" r="5.5" />
+      <path d="m5.5 8 1.7 1.7 3.3-3.4" />
+    </>
+  ),
+  priority: <path d="M4 13V3h8l-1.5 2L12 7H4" />,
+  queue: (
+    <>
+      <path d="M3 4h10M3 8h10M3 12h10" />
+      <circle cx="1" cy="4" r=".3" />
+      <circle cx="1" cy="8" r=".3" />
+      <circle cx="1" cy="12" r=".3" />
+    </>
+  ),
+  customer: (
+    <>
+      <path d="M3 13V3h10v10M1 13h14M6 13V9h4v4M5 5h1M10 5h1" />
+    </>
+  ),
+  contact: (
+    <>
+      <circle cx="8" cy="5" r="2.5" />
+      <path d="M3 13a5 5 0 0 1 10 0" />
+    </>
+  ),
+  clock: (
+    <>
+      <circle cx="8" cy="8" r="5.5" />
+      <path d="M8 4.5V8l2.5 1.5" />
+    </>
+  ),
+  attachment: (
+    <path d="m6 10 4.5-4.5a1.4 1.4 0 0 1 2 2L7 13a3 3 0 0 1-4.2-4.2L9 2.6a2.1 2.1 0 0 1 3 3l-5.5 5.5" />
+  ),
+  message: <path d="M2 3h12v8H6l-4 3z" />,
+  preview: (
+    <>
+      <path d="M1.5 8s2-4.5 6.5-4.5S14.5 8 14.5 8 12.5 12.5 8 12.5 1.5 8 1.5 8Z" />
+      <circle cx="8" cy="8" r="2" />
+    </>
+  ),
   previous: <path d="M10 3.5 5.5 8l4.5 4.5" />,
   next: <path d="M6 3.5 10.5 8 6 12.5" />,
   edit: (

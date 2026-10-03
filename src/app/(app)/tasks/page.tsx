@@ -48,9 +48,11 @@ export default async function TasksPage({
       <PageHeader
         title="Tasks"
         description={
-          seesEverything
-            ? 'Everything open across every space, unless you narrow it below. Overdue first.'
-            : 'The work assigned to you, soonest first.'
+          mine
+            ? params.closed !== '1' && !params.overdue && !params.unassigned
+              ? `${tasks.length} open task${tasks.length === 1 ? '' : 's'} assigned to you. The Tasks badge counts this list.`
+              : 'The work assigned to you, with your selected filters.'
+            : 'Everything open across every space, unless you narrow it below. Overdue first.'
         }
         action={actor.permissions.includes('task.manage') ? <PersonalTaskPanel /> : undefined}
       />

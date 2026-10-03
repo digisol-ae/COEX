@@ -35,6 +35,50 @@ import {
 } from '@/modules/tickets/services/queue.service';
 import { markTicketRead } from '@/modules/tickets/services/unread.service';
 
+import { createOrganisation } from '@/modules/crm/services/organisation.service';
+import { normaliseCc, quickCustomerSchema } from '@/modules/tickets/collaborators';
+import { setTicketCollaborators } from '@/modules/tickets/services/collaborator.service';
+import { getTicketDetail } from '@/modules/tickets/services/ticket.service';
+
+export async function quickCreateCustomerAction(input: {
+  name: string;
+  email: string;
+}): Promise<{ customer?: { id: string; name: string }; error?: string }> {
+  const actor = await requirePermission('ticket.manage');
+  const parsed = quickCustomerSchema.safeParse(input);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  try {
+    const id = await asUser(actor, () => createOrganisation({ ...parsed.data, kind: 'client' }));
+    revalidatePath('/customers');
+    return { customer: { id, name: parsed.data.name } };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not create customer.' };
+  }
+}
+
+export async function saveCollaboratorsAction(
+  _previous: SupportFormState,
+  formData: FormData,
+): Promise<SupportFormState> {
+  const actor = await requirePermission('ticket.manage');
+  const id = text(formData, 'ticketId');
+  try {
+    await asUser(actor, async () => {
+      const ticket = await getTicketDetail(id);
+      if (
+        !ticket ||
+        (!actor.permissions.includes('ticket.read.all') && ticket.assigneeId !== actor.id)
+      )
+        throw new Error('Ticket not found.');
+      await setTicketCollaborators(id, formData.getAll('ccEmails').map(String));
+    });
+    refreshTicket(id);
+    return { saved: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not save collaborators.' };
+  }
+}
+
 export interface SupportFormState {
   error?: string;
   saved?: boolean;
@@ -100,6 +144,7 @@ export async function createTicketAction(
     const created = await asUser(actor, () =>
       createTicket({
         subject: text(formData, 'subject'),
+        ccEmails: normaliseCc(formData.getAll('ccEmails').map(String)),
         body: text(formData, 'body'),
         queueId: text(formData, 'queueId'),
         priority: toPriority(text(formData, 'priority')),
@@ -153,6 +198,7 @@ export async function replyAction(
         ticketId: id,
         body,
         visibility,
+        sender: visibility === 'public' ? text(formData, 'sender') || undefined : undefined,
         mentionIds: formData.getAll('mentionIds').map(String).filter(Boolean),
       });
 

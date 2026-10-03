@@ -89,7 +89,8 @@ The full scope document lives in the Claude project "ECHO System Development" as
     `Re: [TICKET] <original subject>`: Outlook groups conversations by subject and ignores reply
     headers, so a custom acknowledgement subject split the customer's thread in two (25 Sep 2026).
     Three senders (28 Sep 2026), each chosen by the kind of mail (`SENDER_FOR` in email.service):
-    Standard (helpdesk@digisolteam.com) for everything a customer receives; Alert for staff alerts
+    Standard (helpdesk@digisolteam.com) by default for customer mail; public replies may choose
+    another configured sender (John, 3 Oct 2026); Alert for staff alerts
     (new ticket, assigned, customer replied, task assigned, @mention); Admin for account mail
     (password links, "an administrator reset your password"). Alert and Admin are optional: blank
     sends from Standard. Each either reuses Standard's SMTP connection with its own From (needs
@@ -288,6 +289,8 @@ leaves node_modules unusable on macOS and the build fails with "Cannot find modu
 by `npm install` on the Mac.
 
 ## Product and release decisions — 1 Oct 2026
+- Task creator is immutable (John, 3 Oct 2026); reassignment stays allowed. The editable
+  people field is labelled Assignees, distinct from read-only Created by.
 - A task has one status. Each Space configures its workflow; boards and other views share it.
   Exactly one configured stage marks completion. Never infer completion from the status name.
   Prevent renaming/removing used stages or changing their completion flag until tasks move.

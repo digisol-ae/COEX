@@ -29,6 +29,7 @@ const emailOutboxSchema = new Schema(
     /** Only when a specific sender was asked for, as a test email does; otherwise the kind decides. */
     sender: { type: String, enum: ['standard', 'alert', 'admin', null], default: null },
     to: { type: String, required: true, lowercase: true, trim: true },
+    cc: { type: [String], default: [] },
     subject: { type: String, required: true },
     text: { type: String, required: true },
     /** Our own Message-ID, chosen up front so a customer's answer threads back to the ticket. */

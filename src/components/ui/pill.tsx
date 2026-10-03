@@ -90,10 +90,10 @@ export function StatusDot({
 }
 
 const DOT_CLASSES: Record<PillTone, string> = {
-  // Task status is read by the dot before its label: blue is ready to start, light green is
-  // underway, yellow needs attention, and solid green is complete.
-  todo: 'bg-[var(--color-status-info)] ring-[var(--color-status-info)]',
-  progress: 'bg-[var(--color-status-ok)] ring-[var(--color-status-ok)]',
+  // Task status is read by the dot before its label: yellow is to do, blue is underway, yellow needs
+  // attention, and solid green is complete.
+  todo: 'bg-[var(--color-pill-todo-ink)] ring-[var(--color-pill-todo-ink)]',
+  progress: 'bg-[var(--color-status-info)] ring-[var(--color-status-info)]',
   blocked: 'bg-[var(--color-status-warn)] ring-[var(--color-status-warn)]',
   review: 'bg-transparent ring-[var(--color-pill-review-ink)]',
   done: 'bg-[var(--color-pill-done-ink)] ring-[var(--color-pill-done-ink)]',

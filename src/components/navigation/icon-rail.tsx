@@ -97,7 +97,12 @@ export function IconRail({
         return (
           <Link
             key={item.href}
-            href={item.href}
+            href={item.href === '/tasks' ? '/tasks?mine=1' : item.href}
+            title={
+              item.href === '/tasks'
+                ? `${count ?? 0} open task${count === 1 ? '' : 's'} assigned to you — click to view`
+                : item.label
+            }
             aria-current={active ? 'page' : undefined}
             className={clsx(
               'relative flex w-14 flex-col items-center gap-1 rounded-[10px] px-1 py-2 transition-colors',

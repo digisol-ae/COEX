@@ -411,7 +411,44 @@ export async function newMessageId(): Promise<string> {
   return `<${new Types.ObjectId().toHexString()}.coex@${domain}>`;
 }
 
+export interface CustomerReplySender {
+  role: SenderRole;
+  address: string;
+  name: string;
+}
+
+/** Return configured addresses only; passwords and SMTP credentials never reach the reply form. */
+export async function customerReplySenders(): Promise<CustomerReplySender[]> {
+  const settings = await settingsFor(getContext().tenantId);
+  if (!settings?.outbound?.enabled) return [];
+  const senders: CustomerReplySender[] = [];
+  if (settings.outbound.fromAddress)
+    senders.push({
+      role: 'standard',
+      address: settings.outbound.fromAddress,
+      name: settings.outbound.fromName || 'Standard',
+    });
+  for (const role of ['alert', 'admin'] as const) {
+    const sender = settings.senders?.[role];
+    if (sender?.fromAddress)
+      senders.push({ role, address: sender.fromAddress, name: sender.fromName || role });
+  }
+  return senders;
+}
+
+export async function validateCustomerReplySender(
+  sender?: string,
+): Promise<SenderRole | undefined> {
+  if (!sender) return undefined;
+  const configured = await customerReplySenders();
+  const selected = configured.find((option) => option.role === sender);
+  if (!selected) throw new Error('Choose a configured sending email address.');
+  return selected.role;
+}
+
 export interface QueueEmailInput {
+  sender?: SenderRole;
+  cc?: string[];
   kind: OutboxKind;
   to: string;
   subject: string;
@@ -455,7 +492,11 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
   await EmailOutboxModel.create({
     tenantId,
     kind: input.kind,
+    sender: input.sender ?? null,
     to,
+    cc: [...new Set((input.cc ?? []).map((email) => email.trim().toLowerCase()))].filter(
+      (email) => email !== to && isEmailAddress(email),
+    ),
     subject: input.subject,
     text: input.text,
     messageId: input.messageId ?? null,
@@ -676,6 +717,7 @@ export async function deliverQueuedEmail(limit = 20): Promise<number> {
       await transport.sendMail({
         from: identity.from,
         to: String(row.to),
+        cc: (row.cc as string[] | undefined)?.length ? (row.cc as string[]) : undefined,
         subject: String(row.subject),
         text: String(row.text),
         messageId: (row.messageId as string | null) ?? undefined,

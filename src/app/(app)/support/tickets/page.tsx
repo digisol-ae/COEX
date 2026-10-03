@@ -1,3 +1,6 @@
+import { ticketAnalytics, ticketCategory } from '@/modules/tickets/analytics';
+import { TicketPreviewButton } from './ticket-preview-button';
+import { listCollaboratorOptions } from '@/modules/tickets/services/collaborator.service';
 import { Table } from '@/components/ui';
 import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
@@ -47,7 +50,12 @@ export default async function TicketsPage({
   const seesEverything = actor.permissions.includes('ticket.read.all');
   const scope = params.scope ?? (seesEverything ? 'open' : 'mine');
 
-  const { tickets, queues, users, organisations } = await asUser(actor, async () => ({
+  const {
+    tickets: matchingTickets,
+    queues,
+    users,
+    organisations,
+  } = await asUser(actor, async () => ({
     tickets: await listTickets({
       queueId: params.queue || undefined,
       status: params.status ? (params.status as TicketStatus) : undefined,
@@ -59,16 +67,25 @@ export default async function TicketsPage({
         : actor.id,
       priority: params.priority ? (params.priority as Priority) : undefined,
       search: params.search,
-      openOnly: scope !== 'all' && !params.status,
-      unassignedOnly: scope === 'unassigned',
-      breachedOnly: scope === 'breached',
+      openOnly: !params.status && scope !== 'all',
+      // Counts and category selection share all matching records, never the default 200-row cap.
+      limit: 0,
     }),
     queues: await listQueues(),
     users: await listUsers(),
     organisations: await listOrganisations(),
   }));
 
+  const counts = ticketAnalytics(matchingTickets);
+  const category = scope === 'breached' ? 'missed' : scope;
+  const tickets = matchingTickets.filter((ticket) => {
+    if (category === 'delayed' || category === 'missed') return ticketCategory(ticket) === category;
+    if (scope === 'unassigned') return ticket.isOpen && !ticket.assigneeId;
+    return scope === 'all' || params.status ? true : ticket.isOpen;
+  });
+
   const canManage = actor.permissions.includes('ticket.manage');
+  const collaboratorOptions = canManage ? await asUser(actor, () => listCollaboratorOptions()) : [];
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -79,6 +96,7 @@ export default async function TicketsPage({
         action={
           canManage && queues.length > 0 ? (
             <NewTicketPanel
+              collaboratorOptions={collaboratorOptions}
               queues={queues.map((queue) => ({ id: queue.id, name: queue.name }))}
               organisations={organisations.map((organisation) => ({
                 id: organisation.id,
@@ -106,7 +124,7 @@ export default async function TicketsPage({
           name: queue.name,
           openTicketCount: queue.openTicketCount,
         }))}
-        canSeeEveryone={seesEverything}
+        counts={counts}
       />
 
       <Card className="mt-4">
@@ -119,7 +137,10 @@ export default async function TicketsPage({
                 <article key={ticket.id} className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
+                      <span className="inline-flex items-center gap-1">
+                        <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
+                        <TicketPreviewButton ticketId={ticket.id} />
+                      </span>
                       <Link
                         href={`/support/tickets/${ticket.id}`}
                         className="mt-2 block text-sm font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
@@ -241,7 +262,10 @@ export default async function TicketsPage({
                       className="group border-b border-[var(--color-line)] last:border-b-0 hover:bg-[var(--color-surface-muted)]/60"
                     >
                       <td className="px-3 py-2 align-top">
-                        <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
+                        <span className="inline-flex items-center gap-1">
+                          <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
+                          <TicketPreviewButton ticketId={ticket.id} />
+                        </span>
                       </td>
 
                       {/* max-w-0 with w-full lets the subject take whatever the other columns leave and

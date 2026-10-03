@@ -1,5 +1,12 @@
 # COEX live deployment
 
+## Release pending — 3 Oct 2026
+
+John authorized today’s commit/push and server pull. Local unit/types/lint/format checks pass.
+Native build, focused DB tests and GitHub CI remain required before live pull. Server HEAD and
+process state have not been reverified; last documented live revision remains dd037e6.
+No push or deployment performed by this preparation.
+
 Live at `dd037e6` since 1 Oct 2026 (PR #2, Team history; PR #1 before it). Pending: PR #3
 (task origin), merged to main, waiting for John's deploy. See ai/HANDOFF.md, START HERE.
 

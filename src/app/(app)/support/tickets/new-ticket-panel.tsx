@@ -1,16 +1,17 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useState, useTransition } from 'react';
 import { createPortal } from 'react-dom';
 import { Button, Field, Input, Notice, Select } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
-import { createTicketAction, type SupportFormState } from '../actions';
+import { createTicketAction, quickCreateCustomerAction, type SupportFormState } from '../actions';
+
+import { TicketAttachmentPicker } from '@/components/ui/ticket-attachment-picker';
+
+import { CollaboratorPicker } from './collaborator-picker';
+import type { CollaboratorOption } from '@/modules/tickets/collaborators';
 
 const initialState: SupportFormState = {};
-
-/** Mirrors MAX_FILE_BYTES in attachment.service.ts, the server's real limit. Checking here only
- * gives an earlier, friendlier message; the server enforces this regardless. */
-const MAX_FILE_BYTES = 3 * 1024 * 1024;
 
 interface Contact {
   id: string;
@@ -30,11 +31,20 @@ interface Contact {
 export function NewTicketPanel({
   queues,
   organisations,
+  collaboratorOptions,
 }: {
+  collaboratorOptions: CollaboratorOption[];
   queues: { id: string; name: string }[];
   organisations: { id: string; name: string }[];
 }) {
   const [open, setOpen] = useState(false);
+  const [creatingCustomer, setCreatingCustomer] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerError, setCustomerError] = useState('');
+  const [savingCustomer, startCustomerTransition] = useTransition();
+  const [addedCustomers, setAddedCustomers] = useState<{ id: string; name: string }[]>([]);
+
   const [organisationId, setOrganisationId] = useState('');
   // Kept with the customer they belong to, so a stale list from the previous choice can never be
   // shown beside a new one.
@@ -43,7 +53,6 @@ export function NewTicketPanel({
     contacts: [],
   });
   const [onBehalf, setOnBehalf] = useState(true);
-  const [oversizedFiles, setOversizedFiles] = useState<string[]>([]);
   const { showToast } = useToast();
   const [state, formAction, pending] = useActionState(
     async (previous: SupportFormState, formData: FormData) => {
@@ -196,10 +205,22 @@ export function NewTicketPanel({
                   <Select
                     name="organisationId"
                     value={organisationId}
-                    onChange={(event) => setOrganisationId(event.target.value)}
+                    onChange={(event) => {
+                      if (event.target.value === '__create__') setCreatingCustomer(true);
+                      else {
+                        setOrganisationId(event.target.value);
+                        setCreatingCustomer(false);
+                      }
+                    }}
                   >
                     <option value="">No customer</option>
-                    {organisations.map((organisation) => (
+                    <option value="__create__">Create customer…</option>
+                    {[
+                      ...organisations,
+                      ...addedCustomers.filter(
+                        (row) => !organisations.some((existing) => existing.id === row.id),
+                      ),
+                    ].map((organisation) => (
                       <option key={organisation.id} value={organisation.id}>
                         {organisation.name}
                       </option>
@@ -223,35 +244,72 @@ export function NewTicketPanel({
                 </Field>
               </div>
 
-              <label className="flex flex-wrap items-center gap-2 text-[12px] text-[var(--color-ink-muted)]">
-                <span className="rounded-[var(--radius-control)] border border-[var(--color-line)] px-2.5 py-1 transition-colors hover:text-[var(--color-ink)]">
-                  Attach files
-                </span>
-                <input
-                  type="file"
-                  name="files"
-                  multiple
-                  onChange={(event) => {
-                    const tooBig = Array.from(event.target.files ?? [])
-                      .filter((file) => file.size > MAX_FILE_BYTES)
-                      .map((file) => file.name);
-                    setOversizedFiles(tooBig);
-                  }}
-                  className="text-[11px] text-[var(--color-ink-subtle)] file:hidden"
-                />
-              </label>
-
-              {oversizedFiles.length > 0 ? (
-                <Notice tone="alert">
-                  {oversizedFiles.join(', ')} {oversizedFiles.length === 1 ? 'is' : 'are'} over 3MB.
-                  Send a link to it instead, or remove it before submitting.
-                </Notice>
+              {creatingCustomer ? (
+                <fieldset
+                  disabled={savingCustomer}
+                  className="space-y-2 rounded-[var(--radius-control)] border border-[var(--color-line)] p-3"
+                >
+                  <legend className="px-1 text-xs font-medium">Create customer</legend>
+                  <Field label="Customer name">
+                    <Input
+                      value={customerName}
+                      onChange={(event) => setCustomerName(event.target.value)}
+                    />
+                  </Field>
+                  <Field label="Email address">
+                    <Input
+                      type="email"
+                      value={customerEmail}
+                      onChange={(event) => setCustomerEmail(event.target.value)}
+                    />
+                  </Field>
+                  <p className="text-[11px] text-[var(--color-ink-subtle)]">
+                    You can edit these details later in Customers.
+                  </p>
+                  {customerError ? <Notice tone="alert">{customerError}</Notice> : null}
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      onClick={() =>
+                        startCustomerTransition(async () => {
+                          const result = await quickCreateCustomerAction({
+                            name: customerName,
+                            email: customerEmail,
+                          });
+                          if (result.customer) {
+                            setAddedCustomers((rows) => [...rows, result.customer!]);
+                            setOrganisationId(result.customer.id);
+                            setCreatingCustomer(false);
+                            setCustomerName('');
+                            setCustomerEmail('');
+                            setCustomerError('');
+                            showToast('Customer created and selected.');
+                          } else setCustomerError(result.error ?? 'Could not create customer.');
+                        })
+                      }
+                    >
+                      {savingCustomer ? 'Creating' : 'Create and select'}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => {
+                        setCreatingCustomer(false);
+                        setCustomerError('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </fieldset>
               ) : null}
+              <CollaboratorPicker options={collaboratorOptions} disabled={pending} />
+              <TicketAttachmentPicker disabled={pending} />
 
               {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
 
               <div className="flex gap-2 pt-1">
-                <Button type="submit" disabled={pending}>
+                <Button type="submit" disabled={pending || savingCustomer || creatingCustomer}>
                   {pending ? 'Raising' : 'Raise ticket'}
                 </Button>
                 <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
