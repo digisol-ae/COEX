@@ -16,15 +16,37 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
-    id: '2026-10-01-d',
-    date: '1 October 2026',
-    title: 'See who created a task and who assigned it to you',
+    id: '2026-10-03',
+    date: '3 October 2026',
+    title: 'Ticket improvements, task origins and WhatsApp preparation',
     sections: [
       {
-        heading: 'Improvements',
+        heading: 'Tickets',
         items: [
-          'Every task now shows who created it and who assigned it to you, with the date: on the task page, in the quick preview and in the side panel.',
-          'Assignments are recorded from today. Tasks assigned earlier show their creator; the person who assigned them was not recorded at the time.',
+          'The ticket scope filters are now colored analytics buttons: Opened (active tickets), Delayed (SLA due within an hour) and Missed (SLA breached). Click a count to see those tickets.',
+          'Create a customer directly from the Customer dropdown using their name and email. The saved customer is selected without leaving your ticket draft; edit their details later in Customers.',
+          'Add multiple CC collaborators from team, customer or branch contacts, or enter email addresses. Save changes on an existing ticket before replying. Public reply emails include CC; internal notes stay private.',
+          'Drop files onto a new ticket or reply, or click to attach. Adding files one by one keeps earlier selections. Each selected file shows an icon, name, size and remove button.',
+          'Use the eye icon to preview a ticket without leaving the screen. Compact icon-and-value chips, short message excerpts and hidden empty fields keep the preview small. Open the full ticket from the preview when needed.',
+          'The running ticket timer shows a live HH:MM:SS clock next to Stop timer.',
+          'Choose a configured sending email in Reply to customer. The current Standard sender remains the default.',
+          'When no individual contact or requester email is recorded, public replies use the selected customer’s email address.',
+        ],
+      },
+      {
+        heading: 'Tasks',
+        items: [
+          'To do tasks are yellow; in-progress tasks are blue in task lists and panels.',
+          'The Tasks badge counts your visible open assigned tasks. Click the Tasks icon to open that exact list; its tooltip explains the count.',
+          'The task creator stays fixed. The editable people field is labelled Assignees, and tasks can still be reassigned.',
+          'Tasks show who created them and who assigned them to you, with the date, on the task page, quick preview and side panel. Older assignments whose origin was never recorded are not guessed.',
+        ],
+      },
+      {
+        heading: 'WhatsApp preparation',
+        items: [
+          'Setup, WhatsApp has configuration and test-mode tools for the Support and CRM numbers. Live connectivity still requires configuration.',
+          'Support incoming-message handling is prepared: match known mobile numbers, retain unknown sender names and numbers, thread messages into open tickets, and queue a Ticket received acknowledgement when connected. CRM conversations and further WhatsApp reply features remain pending.',
         ],
       },
     ],

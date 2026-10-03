@@ -5,21 +5,30 @@ import { clsx } from 'clsx';
 import { Input, Select } from '@/components/ui';
 import { STATUS_LABELS } from '@/modules/tickets/labels';
 
-/**
- * Filters, in the address bar.
- *
- * The scopes on the left are the four questions an agent actually asks on arriving: what is mine,
- * what has nobody picked up, what have we already missed, and what is everything. A filtered list
- * stays bookmarkable, which is how people build their own morning routine out of a URL.
- */
-
+/** Colored workload counts double as list filters; URLs remain bookmarkable. */
 const SCOPES = [
-  { id: 'mine', label: 'Mine' },
-  { id: 'open', label: 'All open' },
-  { id: 'unassigned', label: 'Unassigned' },
-  { id: 'breached', label: 'Missed' },
-  { id: 'all', label: 'Everything' },
-];
+  {
+    id: 'open',
+    key: 'opened',
+    label: 'Opened',
+    hint: 'All active tickets',
+    color: 'text-[var(--color-status-ok)] bg-[var(--color-status-ok-soft)]',
+  },
+  {
+    id: 'delayed',
+    key: 'delayed',
+    label: 'Delayed',
+    hint: 'An SLA deadline is within the next hour',
+    color: 'text-[var(--color-status-warn)] bg-[var(--color-status-warn-soft)]',
+  },
+  {
+    id: 'missed',
+    key: 'missed',
+    label: 'Missed',
+    hint: 'A reply or resolution SLA deadline has been missed',
+    color: 'text-[var(--color-status-alert)] bg-[var(--color-status-alert-soft)]',
+  },
+] as const;
 
 export function TicketFilters({
   scope,
@@ -28,7 +37,7 @@ export function TicketFilters({
   priority,
   search,
   queues,
-  canSeeEveryone,
+  counts,
 }: {
   scope: string;
   queue: string;
@@ -36,7 +45,7 @@ export function TicketFilters({
   priority: string;
   search: string;
   queues: { id: string; name: string; openTicketCount: number }[];
-  canSeeEveryone: boolean;
+  counts: { opened: number; delayed: number; missed: number };
 }) {
   const router = useRouter();
 
@@ -53,25 +62,32 @@ export function TicketFilters({
 
   return (
     <div className="space-y-2">
-      {canSeeEveryone ? (
-        <div className="flex flex-wrap items-center gap-1">
-          {SCOPES.map((option) => (
+      <div className="flex flex-wrap gap-2" aria-label="Ticket analytics">
+        {SCOPES.map((option) => {
+          const selected =
+            scope === option.id ||
+            (option.id === 'open' && scope === 'mine') ||
+            (option.id === 'missed' && scope === 'breached');
+          return (
             <button
               key={option.id}
               type="button"
-              onClick={() => apply({ scope: option.id })}
+              title={option.hint}
+              aria-pressed={selected}
+              onClick={() => apply({ scope: option.id, status: '' })}
               className={clsx(
-                'rounded-[var(--radius-control)] px-2.5 py-1 text-[12px] transition-colors',
-                scope === option.id
-                  ? 'bg-[var(--color-surface-muted)] font-medium text-[var(--color-ink)]'
-                  : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]',
+                'inline-flex items-center gap-2 rounded-[var(--radius-control)] border px-3 py-2 text-sm font-medium transition-colors',
+                option.color,
+                selected ? 'border-current' : 'border-transparent hover:border-current',
               )}
             >
+              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-current" />
               {option.label}
+              <span className="font-semibold tabular-nums">({counts[option.key]})</span>
             </button>
-          ))}
-        </div>
-      ) : null}
+          );
+        })}
+      </div>
 
       <form
         className="flex flex-wrap gap-2"
@@ -104,7 +120,12 @@ export function TicketFilters({
 
         <Select
           defaultValue={status}
-          onChange={(event) => apply({ status: event.currentTarget.value })}
+          onChange={(event) =>
+            apply({
+              status: event.currentTarget.value,
+              scope: event.currentTarget.value ? 'all' : 'open',
+            })
+          }
           className="max-w-48"
           aria-label="Status"
         >

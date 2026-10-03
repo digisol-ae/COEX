@@ -1,5 +1,13 @@
 # COEX live deployment
 
+## Release pending — 3 Oct 2026
+
+John authorized today’s commit/push and server pull. Feature commit `955ea3f` exists locally
+on `claude/dreamy-carson-86yxhh`; documentation-only handover follow-up follows it. Local unit/types/lint/format checks pass.
+Native build, focused DB tests and GitHub CI remain required before live pull. Server HEAD and
+process state have not been reverified; last documented live revision remains dd037e6.
+No push or deployment performed by this preparation.
+
 Live at `dd037e6` since 1 Oct 2026 (PR #2, Team history; PR #1 before it). Pending: PR #3
 (task origin), merged to main, waiting for John's deploy. See ai/HANDOFF.md, START HERE.
 
@@ -107,6 +115,8 @@ Follow this file for the live server; DEPLOY.md is the original design only.
   (mongodump + tar of storage, 14-day retention). Copy off-box periodically.
 
 ## Email worker (from 24 Sep 2026)
+- Fourth pm2 process `coex-channels` (from M6.1): `pm2 start npm --name coex-channels -- run channels:worker`,
+  then `pm2 save`. Sends the WhatsApp outbox in test mode or XVERSE Case A.
 - Third pm2 process `coex-desk-close`: `pm2 start npm --name coex-desk-close -- run desk:worker`,
   then `pm2 save`. Set `OFFICE_TZ` (default Asia/Dubai) if the office is elsewhere.
 - Second pm2 process `coex-mail`: `pm2 start npm --name coex-mail -- run email:worker`, then

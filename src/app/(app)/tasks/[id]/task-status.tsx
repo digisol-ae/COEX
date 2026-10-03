@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { clsx } from 'clsx';
+import { toneForStatus } from '@/components/ui/pill';
 import { useToast } from '@/components/ui/toast';
 import { setTaskStatusAction } from '../actions';
 
@@ -62,7 +63,9 @@ export function TaskStatus({
         'h-8 cursor-pointer rounded-full border px-3 text-xs font-medium disabled:opacity-60',
         closed
           ? 'border-[var(--color-status-ok)] bg-[var(--color-status-ok-soft)] text-[var(--color-status-ok)]'
-          : 'border-[var(--color-status-info)] bg-[var(--color-status-info-soft)] text-[var(--color-status-info)]',
+          : toneForStatus(value) === 'todo'
+            ? 'border-[var(--color-pill-todo-ink)] bg-[var(--color-pill-todo)] text-[var(--color-pill-todo-ink)]'
+            : 'border-[var(--color-status-info)] bg-[var(--color-status-info-soft)] text-[var(--color-status-info)]',
       )}
     >
       {choices.map((stage) => (

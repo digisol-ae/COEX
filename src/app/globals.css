@@ -77,8 +77,8 @@
    * them down a list do not fight. Each ships with its own text colour rather than relying on
    * white text, which fails on the lighter fills.
    */
-  --color-pill-todo: #eceee7;
-  --color-pill-todo-ink: #55584f;
+  --color-pill-todo: #fff3cc;
+  --color-pill-todo-ink: #806000;
   --color-pill-progress: #e3edf4;
   --color-pill-progress-ink: #35617d;
   --color-pill-blocked: #fdecee;
@@ -144,8 +144,8 @@ html[data-theme='light'] {
   --color-ink-subtle: #86868b;
   --color-line: #e2e2e7;
   --color-line-strong: #cfcfd6;
-  --color-pill-todo: #ededf1;
-  --color-pill-todo-ink: #515154;
+  --color-pill-todo: #fff3cc;
+  --color-pill-todo-ink: #806000;
 }
 
 html[data-theme='dark'] {
@@ -166,8 +166,8 @@ html[data-theme='dark'] {
   --color-action-hover: #d8d8dc;
   --color-rail: #0b0b0c;
   --gradient-rail: linear-gradient(180deg, #111112 0%, #0a0a0b 100%);
-  --color-pill-todo: #2c2d30;
-  --color-pill-todo-ink: #c8c9cc;
+  --color-pill-todo: #382f15;
+  --color-pill-todo-ink: #f2cc60;
   --color-pill-progress: #1b2a36;
   --color-pill-progress-ink: #8fbadb;
   --color-pill-blocked: #3b1c22;

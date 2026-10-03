@@ -8,11 +8,11 @@ import type { CannedReplySummary } from '@/modules/tickets/services/canned-reply
 import { MentionTextarea, type MentionPerson } from '@/components/ui/mention-textarea';
 import { replyAction, type SupportFormState } from '../../actions';
 
-const initialState: SupportFormState = {};
+import type { CustomerReplySender } from '@/modules/core/services/email.service';
 
-/** Mirrors MAX_FILE_BYTES in attachment.service.ts, the server's real limit. Checking here only
- * gives an earlier, friendlier message; the server enforces this regardless. */
-const MAX_FILE_BYTES = 3 * 1024 * 1024;
+import { TicketAttachmentPicker } from '@/components/ui/ticket-attachment-picker';
+
+const initialState: SupportFormState = {};
 
 /**
  * Writing a reply.
@@ -30,10 +30,12 @@ export function ReplyBox({
   cannedReplies,
   context,
   emailTo = null,
+  senders = [],
   people = [],
   autoSignature = '',
 }: {
   /** Added to the customer's email by the server; shown so the agent knows it is there. */
+  senders?: CustomerReplySender[];
   autoSignature?: string;
   /** Colleagues who can be @mentioned in an internal note. */
   people?: MentionPerson[];
@@ -45,7 +47,6 @@ export function ReplyBox({
 }) {
   const [visibility, setVisibility] = useState<'public' | 'internal'>('public');
   const [usedReplyId, setUsedReplyId] = useState('');
-  const [oversizedFiles, setOversizedFiles] = useState<string[]>([]);
   const [state, formAction, pending] = useActionState(replyAction, initialState);
   const box = useRef<HTMLTextAreaElement>(null);
 
@@ -123,6 +124,31 @@ export function ReplyBox({
           <input type="hidden" name="cannedReplyId" value={isInternal ? '' : usedReplyId} />
 
           {!isInternal ? (
+            <label className="block text-xs text-[var(--color-ink-muted)]">
+              Send from
+              <select
+                name="sender"
+                defaultValue=""
+                disabled={pending || !emailTo}
+                className="mt-1 block w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)]"
+              >
+                <option value="">
+                  Default —{' '}
+                  {senders.find((sender) => sender.role === 'standard')?.address ??
+                    'current sending email'}
+                </option>
+                {senders
+                  .filter((sender) => sender.role !== 'standard')
+                  .map((sender) => (
+                    <option key={sender.role} value={sender.role}>
+                      {sender.name} — {sender.address}
+                    </option>
+                  ))}
+              </select>
+            </label>
+          ) : null}
+
+          {!isInternal ? (
             <p className="text-xs text-[var(--color-ink-subtle)]">
               {emailTo
                 ? `This reply will be emailed to ${emailTo}.`
@@ -161,30 +187,7 @@ export function ReplyBox({
             </div>
           ) : null}
 
-          <label className="flex flex-wrap items-center gap-2 text-[12px] text-[var(--color-ink-muted)]">
-            <span className="rounded-[var(--radius-control)] border border-[var(--color-line)] px-2.5 py-1 transition-colors hover:text-[var(--color-ink)]">
-              Attach files
-            </span>
-            <input
-              type="file"
-              name="files"
-              multiple
-              onChange={(event) => {
-                const tooBig = Array.from(event.target.files ?? [])
-                  .filter((file) => file.size > MAX_FILE_BYTES)
-                  .map((file) => file.name);
-                setOversizedFiles(tooBig);
-              }}
-              className="text-[11px] text-[var(--color-ink-subtle)] file:hidden"
-            />
-          </label>
-
-          {oversizedFiles.length > 0 ? (
-            <Notice tone="alert">
-              {oversizedFiles.join(', ')} {oversizedFiles.length === 1 ? 'is' : 'are'} over 3MB.
-              Send a link to it instead, or remove it before submitting.
-            </Notice>
-          ) : null}
+          <TicketAttachmentPicker disabled={pending} />
 
           {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
 

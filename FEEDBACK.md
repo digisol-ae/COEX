@@ -1,5 +1,70 @@
 # FEEDBACK
 
+## 3 October 2026 — To do task color
+
+To do tasks must be yellow; In progress remains blue. Applied to dots, pills and task status selector across themes.
+
+## 3 October 2026 — In-progress task color
+
+In-progress tasks must show blue. Shared task dots now match the existing blue status pills.
+
+## John, 3 Oct 2026 — ticket analytics counts (local, acceptance pending)
+
+- Replace scope filters with colored Opened/Delayed/Missed counts, clickable to show tickets.
+  Implementation defines Opened as active, Delayed as SLA due within an hour excluding breached,
+  and Missed as breached reply/resolution SLA. Agent permissions and other filters retained.
+- Counts are not truncated at 200. Added to today's release; visual acceptance pending.
+
+## John, 3 Oct 2026 — Tasks badge and creator (built locally)
+
+- The Tasks badge needs a clear destination. It counts visible open tasks assigned to the
+  signed-in person; tooltip explains it and the Tasks icon opens that exact list.
+- John clarified: creator is fixed; reassignment is allowed. Creator model field made
+  immutable and the editable Owner label changed to Assignees to distinguish them.
+- Added to today's cumulative release. Types/lint/formatting and 107 unit tests passed;
+  new DB regressions and browser acceptance pending. No push/deploy.
+
+## John, 3 Oct 2026 — cumulative release notes
+
+- Keep all changes since the last live pull together under today's date (3 October 2026).
+  Consolidated What's new; full inventory in ai/RELEASE-2026-10-03.md. Baseline is last
+  documented live SHA dd037e6; actual current VPS revision remains unverified.
+
+## John, 3 Oct 2026 — compact ticket preview (built locally)
+
+- Preview occupied too much space. Use compact icon-and-value chips with tooltips and
+  accessible labels, hide empty customer/contact fields, reduce spacing, and shorten the
+  brief/latest-message display. Open full ticket retains the complete information.
+- Types, lint and formatting passed; local visual acceptance pending. No push/deploy.
+
+## John, 3 Oct 2026 — ticket preview, timer clock and sender (built locally)
+
+- Every ticket offers an eye-icon preview with quick information, without changing screens;
+  the preview can open the full ticket. Available on desktop rows, phone cards and ticket detail.
+- Running ticket timer shows HH:MM:SS beside Stop timer.
+- Reply to customer may use a configured sending address; current Standard remains default.
+  Alternatives use existing Alert/Admin configuration. Internal notes stay private.
+- TypeScript/lint/formatting and 107 unit tests passed; browser/DB/live-send QA pending.
+  No push or deployment.
+
+## John, 3 Oct 2026 — customer creation and CC collaborators (local, acceptance pending)
+
+- Create customer in the ticket dropdown requires Customer name and email, selects the saved
+  customer and keeps the draft. Remaining details may be edited later in Customers.
+- Ticket agents (`ticket.manage`) may use this limited customer creation without general
+  customer management access. General CRM editing retains its existing permission.
+- Agents may add multiple CC collaborators from current-tenant team, customer or branch
+  contacts, or by email. Existing ticket changes use Save CC collaborators before replying.
+- Public reply emails include saved CC collaborators; internal notes remain private.
+- Types, lint and 101 unit tests passed; database/browser QA pending. No push/deploy.
+
+## John, 3 Oct 2026 — ticket attachments (built locally, acceptance pending)
+
+- Adding files individually must keep earlier selections. Ticket replies/internal notes and new
+  tickets now have a click/drop area with selected-file icons, names, sizes and removal.
+- Types/lint/formatting passed. Interactive browser QA is blocked by browser URL policy.
+  Pending: local acceptance and sending on a disposable ticket. No push or deployment.
+
 ## John, 1 Oct 2026 — who created and assigned a task (live after deploy)
 6. "I don't know who created and assigned the task to me." The creator was stored but never shown;
    the assigner was never recorded, not even in the audit log. Built: tasks record who assigned

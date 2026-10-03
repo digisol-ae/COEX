@@ -253,7 +253,7 @@ export function TaskPanel({
           ) : null}
 
           <dl className="space-y-2 text-[13px]">
-            <Row label="Owner">
+            <Row label="Assignees">
               <AssigneePicker
                 users={ownerOptions}
                 selectedIds={task.assigneeIds}

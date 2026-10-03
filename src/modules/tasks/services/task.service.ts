@@ -227,7 +227,12 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
 export async function countMyOpenTasks(userId: string): Promise<number> {
   await connectToDatabase();
 
-  return tasks().count({ assigneeIds: toObjectId(userId), isClosed: false });
+  const conditions = [
+    { assigneeIds: toObjectId(userId), isClosed: false },
+    await visibleFolderFilter(),
+    await visibleSpaceFilter('spaceId'),
+  ].filter((condition) => Object.keys(condition).length > 0);
+  return tasks().count({ $and: conditions });
 }
 
 export async function getTask(id: string) {

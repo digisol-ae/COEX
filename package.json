@@ -19,7 +19,8 @@
     "test:db": "vitest run tests/database",
     "check": "npm run test && npm run build",
     "email:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/email-worker.ts",
-    "desk:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/desk-close-worker.ts"
+    "desk:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/desk-close-worker.ts",
+    "channels:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/channel-worker.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.1",

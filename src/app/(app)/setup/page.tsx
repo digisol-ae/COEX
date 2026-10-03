@@ -20,6 +20,12 @@ const SECTIONS: { href: string; label: string; description: string; permission: 
     permission: 'tenant.manage',
   },
   {
+    href: '/setup/whatsapp',
+    label: 'WhatsApp',
+    description: 'Support and CRM numbers, the XVERSE connection and customer notifications.',
+    permission: 'tenant.manage',
+  },
+  {
     href: '/setup/fields',
     label: 'Custom fields',
     description: 'Extra fields on your records, defined without a code change.',

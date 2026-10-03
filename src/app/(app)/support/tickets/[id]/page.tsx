@@ -1,3 +1,7 @@
+import { customerReplySenders } from '@/modules/core/services/email.service';
+import { TicketPreviewButton } from '../ticket-preview-button';
+import { listCollaboratorOptions } from '@/modules/tickets/services/collaborator.service';
+import { CollaboratorsPanel } from './collaborators-panel';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
@@ -35,6 +39,8 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   if (!seesEverything && ticket.assigneeId !== actor.id) notFound();
 
   const canManage = actor.permissions.includes('ticket.manage');
+  const collaboratorOptions = canManage ? await asUser(actor, () => listCollaboratorOptions()) : [];
+  const senders = canManage ? await asUser(actor, () => customerReplySenders()) : [];
   const replyEmail = canManage ? await asUser(actor, () => customerReplyAddress(id)) : null;
 
   const { queues, users, spaces, cannedReplies, runningTimer, loggedMinutes, people, myTitle } =
@@ -74,7 +80,9 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           description={
             ticket.organisationName
               ? `${ticket.organisationName}${ticket.contactName ? ` · ${ticket.contactName}` : ''}`
-              : 'No customer on this ticket yet.'
+              : ticket.requester
+                ? `Not linked to a customer yet · ${ticket.requester}`
+                : 'No customer on this ticket yet.'
           }
           action={
             <div className="flex flex-col items-end gap-1">
@@ -126,18 +134,31 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
                 {loggedMinutes > 0 ? <span>{formatMinutes(loggedMinutes)} logged</span> : null}
               </div>
 
-              <div className="mt-3">
-                <TicketTimerButton ticketId={ticket.id} running={timerRunning} />
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <TicketPreviewButton ticketId={ticket.id} />
+                <TicketTimerButton
+                  ticketId={ticket.id}
+                  running={timerRunning}
+                  startedAt={timerRunning ? runningTimer.startedAt.toISOString() : null}
+                />
               </div>
             </CardSection>
           </Card>
 
+          {canManage && !ticket.mergedIntoId ? (
+            <CollaboratorsPanel
+              ticketId={ticket.id}
+              emails={ticket.ccEmails}
+              options={collaboratorOptions}
+            />
+          ) : null}
           <Conversation ticketId={ticket.id} messages={ticket.messages} />
 
           {canManage && !ticket.mergedIntoId ? (
             <ReplyBox
               ticketId={ticket.id}
               emailTo={replyEmail}
+              senders={senders}
               people={people}
               cannedReplies={cannedReplies}
               context={{
