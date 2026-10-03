@@ -38,6 +38,33 @@ describe('permissions', () => {
     expect(granted.has('task.read.own')).toBe(false);
   });
 
+  it('lets a senior agent see and assign all work without administering people or the tenant', () => {
+    const granted = permissionsFor({ role: 'senior_agent' });
+
+    for (const permission of [
+      'ticket.read.all',
+      'ticket.manage',
+      'task.read.all',
+      'task.manage',
+    ] as const)
+      expect(granted.has(permission)).toBe(true);
+    for (const permission of [
+      'user.manage',
+      'tenant.manage',
+      'audit.read',
+      'desk.read.all',
+      'timesheet.read.all',
+    ] as const)
+      expect(granted.has(permission)).toBe(false);
+
+    expect(
+      permissionsFor({ role: 'senior_agent', permissionGrants: ['timesheet.read.all'] }).has(
+        'timesheet.read.all',
+      ),
+    ).toBe(true);
+    expect(can({ role: 'manager' }, 'timesheet.read.all')).toBe(true);
+  });
+
   it('keeps a client contact to their own tickets and nothing else', () => {
     const granted = permissionsFor({ role: 'client_contact' });
 

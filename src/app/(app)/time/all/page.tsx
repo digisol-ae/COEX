@@ -21,7 +21,7 @@ export default async function AllTimesheetsPage({
 }: {
   searchParams: Promise<{ week?: string }>;
 }) {
-  const actor = await requirePermission('task.read.all');
+  const actor = await requirePermission('timesheet.read.all');
   const params = await searchParams;
 
   const week = params.week ? new Date(params.week) : new Date();

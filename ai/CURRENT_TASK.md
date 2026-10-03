@@ -219,6 +219,20 @@
 > screen for any `title` and any icon-only control with an `aria-label`; My available tasks rows
 > say "Click to preview, or drag onto My Desk". Removed the "score is being refined" sentence.
 > Priority flag 12px to 16px with stronger colour; desk icon 18px to 22px. tsc, eslint, prettier pass.
+## Senior agent role — 2 Oct 2026 (Claude), local, uncommitted
+
+- John: an elevated user, still an agent, who can assign any ticket or task to anyone. His
+  choices: direct assignment with the normal alert (not an accept/approve request), a new role,
+  tasks included, private Space/Folder member limits still respected.
+- Built: role `senior_agent` in src/modules/core/permissions.ts (agent's permissions plus
+  `ticket.read.all` and `task.read.all`; assignment already needs only `ticket.manage` and
+  `task.manage`). Appears in Users and roles and the create-user form automatically. One new unit
+  test in tests/unit/permissions.test.ts. Decision recorded in CLAUDE.md.
+- Not run: no node_modules in the Linux sandbox (rule: install on the Mac). Run `npx vitest run
+  tests/unit`, `npx tsc --noEmit` and `npm run lint` on the Mac before committing.
+- Side effects to confirm with John: the role also sees Spaces, All timesheets and Time report,
+  and is counted in unread marks and the new-ticket alert where those go to everyone with
+  `ticket.read.all`.
 
 ## Task origin built and merged — 1 Oct 2026 (Claude), deploy pending
 

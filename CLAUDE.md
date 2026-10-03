@@ -309,6 +309,16 @@ by `npm install` on the Mac.
   score. `listTeamDeskHistory` checks the permission itself.
   It is deliberately not in What's new (John, 1 Oct 2026): it is for the few people granted the
   permission, so it is announced to them directly, not to everyone.
+- Senior agent (John, 2 Oct 2026): a role above agent (`senior_agent`, permissions.ts). Still an
+  agent, but sees every ticket and task (`ticket.read.all`, `task.read.all`) and so can assign any
+  of them to anyone, directly and at once; the assignee gets the usual alert and the audit log and
+  task origin record who did it. It is not a request that needs accepting. Private Space and
+  Folder member limits (decision 14) still apply. No user, tenant or audit administration. Everyone's
+  timesheets and the Time report are a separate permission, `timesheet.read.all` (2 Oct 2026; held
+  by tenant administrators and managers, granted to a senior agent only per person in Users and
+  roles), so John decides who sees hours. `read.all` still opens Spaces and counts the person in
+  unread marks for unassigned tickets. Deliberately not in What's new:
+  administrators assign it in Users and roles.
 - Task origin (John, 1 Oct 2026): every task shows who created it (`createdById`) and who
   assigned each current assignee (`assignments`: userId, assignedById, assignedAt, kept in step
   with assigneeIds by createTask, updateTask and patchTask). The viewer reads "Assigned to you
