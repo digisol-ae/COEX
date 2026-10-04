@@ -759,8 +759,7 @@ export async function deliverQueuedEmail(limit = 20): Promise<number> {
 
       const stored =
         (row.attachments as
-          | { fileName: string; contentType: string; storageKey: string }[]
-          | undefined) ?? [];
+          { fileName: string; contentType: string; storageKey: string }[] | undefined) ?? [];
       const attachments = await Promise.all(
         stored.map(async (file) => ({
           filename: file.fileName,
