@@ -1,6 +1,6 @@
 # COEX Phase 2 plan (draft for John, 4 Oct 2026)
 
-Status: draft. Nothing here is decided until John confirms it. No Phase 2 scope document exists
+Status: order confirmed by John, 4 Oct 2026 (answers below). Other detail remains draft. No Phase 2 scope document exists
 in the repository; this is built from the original priority list and CLAUDE.md.
 
 ## Starting point
@@ -11,12 +11,12 @@ the accounting system; COEX integrates with it and never replaces it.
 
 ## Proposed order
 
-| Order | Module | Why here |
-|---|---|---|
-| 1 | Contracts / AMC | Builds directly on customers and products from M2. Renewals feed tickets and revenue visibility. Lowest new risk. |
-| 2 | Full CRM | Leads, opportunities, pipeline, activity history. Reuses customers, contacts, tasks. |
-| 3 | Payroll | Highest sensitivity (salary data, UAE rules). Needs its own permission model and John's policy input, so it goes last. |
-| Alongside | Zoho Books integration | Invoice and payment status read into contracts; start read-only. |
+| Order     | Module                 | Why here                                                                                                               |
+| --------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 1         | Contracts / AMC        | Builds directly on customers and products from M2. Renewals feed tickets and revenue visibility. Lowest new risk.      |
+| 2         | Full CRM               | Leads, opportunities, pipeline, activity history. Reuses customers, contacts, tasks.                                   |
+| 3         | Payroll                | Highest sensitivity (salary data, UAE rules). Needs its own permission model and John's policy input, so it goes last. |
+| Alongside | Zoho Books integration | Invoice and payment status read into contracts; start read-only.                                                       |
 
 Payroll before CRM is possible if the business need is more urgent: tell me.
 
@@ -28,8 +28,7 @@ Payroll before CRM is possible if the business need is more urgent: tell me.
 - Renewal reminders through the existing email outbox and dashboard; renewal creates a task.
 - Tickets link to the customer's active contract; an SLA tier can drive the ticket SLA clock.
 - Documents stay in Microsoft 365: the contract stores links, not files (decision 5).
-- Open questions for John: what AMC variants exist; is billing handled entirely in Zoho; should
-  support time count against contract hours?
+- Answered 4 Oct 2026, see below. Billing frequency: monthly, bimonthly, quarterly or yearly.
 
 ## 2. Full CRM
 
@@ -43,8 +42,9 @@ Payroll before CRM is possible if the business need is more urgent: tell me.
 - Employee records, salary structure, allowances, deductions, leave, attendance feed from time
   tracking, monthly pay run, payslips.
 - Own permission (`payroll.*`), audit on every read of salary data, no role holds it by default.
-- Needs from John first: UAE specifics (WPS file format, end of service gratuity, leave rules),
-  headcount and whether payroll is for DigiSol only or for client tenants too.
+- Multi-currency (AED, USD, PKR) from the start: each employee is paid in one currency; money
+  stays integer minor units. No UAE-specific rules for now (John, 4 Oct 2026).
+- Still to ask before Payroll: headcount, leave rules, and DigiSol only or client tenants too.
 
 ## Cross-cutting rules
 
@@ -52,8 +52,15 @@ Payroll before CRM is possible if the business need is more urgent: tell me.
 - Each module ships in small milestones, each accepted by John before the next.
 - Estimates: not given until John confirms scope and order.
 
-## Decisions needed from John
+## John's answers, 4 Oct 2026
 
-1. Confirm the order (Contracts, CRM, Payroll) or change it.
-2. Answer the open questions under Contracts so the first milestone can be specified.
-3. Whether to start Contracts after M8 hardening closes or in parallel.
+- Order agreed: Contracts / AMC first, then full CRM, then Payroll.
+- AMC term is assumed yearly; payment can be monthly, bimonthly, quarterly or yearly.
+- Billing is entirely in Zoho Books. COEX never invoices; it only tracks and reads status.
+- Support time against contract hours is optional, per contract.
+- Payroll has no UAE-specific rules for now. Staff work across the world, so payroll must support
+  multiple currencies: AED, USD and PKR.
+- Specification for the first milestone: docs/P2-1-CONTRACTS-SPEC.md.
+
+1. Review docs/P2-1-CONTRACTS-SPEC.md and answer its open questions.
+2. Whether to start Contracts after M8 hardening closes or in parallel.

@@ -1,5 +1,12 @@
 # COEX — Shared AI Project State
 
+## Phase 2 order and Contracts spec — 4 Oct 2026 (Claude)
+
+- John confirmed Contracts / AMC, then full CRM, then Payroll. Billing entirely in Zoho; support
+  hours against a contract are optional; payroll needs AED, USD and PKR, no UAE specifics.
+- docs/PHASE-2-PLAN.md updated; first milestone drafted in docs/P2-1-CONTRACTS-SPEC.md with four
+  open questions for John. No code written for Phase 2 yet.
+
 ## Slow Atlas tests diagnosed — 4 Oct 2026 (Claude)
 
 - Cause: `testTimeout` (30 s) does not cover `beforeAll`/`beforeEach`, whose default is 10 s, and
