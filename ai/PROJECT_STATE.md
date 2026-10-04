@@ -1,5 +1,16 @@
 # COEX — Shared AI Project State
 
+## Slow Atlas tests diagnosed — 4 Oct 2026 (Claude)
+
+- Cause: `testTimeout` (30 s) does not cover `beforeAll`/`beforeEach`, whose default is 10 s, and
+  every database test clears all collections and reseeds in `beforeEach` over the link to Atlas.
+  That matches the four files that time out in a full run but pass alone (1 Oct note).
+- Changed (not run here, no database or node_modules in the sandbox): `hookTimeout` 60 s in
+  vitest.config.mts; indexes built once in `connectForTests`; optional `MONGODB_TEST_URI` for a
+  local MongoDB (see tests/README.md), falling back to `MONGODB_URI`.
+- John to run on the Mac: `npm run test:db`; for real speed install a local MongoDB and set
+  `MONGODB_TEST_URI`. Report timings.
+
 ## Hardening started, M6 suspended — 4 Oct 2026 (Claude)
 
 - John suspended M6.3 to M6.6 until further notice (XVERSE team unavailable). PR #5 is merged to
@@ -14,7 +25,7 @@
   `npm run build` on the Mac.
 - John to run on the Mac: `npm ci && npm run build && npx vitest run tests/unit`, then deploy;
   on the VPS `npm ci` should no longer report a critical.
-- Still open: rotate off Raheel's SSH key, slow Atlas database tests.
+- Still open: rotate off Raheel's SSH key; slow Atlas tests have a fix awaiting a Mac run (below).
 - Phase 2 plan drafted in docs/PHASE-2-PLAN.md for John's review.
 
 ## START HERE — committed release for Claude — 3 Oct 2026 (Codex)
