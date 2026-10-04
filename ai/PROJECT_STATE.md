@@ -1,5 +1,12 @@
 # COEX — Shared AI Project State
 
+## Contracts spec answers — 4 Oct 2026 (Claude)
+
+- John: products from the CRM list with add-from-drop-down; renewal owner is the organisation's
+  owner; expiry warning to agents and to the customer's contract contact from 30 days before expiry
+  (configurable per customer). SLA tiers still undecided (explained in the spec). See
+  docs/P2-1-CONTRACTS-SPEC.md. No code yet.
+
 ## Phase 2 order and Contracts spec — 4 Oct 2026 (Claude)
 
 - John confirmed Contracts / AMC, then full CRM, then Payroll. Billing entirely in Zoho; support

@@ -50,10 +50,31 @@ contract and never issues invoices.
    hours.
 4. P2.1d Read-only Zoho Books link (needs Zoho API access from John).
 
-## Open questions for John
+## John's answers, 4 Oct 2026
 
-1. Should a contract list its covered products from the CRM product list, or just free text?
-2. Who owns a renewal: the account manager on the organisation, or chosen per contract?
-3. Should an `expired` contract with open tickets show a warning to agents?
-4. Are there SLA tiers per contract that should change ticket response targets, or is that
-   later?
+1. Covered products: pick from the CRM product list; if a product is not listed, it can be added
+   directly from the same drop-down (creates a CRM product, so nothing is typed twice).
+2. Renewal owner: the organisation's owner (`Organisation.ownerId`). No per-contract owner.
+3. Expiry warnings: start when the contract has fewer than 30 days left, configurable per
+   customer (`expiryWarningDays` on the organisation, default 30). From then until renewal, and
+   after expiry, the warning shows to agents on the contract and on that organisation's tickets,
+   and the customer's contract contact is emailed (Standard sender, sent through the outbox,
+   once at the threshold and again at expiry, never to automatic mail). Contract contacts are
+   chosen on the contract from the organisation's contacts. This replaces the single reminder
+   list in the Behaviour section: staff reminders stay on the owner, customer warnings are new.
+4. SLA tiers: not decided, see "SLA tiers explained" below. Default for now: later.
+
+## SLA tiers explained
+
+Today every ticket gets its reply and resolution deadlines from its queue. A contract could add a
+service level, for example Gold (reply within 1 hour), Silver (4 hours), Standard (next business
+day), and a ticket from that customer would then use the contract's deadlines instead of the
+queue's. It affects the Missed and Delayed counts and the dashboard. It is a separate, sizeable
+piece of work, so my recommendation is to build contracts without it and add it as P2.1e if you
+want customers treated differently. Reply "later" or "include" and I will record it.
+
+## Open
+
+- Confirm the customer warning goes to the contract contact(s) chosen on the contract (my reading
+  of "the customer who created the contract").
+- SLA tiers: later or include.
