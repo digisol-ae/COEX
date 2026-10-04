@@ -49,7 +49,10 @@ export async function saveProductAction(
   };
 
   try {
-    await asUser(actor, () => (id ? updateProduct(id, input) : createProduct(input)));
+    await asUser(actor, async () => {
+      if (id) await updateProduct(id, input);
+      else await createProduct(input);
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not save the product.' };
   }

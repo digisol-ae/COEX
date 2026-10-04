@@ -86,6 +86,8 @@ export interface OrganisationInput {
   address?: string;
   country?: string;
   notes?: string;
+  /** Days before a contract ends when agents and the customer are warned. Default 30. */
+  expiryWarningDays?: number;
   /** Values for the tenant's own field definitions, already validated by the CRM field service. */
   customFields?: Record<string, unknown>;
 }
@@ -115,6 +117,11 @@ export async function createOrganisation(input: OrganisationInput): Promise<stri
   return String(created._id);
 }
 
+/** Keeps a mistyped value from silencing the warning or warning a year ahead. */
+function clampWarningDays(days: number): number {
+  return Number.isFinite(days) ? Math.min(365, Math.max(0, Math.round(days))) : 30;
+}
+
 export async function updateOrganisation(id: string, input: OrganisationInput): Promise<void> {
   await connectToDatabase();
 
@@ -134,6 +141,9 @@ export async function updateOrganisation(id: string, input: OrganisationInput): 
         address: input.address?.trim() || null,
         country: input.country || 'AE',
         notes: input.notes?.trim() || null,
+        ...(input.expiryWarningDays === undefined
+          ? {}
+          : { expiryWarningDays: clampWarningDays(input.expiryWarningDays) }),
         ...(input.customFields ? { customFields: input.customFields } : {}),
       },
     },

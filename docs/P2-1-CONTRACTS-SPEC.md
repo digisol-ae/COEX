@@ -56,25 +56,15 @@ contract and never issues invoices.
    directly from the same drop-down (creates a CRM product, so nothing is typed twice).
 2. Renewal owner: the organisation's owner (`Organisation.ownerId`). No per-contract owner.
 3. Expiry warnings: start when the contract has fewer than 30 days left, configurable per
-   customer (`expiryWarningDays` on the organisation, default 30). From then until renewal, and
-   after expiry, the warning shows to agents on the contract and on that organisation's tickets,
-   and the customer's contract contact is emailed (Standard sender, sent through the outbox,
-   once at the threshold and again at expiry, never to automatic mail). Contract contacts are
-   chosen on the contract from the organisation's contacts. This replaces the single reminder
-   list in the Behaviour section: staff reminders stay on the owner, customer warnings are new.
-4. SLA tiers: not decided, see "SLA tiers explained" below. Default for now: later.
+   customer (`expiryWarningDays` on the organisation, default 30), and continue after expiry.
+   Agents see the warning on the contract and on that organisation's tickets. The customer is
+   warned through the support ticket they raise: the contact who creates a ticket (John's
+   clarification, 4 Oct 2026) gets the notice in the acknowledgement email, built by
+   tickets/email-text.ts so previews match. There is no separate contract-contact mailing. Never
+   sent to automatic mail, and the existing once-an-hour-per-sender limit still applies.
+4. SLA tiers: not wanted. All customers are treated the same (John, 4 Oct 2026); a contract never
+   changes ticket deadlines.
 
-## SLA tiers explained
+## Status
 
-Today every ticket gets its reply and resolution deadlines from its queue. A contract could add a
-service level, for example Gold (reply within 1 hour), Silver (4 hours), Standard (next business
-day), and a ticket from that customer would then use the contract's deadlines instead of the
-queue's. It affects the Missed and Delayed counts and the dashboard. It is a separate, sizeable
-piece of work, so my recommendation is to build contracts without it and add it as P2.1e if you
-want customers treated differently. Reply "later" or "include" and I will record it.
-
-## Open
-
-- Confirm the customer warning goes to the contract contact(s) chosen on the contract (my reading
-  of "the customer who created the contract").
-- SLA tiers: later or include.
+No open questions. Ready for P2.1a.

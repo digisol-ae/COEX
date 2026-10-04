@@ -53,6 +53,7 @@ export const GROUPS: NavigationGroup[] = [
     items: [
       { href: '/customers', label: 'Customers', permission: 'customer.read' },
       { href: '/products', label: 'Products', permission: 'products.read' },
+      { href: '/contracts', label: 'Contracts', permission: 'contract.read' },
       // Leads, pipeline and quotations join here in a later phase.
     ],
   },

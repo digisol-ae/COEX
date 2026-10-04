@@ -27,6 +27,7 @@ export function DetailsForm({
     website: string;
     address: string;
     notes: string;
+    expiryWarningDays: number;
   };
 }) {
   const [state, formAction, pending] = useActionState(updateOrganisationAction, initialState);
@@ -62,6 +63,16 @@ export function DetailsForm({
 
         <Field label="Industry">
           <Input name="industry" defaultValue={organisation.industry} />
+        </Field>
+
+        <Field label="Contract expiry warning" hint="Days before a contract ends. Default 30">
+          <Input
+            name="expiryWarningDays"
+            type="number"
+            min={0}
+            max={365}
+            defaultValue={organisation.expiryWarningDays}
+          />
         </Field>
 
         <Field label="Email">

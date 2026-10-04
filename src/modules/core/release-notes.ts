@@ -16,6 +16,21 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-04',
+    date: '4 October 2026',
+    title: 'Contracts',
+    sections: [
+      {
+        heading: 'Contracts',
+        items: [
+          'A new Contracts page under CRM lists annual maintenance agreements and other contracts for managers and administrators. Add a contract for a customer with its dates, how often it is billed (monthly, every two months, quarterly or yearly), the amount and currency, the products it covers and a link to the signed document.',
+          "A contract shows Expiring when fewer days remain than the customer's warning period (30 by default; change it on the customer under Contract expiry warning) and Expired after its end date.",
+          'If a product is not listed yet, add it from the contract form. Invoices and payments stay in Zoho Books.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-03',
     date: '3 October 2026',
     title: 'Ticket improvements, task origins and WhatsApp preparation',

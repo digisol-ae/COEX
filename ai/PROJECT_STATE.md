@@ -1,5 +1,21 @@
 # COEX — Shared AI Project State
 
+## P2.1a Contracts built — 4 Oct 2026 (Claude)
+
+- Contracts live in the CRM module (they read organisations and products; a separate module would
+  break the sibling import rule). Files: crm/models/contract.model.ts, crm/contract-status.ts,
+  crm/services/contract.service.ts, app/(app)/contracts/*, nav item under CRM, permissions
+  `contract.read`/`contract.manage` (tenant admin and manager), `contract` number series
+  (tenant `numbering.contractPrefix`, default C), organisation `expiryWarningDays` (customer
+  details form), release note 2026-10-04.
+- Status: stored draft/active/renewed/cancelled; expiring/expired are derived from end date in the
+  office time zone (Asia/Dubai), so no job is needed. Dates are YYYY-MM-DD text.
+- Verified in a scratch copy: tsc, prettier, eslint (zero warnings), 118 unit tests. NOT run:
+  tests/database/contracts.test.ts (no MongoDB in the sandbox) and the browser. John to run
+  `npx vitest run tests/database/contracts.test.ts` on the Mac.
+- Next: P2.1b renewal action, reminders and tasks; P2.1c ticket warning in the acknowledgement
+  email and agent banner. Customer warning goes to the contact who raises the ticket.
+
 ## Contracts spec answers — 4 Oct 2026 (Claude)
 
 - John: products from the CRM list with add-from-drop-down; renewal owner is the organisation's
