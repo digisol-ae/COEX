@@ -1,5 +1,15 @@
 # COEX — Current AI Task
 
+## Contracts tested — 4 Oct 2026 (Claude)
+
+- tests/database/contracts.test.ts: 13/13 pass, run in the sandbox against FerretDB 1.24 (SQLite),
+  a MongoDB-compatible emulator, because real MongoDB cannot be downloaded there. Also passing:
+  crm-foundation and custom-fields. The other database files could not run on the emulator (it
+  lacks partial and TTL indexes and projections in findAndModify), which says nothing about the
+  code. Real MongoDB run by John is still the final word. Browser check not done.
+- Deploy contracts: `git pull`, `npm ci`, `npm run build`, restart coex-app and coex-mail with
+  --update-env, pm2 save. No migration: new fields have defaults.
+
 ## Full CRM specification drafted — 4 Oct 2026 (Claude)
 
 - docs/P2-2-CRM-SPEC.md: leads, opportunities, one pipeline, conversion, reminders, permissions,
