@@ -1,5 +1,11 @@
 # COEX — Current AI Task
 
+## Full CRM specification drafted — 4 Oct 2026 (Claude)
+
+- docs/P2-2-CRM-SPEC.md: leads, opportunities, one pipeline, conversion, reminders, permissions,
+  four milestones P2.2a to P2.2d, six open questions for John. No code. Contracts P2.1a to P2.1c
+  remain to be verified by John (database test) before deploy.
+
 ## P2.1c built — 4 Oct 2026 (Claude)
 
 - Ticket contract notice (agents), customer line in the acknowledgement, contract detail page with

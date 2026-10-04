@@ -32,6 +32,8 @@ Payroll before CRM is possible if the business need is more urgent: tell me.
 
 ## 2. Full CRM
 
+Specification drafted 4 Oct 2026: docs/P2-2-CRM-SPEC.md (leads, opportunities, pipeline).
+
 - Leads and opportunities with configurable pipeline stages (same idea as Space workflows).
 - Activity timeline per customer and contact: tickets, tasks, calls, notes, emails.
 - Quotes stay in Zoho unless John says otherwise.
