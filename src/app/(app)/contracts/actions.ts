@@ -19,6 +19,27 @@ import { BILLING_FREQUENCIES, CONTRACT_TYPES } from '@/modules/crm/models/contra
 export interface ContractFormState {
   error?: string;
   saved?: boolean;
+  /**
+   * What was submitted, sent back with an error. React clears a form after every submit, so
+   * without this a mistake wipes everything the person typed (John, 4 Oct 2026).
+   */
+  values?: Record<string, string | string[]>;
+}
+
+function submittedValues(formData: FormData): Record<string, string | string[]> {
+  const values: Record<string, string | string[]> = {};
+
+  for (const [key, value] of formData.entries()) {
+    if (typeof value !== 'string') continue;
+    if (key === 'productIds') {
+      const list = values.productIds;
+      values.productIds = [...(Array.isArray(list) ? list : []), value];
+    } else {
+      values[key] = value;
+    }
+  }
+
+  return values;
 }
 
 function text(formData: FormData, field: string): string {
@@ -49,7 +70,10 @@ export async function saveContractAction(
         if (!actor.permissions.includes('products.manage')) {
           throw new Error('You may not add products. Ask a manager.');
         }
-        if (!newName || !newCode) throw new Error('A new product needs a name and a code.');
+        if (!newName || !newCode)
+          throw new Error(
+            'To add a product that is not listed, fill in both its name and its code. Otherwise leave both empty.',
+          );
         productIds.push(await createProduct({ name: newName, code: newCode, kind: 'support' }));
       }
 
@@ -78,7 +102,10 @@ export async function saveContractAction(
       else await createContract(input);
     });
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Could not save the contract.' };
+    return {
+      error: error instanceof Error ? error.message : 'Could not save the contract.',
+      values: submittedValues(formData),
+    };
   }
 
   revalidatePath('/contracts');

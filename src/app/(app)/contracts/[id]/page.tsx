@@ -21,6 +21,15 @@ const STATUS_TONE = {
   cancelled: 'neutral',
 } as const;
 
+const STATUS_LABEL = {
+  draft: 'Draft',
+  active: 'Active',
+  expiring: 'Expiring',
+  expired: 'Expired',
+  renewed: 'Renewed',
+  cancelled: 'Cancelled',
+} as const;
+
 export default async function ContractPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const actor = await requirePermission('contract.read');
@@ -56,7 +65,9 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
         <PageHeader
           title={contract.title}
           description={`${contract.organisationName} · ${contract.startDate} to ${contract.endDate}`}
-          action={<Badge tone={STATUS_TONE[contract.status]}>{contract.status}</Badge>}
+          action={
+            <Badge tone={STATUS_TONE[contract.status]}>{STATUS_LABEL[contract.status]}</Badge>
+          }
         />
       </div>
 
@@ -131,7 +142,9 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
               <tbody>
                 {schedule.map((period) => {
                   const invoiced = contract.invoicedPeriods.includes(period.index);
-                  const overdue = !invoiced && period.dueDate < todayKey();
+                  // A draft is not being billed yet, so only a contract in force can be behind.
+                  const overdue =
+                    contract.storedStatus === 'active' && !invoiced && period.dueDate < todayKey();
 
                   return (
                     <tr key={period.index}>

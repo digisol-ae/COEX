@@ -60,6 +60,13 @@ export function ContractPanel({
     initialState,
   );
 
+  // After an error the form shows what was submitted; otherwise the contract being edited.
+  const kept = state.values;
+  const text = (field: string, fallback: string | null | undefined = '') => {
+    const value = kept?.[field];
+    return typeof value === 'string' ? value : (fallback ?? '');
+  };
+
   if (!open) {
     return contract ? (
       <IconButton icon="edit" label="Edit contract" onClick={() => setOpen(true)} />
@@ -78,7 +85,12 @@ export function ContractPanel({
 
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Customer">
-              <Select name="organisationId" required defaultValue={contract?.organisationId ?? ''}>
+              <Select
+                key={`organisationId-${text('organisationId')}`}
+                name="organisationId"
+                required
+                defaultValue={text('organisationId', contract?.organisationId)}
+              >
                 <option value="" disabled>
                   Choose a customer
                 </option>
@@ -91,7 +103,11 @@ export function ContractPanel({
             </Field>
 
             <Field label="Type">
-              <Select name="type" defaultValue={contract?.type ?? 'amc'}>
+              <Select
+                key={`type-${text('type')}`}
+                name="type"
+                defaultValue={text('type', contract?.type ?? 'amc')}
+              >
                 <option value="amc">Annual maintenance (AMC)</option>
                 <option value="project">Project</option>
                 <option value="subscription">Subscription</option>
@@ -100,7 +116,7 @@ export function ContractPanel({
           </div>
 
           <Field label="Title">
-            <Input name="title" required defaultValue={contract?.title} />
+            <Input name="title" required defaultValue={text('title', contract?.title)} />
           </Field>
 
           <div className="grid gap-3 sm:grid-cols-3">
@@ -109,7 +125,7 @@ export function ContractPanel({
                 type="date"
                 name="startDate"
                 required
-                defaultValue={contract?.startDate}
+                defaultValue={text('startDate', contract?.startDate)}
                 onChange={(event) => {
                   if (!endDate) setEndDate(yearFrom(event.target.value));
                 }}
@@ -125,7 +141,11 @@ export function ContractPanel({
               />
             </Field>
             <Field label="Billed">
-              <Select name="billingFrequency" defaultValue={contract?.billingFrequency ?? 'yearly'}>
+              <Select
+                key={`billingFrequency-${text('billingFrequency')}`}
+                name="billingFrequency"
+                defaultValue={text('billingFrequency', contract?.billingFrequency ?? 'yearly')}
+              >
                 <option value="monthly">Monthly</option>
                 <option value="bimonthly">Every two months</option>
                 <option value="quarterly">Quarterly</option>
@@ -136,10 +156,18 @@ export function ContractPanel({
 
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Amount per billing period" hint="Invoicing itself stays in Zoho Books">
-              <Input name="value" inputMode="decimal" defaultValue={contract?.value} />
+              <Input
+                name="value"
+                inputMode="decimal"
+                defaultValue={text('value', contract?.value)}
+              />
             </Field>
             <Field label="Currency">
-              <Select name="currency" defaultValue={contract?.currency ?? 'AED'}>
+              <Select
+                key={`currency-${text('currency')}`}
+                name="currency"
+                defaultValue={text('currency', contract?.currency ?? 'AED')}
+              >
                 <option>AED</option>
                 <option>USD</option>
                 <option>PKR</option>
@@ -157,7 +185,11 @@ export function ContractPanel({
                     type="checkbox"
                     name="productIds"
                     value={product.id}
-                    defaultChecked={contract?.productIds.includes(product.id)}
+                    defaultChecked={
+                      Array.isArray(kept?.productIds)
+                        ? kept.productIds.includes(product.id)
+                        : contract?.productIds.includes(product.id)
+                    }
                   />
                   {product.name}
                 </label>
@@ -165,20 +197,35 @@ export function ContractPanel({
             </div>
             <div className="mt-2 grid gap-3 sm:grid-cols-2">
               <Field label="Not listed? Add a product" hint="Name">
-                <Input name="newProductName" />
+                <Input
+                  name="newProductName"
+                  autoComplete="off"
+                  defaultValue={text('newProductName')}
+                />
               </Field>
               <Field label=" " hint="Code, for example R4PLUS">
-                <Input name="newProductCode" />
+                <Input
+                  name="newProductCode"
+                  autoComplete="off"
+                  defaultValue={text('newProductCode')}
+                />
               </Field>
             </div>
           </fieldset>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Contract document link" hint="A Microsoft 365 link, never a file">
-              <Input name="documentUrl" type="url" defaultValue={contract?.documentUrl} />
+              <Input
+                name="documentUrl"
+                type="url"
+                defaultValue={text('documentUrl', contract?.documentUrl)}
+              />
             </Field>
             <Field label="Zoho Books reference">
-              <Input name="zohoReference" defaultValue={contract?.zohoReference} />
+              <Input
+                name="zohoReference"
+                defaultValue={text('zohoReference', contract?.zohoReference)}
+              />
             </Field>
           </div>
 
@@ -197,14 +244,14 @@ export function ContractPanel({
                 name="includedHoursPerPeriod"
                 inputMode="decimal"
                 placeholder="Hours per billing period"
-                defaultValue={contract?.includedHoursPerPeriod}
+                defaultValue={text('includedHoursPerPeriod', contract?.includedHoursPerPeriod)}
                 className="w-56"
               />
             ) : null}
           </div>
 
           <Field label="Notes">
-            <Input name="notes" defaultValue={contract?.notes} />
+            <Input name="notes" defaultValue={text('notes', contract?.notes)} />
           </Field>
 
           {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
