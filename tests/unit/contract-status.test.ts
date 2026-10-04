@@ -1,10 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
+  SAMPLE_CONTRACT_EMAIL_VALUES,
+  defaultContractTemplate,
+  fillContractTemplate,
+} from '@/modules/crm/contract-email';
+import {
   billingSchedule,
   contractExpiryNotice,
   daysBetween,
   deriveContractStatus,
+  matchesContractFilter,
   needsExpiryWarning,
+  parseContractFilter,
   periodContaining,
   reminderDue,
   renewalTerm,
@@ -123,5 +130,62 @@ describe('contractExpiryNotice', () => {
     expect(
       contractExpiryNotice({ status: 'expired', contractNumber: 'C-1', endDate: '2026-11-01' }),
     ).toContain('ended on 2026-11-01');
+  });
+});
+
+describe('matchesContractFilter', () => {
+  const inForce = (status: 'active' | 'expiring' | 'expired', daysLeft: number) => ({
+    status,
+    daysLeft,
+  });
+
+  it('puts a contract in the 30 and 60 day filters by days left, today included', () => {
+    expect(matchesContractFilter(inForce('expiring', 0), '30')).toBe(true);
+    expect(matchesContractFilter(inForce('expiring', 30), '30')).toBe(true);
+    expect(matchesContractFilter(inForce('active', 31), '30')).toBe(false);
+    expect(matchesContractFilter(inForce('active', 45), '60')).toBe(true);
+    expect(matchesContractFilter(inForce('active', 61), '60')).toBe(false);
+  });
+
+  it('keeps ended contracts out of the expiring filters and in expired', () => {
+    expect(matchesContractFilter(inForce('expired', -1), '30')).toBe(false);
+    expect(matchesContractFilter(inForce('expired', -1), 'expired')).toBe(true);
+    expect(matchesContractFilter(inForce('active', 5), 'expired')).toBe(false);
+  });
+
+  it('matches the badge: due is the warning window or ended', () => {
+    expect(matchesContractFilter(inForce('expiring', 10), 'due')).toBe(true);
+    expect(matchesContractFilter(inForce('expired', -3), 'due')).toBe(true);
+    expect(matchesContractFilter(inForce('active', 200), 'due')).toBe(false);
+  });
+
+  it('never matches an expiry filter for a contract that is not in force', () => {
+    for (const filter of ['due', '30', '60', 'expired'] as const) {
+      expect(matchesContractFilter({ status: 'draft', daysLeft: null }, filter)).toBe(false);
+    }
+    expect(matchesContractFilter({ status: 'draft', daysLeft: null }, 'all')).toBe(true);
+  });
+
+  it('reads the filter from the address and ignores nonsense', () => {
+    expect(parseContractFilter('60')).toBe('60');
+    expect(parseContractFilter('banana')).toBe('all');
+    expect(parseContractFilter(undefined)).toBe('all');
+  });
+});
+
+describe('fillContractTemplate', () => {
+  it('fills known placeholders and leaves unknown ones visible', () => {
+    expect(
+      fillContractTemplate(
+        'Dear {contact}, {contract_title} ends {end_date}. {nope}',
+        SAMPLE_CONTRACT_EMAIL_VALUES,
+      ),
+    ).toBe('Dear Sara Khan, R4 Annual Support ends 2026-12-31. {nope}');
+  });
+
+  it('opens on the template that fits the contract', () => {
+    expect(defaultContractTemplate('expired')).toBe('expired');
+    expect(defaultContractTemplate('expiring')).toBe('renewal');
+    expect(defaultContractTemplate('active')).toBe('general');
   });
 });

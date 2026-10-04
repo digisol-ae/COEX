@@ -44,6 +44,9 @@ const contractSchema = new Schema(
 
     productIds: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
 
+    /** Who at the customer is emailed about this contract (John, 4 Oct 2026). */
+    contactIds: [{ type: Schema.Types.ObjectId, ref: 'Contact' }],
+
     /** A link into Microsoft 365: documents are never stored here (decision 5). */
     documentUrl: { type: String, default: null },
     /** Free text until the read only Zoho Books link exists. */
@@ -59,6 +62,8 @@ const contractSchema = new Schema(
 
     /** Billing periods ticked as invoiced in Zoho Books, by period index. Manual until the sync. */
     invoicedPeriods: { type: [Number], default: () => [] },
+
+    lastEmailedAt: { type: Date, default: null },
 
     /** Renewing creates a new contract that points back, so history is never edited. */
     renewedFromId: { type: Schema.Types.ObjectId, ref: 'Contract', default: null },

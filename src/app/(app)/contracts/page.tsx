@@ -1,11 +1,18 @@
 import Link from 'next/link';
+import { clsx } from 'clsx';
 import { asUser, requirePermission } from '@/lib/session';
 import { listContracts, type ContractSummary } from '@/modules/crm/services/contract.service';
 import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { fromMinorUnits, listProducts } from '@/modules/crm/services/product.service';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
+import {
+  matchesContractFilter,
+  parseContractFilter,
+  type ContractFilter,
+} from '@/modules/crm/contract-status';
 import { archiveContractAction, renewContractAction, setContractStatusAction } from './actions';
+import { ContractEmailButton } from './contract-email-button';
 import { ContractPanel } from './contract-panel';
 
 export const metadata = { title: 'Contracts · COEX' };
@@ -35,17 +42,60 @@ const FREQUENCY_LABEL: Record<ContractSummary['billingFrequency'], string> = {
   yearly: 'Yearly',
 };
 
-export default async function ContractsPage() {
+const FILTERS: {
+  id: ContractFilter;
+  label: string;
+  hint: string;
+  color: string;
+}[] = [
+  {
+    id: 'all',
+    label: 'All',
+    hint: 'Every contract',
+    color: 'text-[var(--color-ink-muted)] bg-[var(--color-surface-sunken)]',
+  },
+  {
+    id: 'due',
+    label: 'Needs renewal',
+    hint: "In force and inside the customer's warning window, or past its end date",
+    color: 'text-[var(--color-status-warn)] bg-[var(--color-status-warn-soft)]',
+  },
+  {
+    id: '30',
+    label: 'Expiring in 30 days',
+    hint: 'In force and ending within 30 days',
+    color: 'text-[var(--color-status-warn)] bg-[var(--color-status-warn-soft)]',
+  },
+  {
+    id: '60',
+    label: 'Expiring in 60 days',
+    hint: 'In force and ending within 60 days',
+    color: 'text-[var(--color-status-info)] bg-[var(--color-status-info-soft)]',
+  },
+  {
+    id: 'expired',
+    label: 'Expired',
+    hint: 'Still marked active but past the end date',
+    color: 'text-[var(--color-status-alert)] bg-[var(--color-status-alert-soft)]',
+  },
+];
+
+export default async function ContractsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filter?: string }>;
+}) {
+  const filter = parseContractFilter((await searchParams).filter);
   const actor = await requirePermission('contract.read');
   const editable = actor.permissions.includes('contract.manage');
 
-  const [contracts, organisations, products] = await asUser(actor, () =>
+  const [allContracts, organisations, products] = await asUser(actor, () =>
     Promise.all([listContracts(), listOrganisations(), listProducts()]),
   );
 
-  const renewalsDue = contracts.filter(
-    (contract) => contract.status === 'expiring' || contract.status === 'expired',
-  );
+  const contracts = allContracts.filter((contract) => matchesContractFilter(contract, filter));
+  const countFor = (option: ContractFilter) =>
+    allContracts.filter((contract) => matchesContractFilter(contract, option)).length;
   const customers = organisations.map(({ id, name }) => ({ id, name }));
   const productChoices = products.map(({ id, name, code }) => ({ id, name, code }));
 
@@ -61,30 +111,39 @@ export default async function ContractsPage() {
         }
       />
 
-      {renewalsDue.length > 0 ? (
-        // Not a Notice: that renders a paragraph, and a list inside a paragraph is invalid HTML
-        // that breaks hydration in production.
-        <section
-          role="status"
-          className="mb-4 rounded-[var(--radius-control)] bg-[var(--color-status-warn-soft)] px-3 py-2 text-sm text-[var(--color-status-warn)]"
-        >
-          <div className="font-medium">
-            {renewalsDue.length} contract{renewalsDue.length === 1 ? '' : 's'} need renewal
-          </div>
-          <ul className="mt-1 space-y-0.5">
-            {renewalsDue.map((contract) => (
-              <li key={contract.id}>
-                {contract.organisationName}: {contract.title} ({contract.number}){' '}
-                {contract.status === 'expired' ? 'ended' : 'ends'} {contract.endDate}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      <div className="mb-4 flex flex-wrap gap-2" aria-label="Contract expiry filters">
+        {FILTERS.map((option) => {
+          const selected = filter === option.id;
+
+          return (
+            <Link
+              key={option.id}
+              href={option.id === 'all' ? '/contracts' : `/contracts?filter=${option.id}`}
+              title={option.hint}
+              aria-current={selected ? 'true' : undefined}
+              className={clsx(
+                'inline-flex items-center gap-2 rounded-[var(--radius-control)] border px-3 py-2 text-sm font-medium transition-colors',
+                option.color,
+                selected ? 'border-current' : 'border-transparent hover:border-current',
+              )}
+            >
+              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-current" />
+              {option.label}
+              <span className="font-semibold tabular-nums">({countFor(option.id)})</span>
+            </Link>
+          );
+        })}
+      </div>
 
       <Card>
         {contracts.length === 0 ? (
-          <EmptyState message="No contracts yet. Add the first annual maintenance agreement." />
+          <EmptyState
+            message={
+              filter === 'all'
+                ? 'No contracts yet. Add the first annual maintenance agreement.'
+                : 'No contracts match this filter.'
+            }
+          />
         ) : (
           <Table>
             <thead>
@@ -140,6 +199,10 @@ export default async function ContractsPage() {
                   <Td>
                     {editable ? (
                       <div className="flex items-center justify-end gap-1">
+                        <ContractEmailButton
+                          contractId={contract.id}
+                          lastEmailedAt={contract.lastEmailedAt}
+                        />
                         <ContractPanel
                           organisations={customers}
                           products={productChoices}
@@ -154,6 +217,7 @@ export default async function ContractsPage() {
                             value: fromMinorUnits(contract.valueMinorUnits),
                             currency: contract.currency,
                             productIds: contract.productIds,
+                            contactIds: contract.contactIds,
                             documentUrl: contract.documentUrl ?? '',
                             zohoReference: contract.zohoReference ?? '',
                             supportHoursEnabled: contract.supportHoursEnabled,

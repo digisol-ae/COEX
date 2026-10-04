@@ -92,16 +92,26 @@ export function IconRail({
 
       {visible.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-        const count = item.href === SUPPORT_HREF ? supportCount : counts?.[item.href];
+        // The CRM icon carries the contracts that need renewing, since Contracts lives in that group.
+        const renewals = item.group === 'crm' ? counts?.['/contracts'] : undefined;
+        const count = item.href === SUPPORT_HREF ? supportCount : (renewals ?? counts?.[item.href]);
 
         return (
           <Link
             key={item.href}
-            href={item.href === '/tasks' ? '/tasks?mine=1' : item.href}
+            href={
+              item.href === '/tasks'
+                ? '/tasks?mine=1'
+                : renewals
+                  ? '/contracts?filter=due'
+                  : item.href
+            }
             title={
               item.href === '/tasks'
                 ? `${count ?? 0} open task${count === 1 ? '' : 's'} assigned to you — click to view`
-                : item.label
+                : renewals
+                  ? `${renewals} contract${renewals === 1 ? '' : 's'} expiring or ended — click to view`
+                  : item.label
             }
             aria-current={active ? 'page' : undefined}
             className={clsx(

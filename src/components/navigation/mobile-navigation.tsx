@@ -19,11 +19,14 @@ export function MobileNavigation({
   groups,
   canManageTasks,
   unreadTickets,
+  renewalsDue,
 }: {
   groups: NavigationGroup[];
   canManageTasks: boolean;
   /** Undefined for someone who cannot read tickets. */
   unreadTickets?: number;
+  /** Contracts expiring or ended; undefined for someone who cannot read contracts. */
+  renewalsDue?: number;
 }) {
   const [open, setOpen] = useState(false);
   const unread = useLiveUnreadCount(unreadTickets, unreadTickets !== undefined);
@@ -112,7 +115,10 @@ export function MobileNavigation({
                   groups={groups}
                   canManageTasks={canManageTasks}
                   onNavigate={() => setOpen(false)}
-                  counts={unread ? { [SUPPORT_HREF]: unread } : undefined}
+                  counts={{
+                    ...(unread ? { [SUPPORT_HREF]: unread } : {}),
+                    '/contracts': renewalsDue,
+                  }}
                 />
               </div>
             </div>,

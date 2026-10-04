@@ -1,5 +1,32 @@
 # COEX — Shared AI Project State
 
+## Contract emails — 4 Oct 2026 (Claude)
+
+- Email icon on each contract row opens a popup: recipients (the contacts chosen on the contract),
+  one of three templates (Renewal reminder, Contract ended, General message; opens on the one that
+  fits), editable subject and message with placeholders, and a live preview. One personal email per
+  contact is queued through the outbox from a new fourth sender, Contracts (Setup, Email; blank
+  falls back to Standard). Each send is logged on the customer's timeline and in the audit log;
+  a contact without an address is skipped and named.
+- Templates are edited in Setup, Email (Contract email templates) with a preview. Contract contacts
+  are chosen on the contract form after picking the customer.
+- Verified: 18 database tests pass on the emulator; Chromium walk-through (Setup sections, contacts
+  picker, popup, send queued one email, skipped the contact with no address).
+- Not built: the Zoho Books invoice link. Needs Zoho API access from John; see
+  docs/P2-1d-ZOHO-SPEC.md.
+
+## Contracts badge and expiry filters — 4 Oct 2026 (Claude)
+
+- Menu badge: count of contracts needing renewal (in force and inside the customer's warning
+  window, or past the end date) on the CRM rail icon, the sidebar Contracts item and the phone
+  menu; clicking opens /contracts?filter=due.
+- Contracts page filters with counts, like the ticket filters: All, Needs renewal, Expiring in 30
+  days, Expiring in 60 days, Expired (`?filter=`). Pure rule in crm/contract-status.ts
+  (matchesContractFilter), summary gains daysLeft. Replaced the old Renewals due strip.
+- Verified in Chromium with five contracts: badge 2, each filter correct, rail click filters.
+- Requested next (John, 4 Oct 2026), not built: send-email button per contract with a
+  configurable template, and linking a contract to Zoho Books invoices (see the spec).
+
 ## Contracts form and detail polish — 4 Oct 2026 (Claude)
 
 - Contract form keeps everything typed when saving fails (React clears forms after every submit;

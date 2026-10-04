@@ -3,6 +3,7 @@ import { listDeskTaskIds } from '@/modules/tasks/services/desk.service';
 import { asUser, requireUser } from '@/lib/session';
 import { getRunningTimer } from '@/modules/time/services/time.service';
 import { countMyOpenTasks, listTasks } from '@/modules/tasks/services/task.service';
+import { countContractsNeedingRenewal } from '@/modules/crm/services/contract.service';
 import { countUnreadTickets } from '@/modules/tickets/services/unread.service';
 import { FloatingTimer } from '@/modules/time/components/floating-timer';
 import { TimerTray } from '@/modules/time/components/timer-tray';
@@ -47,6 +48,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       '/tasks': user.permissions.includes('task.read.own')
         ? await countMyOpenTasks(user.id)
         : undefined,
+      // Contracts that are expiring or have ended, so renewals are noticed before the customer is.
+      '/contracts': user.permissions.includes('contract.read')
+        ? await countContractsNeedingRenewal()
+        : undefined,
       '/support/tickets': user.permissions.includes('ticket.read.own')
         ? await countUnreadTickets({
             includeUnassigned: user.permissions.includes('ticket.read.all'),
@@ -72,6 +77,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           />
           <Sidebar
             groups={groups}
+            counts={counts}
             tenantName={user.tenantName}
             canManageTasks={user.permissions.includes('task.manage')}
           />
@@ -82,6 +88,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 groups={groups}
                 canManageTasks={user.permissions.includes('task.manage')}
                 unreadTickets={counts['/support/tickets']}
+                renewalsDue={counts['/contracts']}
               />
 
               <BackButton />

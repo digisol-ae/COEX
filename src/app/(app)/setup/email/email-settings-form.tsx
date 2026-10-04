@@ -10,6 +10,11 @@ import {
   renderSignature,
 } from '@/modules/tickets/email-text';
 import {
+  CONTRACT_EMAIL_PLACEHOLDERS,
+  SAMPLE_CONTRACT_EMAIL_VALUES,
+  fillContractTemplate,
+} from '@/modules/crm/contract-email';
+import {
   saveEmailSettingsAction,
   sendTestEmailAction,
   testMailboxAction,
@@ -249,7 +254,7 @@ export function EmailSettingsForm({
           </div>
         </CardSection>
 
-        <CardSection title="Alert and Admin senders">
+        <CardSection title="Alert, Admin and Contracts senders">
           <div className="space-y-6">
             <p className="text-sm text-[var(--color-ink-muted)]">
               Separate addresses so people can tell mail apart at a glance. Leave an address blank
@@ -275,7 +280,20 @@ export function EmailSettingsForm({
               testing={testing}
               onTest={() => runTest(() => sendTestEmailAction('admin'))}
             />
+            <SenderFields
+              prefix="contracts"
+              title="Contracts"
+              uses="Emails staff send to a customer about a contract, such as a renewal reminder."
+              placeholder="contracts@digisolteam.com"
+              sender={settings.senders.contracts}
+              testing={testing}
+              onTest={() => runTest(() => sendTestEmailAction('contracts'))}
+            />
           </div>
+        </CardSection>
+
+        <CardSection title="Contract email templates">
+          <ContractTemplates templates={settings.contractTemplates} />
         </CardSection>
 
         <CardSection title="Customer emails">
@@ -383,6 +401,68 @@ export function EmailSettingsForm({
   );
 }
 
+const TEMPLATE_TITLES = {
+  renewal: ['Renewal reminder', 'Offered when a contract is expiring.'],
+  expired: ['Contract ended', 'Offered when a contract has passed its end date.'],
+  general: ['General message', 'Offered for any other contract. Edited before sending.'],
+} as const;
+
+/** The three emails staff pick from on the Contracts page, each with a live preview. */
+function ContractTemplates({ templates }: { templates: EmailSettingsView['contractTemplates'] }) {
+  const [values, setValues] = useState(templates);
+
+  return (
+    <div className="space-y-5">
+      <p className="text-sm text-[var(--color-ink-muted)]">
+        What staff send from a contract&apos;s email button, one email per contact, from the
+        Contracts sender. They can still change the words before sending. Placeholders:{' '}
+        {CONTRACT_EMAIL_PLACEHOLDERS.map(([token]) => token).join(' ')}
+      </p>
+
+      {(Object.keys(TEMPLATE_TITLES) as (keyof typeof TEMPLATE_TITLES)[]).map((key) => (
+        <fieldset
+          key={key}
+          className="space-y-3 rounded-[var(--radius-card)] border border-[var(--color-line)] p-4"
+        >
+          <legend className="px-1 text-sm font-semibold text-[var(--color-ink)]">
+            {TEMPLATE_TITLES[key][0]}
+          </legend>
+          <p className="text-xs text-[var(--color-ink-subtle)]">{TEMPLATE_TITLES[key][1]}</p>
+          <Field label="Subject">
+            <Input
+              name={`template_${key}_subject`}
+              value={values[key].subject}
+              onChange={(event) =>
+                setValues({ ...values, [key]: { ...values[key], subject: event.target.value } })
+              }
+            />
+          </Field>
+          <Field label="Message">
+            <textarea
+              name={`template_${key}_body`}
+              rows={7}
+              value={values[key].body}
+              onChange={(event) =>
+                setValues({ ...values, [key]: { ...values[key], body: event.target.value } })
+              }
+              className="w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-2 text-sm"
+            />
+          </Field>
+          <div className="rounded-[var(--radius-control)] bg-[var(--color-surface-sunken)] p-3 text-sm">
+            <p className="text-xs text-[var(--color-ink-subtle)]">Preview with sample values</p>
+            <p className="mt-1 font-medium text-[var(--color-ink)]">
+              {fillContractTemplate(values[key].subject, SAMPLE_CONTRACT_EMAIL_VALUES)}
+            </p>
+            <p className="mt-1 whitespace-pre-wrap text-[var(--color-ink-muted)]">
+              {fillContractTemplate(values[key].body, SAMPLE_CONTRACT_EMAIL_VALUES)}
+            </p>
+          </div>
+        </fieldset>
+      ))}
+    </div>
+  );
+}
+
 /**
  * One extra sender. Its own sign-in is optional: most set-ups send every address through the
  * standard mailbox, so those fields stay hidden until asked for.
@@ -396,7 +476,7 @@ function SenderFields({
   testing,
   onTest,
 }: {
-  prefix: 'alert' | 'admin';
+  prefix: 'alert' | 'admin' | 'contracts';
   title: string;
   uses: string;
   placeholder: string;

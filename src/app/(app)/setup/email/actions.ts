@@ -21,7 +21,14 @@ const text = (formData: FormData, name: string) => String(formData.get(name) ?? 
 const flag = (formData: FormData, name: string) => formData.get(name) === 'on';
 
 /** The Alert or Admin sender's fields, which the form names with that prefix. */
-function sender(formData: FormData, prefix: 'alert' | 'admin'): SenderInput {
+function template(formData: FormData, key: 'renewal' | 'expired' | 'general') {
+  return {
+    subject: text(formData, `template_${key}_subject`),
+    body: text(formData, `template_${key}_body`),
+  };
+}
+
+function sender(formData: FormData, prefix: 'alert' | 'admin' | 'contracts'): SenderInput {
   return {
     fromName: text(formData, `${prefix}FromName`),
     fromAddress: text(formData, `${prefix}FromAddress`),
@@ -66,7 +73,16 @@ export async function saveEmailSettingsAction(
           fromName: text(formData, 'fromName'),
           fromAddress: text(formData, 'fromAddress'),
         },
-        senders: { alert: sender(formData, 'alert'), admin: sender(formData, 'admin') },
+        senders: {
+          alert: sender(formData, 'alert'),
+          admin: sender(formData, 'admin'),
+          contracts: sender(formData, 'contracts'),
+        },
+        contractTemplates: {
+          renewal: template(formData, 'renewal'),
+          expired: template(formData, 'expired'),
+          general: template(formData, 'general'),
+        },
         customer: {
           autoReplyEnabled: flag(formData, 'autoReplyEnabled'),
           autoReplyBody: text(formData, 'autoReplyBody'),

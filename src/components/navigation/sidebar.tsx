@@ -12,10 +12,12 @@ export function Sidebar({
   groups,
   tenantName,
   canManageTasks,
+  counts,
 }: {
   groups: NavigationGroup[];
   tenantName: string;
   canManageTasks: boolean;
+  counts?: Partial<Record<string, number>>;
 }) {
   return (
     <aside className="sidebar-glow hidden w-60 shrink-0 flex-col border-r border-[var(--color-line)] md:flex">
@@ -24,7 +26,7 @@ export function Sidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 pb-6">
-        <NavigationTree groups={groups} canManageTasks={canManageTasks} />
+        <NavigationTree groups={groups} canManageTasks={canManageTasks} counts={counts} />
       </div>
     </aside>
   );

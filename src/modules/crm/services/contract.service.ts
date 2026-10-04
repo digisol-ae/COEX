@@ -1,13 +1,24 @@
 import { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
+import { getContext } from '@/lib/tenant-context';
 import { recordAudit, changedFields } from '@/modules/core/services/audit.service';
+import {
+  getContractTemplates,
+  queueEmail,
+  type ContractTemplateKey,
+  type ContractTemplates,
+} from '@/modules/core/services/email.service';
+import { TenantModel } from '@/modules/core/models/tenant.model';
+import { recordActivity } from './activity.service';
 import { nextNumber } from '@/modules/core/services/numbering.service';
 import { BILLING_FREQUENCIES, CONTRACT_TYPES, ContractModel } from '../models/contract.model';
+import { ContactModel } from '../models/contact.model';
 import { OrganisationModel } from '../models/organisation.model';
 import { ProductModel } from '../models/product.model';
 import {
   DEFAULT_EXPIRY_WARNING_DAYS,
+  daysBetween,
   deriveContractStatus,
   contractExpiryNotice,
   renewalTerm,
@@ -16,6 +27,11 @@ import {
   type StoredContractStatus,
 } from '../contract-status';
 import { toMinorUnits } from './product.service';
+import {
+  defaultContractTemplate,
+  fillContractTemplate,
+  type ContractEmailValues,
+} from '../contract-email';
 
 /**
  * Contracts and annual maintenance agreements.
@@ -28,6 +44,7 @@ import { toMinorUnits } from './product.service';
 const contracts = () => repository(ContractModel);
 const organisations = () => repository(OrganisationModel);
 const products = () => repository(ProductModel);
+const contactRecords = () => repository(ContactModel);
 
 export type ContractType = (typeof CONTRACT_TYPES)[number];
 export type BillingFrequency = (typeof BILLING_FREQUENCIES)[number];
@@ -41,12 +58,16 @@ export interface ContractSummary {
   type: ContractType;
   storedStatus: StoredContractStatus;
   status: ContractStatus;
+  /** Whole days until the end date, for a contract in force; null otherwise. */
+  daysLeft: number | null;
   startDate: string;
   endDate: string;
   billingFrequency: BillingFrequency;
   valueMinorUnits: number;
   currency: string;
   productIds: string[];
+  contactIds: string[];
+  lastEmailedAt: string | null;
   documentUrl: string | null;
   zohoReference: string | null;
   supportHoursEnabled: boolean;
@@ -66,6 +87,7 @@ export interface ContractInput {
   value?: string;
   currency?: string;
   productIds?: string[];
+  contactIds?: string[];
   documentUrl?: string;
   zohoReference?: string;
   supportHoursEnabled?: boolean;
@@ -87,7 +109,9 @@ export function suggestedEndDate(startDate: string): string {
   return DATE_PATTERN.test(startDate) ? oneYearAfter(startDate) : '';
 }
 
-async function validate(input: ContractInput): Promise<Types.ObjectId[]> {
+async function validate(
+  input: ContractInput,
+): Promise<{ productIds: Types.ObjectId[]; contactIds: Types.ObjectId[] }> {
   if (!input.title.trim()) throw new Error('A contract needs a title.');
   if (!DATE_PATTERN.test(input.startDate) || !DATE_PATTERN.test(input.endDate)) {
     throw new Error('Start and end dates are required.');
@@ -119,10 +143,28 @@ async function validate(input: ContractInput): Promise<Types.ObjectId[]> {
   const found = wanted.length ? await products().find({ _id: { $in: wanted } }) : [];
   if (found.length !== wanted.length) throw new Error('One of the products was not found.');
 
-  return found.map((product) => product._id);
+  const wantedContacts = [...new Set(input.contactIds ?? [])];
+  const foundContacts = wantedContacts.length
+    ? await contactRecords().find({
+        _id: { $in: wantedContacts },
+        organisationId: input.organisationId,
+        status: 'active',
+      })
+    : [];
+  if (foundContacts.length !== wantedContacts.length) {
+    throw new Error("Contract contacts must be active contacts of this contract's customer.");
+  }
+
+  return {
+    productIds: found.map((product) => product._id),
+    contactIds: foundContacts.map((contact) => contact._id),
+  };
 }
 
-function fields(input: ContractInput, productIds: Types.ObjectId[]) {
+function fields(
+  input: ContractInput,
+  linked: { productIds: Types.ObjectId[]; contactIds: Types.ObjectId[] },
+) {
   return {
     organisationId: new Types.ObjectId(input.organisationId),
     title: input.title.trim(),
@@ -132,7 +174,8 @@ function fields(input: ContractInput, productIds: Types.ObjectId[]) {
     billingFrequency: input.billingFrequency,
     valueMinorUnits: toMinorUnits(input.value) ?? 0,
     currency: (input.currency || 'AED').toUpperCase(),
-    productIds,
+    productIds: linked.productIds,
+    contactIds: linked.contactIds,
     documentUrl: input.documentUrl?.trim() || null,
     zohoReference: input.zohoReference?.trim() || null,
     supportHoursEnabled: Boolean(input.supportHoursEnabled),
@@ -144,9 +187,9 @@ function fields(input: ContractInput, productIds: Types.ObjectId[]) {
 export async function createContract(input: ContractInput): Promise<string> {
   await connectToDatabase();
 
-  const productIds = await validate(input);
+  const linked = await validate(input);
   const created = await contracts().create({
-    ...fields(input, productIds),
+    ...fields(input, linked),
     number: await nextNumber('contract'),
     status: 'draft',
   });
@@ -167,11 +210,8 @@ export async function updateContract(id: string, input: ContractInput): Promise<
   const before = await contracts().findById(id);
   if (!before) throw new Error('Contract not found.');
 
-  const productIds = await validate(input);
-  const after = await contracts().updateOne(
-    { _id: before._id },
-    { $set: fields(input, productIds) },
-  );
+  const linked = await validate(input);
+  const after = await contracts().updateOne({ _id: before._id }, { $set: fields(input, linked) });
 
   await recordAudit({
     action: 'contract.updated',
@@ -280,12 +320,15 @@ export async function listContracts(filter?: {
         today,
         organisation?.expiryWarningDays ?? DEFAULT_EXPIRY_WARNING_DAYS,
       ),
+      daysLeft: contract.status === 'active' ? daysBetween(today, contract.endDate) : null,
       startDate: contract.startDate,
       endDate: contract.endDate,
       billingFrequency: contract.billingFrequency as BillingFrequency,
       valueMinorUnits: contract.valueMinorUnits ?? 0,
       currency: contract.currency ?? 'AED',
       productIds: (contract.productIds ?? []).map(String),
+      contactIds: (contract.contactIds ?? []).map(String),
+      lastEmailedAt: contract.lastEmailedAt ? contract.lastEmailedAt.toISOString() : null,
       documentUrl: contract.documentUrl ?? null,
       zohoReference: contract.zohoReference ?? null,
       supportHoursEnabled: Boolean(contract.supportHoursEnabled),
@@ -428,4 +471,179 @@ export async function contractNoticeFor(
       endDate: latest.endDate,
     }),
   };
+}
+
+/**
+ * The number on the menu badge: active contracts inside their warning window, or past their end
+ * date. The same set as the Renewals due list, so the badge and the page it opens always agree.
+ */
+export async function countContractsNeedingRenewal(): Promise<number> {
+  return (await listRenewalsDue()).length;
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Emailing a contract's contacts.
+ * ---------------------------------------------------------------------------------------------- */
+
+const BILLING_LABEL: Record<BillingFrequency, string> = {
+  monthly: 'Monthly',
+  bimonthly: 'Every two months',
+  quarterly: 'Quarterly',
+  yearly: 'Yearly',
+};
+
+function formatAmount(minorUnits: number, currency: string): string {
+  return `${currency} ${(minorUnits / 100).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+async function emailValues(
+  contract: ContractSummary,
+  contactName: string,
+): Promise<ContractEmailValues> {
+  const tenant = await TenantModel.findOne({ _id: getContext().tenantId }).select('name');
+
+  return {
+    contact: contactName,
+    customer: contract.organisationName,
+    contract_title: contract.title,
+    contract_number: contract.number,
+    start_date: contract.startDate,
+    end_date: contract.endDate,
+    // The days left only mean something while the contract runs; after the end it reads as 0.
+    days_left: String(Math.max(0, daysBetween(todayKey(), contract.endDate))),
+    amount: formatAmount(contract.valueMinorUnits, contract.currency),
+    billing: BILLING_LABEL[contract.billingFrequency],
+    company: tenant?.name ?? '',
+  };
+}
+
+export interface ContractEmailRecipient {
+  id: string;
+  name: string;
+  email: string | null;
+}
+
+export interface ContractEmailDraft {
+  recipients: ContractEmailRecipient[];
+  templates: ContractTemplates;
+  defaultTemplate: ContractTemplateKey;
+  /** Placeholder values for the first recipient who has an address, for the preview. */
+  sampleValues: ContractEmailValues;
+  previewName: string;
+}
+
+async function recipientsOf(contract: ContractSummary): Promise<ContractEmailRecipient[]> {
+  if (contract.contactIds.length === 0) return [];
+
+  const found = await contactRecords().find({
+    _id: { $in: contract.contactIds },
+    organisationId: contract.organisationId,
+  });
+
+  return found
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((contact) => ({
+      id: String(contact._id),
+      name: contact.name,
+      email: contact.email ?? null,
+    }));
+}
+
+/** What the send popup needs: who will be emailed, the three templates and a preview's values. */
+export async function prepareContractEmail(id: string): Promise<ContractEmailDraft> {
+  await connectToDatabase();
+
+  const contract = await getContract(id);
+  if (!contract) throw new Error('Contract not found.');
+
+  const recipients = await recipientsOf(contract);
+
+  // The preview is written for someone who will actually receive the email.
+  const previewName =
+    (recipients.find((person) => person.email) ?? recipients[0])?.name ?? 'Customer contact';
+
+  return {
+    recipients,
+    templates: await getContractTemplates(),
+    defaultTemplate: defaultContractTemplate(contract.status),
+    sampleValues: await emailValues(contract, previewName),
+    previewName,
+  };
+}
+
+/**
+ * Emails each contact chosen on the contract, one message each so every greeting is personal and no
+ * address is shown to the others. The subject and body are templates: the person may have edited
+ * the words, and the placeholders are filled here for each recipient.
+ */
+export async function sendContractEmail(
+  id: string,
+  input: { subject: string; body: string },
+): Promise<{ queued: number; skipped: string[] }> {
+  await connectToDatabase();
+
+  if (!input.subject.trim() || !input.body.trim()) {
+    throw new Error('The email needs a subject and a message.');
+  }
+
+  const contract = await getContract(id);
+  if (!contract) throw new Error('Contract not found.');
+
+  const recipients = await recipientsOf(contract);
+  if (recipients.length === 0) {
+    throw new Error('Choose who to email: edit the contract and add contract contacts.');
+  }
+
+  const skipped: string[] = [];
+  let queued = 0;
+
+  for (const recipient of recipients) {
+    if (!recipient.email) {
+      skipped.push(recipient.name);
+      continue;
+    }
+
+    const values = await emailValues(contract, recipient.name);
+    const subject = fillContractTemplate(input.subject, values).trim();
+
+    const accepted = await queueEmail({
+      kind: 'contract_email',
+      to: recipient.email,
+      subject,
+      text: fillContractTemplate(input.body, values).trim(),
+    });
+    if (!accepted) continue;
+
+    queued += 1;
+    await recordActivity({
+      organisationId: contract.organisationId,
+      contactId: recipient.id,
+      kind: 'email',
+      direction: 'outbound',
+      summary: `Contract email sent: ${subject}`,
+      sourceModule: 'crm',
+      sourceId: contract.id,
+    });
+  }
+
+  if (queued === 0) {
+    throw new Error(
+      skipped.length
+        ? 'None of the contract contacts has an email address.'
+        : 'Sending email is turned off in Setup, Email.',
+    );
+  }
+
+  await contracts().updateOne({ _id: id }, { $set: { lastEmailedAt: new Date() } });
+  await recordAudit({
+    action: 'contract.emailed',
+    entityType: 'Contract',
+    entityId: new Types.ObjectId(id),
+    after: { recipients: queued, subject: input.subject.trim() },
+  });
+
+  return { queued, skipped };
 }

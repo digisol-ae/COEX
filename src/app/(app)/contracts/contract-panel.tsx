@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { Button, Field, Input, Notice, Select } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
 import { useToast } from '@/components/ui/toast';
@@ -17,6 +17,7 @@ export interface ContractFormValues {
   value: string;
   currency: string;
   productIds: string[];
+  contactIds: string[];
   documentUrl: string;
   zohoReference: string;
   supportHoursEnabled: boolean;
@@ -46,6 +47,11 @@ export function ContractPanel({
 }) {
   const [open, setOpen] = useState(false);
   const [endDate, setEndDate] = useState(contract?.endDate ?? '');
+  const [organisationId, setOrganisationId] = useState(contract?.organisationId ?? '');
+  const [contacts, setContacts] = useState<{
+    organisationId: string;
+    list: { id: string; name: string; email: string | null }[];
+  }>({ organisationId: '', list: [] });
   const [supportHours, setSupportHours] = useState(contract?.supportHoursEnabled ?? false);
   const { showToast } = useToast();
   const [state, formAction, pending] = useActionState(
@@ -59,6 +65,26 @@ export function ContractPanel({
     },
     initialState,
   );
+
+  // The customer's contacts, for choosing who is emailed about this contract.
+  useEffect(() => {
+    if (!open || !organisationId) return;
+    let current = true;
+
+    fetch(`/api/crm/contacts?organisationId=${organisationId}`)
+      .then((response) => (response.ok ? response.json() : { contacts: [] }))
+      .then((data: { contacts: { id: string; name: string; email: string | null }[] }) => {
+        if (current) setContacts({ organisationId, list: data.contacts });
+      })
+      .catch(() => undefined);
+
+    return () => {
+      current = false;
+    };
+  }, [open, organisationId]);
+
+  // Contacts loaded for another customer are not offered for this one.
+  const contactChoices = contacts.organisationId === organisationId ? contacts.list : [];
 
   // After an error the form shows what was submitted; otherwise the contract being edited.
   const kept = state.values;
@@ -90,6 +116,7 @@ export function ContractPanel({
                 name="organisationId"
                 required
                 defaultValue={text('organisationId', contract?.organisationId)}
+                onChange={(event) => setOrganisationId(event.target.value)}
               >
                 <option value="" disabled>
                   Choose a customer
@@ -211,6 +238,43 @@ export function ContractPanel({
                 />
               </Field>
             </div>
+          </fieldset>
+
+          <fieldset key={`contacts-${organisationId}`}>
+            <legend className="mb-1 text-sm font-medium">Contract contacts</legend>
+            <p className="mb-1 text-xs text-[var(--color-ink-subtle)]">
+              The people emailed about this contract from the email button.
+            </p>
+            {organisationId ? (
+              contactChoices.length === 0 ? (
+                <p className="text-sm text-[var(--color-ink-muted)]">
+                  This customer has no contacts yet. Add them on the customer page first.
+                </p>
+              ) : (
+                <div className="grid gap-1 sm:grid-cols-2">
+                  {contactChoices.map((person) => (
+                    <label key={person.id} className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        name="contactIds"
+                        value={person.id}
+                        defaultChecked={
+                          Array.isArray(kept?.contactIds)
+                            ? kept.contactIds.includes(person.id)
+                            : contract?.contactIds.includes(person.id)
+                        }
+                      />
+                      {person.name}
+                      {person.email ? null : (
+                        <span className="text-xs text-[var(--color-status-alert)]">(no email)</span>
+                      )}
+                    </label>
+                  ))}
+                </div>
+              )
+            ) : (
+              <p className="text-sm text-[var(--color-ink-muted)]">Choose the customer first.</p>
+            )}
           </fieldset>
 
           <div className="grid gap-3 sm:grid-cols-2">
