@@ -1,5 +1,14 @@
 # COEX — Current AI Task
 
+## Contracts form and detail polish — 4 Oct 2026 (Claude)
+
+- Contract form keeps everything typed when saving fails (React clears forms after every submit;
+  the action now returns the submitted values and the form uses them as defaults, with a key on
+  each select because React does not re-apply a select default). The "add a product" fields are
+  autoComplete off and the message explains the name-and-code rule, after a browser filled them in.
+- Detail page: the red "not ticked" flag only shows for an active contract; status badge capitalised.
+- Verified in Chromium against a local build: forced error keeps all fields, corrected save works.
+
 ## Contracts page crash fixed — 4 Oct 2026 (Claude)
 
 - Live bug: saving a contract produced "This page couldn't load". Root cause was not in Contracts:
