@@ -47,3 +47,47 @@ export function deriveContractStatus(
 export function needsExpiryWarning(status: ContractStatus): boolean {
   return status === 'expiring' || status === 'expired';
 }
+
+export function addDays(day: string, days: number): string {
+  const result = new Date(`${day}T00:00:00Z`);
+  result.setUTCDate(result.getUTCDate() + days);
+  return result.toISOString().slice(0, 10);
+}
+
+/**
+ * The dates a renewal starts and ends: the day after the old term, for the same length.
+ *
+ * A year is kept as a calendar year, so a contract running 1 January to 31 December renews to the
+ * same dates a year on rather than drifting a day in a leap year.
+ */
+export function renewalTerm(
+  startDate: string,
+  endDate: string,
+): { startDate: string; endDate: string } {
+  const newStart = addDays(endDate, 1);
+  const length = daysBetween(startDate, endDate) + 1;
+
+  if (length === 365 || length === 366) {
+    const end = new Date(`${newStart}T00:00:00Z`);
+    end.setUTCFullYear(end.getUTCFullYear() + 1);
+    return { startDate: newStart, endDate: addDays(end.toISOString().slice(0, 10), -1) };
+  }
+
+  return { startDate: newStart, endDate: addDays(newStart, length - 1) };
+}
+
+/**
+ * Which reminder, if any, is due now. Each threshold is sent once. When several have been crossed
+ * at once (a contract added late, or the worker was down) one email covers them all, and all are
+ * marked sent, so nobody receives a burst of reminders for the same contract.
+ */
+export function reminderDue(
+  daysLeft: number,
+  thresholds: readonly number[],
+  alreadySent: readonly number[],
+): { send: boolean; markSent: number[] } {
+  const crossed = thresholds.filter((threshold) => daysLeft <= threshold);
+  const pending = crossed.filter((threshold) => !alreadySent.includes(threshold));
+
+  return { send: pending.length > 0, markSent: pending };
+}

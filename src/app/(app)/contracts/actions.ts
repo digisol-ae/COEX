@@ -5,6 +5,7 @@ import { asUser, requirePermission } from '@/lib/session';
 import {
   archiveContract,
   createContract,
+  renewContract,
   setContractStatus,
   updateContract,
   type BillingFrequency,
@@ -97,5 +98,12 @@ export async function archiveContractAction(formData: FormData): Promise<void> {
   const actor = await requirePermission('contract.manage');
 
   await asUser(actor, () => archiveContract(text(formData, 'id')));
+  revalidatePath('/contracts');
+}
+
+export async function renewContractAction(formData: FormData): Promise<void> {
+  const actor = await requirePermission('contract.manage');
+
+  await asUser(actor, () => renewContract(text(formData, 'id')));
   revalidatePath('/contracts');
 }

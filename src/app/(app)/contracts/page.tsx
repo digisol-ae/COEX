@@ -2,9 +2,9 @@ import { asUser, requirePermission } from '@/lib/session';
 import { listContracts, type ContractSummary } from '@/modules/crm/services/contract.service';
 import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { fromMinorUnits, listProducts } from '@/modules/crm/services/product.service';
-import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
+import { Badge, Card, EmptyState, Notice, PageHeader, Table, Td, Th } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
-import { archiveContractAction, setContractStatusAction } from './actions';
+import { archiveContractAction, renewContractAction, setContractStatusAction } from './actions';
 import { ContractPanel } from './contract-panel';
 
 export const metadata = { title: 'Contracts · COEX' };
@@ -42,6 +42,9 @@ export default async function ContractsPage() {
     Promise.all([listContracts(), listOrganisations(), listProducts()]),
   );
 
+  const renewalsDue = contracts.filter(
+    (contract) => contract.status === 'expiring' || contract.status === 'expired',
+  );
   const customers = organisations.map(({ id, name }) => ({ id, name }));
   const productChoices = products.map(({ id, name, code }) => ({ id, name, code }));
 
@@ -56,6 +59,22 @@ export default async function ContractsPage() {
           ) : undefined
         }
       />
+
+      {renewalsDue.length > 0 ? (
+        <Notice tone="warn">
+          <div className="font-medium">
+            {renewalsDue.length} contract{renewalsDue.length === 1 ? '' : 's'} need renewal
+          </div>
+          <ul className="mt-1 space-y-0.5">
+            {renewalsDue.map((contract) => (
+              <li key={contract.id}>
+                {contract.organisationName}: {contract.title} ({contract.number}){' '}
+                {contract.status === 'expired' ? 'ended' : 'ends'} {contract.endDate}
+              </li>
+            ))}
+          </ul>
+        </Notice>
+      ) : null}
 
       <Card>
         {contracts.length === 0 ? (
@@ -139,6 +158,13 @@ export default async function ContractsPage() {
                             <input type="hidden" name="id" value={contract.id} />
                             <input type="hidden" name="status" value="active" />
                             <IconButton type="submit" icon="status" label="Activate contract" />
+                          </form>
+                        ) : null}
+                        {contract.storedStatus === 'active' &&
+                        !contracts.some((other) => other.renewedFromId === contract.id) ? (
+                          <form action={renewContractAction}>
+                            <input type="hidden" name="id" value={contract.id} />
+                            <IconButton type="submit" icon="restore" label="Renew contract" />
                           </form>
                         ) : null}
                         {contract.storedStatus === 'active' ? (

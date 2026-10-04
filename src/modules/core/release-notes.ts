@@ -25,6 +25,8 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         items: [
           'A new Contracts page under CRM lists annual maintenance agreements and other contracts for managers and administrators. Add a contract for a customer with its dates, how often it is billed (monthly, every two months, quarterly or yearly), the amount and currency, the products it covers and a link to the signed document.',
           "A contract shows Expiring when fewer days remain than the customer's warning period (30 by default; change it on the customer under Contract expiry warning) and Expired after its end date.",
+          'Renew an active contract with the renew icon: it prepares a draft for the next term, and activating the draft retires the old contract. Contracts that are expiring or have ended are listed at the top of the page.',
+          "The contract owner (the customer's owner, or the administrators when there is none) gets an email 60 and 30 days before a contract ends. Switch this on or off under Setup, Email.",
           'If a product is not listed yet, add it from the contract form. Invoices and payments stay in Zoho Books.',
         ],
       },

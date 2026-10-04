@@ -53,6 +53,10 @@ const contractSchema = new Schema(
     supportHoursEnabled: { type: Boolean, default: false },
     includedHoursPerPeriod: { type: Number, default: null, min: 0 },
 
+    /** Days before the end date when the owner is reminded. Each is sent once (remindersSent). */
+    renewalReminderDays: { type: [Number], default: () => [60, 30] },
+    remindersSent: { type: [Number], default: () => [] },
+
     /** Renewing creates a new contract that points back, so history is never edited. */
     renewedFromId: { type: Schema.Types.ObjectId, ref: 'Contract', default: null },
 

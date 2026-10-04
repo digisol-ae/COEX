@@ -26,6 +26,7 @@ export type OutboxKind =
   | 'customer_replied'
   | 'task_assigned'
   | 'mentioned'
+  | 'contract_renewal'
   | 'password_reset'
   | 'ticket_created'
   | 'password_set_by_admin'
@@ -47,6 +48,7 @@ const SENDER_FOR: Record<OutboxKind, SenderRole> = {
   customer_replied: 'alert',
   task_assigned: 'alert',
   mentioned: 'alert',
+  contract_renewal: 'alert',
   password_reset: 'admin',
   password_set_by_admin: 'admin',
 };
@@ -56,7 +58,12 @@ export function senderRoleFor(kind: OutboxKind): SenderRole {
 }
 
 type StaffAlert =
-  'ticket_assigned' | 'customer_replied' | 'task_assigned' | 'mentioned' | 'ticket_created';
+  | 'ticket_assigned'
+  | 'customer_replied'
+  | 'task_assigned'
+  | 'mentioned'
+  | 'ticket_created'
+  | 'contract_renewal';
 
 export type NewTicketAlert = 'off' | 'admins' | 'desk';
 
@@ -142,6 +149,7 @@ export interface EmailSettingsView {
     customerReplied: boolean;
     taskAssigned: boolean;
     mentioned: boolean;
+    contractRenewal: boolean;
     ticketCreated: NewTicketAlert;
   };
   pendingCount: number;
@@ -267,6 +275,7 @@ export async function getEmailSettings(): Promise<EmailSettingsView> {
       customerReplied: staff.customerReplied ?? true,
       taskAssigned: staff.taskAssigned ?? true,
       mentioned: staff.mentioned ?? true,
+      contractRenewal: staff.contractRenewal ?? true,
       ticketCreated: (staff.ticketCreated as NewTicketAlert | undefined) ?? 'admins',
     },
     pendingCount,
@@ -480,6 +489,7 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
     customer_replied: settings.staff?.customerReplied ?? true,
     task_assigned: settings.staff?.taskAssigned ?? true,
     mentioned: settings.staff?.mentioned ?? true,
+    contract_renewal: settings.staff?.contractRenewal ?? true,
     ticket_created: (settings.staff?.ticketCreated ?? 'admins') !== 'off',
     // The account holder was told their password changed; like a reset link, not switchable.
     password_set_by_admin: true,

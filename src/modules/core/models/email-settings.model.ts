@@ -87,6 +87,7 @@ const emailSettingsSchema = new Schema(
       customerReplied: { type: Boolean, default: true },
       taskAssigned: { type: Boolean, default: true },
       mentioned: { type: Boolean, default: true },
+      contractRenewal: { type: Boolean, default: true },
       /** Who hears about a new ticket: nobody, administrators, or everyone who works the desk. */
       ticketCreated: { type: String, enum: ['off', 'admins', 'desk'], default: 'admins' },
     },

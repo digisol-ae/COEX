@@ -9,6 +9,7 @@ import { ProductModel } from '../models/product.model';
 import {
   DEFAULT_EXPIRY_WARNING_DAYS,
   deriveContractStatus,
+  renewalTerm,
   todayKey,
   type ContractStatus,
   type StoredContractStatus,
@@ -208,6 +209,15 @@ export async function setContractStatus(
 
   await contracts().updateOne({ _id: before._id }, { $set: { status } });
 
+  // Putting a renewal in force is what retires the contract it replaces, so the old one stops
+  // warning and the list shows a single live contract for the term.
+  if (status === 'active' && before.renewedFromId) {
+    await contracts().updateOne(
+      { _id: before.renewedFromId, status: 'active' },
+      { $set: { status: 'renewed' } },
+    );
+  }
+
   await recordAudit({
     action: `contract.${status}`,
     entityType: 'Contract',
@@ -278,4 +288,56 @@ export async function listContracts(filter?: {
       notes: contract.notes ?? null,
     };
   });
+}
+
+/**
+ * Renews a contract: a new draft for the next term, pointing back at the old one. The old contract
+ * stays as it was until the renewal is activated, so abandoning a draft loses nothing.
+ */
+export async function renewContract(id: string): Promise<string> {
+  await connectToDatabase();
+
+  const old = await contracts().findById(id);
+  if (!old) throw new Error('Contract not found.');
+  if (old.status !== 'active') throw new Error('Only an active contract can be renewed.');
+
+  if (await contracts().findOne({ renewedFromId: old._id })) {
+    throw new Error('This contract has already been renewed.');
+  }
+
+  const term = renewalTerm(old.startDate, old.endDate);
+  const created = await contracts().create({
+    organisationId: old.organisationId,
+    title: old.title,
+    type: old.type,
+    startDate: term.startDate,
+    endDate: term.endDate,
+    billingFrequency: old.billingFrequency,
+    valueMinorUnits: old.valueMinorUnits,
+    currency: old.currency,
+    productIds: old.productIds,
+    documentUrl: null,
+    zohoReference: old.zohoReference,
+    supportHoursEnabled: old.supportHoursEnabled,
+    includedHoursPerPeriod: old.includedHoursPerPeriod,
+    renewalReminderDays: old.renewalReminderDays,
+    renewedFromId: old._id,
+    number: await nextNumber('contract'),
+    status: 'draft',
+  });
+
+  await recordAudit({
+    action: 'contract.renewed',
+    entityType: 'Contract',
+    entityId: old._id,
+    after: { renewalId: String(created._id), number: created.number, ...term },
+  });
+
+  return String(created._id);
+}
+
+/** Active contracts that have reached their warning window or passed their end date. */
+export async function listRenewalsDue(): Promise<ContractSummary[]> {
+  const all = await listContracts();
+  return all.filter((contract) => contract.status === 'expiring' || contract.status === 'expired');
 }

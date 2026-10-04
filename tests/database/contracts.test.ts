@@ -6,11 +6,17 @@ import {
   createOrganisation,
   updateOrganisation,
 } from '@/modules/crm/services/organisation.service';
+import { EmailSettingsModel } from '@/modules/core/models/email-settings.model';
+import { OrganisationModel } from '@/modules/crm/models/organisation.model';
+import { UserModel } from '@/modules/core/models/user.model';
+import { EmailOutboxModel } from '@/modules/core/models/email-outbox.model';
+import { sendRenewalRemindersForTenant } from '@/modules/crm/services/contract-reminder.service';
 import { createProduct } from '@/modules/crm/services/product.service';
 import {
   archiveContract,
   createContract,
   listContracts,
+  renewContract,
   setContractStatus,
   updateContract,
   type ContractInput,
@@ -158,5 +164,83 @@ describe('contracts', () => {
 
     await inOne(async () => updateContract(id, await input({ title: 'Renamed' })));
     expect((await inOne(() => listContracts()))[0]?.title).toBe('Renamed');
+  });
+});
+
+describe('renewals', () => {
+  it('creates a draft for the next term and retires the old contract when it is activated', async () => {
+    const oldId = await inOne(async () => {
+      const id = await createContract(
+        await input({ startDate: '2026-01-01', endDate: '2026-12-31' }),
+      );
+      await setContractStatus(id, 'active');
+      return id;
+    });
+
+    const renewalId = await inOne(() => renewContract(oldId));
+
+    let found = await inOne(() => listContracts());
+    const draft = found.find((contract) => contract.id === renewalId);
+    expect(draft).toMatchObject({
+      storedStatus: 'draft',
+      startDate: '2027-01-01',
+      endDate: '2027-12-31',
+      renewedFromId: oldId,
+    });
+    expect(found.find((contract) => contract.id === oldId)?.storedStatus).toBe('active');
+
+    await expect(inOne(() => renewContract(oldId))).rejects.toThrow('already been renewed');
+
+    await inOne(() => setContractStatus(renewalId, 'active'));
+    found = await inOne(() => listContracts());
+    expect(found.find((contract) => contract.id === oldId)?.storedStatus).toBe('renewed');
+  });
+
+  it('only renews an active contract', async () => {
+    const id = await inOne(async () => createContract(await input()));
+    await expect(inOne(() => renewContract(id))).rejects.toThrow('active contract');
+  });
+});
+
+describe('renewal reminders', () => {
+  it('queues one email to the customer owner per threshold and never repeats it', async () => {
+    const ownerId = new Types.ObjectId();
+    await UserModel.create({
+      _id: ownerId,
+      tenantId: contextOne.tenantId,
+      name: 'Account Owner',
+      email: 'owner@example.com',
+      role: 'manager',
+      status: 'active',
+    });
+
+    // Mail is only queued when the tenant has sending turned on.
+    await EmailSettingsModel.create({
+      tenantId: contextOne.tenantId,
+      outbound: {
+        enabled: true,
+        host: 'smtp.example.com',
+        username: 'helpdesk@example.com',
+        fromName: 'Support',
+        fromAddress: 'helpdesk@example.com',
+      },
+    });
+
+    await inOne(async () => {
+      const organisationId = await createOrganisation({ name: 'Owned Clinic', kind: 'client' });
+      await OrganisationModel.updateOne({ _id: organisationId }, { $set: { ownerId } });
+      const id = await createContract(await input({ organisationId, endDate: dayKey(25) }));
+      await setContractStatus(id, 'active');
+    });
+
+    const run = () => sendRenewalRemindersForTenant(contextOne.tenantId);
+
+    expect(await run()).toBe(1);
+    expect(await run()).toBe(0);
+
+    const queued = await EmailOutboxModel.find({ tenantId: contextOne.tenantId });
+    expect(queued).toHaveLength(1);
+    expect(queued[0]).toMatchObject({ kind: 'contract_renewal', to: 'owner@example.com' });
+    expect(queued[0]?.subject).toContain('ends in 25 days');
   });
 });

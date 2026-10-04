@@ -77,6 +77,7 @@ export async function saveEmailSettingsAction(
           customerReplied: flag(formData, 'customerReplied'),
           taskAssigned: flag(formData, 'taskAssigned'),
           mentioned: flag(formData, 'mentioned'),
+          contractRenewal: flag(formData, 'contractRenewal'),
           ticketCreated: newTicketAlert(text(formData, 'ticketCreated')),
         },
       }),

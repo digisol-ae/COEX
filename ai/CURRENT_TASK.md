@@ -1,5 +1,16 @@
 # COEX — Current AI Task
 
+## P2.1b renewals built — 4 Oct 2026 (Claude)
+
+- Renew action (draft for next term, activating it retires the old contract), Renewals due strip,
+  hourly reminder pass inside the existing coex-mail worker (no new pm2 process), new staff alert
+  `contract_renewal` (Setup, Email toggle). Files: crm/contract-status.ts, crm/services/
+  contract.service.ts, contract-reminder.service.ts, scripts/email-worker.ts, contracts page.
+- Verified in a scratch copy: tsc, eslint zero warnings, prettier on changed files, 121 unit
+  tests. NOT run: tests/database/contracts.test.ts (needs MongoDB). Deploy: restart coex-app and
+  coex-mail with --update-env.
+- Open for John: renewal task and dashboard card (cross module, see spec).
+
 ## P2.1a Contracts built — 4 Oct 2026 (Claude)
 
 - Contracts live in the CRM module (they read organisations and products; a separate module would

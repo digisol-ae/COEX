@@ -68,3 +68,13 @@ contract and never issues invoices.
 ## Status
 
 No open questions. Ready for P2.1a.
+
+## P2.1b built, 4 Oct 2026
+
+- Renew action, Renewals due strip on the Contracts page, reminder emails at 60 and 30 days
+  (`renewalReminderDays`, each sent once, tracked in `remindersSent`), sent by the email worker
+  hourly to the organisation owner or, with no owner, the tenant administrators. New staff alert
+  kind `contract_renewal`, switchable in Setup, Email.
+- Deviations: no renewal task is created, because the CRM module may not import Tasks (decision
+  13 allows only Tasks and Tickets); the Renewals due strip and the email are the prompt. A
+  dashboard card is also deferred. Both need John's call.
