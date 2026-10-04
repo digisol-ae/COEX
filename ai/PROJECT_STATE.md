@@ -1,5 +1,21 @@
 # COEX — Shared AI Project State
 
+## Hardening started, M6 suspended — 4 Oct 2026 (Claude)
+
+- John suspended M6.3 to M6.6 until further notice (XVERSE team unavailable). PR #5 is merged to
+  main (M6.1, M6.2, Oct 3 release). Server deployment of it is still unverified.
+- M8 hardening: `npm audit` critical was `next` 16.2.0-16.3.5 (RCE in next/og ImageResponse; COEX
+  does not use next/og, but fixed anyway). package.json and package-lock.json now pin next and
+  eslint-config-next 16.3.8; production audit reports 0 vulnerabilities (lockfile updated with
+  `--package-lock-only`, nothing installed here). Five remaining high findings are the dev-only
+  lint chain (braces via fast-glob via eslint-config-next); no fixed release exists, not shipped.
+- storage.ts: added turbopackIgnore hints for the four tracing warnings. NOT verified: needs
+  `npm run build` on the Mac.
+- John to run on the Mac: `npm ci && npm run build && npx vitest run tests/unit`, then deploy;
+  on the VPS `npm ci` should no longer report a critical.
+- Still open: rotate off Raheel's SSH key, slow Atlas database tests.
+- Phase 2 plan drafted in docs/PHASE-2-PLAN.md for John's review.
+
 ## START HERE — committed release for Claude — 3 Oct 2026 (Codex)
 
 - Feature commit: `955ea3f` (44 files), branch `claude/dreamy-carson-86yxhh`.

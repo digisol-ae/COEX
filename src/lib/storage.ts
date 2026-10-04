@@ -37,12 +37,14 @@ export interface FileStorage {
 
 /** Everything is written under one root, and nothing may escape it. */
 function rootDirectory(): string {
-  return resolve(process.env.STORAGE_DIR ?? '.storage');
+  // The turbopackIgnore hint tells the build this path is resolved at run time, so it stops tracing
+  // the whole project into the server bundle (the four storage.ts build warnings).
+  return resolve(/* turbopackIgnore: true */ process.env.STORAGE_DIR ?? '.storage');
 }
 
 function safePath(key: string): string {
   const root = rootDirectory();
-  const full = resolve(join(root, key));
+  const full = resolve(/* turbopackIgnore: true */ join(root, key));
 
   // A key is generated here, never supplied by a caller, but a traversal check costs nothing and
   // turns a future mistake into an error rather than a file read from outside the store.
