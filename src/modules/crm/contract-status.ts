@@ -91,3 +91,72 @@ export function reminderDue(
 
   return { send: pending.length > 0, markSent: pending };
 }
+
+const MONTHS_PER_PERIOD = { monthly: 1, bimonthly: 2, quarterly: 3, yearly: 12 } as const;
+
+export type BillingFrequencyKey = keyof typeof MONTHS_PER_PERIOD;
+
+/** Adds calendar months, clamping to the last day when the target month is shorter. */
+export function addMonths(day: string, months: number): string {
+  const [year, month, date] = day.split('-').map(Number);
+  const target = new Date(Date.UTC(year, month - 1 + months, 1));
+  const lastDay = new Date(
+    Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+  target.setUTCDate(Math.min(date, lastDay));
+  return target.toISOString().slice(0, 10);
+}
+
+export interface BillingPeriod {
+  index: number;
+  startDate: string;
+  endDate: string;
+  /** Billed in advance: the invoice is due when the period starts. */
+  dueDate: string;
+}
+
+/**
+ * The billing periods of a contract, for finance to work through in Zoho Books.
+ *
+ * Every boundary is counted from the contract's start, never from the previous boundary, so a
+ * contract starting on the 31st does not drift to the 28th after February.
+ */
+export function billingSchedule(
+  startDate: string,
+  endDate: string,
+  frequency: BillingFrequencyKey,
+): BillingPeriod[] {
+  const step = MONTHS_PER_PERIOD[frequency];
+  const periods: BillingPeriod[] = [];
+
+  for (let index = 0; ; index += 1) {
+    const periodStart = addMonths(startDate, index * step);
+    if (periodStart > endDate) break;
+
+    const naturalEnd = addDays(addMonths(startDate, (index + 1) * step), -1);
+    periods.push({
+      index,
+      startDate: periodStart,
+      endDate: naturalEnd < endDate ? naturalEnd : endDate,
+      dueDate: periodStart,
+    });
+  }
+
+  return periods;
+}
+
+/** The period containing a day, or null before the contract starts or after it ends. */
+export function periodContaining(periods: BillingPeriod[], day: string): BillingPeriod | null {
+  return periods.find((period) => day >= period.startDate && day <= period.endDate) ?? null;
+}
+
+/** What the customer is told when their contract is running out or has run out. */
+export function contractExpiryNotice(input: {
+  status: 'expiring' | 'expired';
+  contractNumber: string;
+  endDate: string;
+}): string {
+  return input.status === 'expired'
+    ? `Please note: your support contract ${input.contractNumber} ended on ${input.endDate}. Contact us to renew it.`
+    : `Please note: your support contract ${input.contractNumber} ends on ${input.endDate}. Contact us to renew it.`;
+}

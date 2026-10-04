@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
 import { listContracts, type ContractSummary } from '@/modules/crm/services/contract.service';
 import { listOrganisations } from '@/modules/crm/services/organisation.service';
@@ -106,7 +107,12 @@ export default async function ContractsPage() {
                   ])}
                 >
                   <Td>
-                    <div className="font-medium text-[var(--color-ink)]">{contract.title}</div>
+                    <Link
+                      href={`/contracts/${contract.id}`}
+                      className="font-medium text-[var(--color-ink)] hover:underline"
+                    >
+                      {contract.title}
+                    </Link>
                     <div className="font-mono text-xs text-[var(--color-ink-subtle)]">
                       {contract.number}
                     </div>

@@ -9,6 +9,7 @@ import { ProductModel } from '../models/product.model';
 import {
   DEFAULT_EXPIRY_WARNING_DAYS,
   deriveContractStatus,
+  contractExpiryNotice,
   renewalTerm,
   todayKey,
   type ContractStatus,
@@ -51,6 +52,7 @@ export interface ContractSummary {
   supportHoursEnabled: boolean;
   includedHoursPerPeriod: number | null;
   renewedFromId: string | null;
+  invoicedPeriods: number[];
   notes: string | null;
 }
 
@@ -243,11 +245,15 @@ export async function archiveContract(id: string): Promise<void> {
 
 export async function listContracts(filter?: {
   organisationId?: string;
+  id?: string;
 }): Promise<ContractSummary[]> {
   await connectToDatabase();
 
   const found = await contracts()
-    .find(filter?.organisationId ? { organisationId: filter.organisationId } : {})
+    .find({
+      ...(filter?.organisationId ? { organisationId: filter.organisationId } : {}),
+      ...(filter?.id ? { _id: filter.id } : {}),
+    })
     .sort({ endDate: 1, number: 1 });
 
   const organisationIds = [...new Set(found.map((contract) => String(contract.organisationId)))];
@@ -285,6 +291,7 @@ export async function listContracts(filter?: {
       supportHoursEnabled: Boolean(contract.supportHoursEnabled),
       includedHoursPerPeriod: contract.includedHoursPerPeriod ?? null,
       renewedFromId: contract.renewedFromId ? String(contract.renewedFromId) : null,
+      invoicedPeriods: contract.invoicedPeriods ?? [],
       notes: contract.notes ?? null,
     };
   });
@@ -340,4 +347,85 @@ export async function renewContract(id: string): Promise<string> {
 export async function listRenewalsDue(): Promise<ContractSummary[]> {
   const all = await listContracts();
   return all.filter((contract) => contract.status === 'expiring' || contract.status === 'expired');
+}
+
+export async function getContract(id: string): Promise<ContractSummary | null> {
+  if (!Types.ObjectId.isValid(id)) return null;
+  return (await listContracts({ id }))[0] ?? null;
+}
+
+/** The manual "invoiced in Zoho Books" tick, until the read only Zoho link replaces it. */
+export async function setPeriodInvoiced(
+  id: string,
+  periodIndex: number,
+  invoiced: boolean,
+): Promise<void> {
+  await connectToDatabase();
+
+  if (!Number.isInteger(periodIndex) || periodIndex < 0) throw new Error('Unknown billing period.');
+
+  const updated = await contracts().updateOne(
+    { _id: id },
+    invoiced
+      ? { $addToSet: { invoicedPeriods: periodIndex } }
+      : { $pull: { invoicedPeriods: periodIndex } },
+  );
+  if (!updated) throw new Error('Contract not found.');
+
+  await recordAudit({
+    action: invoiced ? 'contract.period_invoiced' : 'contract.period_uninvoiced',
+    entityType: 'Contract',
+    entityId: updated._id,
+    after: { periodIndex },
+  });
+}
+
+export interface ContractNotice {
+  state: 'expiring' | 'expired' | 'none';
+  contractNumber: string | null;
+  endDate: string | null;
+  /** Ready to put in front of the customer, or null when there is nothing to warn about. */
+  customerText: string | null;
+}
+
+/**
+ * What a ticket for this customer should say about its contract.
+ *
+ * Only customers (not prospects or suppliers) are expected to hold a contract. A contract that is
+ * in force and not near its end says nothing. "None" is for agents only: the customer is never
+ * told they have no contract, because that is a conversation for a person, not a template.
+ */
+export async function contractNoticeFor(
+  organisationId: string | Types.ObjectId | null | undefined,
+): Promise<ContractNotice | null> {
+  if (!organisationId) return null;
+  await connectToDatabase();
+
+  const organisation = await organisations().findById(String(organisationId));
+  if (!organisation || organisation.kind !== 'client') return null;
+
+  const inForce = (await listContracts({ organisationId: String(organisationId) })).filter(
+    (contract) => contract.storedStatus === 'active',
+  );
+
+  if (inForce.length === 0) {
+    return { state: 'none', contractNumber: null, endDate: null, customerText: null };
+  }
+
+  // Any contract that is comfortably in force means the customer is covered.
+  if (inForce.some((contract) => contract.status === 'active')) return null;
+
+  const latest = [...inForce].sort((a, b) => b.endDate.localeCompare(a.endDate))[0];
+  const state = latest.status === 'expired' ? 'expired' : 'expiring';
+
+  return {
+    state,
+    contractNumber: latest.number,
+    endDate: latest.endDate,
+    customerText: contractExpiryNotice({
+      status: state,
+      contractNumber: latest.number,
+      endDate: latest.endDate,
+    }),
+  };
 }

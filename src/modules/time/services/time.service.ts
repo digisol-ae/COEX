@@ -87,6 +87,31 @@ export async function loggedMinutesForTicket(ticketId: string): Promise<number> 
 }
 
 /**
+ * Minutes logged on tickets for one customer between two calendar days, inclusive. Contracts use
+ * it to show support hours used. The office is on Gulf time with no daylight saving, and a work
+ * date is stored as that day's midnight there.
+ */
+export async function loggedTicketMinutesForOrganisation(
+  organisationId: string,
+  fromDay: string,
+  toDay: string,
+): Promise<number> {
+  await connectToDatabase();
+
+  const from = new Date(`${fromDay}T00:00:00+04:00`);
+  const until = new Date(`${toDay}T00:00:00+04:00`);
+  until.setUTCDate(until.getUTCDate() + 1);
+
+  const found = await entries().find({
+    organisationId: toObjectId(organisationId),
+    ticketId: { $ne: null },
+    workDate: { $gte: from, $lt: until },
+  });
+
+  return found.reduce((sum, entry) => sum + (entry.minutes ?? 0), 0);
+}
+
+/**
  * Every timer this person has started today, running or already stopped.
  *
  * Point of this is switching between more than one task in a day: pause the one in hand by

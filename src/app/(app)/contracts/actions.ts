@@ -7,6 +7,7 @@ import {
   createContract,
   renewContract,
   setContractStatus,
+  setPeriodInvoiced,
   updateContract,
   type BillingFrequency,
   type ContractInput,
@@ -106,4 +107,14 @@ export async function renewContractAction(formData: FormData): Promise<void> {
 
   await asUser(actor, () => renewContract(text(formData, 'id')));
   revalidatePath('/contracts');
+}
+
+export async function setPeriodInvoicedAction(formData: FormData): Promise<void> {
+  const actor = await requirePermission('contract.manage');
+  const id = text(formData, 'id');
+
+  await asUser(actor, () =>
+    setPeriodInvoiced(id, Number(text(formData, 'period')), formData.get('invoiced') === 'yes'),
+  );
+  revalidatePath(`/contracts/${id}`);
 }

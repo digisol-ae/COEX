@@ -78,3 +78,15 @@ No open questions. Ready for P2.1a.
 - Deviations: no renewal task is created, because the CRM module may not import Tasks (decision
   13 allows only Tasks and Tickets); the Renewals due strip and the email are the prompt. A
   dashboard card is also deferred. Both need John's call.
+
+## P2.1c built, 4 Oct 2026
+
+- Contract page (`/contracts/[id]`): terms, billing schedule (periods counted from the start date,
+  invoice due when a period starts, billed in advance) with a manual "Mark invoiced" tick, and
+  support hours used against the included hours for the current period (ticket time for that
+  customer; warns, never blocks).
+- Ticket notice for agents: expiring, expired, or "no active contract" (customers only, not
+  prospects). Customer warning: a line in the automatic acknowledgement email when the contract is
+  expiring or expired. It reaches only customers whose email ticket gets an acknowledgement, and
+  the Setup, Email acknowledgement preview does not show the line.
+- Remaining: P2.1d, the read only Zoho Books link, needs Zoho API access from John.

@@ -27,6 +27,8 @@ export const RELEASE_NOTES: ReleaseNote[] = [
           "A contract shows Expiring when fewer days remain than the customer's warning period (30 by default; change it on the customer under Contract expiry warning) and Expired after its end date.",
           'Renew an active contract with the renew icon: it prepares a draft for the next term, and activating the draft retires the old contract. Contracts that are expiring or have ended are listed at the top of the page.',
           "The contract owner (the customer's owner, or the administrators when there is none) gets an email 60 and 30 days before a contract ends. Switch this on or off under Setup, Email.",
+          'Open a contract to see its billing schedule: each period, when its invoice is due, and a "Mark invoiced" tick once finance has invoiced it in Zoho Books. Contracts that count support time show the hours used and left in the current period, as a warning only.',
+          "On a ticket, agents now see a notice when the customer's contract is about to end, has ended, or does not exist. When a customer's contract is ending or has ended, the automatic acknowledgement email tells them.",
           'If a product is not listed yet, add it from the contract form. Invoices and payments stay in Zoho Books.',
         ],
       },

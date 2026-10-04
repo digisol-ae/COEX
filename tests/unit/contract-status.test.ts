@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  billingSchedule,
+  contractExpiryNotice,
   daysBetween,
   deriveContractStatus,
   needsExpiryWarning,
+  periodContaining,
   reminderDue,
   renewalTerm,
   todayKey,
@@ -81,5 +84,44 @@ describe('renewals', () => {
     expect(reminderDue(59, [60, 30], [60])).toEqual({ send: false, markSent: [] });
     expect(reminderDue(30, [60, 30], [60])).toEqual({ send: true, markSent: [30] });
     expect(reminderDue(10, [60, 30], [])).toEqual({ send: true, markSent: [60, 30] });
+  });
+});
+
+describe('billing schedule', () => {
+  it('splits a year into the billing rhythm, counting from the start', () => {
+    const quarters = billingSchedule('2026-01-31', '2027-01-30', 'quarterly');
+    expect(quarters.map((period) => [period.startDate, period.endDate])).toEqual([
+      ['2026-01-31', '2026-04-29'],
+      ['2026-04-30', '2026-07-30'],
+      ['2026-07-31', '2026-10-30'],
+      ['2026-10-31', '2027-01-30'],
+    ]);
+    expect(billingSchedule('2026-01-01', '2026-12-31', 'monthly')).toHaveLength(12);
+    expect(billingSchedule('2026-01-01', '2026-12-31', 'bimonthly')).toHaveLength(6);
+    expect(billingSchedule('2026-01-01', '2026-12-31', 'yearly')).toHaveLength(1);
+  });
+
+  it('shortens the last period to the end of the contract', () => {
+    const periods = billingSchedule('2026-01-01', '2026-02-15', 'quarterly');
+    expect(periods).toEqual([
+      { index: 0, startDate: '2026-01-01', endDate: '2026-02-15', dueDate: '2026-01-01' },
+    ]);
+  });
+
+  it('finds the period containing a day', () => {
+    const periods = billingSchedule('2026-01-01', '2026-12-31', 'quarterly');
+    expect(periodContaining(periods, '2026-05-10')?.index).toBe(1);
+    expect(periodContaining(periods, '2027-01-01')).toBeNull();
+  });
+});
+
+describe('contractExpiryNotice', () => {
+  it('words the warning before and after the end date', () => {
+    expect(
+      contractExpiryNotice({ status: 'expiring', contractNumber: 'C-1', endDate: '2026-11-01' }),
+    ).toContain('ends on 2026-11-01');
+    expect(
+      contractExpiryNotice({ status: 'expired', contractNumber: 'C-1', endDate: '2026-11-01' }),
+    ).toContain('ended on 2026-11-01');
   });
 });

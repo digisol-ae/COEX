@@ -1,5 +1,17 @@
 # COEX — Shared AI Project State
 
+## P2.1c built — 4 Oct 2026 (Claude)
+
+- Ticket contract notice (agents), customer line in the acknowledgement, contract detail page with
+  billing schedule and manual invoiced tick, support hours used vs included. Files:
+  crm/contract-status.ts (billingSchedule, contractExpiryNotice), contract.service.ts
+  (contractNoticeFor, getContract, setPeriodInvoiced), time.service.ts
+  (loggedTicketMinutesForOrganisation), tickets/email-text.ts, inbound-email.service.ts,
+  app/(app)/contracts/[id], ticket detail page.
+- Verified in a scratch copy: tsc, eslint zero warnings, prettier, 125 unit tests, production
+  build. NOT run: tests/database/contracts.test.ts (needs MongoDB) or the browser.
+- Next: P2.1d Zoho Books read only link (needs Zoho API access), then full CRM.
+
 ## P2.1b renewals built — 4 Oct 2026 (Claude)
 
 - Renew action (draft for next term, activating it retires the old contract), Renewals due strip,

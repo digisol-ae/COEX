@@ -57,6 +57,9 @@ const contractSchema = new Schema(
     renewalReminderDays: { type: [Number], default: () => [60, 30] },
     remindersSent: { type: [Number], default: () => [] },
 
+    /** Billing periods ticked as invoiced in Zoho Books, by period index. Manual until the sync. */
+    invoicedPeriods: { type: [Number], default: () => [] },
+
     /** Renewing creates a new contract that points back, so history is never edited. */
     renewedFromId: { type: Schema.Types.ObjectId, ref: 'Contract', default: null },
 

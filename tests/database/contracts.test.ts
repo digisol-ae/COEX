@@ -14,6 +14,8 @@ import { sendRenewalRemindersForTenant } from '@/modules/crm/services/contract-r
 import { createProduct } from '@/modules/crm/services/product.service';
 import {
   archiveContract,
+  contractNoticeFor,
+  setPeriodInvoiced,
   createContract,
   listContracts,
   renewContract,
@@ -242,5 +244,55 @@ describe('renewal reminders', () => {
     expect(queued).toHaveLength(1);
     expect(queued[0]).toMatchObject({ kind: 'contract_renewal', to: 'owner@example.com' });
     expect(queued[0]?.subject).toContain('ends in 25 days');
+  });
+});
+
+describe('contract notice on tickets', () => {
+  it('stays silent while covered, warns near the end, and tells agents when there is no contract', async () => {
+    const organisationId = await inOne(() =>
+      createOrganisation({ name: 'Notice Clinic', kind: 'client' }),
+    );
+
+    expect(await inOne(() => contractNoticeFor(organisationId))).toMatchObject({ state: 'none' });
+
+    const contractId = await inOne(async () => {
+      const id = await createContract(await input({ organisationId, endDate: dayKey(200) }));
+      await setContractStatus(id, 'active');
+      return id;
+    });
+    expect(await inOne(() => contractNoticeFor(organisationId))).toBeNull();
+
+    await inOne(async () =>
+      updateContract(contractId, await input({ organisationId, endDate: dayKey(10) })),
+    );
+    const expiring = await inOne(() => contractNoticeFor(organisationId));
+    expect(expiring?.state).toBe('expiring');
+    expect(expiring?.customerText).toContain('ends on');
+
+    await inOne(async () =>
+      updateContract(contractId, await input({ organisationId, endDate: dayKey(-2) })),
+    );
+    expect((await inOne(() => contractNoticeFor(organisationId)))?.customerText).toContain(
+      'ended on',
+    );
+  });
+
+  it('never warns about a prospect', async () => {
+    const organisationId = await inOne(() =>
+      createOrganisation({ name: 'Maybe Clinic', kind: 'prospect' }),
+    );
+    expect(await inOne(() => contractNoticeFor(organisationId))).toBeNull();
+  });
+});
+
+describe('invoiced ticks', () => {
+  it('records and clears a billing period', async () => {
+    const id = await inOne(async () => createContract(await input()));
+
+    await inOne(() => setPeriodInvoiced(id, 1, true));
+    expect((await inOne(() => listContracts()))[0]?.invoicedPeriods).toEqual([1]);
+
+    await inOne(() => setPeriodInvoiced(id, 1, false));
+    expect((await inOne(() => listContracts()))[0]?.invoicedPeriods).toEqual([]);
   });
 });
