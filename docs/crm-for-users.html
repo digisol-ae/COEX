@@ -1,0 +1,335 @@
+<title>COEX CRM Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout concept: a guided tour. Each screen is a framed mockup with a two-line "you do / you see" beside it. */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --sunken: #eceef2;
+  --ink: #16181d;
+  --ink-2: #4a4f5a;
+  --ink-3: #7b8190;
+  --line: #dde0e7;
+  --accent: #d93f35;
+  --accent-soft: #fde8e6;
+  --ok: #1f7a4d;
+  --ok-soft: #e0f3e8;
+  --warn: #9a6200;
+  --warn-soft: #fcefd2;
+  --info: #1d5fa8;
+  --info-soft: #e1edfa;
+  --alert: #b3261e;
+  --alert-soft: #fbe3e1;
+  --rail: #17181c;
+  --rail-ink: #b9bdc7;
+  --display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --body: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101216; --surface: #181b21; --sunken: #20242c; --ink: #eef0f4; --ink-2: #b4b9c4;
+    --ink-3: #868c9a; --line: #2b303a; --accent: #ff6a5e; --accent-soft: #3a1f1d;
+    --ok: #62d296; --ok-soft: #14301f; --warn: #f0b24a; --warn-soft: #33270f;
+    --info: #7db4f2; --info-soft: #14263b; --alert: #ff8a80; --alert-soft: #3a1b19;
+    --rail: #0b0c0f; --rail-ink: #9aa0ac; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101216; --surface: #181b21; --sunken: #20242c; --ink: #eef0f4; --ink-2: #b4b9c4;
+  --ink-3: #868c9a; --line: #2b303a; --accent: #ff6a5e; --accent-soft: #3a1f1d;
+  --ok: #62d296; --ok-soft: #14301f; --warn: #f0b24a; --warn-soft: #33270f;
+  --info: #7db4f2; --info-soft: #14263b; --alert: #ff8a80; --alert-soft: #3a1b19;
+  --rail: #0b0c0f; --rail-ink: #9aa0ac; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; padding-inline: 16px; }
+.page { max-width: 980px; margin-inline: auto; padding-block: 28px 56px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 44px); letter-spacing: -0.02em; }
+h2 { font-size: 24px; letter-spacing: -0.01em; margin-top: 52px; }
+h3 { font-size: 18px; }
+p { margin: 0; }
+.lead { color: var(--ink-2); font-size: 17px; max-width: 62ch; margin-top: 12px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 18px; font-size: 13px; color: var(--ink-3); }
+.meta b { color: var(--ink-2); font-weight: 600; }
+.chip { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; background: var(--sunken); color: var(--ink-2); white-space: nowrap; }
+.chip.live { background: var(--ok-soft); color: var(--ok); }
+.chip.next { background: var(--warn-soft); color: var(--warn); }
+.chip.build { background: var(--info-soft); color: var(--info); }
+.live-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.live-row span { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-size: 14px; }
+.live-row span::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); margin-right: 8px; }
+
+.tour { display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; margin-top: 26px; }
+.step { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .step { grid-template-columns: minmax(0, 1fr); } }
+.step .words { min-width: 0; }
+.step .words h3 { margin-bottom: 8px; }
+.step ul { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.step li { padding-left: 18px; position: relative; color: var(--ink-2); }
+.step li::before { content: ""; position: absolute; left: 0; top: .6em; width: 8px; height: 2px; background: var(--accent); }
+.step li b { color: var(--ink); font-weight: 600; }
+
+/* Mockup frames: a small, honest drawing of the real screen, filled with example data. */
+.shot { min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; box-shadow: 0 1px 0 var(--line); }
+.shot-bar { display: flex; justify-content: space-between; align-items: center; background: var(--sunken); padding: 7px 12px; font-size: 11px; color: var(--ink-3); border-bottom: 1px solid var(--line); }
+.shot-body { display: flex; min-width: 0; }
+.rail { width: 40px; flex: none; background: var(--rail); display: flex; flex-direction: column; align-items: center; gap: 10px; padding-block: 10px; }
+.rail i { width: 18px; height: 18px; border-radius: 5px; background: var(--rail-ink); opacity: .35; display: block; }
+.rail i.on { opacity: 1; background: var(--accent); }
+.screen { flex: 1; min-width: 0; padding: 14px; overflow-x: auto; }
+.screen h4 { margin: 0 0 10px; font-family: var(--display); font-size: 15px; }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.btn { font: inherit; font-size: 12px; font-weight: 600; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 7px; padding: 4px 10px; }
+.btn.pri { background: var(--accent); border-color: var(--accent); color: #fff; }
+.pill { font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 99px; background: var(--sunken); color: var(--ink-2); white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.alert { background: var(--alert-soft); color: var(--alert); }
+.pill.info { background: var(--info-soft); color: var(--info); }
+table.mini { border-collapse: collapse; width: 100%; font-size: 12px; min-width: 430px; }
+table.mini th { text-align: left; font-weight: 600; color: var(--ink-3); padding: 5px 8px; border-bottom: 1px solid var(--line); }
+table.mini td { padding: 7px 8px; border-bottom: 1px solid var(--line); }
+.example { font-size: 10.5px; color: var(--ink-3); text-align: right; padding: 0 12px 8px; }
+
+.board { display: grid; grid-template-columns: repeat(4, minmax(96px, 1fr)); gap: 6px; min-width: 430px; }
+.col { background: var(--sunken); border-radius: 8px; padding: 8px; display: grid; gap: 6px; align-content: start; }
+.col h5 { margin: 0 0 2px; font-size: 11px; font-weight: 600; color: var(--ink-2); display: flex; justify-content: space-between; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 7px 8px; font-size: 11.5px; }
+.card b { display: block; font-size: 12px; }
+.card small { color: var(--ink-3); }
+.card.late { border-color: var(--alert); }
+.field { display: grid; gap: 2px; margin-bottom: 8px; font-size: 12px; }
+.field span { color: var(--ink-3); font-size: 11px; }
+.field div { border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; background: var(--surface); }
+.modal { border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--surface); box-shadow: 0 6px 20px rgb(0 0 0 / .12); }
+.panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.panel { border: 1px solid var(--line); border-radius: 8px; padding: 8px; font-size: 12px; }
+.panel h5 { margin: 0 0 4px; font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; }
+.mail { font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--surface); }
+.mail .sub { font-weight: 600; margin-bottom: 4px; }
+
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 18px; }
+.rule { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.rule b { display: block; margin-bottom: 4px; }
+.rule p { color: var(--ink-2); font-size: 14px; }
+
+.tablewrap { overflow-x: auto; margin-top: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table.plan { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14px; }
+table.plan th { text-align: left; padding: 10px 14px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); border-bottom: 1px solid var(--line); }
+table.plan td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.plan tr:last-child td { border-bottom: 0; }
+ol.asks { margin: 16px 0 0; padding-left: 20px; display: grid; gap: 8px; color: var(--ink-2); max-width: 70ch; }
+.log { margin-top: 16px; display: grid; gap: 10px; }
+.log div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--ink-2); }
+.log time { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) { .log div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header>
+    <span class="chip build">Preview · not built yet</span>
+    <h1 style="margin-top:12px">COEX CRM: from first call to signed contract</h1>
+    <p class="lead">Track every possible sale in one place, see who owns it and what happens next, and turn a won deal into a customer and a contract without typing it twice.</p>
+    <div class="meta">
+      <span><b>Last updated</b> 4 Oct 2026</span>
+      <span><b>Next update</b> Monday 12 Oct 2026, then every Monday</span>
+      <span><b>For</b> sales, managers, support</span>
+    </div>
+    <div class="live-row" aria-label="Already live in COEX">
+      <span>Customers and contacts</span><span>Products</span><span>Customer timeline</span><span>Contracts and renewals</span>
+    </div>
+  </header>
+
+  <h2>A tour of the screens</h2>
+  <p class="lead" style="margin-top:8px">Screens below show example data, not real customers.</p>
+
+  <div class="tour">
+
+    <section class="step">
+      <div class="words">
+        <h3>1. Leads</h3>
+        <ul>
+          <li><b>You add</b> a lead in 20 seconds: name, company, phone, where it came from.</li>
+          <li><b>You see</b> a warning if the phone, email or company already exists.</li>
+          <li><b>You click</b> Convert when they are real, or Disqualify with a reason.</li>
+        </ul>
+      </div>
+      <div class="shot" role="img" aria-label="Mockup of the Leads list">
+        <div class="shot-bar"><span>CRM › Leads</span><span>example data</span></div>
+        <div class="shot-body">
+          <div class="rail" aria-hidden="true"><i></i><i></i><i class="on"></i><i></i></div>
+          <div class="screen">
+            <div class="row" style="justify-content:space-between;margin-bottom:10px"><h4 style="margin:0">Leads</h4><span class="btn pri">Add lead</span></div>
+            <table class="mini">
+              <tr><th>Lead</th><th>Source</th><th>Owner</th><th>Status</th><th></th></tr>
+              <tr><td><b>Hana Mirza</b><br>Bright Smile Clinic</td><td>Referral</td><td>Omar</td><td><span class="pill info">Working</span></td><td><span class="btn">Convert</span></td></tr>
+              <tr><td><b>Dr. Latif</b><br>Latif Dental</td><td>Event</td><td>Sara</td><td><span class="pill">New</span></td><td><span class="btn">Convert</span></td></tr>
+              <tr><td><b>Reem Co.</b><br>Reem Orthodontics</td><td>Website</td><td>Omar</td><td><span class="pill alert">Disqualified</span></td><td></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="words">
+        <h3>2. Convert a lead</h3>
+        <ul>
+          <li><b>One step</b> creates the customer, the contact and, if you want, the first opportunity.</li>
+          <li><b>Already a customer?</b> Pick them instead of creating a duplicate.</li>
+          <li><b>Nothing is lost:</b> the lead's notes and calls move to the customer's timeline.</li>
+        </ul>
+      </div>
+      <div class="shot" role="img" aria-label="Mockup of the convert lead dialog">
+        <div class="shot-bar"><span>Convert lead</span><span>example data</span></div>
+        <div class="screen" style="background:var(--sunken)">
+          <div class="modal">
+            <h4>Convert Hana Mirza</h4>
+            <div class="field"><span>Customer</span><div>Create new: Bright Smile Clinic</div></div>
+            <div class="field"><span>Contact</span><div>Hana Mirza · +971 50 123 4567</div></div>
+            <div class="field"><span>First opportunity</span><div>R4 rollout, 2 clinics · AED 48,000</div></div>
+            <div class="row"><span class="btn pri">Convert</span><span class="btn">Cancel</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="words">
+        <h3>3. Pipeline board</h3>
+        <ul>
+          <li><b>Drag a card</b> to the next stage, or use the card's menu on a phone.</li>
+          <li><b>Red edge</b> means the next step is overdue or missing.</li>
+          <li><b>Column totals</b> are shown per currency, never mixed.</li>
+        </ul>
+      </div>
+      <div class="shot" role="img" aria-label="Mockup of the pipeline board">
+        <div class="shot-bar"><span>CRM › Pipeline</span><span>example data</span></div>
+        <div class="shot-body">
+          <div class="rail" aria-hidden="true"><i></i><i></i><i class="on"></i><i></i></div>
+          <div class="screen">
+            <div class="board">
+              <div class="col"><h5>Qualified <span>2</span></h5>
+                <div class="card"><b>Bright Smile</b>R4 rollout<br><small>AED 48,000 · call Tue</small></div>
+                <div class="card late"><b>Latif Dental</b>dOne upgrade<br><small>AED 9,500 · no next step</small></div></div>
+              <div class="col"><h5>Proposal sent <span>1</span></h5>
+                <div class="card"><b>Artier Dental</b>XVerse module<br><small>AED 22,000 · follow up Thu</small></div></div>
+              <div class="col"><h5>Negotiation <span>1</span></h5>
+                <div class="card"><b>Reem Ortho</b>R4 + training<br><small>USD 6,200 · sign Fri</small></div></div>
+              <div class="col"><h5>Won <span>1</span></h5>
+                <div class="card"><b>Noor Clinic</b>AMC renewal<br><small>AED 12,000</small></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="words">
+        <h3>4. One opportunity</h3>
+        <ul>
+          <li><b>Everything on one page:</b> value, products, owner, expected close date.</li>
+          <li><b>Always a next step</b> with a date. Calls, meetings and notes are logged in two clicks.</li>
+          <li><b>Win it</b> and COEX offers to create the contract, already filled in.</li>
+        </ul>
+      </div>
+      <div class="shot" role="img" aria-label="Mockup of an opportunity page">
+        <div class="shot-bar"><span>CRM › Opportunities › O-31</span><span>example data</span></div>
+        <div class="shot-body">
+          <div class="rail" aria-hidden="true"><i></i><i></i><i class="on"></i><i></i></div>
+          <div class="screen">
+            <div class="row" style="justify-content:space-between"><h4 style="margin:0">XVerse module · Artier Dental</h4><span class="pill info">Proposal sent</span></div>
+            <div class="row" style="margin:10px 0"><span class="pill">AED 22,000</span><span class="pill">Close by 30 Oct</span><span class="pill">Owner: Omar</span></div>
+            <div class="field"><span>Next step</span><div>Follow up on the proposal · Thu 9 Oct</div></div>
+            <div class="row"><span class="btn pri">Mark won</span><span class="btn">Mark lost</span><span class="btn">Log a call</span></div>
+            <p style="font-size:11.5px;color:var(--ink-3);margin-top:10px">Timeline: Proposal emailed · Meeting held · Stage changed to Proposal sent</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="words">
+        <h3>5. The customer page</h3>
+        <ul>
+          <li><b>The whole relationship</b>: deals, contracts, tickets and the timeline together.</li>
+          <li><b>Before you call,</b> you can see an open ticket or an expiring contract.</li>
+        </ul>
+      </div>
+      <div class="shot" role="img" aria-label="Mockup of the customer page with panels">
+        <div class="shot-bar"><span>CRM › Customers › Artier Dental Centre</span><span>example data</span></div>
+        <div class="shot-body">
+          <div class="rail" aria-hidden="true"><i></i><i></i><i class="on"></i><i></i></div>
+          <div class="screen">
+            <div class="panels">
+              <div class="panel"><h5>Opportunities</h5>XVerse module<br><span class="pill info">Proposal sent</span></div>
+              <div class="panel"><h5>Contracts</h5>R4 Annual Support<br><span class="pill warn">Expiring in 21 days</span></div>
+              <div class="panel"><h5>Tickets</h5>1 open<br><span class="pill ok">Replied today</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="words">
+        <h3>6. Reminders that find you</h3>
+        <ul>
+          <li><b>Email</b> on the day a next step is due, and when a deal has been quiet for 14 days.</li>
+          <li><b>Dashboard card</b> lists your deals with an overdue or missing next step.</li>
+          <li>You can switch either off in your settings.</li>
+        </ul>
+      </div>
+      <div class="shot" role="img" aria-label="Mockup of a reminder email">
+        <div class="shot-bar"><span>Email to you</span><span>example data</span></div>
+        <div class="screen">
+          <div class="mail">
+            <div class="sub">Next step due today: XVerse module · Artier Dental</div>
+            <p>Follow up on the proposal. The deal is worth AED 22,000 and is in Proposal sent.</p>
+            <p style="margin-top:6px;color:var(--ink-3)">Open the opportunity in COEX</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <h2>House rules</h2>
+  <div class="rules">
+    <div class="rule"><b>Who sees what</b><p>Salespeople see their own leads and deals. Managers and administrators see all of them.</p></div>
+    <div class="rule"><b>Nothing is deleted</b><p>Leads are disqualified and deals marked lost, always with a reason. You can always find them again.</p></div>
+    <div class="rule"><b>Money stays honest</b><p>Amounts keep their own currency. AED, USD and PKR are never added together.</p></div>
+    <div class="rule"><b>Quotes and invoices</b><p>These stay in Zoho Books. COEX keeps the quote number as a reference.</p></div>
+    <div class="rule"><b>Won means contract</b><p>Winning a deal offers a pre-filled contract. A manager activates it.</p></div>
+    <div class="rule"><b>Not included</b><p>Quote builder, email campaigns, lead scoring and sales forecasts. They can come later if you want them.</p></div>
+  </div>
+
+  <h2>When you get it</h2>
+  <div class="tablewrap">
+    <table class="plan">
+      <tr><th>Step</th><th>What you get</th><th>Status</th></tr>
+      <tr><td><b>A. Leads</b></td><td>Add, find, convert and disqualify leads, with duplicate warnings</td><td><span class="chip next">Waiting for answers</span></td></tr>
+      <tr><td><b>B. Opportunities</b></td><td>Stages you can edit, deal page, next steps, won and lost reasons</td><td><span class="chip">Planned</span></td></tr>
+      <tr><td><b>C. Board and conversion</b></td><td>The pipeline board, lead conversion, customer page panel, win to contract</td><td><span class="chip">Planned</span></td></tr>
+      <tr><td><b>D. Reminders</b></td><td>Next step and quiet deal emails, dashboard card</td><td><span class="chip">Planned</span></td></tr>
+    </table>
+  </div>
+  <p style="color:var(--ink-3);font-size:13px;margin-top:8px">Dates are added here once the questions below are answered. Status chips: Planned, Waiting for answers, Building, Live.</p>
+
+  <h2>Six answers we need from you</h2>
+  <ol class="asks">
+    <li>Who sells: a few named people, or everyone on the team?</li>
+    <li>Is one pipeline enough, or do new clinics and upgrades need different stages?</li>
+    <li>Are the stages right (Qualified, Needs analysis, Proposal sent, Negotiation, Won, Lost)?</li>
+    <li>What reasons do you hear when a deal is lost (price, competitor, timing, no budget, no reply)?</li>
+    <li>Should a deal show one-off money (licence, setup) apart from recurring money (AMC)?</li>
+    <li>Where do your leads come from today? This becomes the Source list.</li>
+  </ol>
+
+  <h2>What changed</h2>
+  <div class="log">
+    <div><time>4 Oct 2026</time><span>First preview published. Customers, contacts, products and contracts are already live; leads and the pipeline are planned.</span></div>
+  </div>
+</div>
