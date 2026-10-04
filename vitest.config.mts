@@ -37,8 +37,15 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     fileParallelism: false,
     testTimeout: 30000,
+    // testTimeout does not cover beforeAll/beforeEach, whose default is 10 seconds. Every database
+    // test clears and reseeds in beforeEach, so over a slow link to Atlas the setup timed out while
+    // the tests themselves were fine (the four files that passed alone but failed in a full run).
+    hookTimeout: 60000,
     env: {
       MONGODB_URI: environment.MONGODB_URI ?? '',
+      // Optional. Point this at a MongoDB on the same machine (see tests/README.md) and the suite
+      // stops paying a network round trip per query. Falls back to MONGODB_URI.
+      MONGODB_TEST_URI: environment.MONGODB_TEST_URI ?? '',
       // Uploads in the suite go to their own directory, so a test run can never write into the
       // store a running development server is using.
       STORAGE_DIR: path.resolve(import.meta.dirname, '.storage-test'),

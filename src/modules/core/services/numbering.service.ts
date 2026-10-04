@@ -16,7 +16,7 @@ import { TenantModel } from '../models/tenant.model';
  * tasks. The absence of a returned document is now an error rather than a quiet default.
  */
 
-export type Series = 'task' | 'ticket';
+export type Series = 'task' | 'ticket' | 'contract';
 
 export async function nextNumber(series: Series): Promise<string> {
   await connectToDatabase();
@@ -35,10 +35,12 @@ export async function nextNumber(series: Series): Promise<string> {
 
   const tenant = await TenantModel.findOne({ _id: tenantId });
 
-  const prefix =
-    series === 'task'
-      ? (tenant?.numbering?.taskPrefix ?? 'T')
-      : (tenant?.numbering?.ticketPrefix ?? 'S');
+  const prefixes: Record<Series, string> = {
+    task: tenant?.numbering?.taskPrefix ?? 'T',
+    ticket: tenant?.numbering?.ticketPrefix ?? 'S',
+    contract: tenant?.numbering?.contractPrefix ?? 'C',
+  };
+  const prefix = prefixes[series];
 
   return `${prefix}-${counter.nextValue}`;
 }

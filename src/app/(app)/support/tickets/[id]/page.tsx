@@ -14,7 +14,8 @@ import { getMyProfile } from '@/modules/core/services/user.service';
 import { renderSignature } from '@/modules/tickets/email-text';
 import { listSpaces } from '@/modules/tasks/services/space.service';
 import { STATUS_LABELS, CHANNEL_LABELS } from '@/modules/tickets/labels';
-import { Card, CardSection, PageHeader } from '@/components/ui';
+import { Card, CardSection, Notice, PageHeader } from '@/components/ui';
+import { contractNoticeFor } from '@/modules/crm/services/contract.service';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { StatusPill } from '@/components/ui/pill';
 import { SlaChip } from '@/components/ui/sla';
@@ -43,17 +44,27 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   const senders = canManage ? await asUser(actor, () => customerReplySenders()) : [];
   const replyEmail = canManage ? await asUser(actor, () => customerReplyAddress(id)) : null;
 
-  const { queues, users, spaces, cannedReplies, runningTimer, loggedMinutes, people, myTitle } =
-    await asUser(actor, async () => ({
-      queues: await listQueues(),
-      users: await listUsers(),
-      spaces: actor.permissions.includes('task.manage') ? await listSpaces() : [],
-      cannedReplies: await listCannedReplies({ queueId: ticket.queueId }),
-      runningTimer: await getRunningTimer(),
-      loggedMinutes: await loggedMinutesForTicket(id),
-      people: canManage ? await mentionableUsers() : [],
-      myTitle: canManage ? (await getMyProfile()).title : null,
-    }));
+  const {
+    queues,
+    users,
+    spaces,
+    cannedReplies,
+    runningTimer,
+    loggedMinutes,
+    people,
+    myTitle,
+    contractNotice,
+  } = await asUser(actor, async () => ({
+    queues: await listQueues(),
+    users: await listUsers(),
+    spaces: actor.permissions.includes('task.manage') ? await listSpaces() : [],
+    cannedReplies: await listCannedReplies({ queueId: ticket.queueId }),
+    runningTimer: await getRunningTimer(),
+    loggedMinutes: await loggedMinutesForTicket(id),
+    people: canManage ? await mentionableUsers() : [],
+    myTitle: canManage ? (await getMyProfile()).title : null,
+    contractNotice: await contractNoticeFor(ticket.organisationId),
+  }));
 
   // The queue's signature as this person's replies will carry it.
   const signature = renderSignature(ticket.queueSignature, {
@@ -96,6 +107,18 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           }
         />
       </div>
+
+      {contractNotice ? (
+        <div className="mt-2">
+          <Notice tone={contractNotice.state === 'none' ? 'info' : 'warn'}>
+            {contractNotice.state === 'none'
+              ? 'This customer has no active contract.'
+              : contractNotice.state === 'expired'
+                ? `Contract ${contractNotice.contractNumber} ended on ${contractNotice.endDate}. Ask the customer about renewing it.`
+                : `Contract ${contractNotice.contractNumber} ends on ${contractNotice.endDate}.`}
+          </Notice>
+        </div>
+      ) : null}
 
       {ticket.mergedIntoId ? (
         <Card className="mt-3 border-[var(--color-status-warn)]">

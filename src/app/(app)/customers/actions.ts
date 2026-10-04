@@ -79,6 +79,9 @@ export async function updateOrganisationAction(
         website: text(formData, 'website'),
         address: text(formData, 'address'),
         notes: text(formData, 'notes'),
+        ...(formData.has('expiryWarningDays')
+          ? { expiryWarningDays: Number(text(formData, 'expiryWarningDays')) }
+          : {}),
         customFields: readCustomFieldValues(fields, formData),
       });
     });

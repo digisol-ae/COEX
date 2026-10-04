@@ -358,6 +358,11 @@ export function EmailSettingsForm({
               label="Someone mentions me with @ in a note"
               defaultChecked={staff.mentioned}
             />
+            <Toggle
+              name="contractRenewal"
+              label="A contract I own is nearing its end date"
+              defaultChecked={staff.contractRenewal}
+            />
           </div>
         </CardSection>
       </Card>

@@ -77,7 +77,7 @@ export function fromMinorUnits(value: number | null | undefined): string {
   return (value / 100).toFixed(2);
 }
 
-export async function createProduct(input: ProductInput): Promise<void> {
+export async function createProduct(input: ProductInput): Promise<string> {
   await connectToDatabase();
 
   const code = input.code.trim().toUpperCase();
@@ -102,6 +102,8 @@ export async function createProduct(input: ProductInput): Promise<void> {
     entityId: created._id,
     after: { name: created.name, code: created.code, kind: created.kind },
   });
+
+  return String(created._id);
 }
 
 export async function updateProduct(id: string, input: ProductInput): Promise<void> {

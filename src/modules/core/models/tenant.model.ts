@@ -24,6 +24,7 @@ const tenantSchema = new Schema(
     numbering: {
       taskPrefix: { type: String, default: 'T' },
       ticketPrefix: { type: String, default: 'S' },
+      contractPrefix: { type: String, default: 'C' },
     },
 
     modules: {

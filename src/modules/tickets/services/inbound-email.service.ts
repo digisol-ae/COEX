@@ -19,6 +19,7 @@ import { TicketModel } from '../models/ticket.model';
 import { attachToMessage } from './attachment.service';
 import { createTicket } from './ticket.service';
 import { QueueModel } from '../models/queue.model';
+import { contractNoticeFor } from '@/modules/crm/services/contract.service';
 import { customerEmailText, fillAcknowledgement, renderSignature } from '../email-text';
 
 export interface InboundEmailConfig {
@@ -270,6 +271,7 @@ async function acknowledge(input: {
       signature,
       ticketNumber: ticket.number,
       footer: false,
+      notice: (await contractNoticeFor(ticket.organisationId))?.customerText,
     }),
     messageId,
     inReplyTo: input.inReplyTo,

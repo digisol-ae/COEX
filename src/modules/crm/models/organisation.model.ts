@@ -29,6 +29,9 @@ const organisationSchema = new Schema(
     address: { type: String, default: null },
     country: { type: String, default: 'AE' },
 
+    /** Contracts warn agents and the customer when this many days remain (John, 4 Oct 2026). */
+    expiryWarningDays: { type: Number, default: 30, min: 0, max: 365 },
+
     ownerId: { type: Schema.Types.ObjectId, ref: 'User', default: null, index: true },
     tags: { type: [String], default: [] },
     notes: { type: String, default: null },

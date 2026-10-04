@@ -16,16 +16,23 @@ import mongoose from 'mongoose';
 const PREFIX = 'coex_test_';
 
 export async function connectForTests(suiteName: string) {
-  const uri = process.env.MONGODB_URI;
+  const uri = process.env.MONGODB_TEST_URI || process.env.MONGODB_URI;
 
   if (!uri) {
-    throw new Error('MONGODB_URI is not set. Run the suite with npm test so .env.local is loaded.');
+    throw new Error(
+      'MONGODB_URI (or MONGODB_TEST_URI) is not set. Run the suite with npm test so .env.local is loaded.',
+    );
   }
 
   const dbName = `${PREFIX}${suiteName}`;
 
   if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(uri, { dbName });
+    await mongoose.connect(uri, { dbName, serverSelectionTimeoutMS: 20000 });
+
+    // Each file gets a fresh database, so its indexes are built on first use. Building them here,
+    // once, keeps that cost out of the first test's own time. Models are registered by the test
+    // file's imports before this runs.
+    await Promise.all(Object.values(mongoose.models).map((model) => model.init()));
   }
 
   if (!mongoose.connection.name?.startsWith(PREFIX)) {

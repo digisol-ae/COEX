@@ -24,8 +24,8 @@ Support are built and accepted by John (24 Sep 2026). The team cuts over from Cl
 osTicket to COEX on 25 Sep 2026 (M8), and did. Batch C (decision 18) was built on 26 Sep 2026
 and accepted; themes, the profile menu, email password links, three senders, signatures, space
 archiving, the floating timer and What's new followed on 27 and 28 Sep. Handed to ChatGPT on
-28 Sep 2026 and shared since: see ai/HANDOFF.md (START HERE). Next: whatever John chooses;
-Channels (M6) is the next milestone.
+28 Sep 2026 and shared since: see ai/HANDOFF.md (START HERE). Next: M8 hardening, then Phase 2 planning (John, 4 Oct 2026).
+Channels (M6) is suspended until further notice.
 
 What's new: every user-visible change gets an entry at the top of
 src/modules/core/release-notes.ts, in plain words for users. That makes the What's new drawer open
@@ -330,7 +330,20 @@ by `npm install` on the Mac.
 - Keep communication short and commands-first; no screenshots. Read the newest ai/HANDOFF.md
   section before continuing. Follow actual pm2/Apache deployment status, not the original design.
 
+## Phase 2 decisions — 4 Oct 2026 (John)
+- Order: Contracts / AMC, then full CRM, then Payroll. Billing is entirely in Zoho Books; COEX never
+  invoices. AMC is yearly, billed monthly, bimonthly, quarterly or yearly. Support hours against a
+  contract are optional per contract. All customers are treated the same: no SLA tiers.
+- Contracts live in the CRM module. Covered products come from the CRM product list, addable from
+  the contract form. Renewal owner is the organisation's owner. From `expiryWarningDays` (default
+  30, per customer) before the end date, and after it, agents see a warning and the contact who
+  raises a ticket is warned in the acknowledgement. Payroll will support AED, USD and PKR.
+  Details: docs/PHASE-2-PLAN.md, docs/P2-1-CONTRACTS-SPEC.md.
+
 ## M6 Channels decisions — 1 Oct 2026 (John)
+- SUSPENDED 4 Oct 2026 (John): the XVERSE team is busy on another project, so M6.3 to M6.6 wait
+  until further notice. M6.1 and M6.2 stay in the code as merged; do not extend them. Next work is
+  M8 hardening, then Phase 2 planning (docs/PHASE-2-PLAN.md).
 - Two WhatsApp numbers: Support (tickets) and CRM (contact conversations). See docs/M6-CHANNELS-SPEC.md.
 - Unknown senders open a ticket automatically (Support) or an Unidentified contact (CRM).
 - Ticket received is sent automatically on WhatsApp; every other notification is optional.

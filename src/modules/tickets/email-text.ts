@@ -53,9 +53,12 @@ export function customerEmailText(input: {
   ticketNumber: string;
   /** The acknowledgement says it in its own words, so it leaves the footer out. */
   footer?: boolean;
+  /** Contract expiry warning for the customer, set only when one applies. */
+  notice?: string | null;
 }): string {
   return [
     input.body.trim(),
+    input.notice?.trim() ? `\n${input.notice.trim()}` : '',
     input.signature?.trim() ? `\n${input.signature.trim()}` : '',
     input.footer === false
       ? ''

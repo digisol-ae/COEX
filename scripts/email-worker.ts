@@ -5,6 +5,7 @@ import {
   recordMailboxProgress,
   type MailboxConfig,
 } from '../src/modules/core/services/email.service';
+import { sendDueRenewalReminders } from '../src/modules/crm/services/contract-reminder.service';
 import { syncMailbox } from '../src/modules/tickets/services/mailbox.service';
 
 /**
@@ -23,6 +24,8 @@ const SWEEP_MS = 5 * 60 * 1000;
 const SETTINGS_MS = 60 * 1000;
 const OUTBOX_MS = 10 * 1000;
 const RECONNECT_MS = 30 * 1000;
+// Reminders are claimed atomically, so an hourly pass is cheap and safe to repeat or to miss.
+const RENEWALS_MS = 60 * 60 * 1000;
 
 interface Watcher {
   config: MailboxConfig;
@@ -168,16 +171,27 @@ async function deliver() {
   }
 }
 
+async function remindAboutRenewals() {
+  try {
+    const sent = await sendDueRenewalReminders();
+    if (sent > 0) log(`queued renewal reminders for ${sent} contract(s).`);
+  } catch (error) {
+    log(`renewal reminders failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
 async function main() {
   log('COEX email worker starting.');
   await reconcile();
   await deliver();
+  void remindAboutRenewals();
 
   setInterval(
     () => void reconcile().catch((error) => log(`settings reload failed: ${error}`)),
     SETTINGS_MS,
   );
   setInterval(() => void deliver(), OUTBOX_MS);
+  setInterval(() => void remindAboutRenewals(), RENEWALS_MS);
   setInterval(() => {
     for (const watcher of watchers.values()) void runSync(watcher);
   }, SWEEP_MS);

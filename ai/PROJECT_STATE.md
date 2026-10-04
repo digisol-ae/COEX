@@ -1,5 +1,102 @@
 # COEX — Shared AI Project State
 
+## Contracts tested — 4 Oct 2026 (Claude)
+
+- tests/database/contracts.test.ts: 13/13 pass, run in the sandbox against FerretDB 1.24 (SQLite),
+  a MongoDB-compatible emulator, because real MongoDB cannot be downloaded there. Also passing:
+  crm-foundation and custom-fields. The other database files could not run on the emulator (it
+  lacks partial and TTL indexes and projections in findAndModify), which says nothing about the
+  code. Real MongoDB run by John is still the final word. Browser check not done.
+- Deploy contracts: `git pull`, `npm ci`, `npm run build`, restart coex-app and coex-mail with
+  --update-env, pm2 save. No migration: new fields have defaults.
+
+## Full CRM specification drafted — 4 Oct 2026 (Claude)
+
+- docs/P2-2-CRM-SPEC.md: leads, opportunities, one pipeline, conversion, reminders, permissions,
+  four milestones P2.2a to P2.2d, six open questions for John. No code. Contracts P2.1a to P2.1c
+  remain to be verified by John (database test) before deploy.
+
+## P2.1c built — 4 Oct 2026 (Claude)
+
+- Ticket contract notice (agents), customer line in the acknowledgement, contract detail page with
+  billing schedule and manual invoiced tick, support hours used vs included. Files:
+  crm/contract-status.ts (billingSchedule, contractExpiryNotice), contract.service.ts
+  (contractNoticeFor, getContract, setPeriodInvoiced), time.service.ts
+  (loggedTicketMinutesForOrganisation), tickets/email-text.ts, inbound-email.service.ts,
+  app/(app)/contracts/[id], ticket detail page.
+- Verified in a scratch copy: tsc, eslint zero warnings, prettier, 125 unit tests, production
+  build. NOT run: tests/database/contracts.test.ts (needs MongoDB) or the browser.
+- Next: P2.1d Zoho Books read only link (needs Zoho API access), then full CRM.
+
+## P2.1b renewals built — 4 Oct 2026 (Claude)
+
+- Renew action (draft for next term, activating it retires the old contract), Renewals due strip,
+  hourly reminder pass inside the existing coex-mail worker (no new pm2 process), new staff alert
+  `contract_renewal` (Setup, Email toggle). Files: crm/contract-status.ts, crm/services/
+  contract.service.ts, contract-reminder.service.ts, scripts/email-worker.ts, contracts page.
+- Verified in a scratch copy: tsc, eslint zero warnings, prettier on changed files, 121 unit
+  tests. NOT run: tests/database/contracts.test.ts (needs MongoDB). Deploy: restart coex-app and
+  coex-mail with --update-env.
+- Open for John: renewal task and dashboard card (cross module, see spec).
+
+## P2.1a Contracts built — 4 Oct 2026 (Claude)
+
+- Contracts live in the CRM module (they read organisations and products; a separate module would
+  break the sibling import rule). Files: crm/models/contract.model.ts, crm/contract-status.ts,
+  crm/services/contract.service.ts, app/(app)/contracts/*, nav item under CRM, permissions
+  `contract.read`/`contract.manage` (tenant admin and manager), `contract` number series
+  (tenant `numbering.contractPrefix`, default C), organisation `expiryWarningDays` (customer
+  details form), release note 2026-10-04.
+- Status: stored draft/active/renewed/cancelled; expiring/expired are derived from end date in the
+  office time zone (Asia/Dubai), so no job is needed. Dates are YYYY-MM-DD text.
+- Verified in a scratch copy: tsc, prettier, eslint (zero warnings), 118 unit tests. NOT run:
+  tests/database/contracts.test.ts (no MongoDB in the sandbox) and the browser. John to run
+  `npx vitest run tests/database/contracts.test.ts` on the Mac.
+- Next: P2.1b renewal action, reminders and tasks; P2.1c ticket warning in the acknowledgement
+  email and agent banner. Customer warning goes to the contact who raises the ticket.
+
+## Contracts spec answers — 4 Oct 2026 (Claude)
+
+- John: products from the CRM list with add-from-drop-down; renewal owner is the organisation's
+  owner; expiry warning to agents and to the customer's contract contact from 30 days before expiry
+  (configurable per customer). SLA tiers still undecided (explained in the spec). See
+  docs/P2-1-CONTRACTS-SPEC.md. No code yet.
+
+## Phase 2 order and Contracts spec — 4 Oct 2026 (Claude)
+
+- John confirmed Contracts / AMC, then full CRM, then Payroll. Billing entirely in Zoho; support
+  hours against a contract are optional; payroll needs AED, USD and PKR, no UAE specifics.
+- docs/PHASE-2-PLAN.md updated; first milestone drafted in docs/P2-1-CONTRACTS-SPEC.md with four
+  open questions for John. No code written for Phase 2 yet.
+
+## Slow Atlas tests diagnosed — 4 Oct 2026 (Claude)
+
+- Cause: `testTimeout` (30 s) does not cover `beforeAll`/`beforeEach`, whose default is 10 s, and
+  every database test clears all collections and reseeds in `beforeEach` over the link to Atlas.
+  That matches the four files that time out in a full run but pass alone (1 Oct note).
+- Changed (not run here, no database or node_modules in the sandbox): `hookTimeout` 60 s in
+  vitest.config.mts; indexes built once in `connectForTests`; optional `MONGODB_TEST_URI` for a
+  local MongoDB (see tests/README.md), falling back to `MONGODB_URI`.
+- John to run on the Mac: `npm run test:db`; for real speed install a local MongoDB and set
+  `MONGODB_TEST_URI`. Report timings.
+
+## Hardening started, M6 suspended — 4 Oct 2026 (Claude)
+
+- John suspended M6.3 to M6.6 until further notice (XVERSE team unavailable). PR #5 is merged to
+  main (M6.1, M6.2, Oct 3 release) and was deployed to the server on the morning of 4 Oct 2026
+  (John). The hardening commit below is not deployed yet.
+- M8 hardening: `npm audit` critical was `next` 16.2.0-16.3.5 (RCE in next/og ImageResponse; COEX
+  does not use next/og, but fixed anyway). package.json and package-lock.json now pin next and
+  eslint-config-next 16.3.8; production audit reports 0 vulnerabilities (lockfile updated with
+  `--package-lock-only`, nothing installed here). Five remaining high findings are the dev-only
+  lint chain (braces via fast-glob via eslint-config-next); no fixed release exists, not shipped.
+- storage.ts: added turbopackIgnore hints for the four tracing warnings. NOT verified: needs
+  `npm run build` on the Mac.
+- John to run on the Mac: `npm ci && npm run build && npx vitest run tests/unit`, then deploy;
+  on the VPS `npm ci` should no longer report a critical.
+- Still open: rotate off Raheel's SSH key; slow Atlas tests have a fix awaiting a Mac run (below).
+- Phase 2 plan drafted in docs/PHASE-2-PLAN.md for John's review.
+
 ## START HERE — committed release for Claude — 3 Oct 2026 (Codex)
 
 - Feature commit: `955ea3f` (44 files), branch `claude/dreamy-carson-86yxhh`.

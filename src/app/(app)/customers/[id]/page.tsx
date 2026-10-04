@@ -78,6 +78,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                   website: organisation.website ?? '',
                   address: organisation.address ?? '',
                   notes: organisation.notes ?? '',
+                  expiryWarningDays: organisation.expiryWarningDays ?? 30,
                 }}
               />
             </CardSection>
