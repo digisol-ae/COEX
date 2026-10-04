@@ -3,7 +3,7 @@ import { asUser, requirePermission } from '@/lib/session';
 import { listContracts, type ContractSummary } from '@/modules/crm/services/contract.service';
 import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { fromMinorUnits, listProducts } from '@/modules/crm/services/product.service';
-import { Badge, Card, EmptyState, Notice, PageHeader, Table, Td, Th } from '@/components/ui';
+import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
 import { archiveContractAction, renewContractAction, setContractStatusAction } from './actions';
 import { ContractPanel } from './contract-panel';
@@ -62,7 +62,12 @@ export default async function ContractsPage() {
       />
 
       {renewalsDue.length > 0 ? (
-        <Notice tone="warn">
+        // Not a Notice: that renders a paragraph, and a list inside a paragraph is invalid HTML
+        // that breaks hydration in production.
+        <section
+          role="status"
+          className="mb-4 rounded-[var(--radius-control)] bg-[var(--color-status-warn-soft)] px-3 py-2 text-sm text-[var(--color-status-warn)]"
+        >
           <div className="font-medium">
             {renewalsDue.length} contract{renewalsDue.length === 1 ? '' : 's'} need renewal
           </div>
@@ -74,7 +79,7 @@ export default async function ContractsPage() {
               </li>
             ))}
           </ul>
-        </Notice>
+        </section>
       ) : null}
 
       <Card>

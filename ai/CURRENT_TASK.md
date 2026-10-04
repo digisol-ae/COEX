@@ -1,5 +1,16 @@
 # COEX — Current AI Task
 
+## Contracts page crash fixed — 4 Oct 2026 (Claude)
+
+- Live bug: saving a contract produced "This page couldn't load". Root cause was not in Contracts:
+  `disableDrag` in components/ui/sortable-table.tsx gave every element in a table an empty children
+  list, and React throws for `<input>` (void elements). Any table row holding a form field broke;
+  contract rows hold hidden inputs. Fixed in the shared component; regression test
+  tests/unit/sortable-table.test.ts fails without the fix.
+- Also: the Renewals due strip used `Notice` (a paragraph) around a list, invalid HTML; now a section.
+- Reproduced and verified in a real Chromium against a local build with FerretDB: save, list,
+  activate (Expiring), Renewals due strip, detail page, billing schedule, renew all work.
+
 ## Contracts tested — 4 Oct 2026 (Claude)
 
 - tests/database/contracts.test.ts: 13/13 pass, run in the sandbox against FerretDB 1.24 (SQLite),

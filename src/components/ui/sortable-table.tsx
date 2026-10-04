@@ -127,9 +127,15 @@ export function SortableTable({
 
 function disableDrag(node: ReactNode, disabled: boolean): ReactNode {
   if (!isValidElement<ElementProps>(node)) return node;
+  const props = disabled && node.props.draggable ? { draggable: false } : {};
+
+  // An element with no children must stay without them: handing <input> or <br> an empty list
+  // makes React throw, which broke any table row holding a form field (contracts, 4 Oct 2026).
+  if (node.props.children === undefined) return cloneElement(node, props);
+
   return cloneElement(
     node,
-    disabled && node.props.draggable ? { draggable: false } : {},
+    props,
     nodes(node.props.children).map((child) => disableDrag(child, disabled)),
   );
 }
