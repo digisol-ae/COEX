@@ -3,7 +3,8 @@
 ## Hardening started, M6 suspended — 4 Oct 2026 (Claude)
 
 - John suspended M6.3 to M6.6 until further notice (XVERSE team unavailable). PR #5 is merged to
-  main (M6.1, M6.2, Oct 3 release). Server deployment of it is still unverified.
+  main (M6.1, M6.2, Oct 3 release) and was deployed to the server on the morning of 4 Oct 2026
+  (John). The hardening commit below is not deployed yet.
 - M8 hardening: `npm audit` critical was `next` 16.2.0-16.3.5 (RCE in next/og ImageResponse; COEX
   does not use next/og, but fixed anyway). package.json and package-lock.json now pin next and
   eslint-config-next 16.3.8; production audit reports 0 vulnerabilities (lockfile updated with
