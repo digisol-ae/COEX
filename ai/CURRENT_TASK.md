@@ -1,5 +1,17 @@
 # COEX — Current AI Task
 
+## Contracts badge and expiry filters — 4 Oct 2026 (Claude)
+
+- Menu badge: count of contracts needing renewal (in force and inside the customer's warning
+  window, or past the end date) on the CRM rail icon, the sidebar Contracts item and the phone
+  menu; clicking opens /contracts?filter=due.
+- Contracts page filters with counts, like the ticket filters: All, Needs renewal, Expiring in 30
+  days, Expiring in 60 days, Expired (`?filter=`). Pure rule in crm/contract-status.ts
+  (matchesContractFilter), summary gains daysLeft. Replaced the old Renewals due strip.
+- Verified in Chromium with five contracts: badge 2, each filter correct, rail click filters.
+- Requested next (John, 4 Oct 2026), not built: send-email button per contract with a
+  configurable template, and linking a contract to Zoho Books invoices (see the spec).
+
 ## Contracts form and detail polish — 4 Oct 2026 (Claude)
 
 - Contract form keeps everything typed when saving fails (React clears forms after every submit;

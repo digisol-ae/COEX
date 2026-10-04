@@ -160,3 +160,33 @@ export function contractExpiryNotice(input: {
     ? `Please note: your support contract ${input.contractNumber} ended on ${input.endDate}. Contact us to renew it.`
     : `Please note: your support contract ${input.contractNumber} ends on ${input.endDate}. Contact us to renew it.`;
 }
+
+export const CONTRACT_FILTERS = ['all', 'due', '30', '60', 'expired'] as const;
+export type ContractFilter = (typeof CONTRACT_FILTERS)[number];
+
+export function parseContractFilter(value: string | undefined): ContractFilter {
+  return (CONTRACT_FILTERS as readonly string[]).includes(value ?? '')
+    ? (value as ContractFilter)
+    : 'all';
+}
+
+/**
+ * The list filters on the Contracts page. `daysLeft` is only set for a contract in force; a draft,
+ * renewed or cancelled one never matches an expiry filter, however old its dates.
+ *
+ * - due: what the menu badge counts, expiring inside the customer's own warning window or ended
+ * - 30 and 60: ending within that many days, today included
+ * - expired: in force on paper but past its end date
+ */
+export function matchesContractFilter(
+  contract: { status: ContractStatus; daysLeft: number | null },
+  filter: ContractFilter,
+): boolean {
+  if (filter === 'all') return true;
+  if (contract.daysLeft === null) return false;
+
+  if (filter === 'due') return needsExpiryWarning(contract.status);
+  if (filter === 'expired') return contract.daysLeft < 0;
+
+  return contract.daysLeft >= 0 && contract.daysLeft <= Number(filter);
+}

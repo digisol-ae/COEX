@@ -8,6 +8,7 @@ import { OrganisationModel } from '../models/organisation.model';
 import { ProductModel } from '../models/product.model';
 import {
   DEFAULT_EXPIRY_WARNING_DAYS,
+  daysBetween,
   deriveContractStatus,
   contractExpiryNotice,
   renewalTerm,
@@ -41,6 +42,8 @@ export interface ContractSummary {
   type: ContractType;
   storedStatus: StoredContractStatus;
   status: ContractStatus;
+  /** Whole days until the end date, for a contract in force; null otherwise. */
+  daysLeft: number | null;
   startDate: string;
   endDate: string;
   billingFrequency: BillingFrequency;
@@ -280,6 +283,7 @@ export async function listContracts(filter?: {
         today,
         organisation?.expiryWarningDays ?? DEFAULT_EXPIRY_WARNING_DAYS,
       ),
+      daysLeft: contract.status === 'active' ? daysBetween(today, contract.endDate) : null,
       startDate: contract.startDate,
       endDate: contract.endDate,
       billingFrequency: contract.billingFrequency as BillingFrequency,
@@ -428,4 +432,12 @@ export async function contractNoticeFor(
       endDate: latest.endDate,
     }),
   };
+}
+
+/**
+ * The number on the menu badge: active contracts inside their warning window, or past their end
+ * date. The same set as the Renewals due list, so the badge and the page it opens always agree.
+ */
+export async function countContractsNeedingRenewal(): Promise<number> {
+  return (await listRenewalsDue()).length;
 }

@@ -78,7 +78,13 @@ export function NavigationTree({
                   ) : (
                     <NavigationLink
                       key={item.href}
-                      href={item.href}
+                      // With contracts waiting for renewal the link opens just those; the page
+                      // has a link back to all of them.
+                      href={
+                        item.href === '/contracts' && counts?.[item.href]
+                          ? '/contracts?filter=due'
+                          : item.href
+                      }
                       label={item.label}
                       active={isActive(item.href)}
                       onNavigate={onNavigate}
