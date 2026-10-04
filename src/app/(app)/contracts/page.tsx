@@ -12,6 +12,7 @@ import {
   type ContractFilter,
 } from '@/modules/crm/contract-status';
 import { archiveContractAction, renewContractAction, setContractStatusAction } from './actions';
+import { ContractEmailButton } from './contract-email-button';
 import { ContractPanel } from './contract-panel';
 
 export const metadata = { title: 'Contracts · COEX' };
@@ -198,6 +199,10 @@ export default async function ContractsPage({
                   <Td>
                     {editable ? (
                       <div className="flex items-center justify-end gap-1">
+                        <ContractEmailButton
+                          contractId={contract.id}
+                          lastEmailedAt={contract.lastEmailedAt}
+                        />
                         <ContractPanel
                           organisations={customers}
                           products={productChoices}
@@ -212,6 +217,7 @@ export default async function ContractsPage({
                             value: fromMinorUnits(contract.valueMinorUnits),
                             currency: contract.currency,
                             productIds: contract.productIds,
+                            contactIds: contract.contactIds,
                             documentUrl: contract.documentUrl ?? '',
                             zohoReference: contract.zohoReference ?? '',
                             supportHoursEnabled: contract.supportHoursEnabled,

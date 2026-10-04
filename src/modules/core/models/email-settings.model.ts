@@ -70,6 +70,38 @@ const emailSettingsSchema = new Schema(
     senders: {
       alert: { type: senderSchema, default: () => ({}) },
       admin: { type: senderSchema, default: () => ({}) },
+      contracts: { type: senderSchema, default: () => ({}) },
+    },
+
+    /**
+     * Emails staff send to a customer about a contract (John, 4 Oct 2026). Placeholders are single
+     * braced, like the acknowledgement: {customer} {contact} {contract_title} {contract_number}
+     * {start_date} {end_date} {days_left} {amount} {billing} {company}.
+     */
+    contractTemplates: {
+      renewal: {
+        subject: {
+          type: String,
+          default: 'Your {contract_title} contract ends on {end_date}',
+        },
+        body: {
+          type: String,
+          default:
+            'Dear {contact},\n\nThis is a reminder that your {contract_title} agreement ({contract_number}) with us ends on {end_date}, in {days_left} days.\n\nTo keep your support and maintenance running without a break, please let us know that you would like to renew and we will prepare the renewal for you.\n\nKind regards,\n{company}',
+        },
+      },
+      expired: {
+        subject: { type: String, default: 'Your {contract_title} contract has ended' },
+        body: {
+          type: String,
+          default:
+            'Dear {contact},\n\nYour {contract_title} agreement ({contract_number}) ended on {end_date}. To restore your support and maintenance cover, please reply to this email and we will arrange the renewal.\n\nKind regards,\n{company}',
+        },
+      },
+      general: {
+        subject: { type: String, default: 'About your {contract_title} contract' },
+        body: { type: String, default: 'Dear {contact},\n\n\n\nKind regards,\n{company}' },
+      },
     },
 
     customer: {

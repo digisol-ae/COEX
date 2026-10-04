@@ -27,6 +27,7 @@ export type OutboxKind =
   | 'task_assigned'
   | 'mentioned'
   | 'contract_renewal'
+  | 'contract_email'
   | 'password_reset'
   | 'ticket_created'
   | 'password_set_by_admin'
@@ -37,7 +38,7 @@ export type OutboxKind =
  * standard address they write to; staff alerts come from Alert, so people can filter them; account
  * and security mail comes from Admin, so it is never mistaken for a routine notification.
  */
-export type SenderRole = 'standard' | 'alert' | 'admin';
+export type SenderRole = 'standard' | 'alert' | 'admin' | 'contracts';
 
 const SENDER_FOR: Record<OutboxKind, SenderRole> = {
   auto_reply: 'standard',
@@ -49,6 +50,7 @@ const SENDER_FOR: Record<OutboxKind, SenderRole> = {
   task_assigned: 'alert',
   mentioned: 'alert',
   contract_renewal: 'alert',
+  contract_email: 'contracts',
   password_reset: 'admin',
   password_set_by_admin: 'admin',
 };
@@ -138,7 +140,8 @@ export interface EmailSettingsView {
     fromAddress: string;
     lastError: string | null;
   };
-  senders: { alert: SenderView; admin: SenderView };
+  senders: { alert: SenderView; admin: SenderView; contracts: SenderView };
+  contractTemplates: ContractTemplates;
   customer: {
     autoReplyEnabled: boolean;
     autoReplyBody: string;
@@ -191,12 +194,34 @@ function senderView(stored: StoredSender | null | undefined): SenderView {
   };
 }
 
+export const CONTRACT_TEMPLATE_KEYS = ['renewal', 'expired', 'general'] as const;
+export type ContractTemplateKey = (typeof CONTRACT_TEMPLATE_KEYS)[number];
+export type ContractTemplates = Record<ContractTemplateKey, { subject: string; body: string }>;
+
+function trimTemplate(template: { subject: string; body: string }) {
+  return { subject: template.subject.trim(), body: template.body.trim() };
+}
+
+function contractTemplatesOf(settings: SettingsDocument): ContractTemplates {
+  const stored = settings.contractTemplates;
+  const pick = (key: ContractTemplateKey) => ({
+    subject: stored?.[key]?.subject ?? '',
+    body: stored?.[key]?.body ?? '',
+  });
+  return { renewal: pick('renewal'), expired: pick('expired'), general: pick('general') };
+}
+
+/** The three templates staff choose from when they email a contract's contacts. */
+export async function getContractTemplates(): Promise<ContractTemplates> {
+  return contractTemplatesOf(await settingsDocument());
+}
+
 function applySender(
-  role: 'alert' | 'admin',
+  role: 'alert' | 'admin' | 'contracts',
   input: SenderInput,
   stored: StoredSender | null | undefined,
 ): StoredSender {
-  const label = role === 'alert' ? 'Alert' : 'Admin';
+  const label = role === 'alert' ? 'Alert' : role === 'admin' ? 'Admin' : 'Contracts';
   const fromAddress = input.fromAddress.trim().toLowerCase();
   const passwordSealed = input.password
     ? sealSecret(input.password)
@@ -264,7 +289,9 @@ export async function getEmailSettings(): Promise<EmailSettingsView> {
     senders: {
       alert: senderView(settings.senders?.alert),
       admin: senderView(settings.senders?.admin),
+      contracts: senderView(settings.senders?.contracts),
     },
+    contractTemplates: contractTemplatesOf(settings),
     customer: {
       autoReplyEnabled: customer.autoReplyEnabled ?? false,
       autoReplyBody: customer.autoReplyBody ?? '',
@@ -304,7 +331,8 @@ export interface EmailSettingsInput {
     fromName: string;
     fromAddress: string;
   };
-  senders: { alert: SenderInput; admin: SenderInput };
+  senders: { alert: SenderInput; admin: SenderInput; contracts: SenderInput };
+  contractTemplates: ContractTemplates;
   customer: EmailSettingsView['customer'];
   staff: EmailSettingsView['staff'];
 }
@@ -372,7 +400,20 @@ export async function saveEmailSettings(input: EmailSettingsInput): Promise<void
 
   const alert = applySender('alert', input.senders.alert, settings.senders?.alert);
   const admin = applySender('admin', input.senders.admin, settings.senders?.admin);
-  settings.set('senders', { alert, admin });
+  const contracts = applySender('contracts', input.senders.contracts, settings.senders?.contracts);
+  settings.set('senders', { alert, admin, contracts });
+
+  for (const key of CONTRACT_TEMPLATE_KEYS) {
+    const template = input.contractTemplates[key];
+    if (!template.subject.trim() || !template.body.trim()) {
+      throw new Error('Each contract email template needs a subject and a body.');
+    }
+  }
+  settings.set('contractTemplates', {
+    renewal: trimTemplate(input.contractTemplates.renewal),
+    expired: trimTemplate(input.contractTemplates.expired),
+    general: trimTemplate(input.contractTemplates.general),
+  });
 
   if (input.customer.autoReplyEnabled && !input.customer.autoReplyBody.trim()) {
     throw new Error('Write the automatic reply, or turn it off.');
@@ -399,6 +440,7 @@ export async function saveEmailSettings(input: EmailSettingsInput): Promise<void
       fromAddress: outbound.fromAddress,
       alertFrom: alert.fromAddress || null,
       adminFrom: admin.fromAddress || null,
+      contractsFrom: contracts.fromAddress || null,
       autoReply: input.customer.autoReplyEnabled,
       emailPublicReplies: input.customer.emailPublicReplies,
       staff: input.staff,
@@ -490,6 +532,8 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
     task_assigned: settings.staff?.taskAssigned ?? true,
     mentioned: settings.staff?.mentioned ?? true,
     contract_renewal: settings.staff?.contractRenewal ?? true,
+    // A person pressed Send on a contract: that choice is the permission.
+    contract_email: true,
     ticket_created: (settings.staff?.ticketCreated ?? 'admins') !== 'off',
     // The account holder was told their password changed; like a reset link, not switchable.
     password_set_by_admin: true,
@@ -715,7 +759,8 @@ export async function deliverQueuedEmail(limit = 20): Promise<number> {
 
       const stored =
         (row.attachments as
-          { fileName: string; contentType: string; storageKey: string }[] | undefined) ?? [];
+          | { fileName: string; contentType: string; storageKey: string }[]
+          | undefined) ?? [];
       const attachments = await Promise.all(
         stored.map(async (file) => ({
           filename: file.fileName,
@@ -902,7 +947,9 @@ export async function sendTestEmail(role: SenderRole = 'standard'): Promise<stri
 
   const identity = identityFor(settings, role);
   const transport = transportFor(settings, identity.account);
-  const label = { standard: 'Standard', alert: 'Alert', admin: 'Admin' }[role];
+  const label = { standard: 'Standard', alert: 'Alert', admin: 'Admin', contracts: 'Contracts' }[
+    role
+  ];
   try {
     await transport.sendMail({
       from: identity.from,

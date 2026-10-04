@@ -1,5 +1,20 @@
 # COEX — Shared AI Project State
 
+## Contract emails — 4 Oct 2026 (Claude)
+
+- Email icon on each contract row opens a popup: recipients (the contacts chosen on the contract),
+  one of three templates (Renewal reminder, Contract ended, General message; opens on the one that
+  fits), editable subject and message with placeholders, and a live preview. One personal email per
+  contact is queued through the outbox from a new fourth sender, Contracts (Setup, Email; blank
+  falls back to Standard). Each send is logged on the customer's timeline and in the audit log;
+  a contact without an address is skipped and named.
+- Templates are edited in Setup, Email (Contract email templates) with a preview. Contract contacts
+  are chosen on the contract form after picking the customer.
+- Verified: 18 database tests pass on the emulator; Chromium walk-through (Setup sections, contacts
+  picker, popup, send queued one email, skipped the contact with no address).
+- Not built: the Zoho Books invoice link. Needs Zoho API access from John; see
+  docs/P2-1d-ZOHO-SPEC.md.
+
 ## Contracts badge and expiry filters — 4 Oct 2026 (Claude)
 
 - Menu badge: count of contracts needing renewal (in force and inside the customer's warning

@@ -30,6 +30,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
           'Open a contract to see its billing schedule: each period, when its invoice is due, and a "Mark invoiced" tick once finance has invoiced it in Zoho Books. Contracts that count support time show the hours used and left in the current period, as a warning only.',
           "On a ticket, agents now see a notice when the customer's contract is about to end, has ended, or does not exist. When a customer's contract is ending or has ended, the automatic acknowledgement email tells them.",
           'A red number on the CRM icon and beside Contracts counts the contracts that are expiring or have ended. Click it to see just those. The Contracts page has filters with counts: Needs renewal, Expiring in 30 days, Expiring in 60 days and Expired.',
+          'Each contract row has an email button that sends a message to the contacts chosen on the contract, one personal email each. Pick a template (renewal reminder, contract ended or general), change the words if you like and check the preview. The templates and a separate Contracts sender address are set under Setup, Email.',
           'If a product is not listed yet, add it from the contract form. Invoices and payments stay in Zoho Books.',
         ],
       },

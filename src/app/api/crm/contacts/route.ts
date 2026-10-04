@@ -18,6 +18,11 @@ export async function GET(request: Request) {
   return Response.json({
     contacts: contacts
       .filter((contact) => contact.status === 'active')
-      .map((contact) => ({ id: contact.id, name: contact.name, title: contact.title })),
+      .map((contact) => ({
+        id: contact.id,
+        name: contact.name,
+        title: contact.title,
+        email: contact.email,
+      })),
   });
 }

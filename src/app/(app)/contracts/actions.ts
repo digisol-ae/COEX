@@ -5,11 +5,14 @@ import { asUser, requirePermission } from '@/lib/session';
 import {
   archiveContract,
   createContract,
+  prepareContractEmail,
   renewContract,
+  sendContractEmail,
   setContractStatus,
   setPeriodInvoiced,
   updateContract,
   type BillingFrequency,
+  type ContractEmailDraft,
   type ContractInput,
   type ContractType,
 } from '@/modules/crm/services/contract.service';
@@ -91,6 +94,7 @@ export async function saveContractAction(
         value: text(formData, 'value'),
         currency: text(formData, 'currency') || 'AED',
         productIds,
+        contactIds: formData.getAll('contactIds').map(String),
         documentUrl: text(formData, 'documentUrl'),
         zohoReference: text(formData, 'zohoReference'),
         supportHoursEnabled: formData.get('supportHoursEnabled') === 'on',
@@ -144,4 +148,37 @@ export async function setPeriodInvoicedAction(formData: FormData): Promise<void>
     setPeriodInvoiced(id, Number(text(formData, 'period')), formData.get('invoiced') === 'yes'),
   );
   revalidatePath(`/contracts/${id}`);
+}
+
+export async function prepareContractEmailAction(
+  id: string,
+): Promise<{ draft?: ContractEmailDraft; error?: string }> {
+  const actor = await requirePermission('contract.manage');
+
+  try {
+    return { draft: await asUser(actor, () => prepareContractEmail(id)) };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not prepare the email.' };
+  }
+}
+
+export async function sendContractEmailAction(
+  id: string,
+  subject: string,
+  body: string,
+): Promise<{ message?: string; error?: string }> {
+  const actor = await requirePermission('contract.manage');
+
+  try {
+    const { queued, skipped } = await asUser(actor, () => sendContractEmail(id, { subject, body }));
+    revalidatePath('/contracts');
+
+    return {
+      message:
+        `Email queued for ${queued} contact${queued === 1 ? '' : 's'}.` +
+        (skipped.length ? ` No email address for ${skipped.join(', ')}.` : ''),
+    };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not send the email.' };
+  }
 }

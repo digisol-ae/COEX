@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  SAMPLE_CONTRACT_EMAIL_VALUES,
+  defaultContractTemplate,
+  fillContractTemplate,
+} from '@/modules/crm/contract-email';
+import {
   billingSchedule,
   contractExpiryNotice,
   daysBetween,
@@ -165,5 +170,22 @@ describe('matchesContractFilter', () => {
     expect(parseContractFilter('60')).toBe('60');
     expect(parseContractFilter('banana')).toBe('all');
     expect(parseContractFilter(undefined)).toBe('all');
+  });
+});
+
+describe('fillContractTemplate', () => {
+  it('fills known placeholders and leaves unknown ones visible', () => {
+    expect(
+      fillContractTemplate(
+        'Dear {contact}, {contract_title} ends {end_date}. {nope}',
+        SAMPLE_CONTRACT_EMAIL_VALUES,
+      ),
+    ).toBe('Dear Sara Khan, R4 Annual Support ends 2026-12-31. {nope}');
+  });
+
+  it('opens on the template that fits the contract', () => {
+    expect(defaultContractTemplate('expired')).toBe('expired');
+    expect(defaultContractTemplate('expiring')).toBe('renewal');
+    expect(defaultContractTemplate('active')).toBe('general');
   });
 });

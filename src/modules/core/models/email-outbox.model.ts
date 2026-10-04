@@ -20,6 +20,7 @@ const emailOutboxSchema = new Schema(
         'task_assigned',
         'mentioned',
         'contract_renewal',
+        'contract_email',
         'password_reset',
         'ticket_created',
         'password_set_by_admin',
@@ -28,7 +29,11 @@ const emailOutboxSchema = new Schema(
       required: true,
     },
     /** Only when a specific sender was asked for, as a test email does; otherwise the kind decides. */
-    sender: { type: String, enum: ['standard', 'alert', 'admin', null], default: null },
+    sender: {
+      type: String,
+      enum: ['standard', 'alert', 'admin', 'contracts', null],
+      default: null,
+    },
     to: { type: String, required: true, lowercase: true, trim: true },
     cc: { type: [String], default: [] },
     subject: { type: String, required: true },

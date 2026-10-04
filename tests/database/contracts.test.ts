@@ -9,11 +9,15 @@ import {
 import { EmailSettingsModel } from '@/modules/core/models/email-settings.model';
 import { OrganisationModel } from '@/modules/crm/models/organisation.model';
 import { UserModel } from '@/modules/core/models/user.model';
+import { ActivityModel } from '@/modules/crm/models/activity.model';
 import { EmailOutboxModel } from '@/modules/core/models/email-outbox.model';
 import { sendRenewalRemindersForTenant } from '@/modules/crm/services/contract-reminder.service';
+import { createContact, listContacts } from '@/modules/crm/services/contact.service';
 import { createProduct } from '@/modules/crm/services/product.service';
 import {
   archiveContract,
+  prepareContractEmail,
+  sendContractEmail,
   contractNoticeFor,
   setPeriodInvoiced,
   createContract,
@@ -294,5 +298,117 @@ describe('invoiced ticks', () => {
 
     await inOne(() => setPeriodInvoiced(id, 1, false));
     expect((await inOne(() => listContracts()))[0]?.invoicedPeriods).toEqual([]);
+  });
+});
+
+describe('emailing contract contacts', () => {
+  async function sendingOn() {
+    await EmailSettingsModel.create({
+      tenantId: contextOne.tenantId,
+      outbound: {
+        enabled: true,
+        host: 'smtp.example.com',
+        username: 'helpdesk@example.com',
+        fromName: 'Support',
+        fromAddress: 'helpdesk@example.com',
+      },
+    });
+  }
+
+  async function contractWithContacts(emails: (string | undefined)[]) {
+    const organisationId = await inOne(() =>
+      createOrganisation({ name: 'Mail Clinic', kind: 'client' }),
+    );
+    for (const [index, email] of emails.entries()) {
+      await inOne(() => createContact({ organisationId, name: `Person ${index + 1}`, email }));
+    }
+    const people = await inOne(() => listContacts(organisationId));
+    const id = await inOne(async () =>
+      createContract(
+        await input({
+          organisationId,
+          contactIds: people.map((person) => person.id),
+          endDate: dayKey(20),
+        }),
+      ),
+    );
+    await inOne(() => setContractStatus(id, 'active'));
+    return { id, organisationId };
+  }
+
+  it('queues one personal email per contact from the contracts sender and logs it', async () => {
+    await sendingOn();
+    const { id, organisationId } = await contractWithContacts([
+      'one@example.com',
+      'two@example.com',
+    ]);
+
+    const result = await inOne(() =>
+      sendContractEmail(id, {
+        subject: 'Renew {contract_number}',
+        body: 'Dear {contact}, {contract_title} ends on {end_date}.',
+      }),
+    );
+    expect(result.queued).toBe(2);
+
+    const queued = await EmailOutboxModel.find({ tenantId: contextOne.tenantId }).sort({ to: 1 });
+    expect(queued.map((row) => row.to)).toEqual(['one@example.com', 'two@example.com']);
+    expect(queued[0]).toMatchObject({ kind: 'contract_email' });
+    expect(queued[0]?.text).toContain('Dear Person 1,');
+    expect(queued[1]?.text).toContain('Dear Person 2,');
+    expect(queued[0]?.subject).toMatch(/^Renew C-\d+$/);
+
+    const sender = await import('@/modules/core/services/email.service');
+    expect(sender.senderRoleFor('contract_email')).toBe('contracts');
+
+    const timeline = await ActivityModel.find({ organisationId });
+    expect(timeline.map((entry) => entry.kind)).toEqual(['email', 'email']);
+  });
+
+  it('skips a contact without an address and says so', async () => {
+    await sendingOn();
+    const { id } = await contractWithContacts(['one@example.com', undefined]);
+
+    const result = await inOne(() => sendContractEmail(id, { subject: 'Hi', body: 'Hello' }));
+    expect(result).toEqual({ queued: 1, skipped: ['Person 2'] });
+  });
+
+  it('refuses when nobody is chosen, nobody has an address, or sending is off', async () => {
+    const none = await inOne(async () => createContract(await input()));
+    await sendingOn();
+    await expect(inOne(() => sendContractEmail(none, { subject: 'a', body: 'b' }))).rejects.toThrow(
+      'Choose who to email',
+    );
+
+    const noAddress = await contractWithContacts([undefined]);
+    await expect(
+      inOne(() => sendContractEmail(noAddress.id, { subject: 'a', body: 'b' })),
+    ).rejects.toThrow('has an email address');
+  });
+
+  it('refuses when sending email is turned off', async () => {
+    const { id } = await contractWithContacts(['one@example.com']);
+    await expect(inOne(() => sendContractEmail(id, { subject: 'a', body: 'b' }))).rejects.toThrow(
+      'turned off',
+    );
+  });
+
+  it('offers the template that fits and refuses contacts from another customer', async () => {
+    await sendingOn();
+    const { id } = await contractWithContacts(['one@example.com']);
+
+    const draft = await inOne(() => prepareContractEmail(id));
+    expect(draft.defaultTemplate).toBe('renewal');
+    expect(draft.templates.renewal.subject).toContain('{end_date}');
+    expect(draft.recipients).toHaveLength(1);
+
+    const stranger = await inOne(() => createOrganisation({ name: 'Other', kind: 'client' }));
+    await inOne(() =>
+      createContact({ organisationId: stranger, name: 'Outsider', email: 'o@x.com' }),
+    );
+    const outsider = (await inOne(() => listContacts(stranger)))[0]!;
+    await expect(
+      inOne(async () => createContract(await input({ contactIds: [outsider.id] }))),
+    ).rejects.toThrow('Contract contacts must be');
   });
 });
