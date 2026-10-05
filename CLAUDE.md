@@ -341,8 +341,10 @@ by `npm install` on the Mac.
   Details: docs/PHASE-2-PLAN.md, docs/P2-1-CONTRACTS-SPEC.md.
 
 ## CRM decisions — 5 Oct 2026 (John)
-- Everyone on the team sells: all staff can own and work leads and opportunities. (Visibility, own
-  only or everyone's, is still to be confirmed.)
+- Everyone on the team sells: all staff can own and work leads and opportunities, and always see
+  their own. Seeing everyone's is the permission `sales.read.all`: held by managers and tenant
+  administrators by default, and granted to an agent only per person in Users and roles, as John
+  decides (5 Oct 2026), the same pattern as `timesheet.read.all`.
 - Several pipelines, each with its own stages (for example new clinics versus upgrades and extra
   modules). An opportunity belongs to one pipeline.
 - No Negotiation stage. Stages are fully customizable per pipeline: add, rename, reorder; exactly

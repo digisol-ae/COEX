@@ -150,8 +150,10 @@ territories. Any of these is a later decision.
 
 ## John's answers, 5 Oct 2026 (these override anything above that disagrees)
 
-1. Everyone sells: all staff roles hold the lead and opportunity permissions by default. Whether
-   each person sees only their own or everyone's records is to be confirmed.
+1. Everyone sells: all staff roles hold the lead and opportunity permissions by default and see
+   their own records. Seeing everyone's is a separate permission, `sales.read.all`: managers and
+   tenant administrators have it by default; an agent only when John grants it per person in Users
+   and roles (confirmed 5 Oct 2026).
 2. Several pipelines, each with its own stages. A `Pipeline` record (name, order, stages) replaces
    the single pipeline; an opportunity stores its `pipelineId` and `stageId`. Pipelines and stages
    are managed in Setup (`pipeline.manage`).

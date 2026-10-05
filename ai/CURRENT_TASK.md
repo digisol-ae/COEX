@@ -1,5 +1,13 @@
 # COEX — Current AI Task
 
+## CRM visibility decided — 5 Oct 2026 (Claude)
+
+- John: managers and administrators see all leads and opportunities by default; an agent sees
+  everyone's only when John grants it per person. Modelled as permission `sales.read.all`
+  (managers and tenant administrators by default), everyone sees their own. Recorded in CLAUDE.md,
+  docs/P2-2-CRM-SPEC.md and the user page (republished). No CRM question is open now; P2.2a Leads
+  is ready to build on John's go.
+
 ## CRM answers recorded — 5 Oct 2026 (Claude)
 
 - John answered the six CRM questions: everyone sells; several pipelines; no Negotiation stage and
