@@ -1,5 +1,14 @@
 # COEX — Shared AI Project State
 
+## CRM answers recorded — 5 Oct 2026 (Claude)
+
+- John answered the six CRM questions: everyone sells; several pipelines; no Negotiation stage and
+  stages customizable; lost reasons Price and No reply (customizable); two amounts per deal
+  (one-off and recurring); lead sources all of the proposed plus customizable. Recorded in
+  CLAUDE.md, docs/P2-2-CRM-SPEC.md and the user page docs/crm-for-users.html (republished).
+- One answer still open: whether each person sees only their own leads and deals or everyone's.
+- No CRM code yet. Next build step is P2.2a Leads, once John says go.
+
 ## Contract emails — 4 Oct 2026 (Claude)
 
 - Email icon on each contract row opens a popup: recipients (the contacts chosen on the contract),
