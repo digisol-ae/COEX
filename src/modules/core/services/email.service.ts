@@ -28,6 +28,7 @@ export type OutboxKind =
   | 'mentioned'
   | 'contract_renewal'
   | 'contract_email'
+  | 'activity_report'
   | 'password_reset'
   | 'ticket_created'
   | 'password_set_by_admin'
@@ -51,6 +52,7 @@ const SENDER_FOR: Record<OutboxKind, SenderRole> = {
   mentioned: 'alert',
   contract_renewal: 'alert',
   contract_email: 'contracts',
+  activity_report: 'alert',
   password_reset: 'admin',
   password_set_by_admin: 'admin',
 };
@@ -508,6 +510,8 @@ export interface QueueEmailInput {
   inReplyTo?: string | null;
   references?: string[];
   ticketMessageId?: Types.ObjectId | string | null;
+  /** Files already in storage to send with the mail, for example a generated report. */
+  attachments?: { fileName: string; contentType: string; storageKey: string }[];
   /** Gives attachments saved just after a reply time to land before the email goes. */
   delaySeconds?: number;
 }
@@ -534,6 +538,8 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
     contract_renewal: settings.staff?.contractRenewal ?? true,
     // A person pressed Send on a contract: that choice is the permission.
     contract_email: true,
+    // A person pressed Share: that choice is the permission.
+    activity_report: true,
     ticket_created: (settings.staff?.ticketCreated ?? 'admins') !== 'off',
     // The account holder was told their password changed; like a reset link, not switchable.
     password_set_by_admin: true,
@@ -559,6 +565,7 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
     ticketMessageId: input.ticketMessageId
       ? new Types.ObjectId(String(input.ticketMessageId))
       : null,
+    attachments: input.attachments ?? [],
     sendAfter: new Date(Date.now() + (input.delaySeconds ?? 0) * 1000),
   });
 

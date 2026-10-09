@@ -36,7 +36,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
       {
         heading: 'Time',
         items: [
-          'New Team activity page under Time, for people who can see everyone\'s hours: who is working on which task or ticket, the stage it is in, the time they put on it, and a "working now" mark. Filter by days, stage or status, and person.',
+          'New Team activity page under Time, for people who can see everyone\'s hours: who is working on which task or ticket, the stage it is in, the time they put on it, and a "working now" mark. Filter by days (with a Today button), stage or status, one or several people, and Tasks, Tickets or both. Click a task or ticket for the same quick preview as on Tasks and Support. Share sends the page as a PDF by email, or downloads it.',
           'New time entries are no longer marked billable by default. Tick Billable on the entries that are. Entries already saved keep their setting.',
           "The Time section of a task now lists time entries person by person, each with its date and note. People who may see everyone's timesheets see every person; everyone else sees their own entries.",
         ],

@@ -21,6 +21,7 @@ const emailOutboxSchema = new Schema(
         'mentioned',
         'contract_renewal',
         'contract_email',
+        'activity_report',
         'password_reset',
         'ticket_created',
         'password_set_by_admin',

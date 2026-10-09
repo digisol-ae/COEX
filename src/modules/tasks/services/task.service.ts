@@ -101,6 +101,8 @@ export interface TaskSummary {
 }
 
 export interface TaskFilter {
+  /** Only these tasks, for screens that already know which ones they need. */
+  ids?: string[];
   spaceId?: string;
   folderId?: string;
   assigneeId?: string;
@@ -115,6 +117,7 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
 
   const query: Record<string, unknown> = {};
 
+  if (filter.ids) query._id = { $in: filter.ids.map(toObjectId) };
   if (filter.spaceId) query.spaceId = toObjectId(filter.spaceId);
   if (filter.folderId) query.folderId = toObjectId(filter.folderId);
   if (filter.assigneeId) query.assigneeIds = toObjectId(filter.assigneeId);
