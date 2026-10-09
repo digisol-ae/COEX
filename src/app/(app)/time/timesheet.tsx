@@ -209,7 +209,7 @@ export function Timesheet({
                 </div>
 
                 <label className="flex items-end gap-2 pb-2 text-sm text-[var(--color-ink-muted)]">
-                  <input type="checkbox" name="billable" defaultChecked />
+                  <input type="checkbox" name="billable" />
                   Billable
                 </label>
 

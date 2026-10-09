@@ -36,6 +36,8 @@ export const RELEASE_NOTES: ReleaseNote[] = [
       {
         heading: 'Time',
         items: [
+          'New Team activity page under Time, for people who can see everyone\'s hours: who is working on which task or ticket, the stage it is in, the time they put on it, and a "working now" mark. Filter by days, stage or status, and person.',
+          'New time entries are no longer marked billable by default. Tick Billable on the entries that are. Entries already saved keep their setting.',
           "The Time section of a task now lists time entries person by person, each with its date and note. People who may see everyone's timesheets see every person; everyone else sees their own entries.",
         ],
       },

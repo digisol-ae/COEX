@@ -1,5 +1,10 @@
 # COEX — Current AI Task
 
+## Team activity page and billable default — 9 Oct 2026 (Claude)
+
+- Built `/time/activity` (Time, `timesheet.read.all`): person, task or ticket, stage, time, working now;
+  filters date range, stage or status, person. New time entries default to not billable. See FEEDBACK.md.
+
 ## Feedback batch Q1 to Q5 built — 9 Oct 2026 (Claude)
 
 - Branch claude/vigilant-mendel-brfndj now also carries the other chat's P2.2a Leads branch

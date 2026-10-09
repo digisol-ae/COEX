@@ -94,7 +94,7 @@ export async function loadTimesheet(week: Date, userId?: string): Promise<Timesh
     workDate: entry.workDate,
     minutes: entry.minutes ?? 0,
     note: entry.note ?? null,
-    billable: entry.billable ?? true,
+    billable: entry.billable ?? false,
     running: entry.running ?? false,
     locked: Boolean(lock),
     edited: editedIds.has(String(entry._id)),

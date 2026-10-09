@@ -43,6 +43,17 @@ Verified in a scratch copy: tsc, eslint with no warnings, project Prettier, 143 
 database tests for the folder archive and per-person time on FerretDB, and a Chromium walk-through
 of Q1 to Q4. NOT run on real MongoDB.
 
+## John, 9 Oct 2026 — Team activity page and billable default (built, acceptance pending)
+
+1. Team activity (`/time/activity`, under Time, permission `timesheet.read.all`): one row per person
+   and task or ticket, with the item's current stage or status, time in the chosen days, a
+   "working now" mark and last worked. Filters: from/to date (default today), stage or status,
+   person. Built from recorded time only, so people who never start a timer or log time do not show
+   (stated on the page). `time/services/activity.service.ts`.
+2. Billable is unchecked by default for every new timer and manual entry, tasks and tickets
+   (model default, service default, timesheet form). Existing entries keep their value; no
+   migration. Edit forms still show each entry's stored value.
+
 ## 3 October 2026 — To do task color
 
 To do tasks must be yellow; In progress remains blue. Applied to dots, pills and task status selector across themes.

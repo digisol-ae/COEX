@@ -445,7 +445,7 @@ export async function addManualEntry(input: ManualEntryInput): Promise<void> {
     workDate,
     minutes: input.duration,
     note: input.note?.trim() || null,
-    billable: input.billable ?? true,
+    billable: input.billable ?? false,
     source: 'manual',
     running: false,
   });
