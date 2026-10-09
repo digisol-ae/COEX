@@ -104,8 +104,12 @@ export interface TaskFilter {
   /** Only these tasks, for screens that already know which ones they need. */
   ids?: string[];
   spaceId?: string;
+  /** Any of these spaces; used by the All tasks screen's space picker. */
+  spaceIds?: string[];
   folderId?: string;
   assigneeId?: string;
+  /** Assigned to any of these people. */
+  assigneeIds?: string[];
   status?: string;
   includeClosed?: boolean;
   overdueOnly?: boolean;
@@ -119,8 +123,12 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
 
   if (filter.ids) query._id = { $in: filter.ids.map(toObjectId) };
   if (filter.spaceId) query.spaceId = toObjectId(filter.spaceId);
+  else if (filter.spaceIds?.length) query.spaceId = { $in: filter.spaceIds.map(toObjectId) };
   if (filter.folderId) query.folderId = toObjectId(filter.folderId);
   if (filter.assigneeId) query.assigneeIds = toObjectId(filter.assigneeId);
+  else if (filter.assigneeIds?.length) {
+    query.assigneeIds = { $in: filter.assigneeIds.map(toObjectId) };
+  }
   if (filter.status) query.status = filter.status;
   if (!filter.includeClosed) query.isClosed = false;
   if (filter.overdueOnly) query.endAt = { $lt: new Date() };

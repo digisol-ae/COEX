@@ -210,6 +210,46 @@ export async function createPersonalTaskAction(
 }
 
 /**
+ * The New task popup on All tasks (John, 9 Oct 2026): one form that creates the task in Personal
+ * or in any Space, with its folder, people, priority and dates. Personal tasks go to the signed-in
+ * person, as before; for a Space the service applies its private Space and Folder rules.
+ */
+export async function createTaskAnywhereAction(
+  _previous: TaskFormState,
+  formData: FormData,
+): Promise<TaskFormState> {
+  const actor = await requirePermission('task.manage');
+  const destination = text(formData, 'spaceId');
+
+  try {
+    await asUser(actor, async () => {
+      const personal = destination === 'personal';
+      const spaceId = personal ? await personalSpaceForCurrentUser() : destination;
+      if (!spaceId) throw new Error('Choose where the task goes.');
+
+      await createTask({
+        spaceId,
+        title: text(formData, 'title'),
+        description: text(formData, 'description'),
+        priority: toPriority(text(formData, 'priority')),
+        assigneeIds: personal ? [actor.id] : assigneesFrom(formData),
+        startAt: text(formData, 'startAt') || null,
+        endAt: text(formData, 'endAt') || null,
+        folderId: personal ? null : text(formData, 'folderId') || null,
+      });
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not create the task.' };
+  }
+
+  revalidatePath('/tasks');
+  revalidatePath('/spaces');
+  revalidatePath('/personal');
+  revalidatePath('/dashboard');
+  return { saved: true };
+}
+
+/**
  * Adding a task from the foot of a column or a group.
  *
  * A title and nothing else, straight into the column it was typed under. Capture and detail are
