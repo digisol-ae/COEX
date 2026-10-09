@@ -1,5 +1,29 @@
 # FEEDBACK
 
+## John, 9 Oct 2026 — queued, NOT STARTED (wait for John to say "start working on it")
+
+John paused CRM work on 9 Oct 2026 to focus on feedback and improvements in the existing system.
+These three items are recorded as asked; nothing is built yet. Ask John which to start first.
+
+Q1. Tasks, Spaces: an option to archive or delete a Folder.
+    Notes for whoever builds it: CLAUDE.md says nothing deletes, so "delete" probably means the
+    same archive-with-restore that Spaces already have (decision 8, `archivedWithSpace`); confirm
+    with John whether a true delete is wanted. Archiving a folder takes its tasks and subtasks with
+    it, is refused while a timer runs inside it, and logged time is kept.
+
+Q2. Support, Tickets: remove the eye icon (preview). Clicking the ticket subject opens the preview
+    instead, the same way a task title does, and the preview gets a full screen icon that opens the
+    whole ticket.
+    Notes: the preview already exists (`ticket-preview-button`, `/api/tickets/[id]/preview`); task
+    titles already open a side panel, so reuse that pattern. Keep the compact preview content John
+    asked for on 3 Oct. Nothing may be reachable only on hover (phone).
+
+Q3. Support, Tickets: let people change the order of the ticket list manually by dragging.
+    Notes: the Tasks list already has manual drag order with "Reset sort"; column sorting and
+    drag order must not fight (CLAUDE.md, table sorting rule). Open questions for John when
+    starting: is the order personal to each agent or shared by everyone, and does it apply inside
+    the current filter or queue only?
+
 ## 3 October 2026 — To do task color
 
 To do tasks must be yellow; In progress remains blue. Applied to dots, pills and task status selector across themes.

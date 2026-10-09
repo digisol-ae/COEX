@@ -1,5 +1,13 @@
 # COEX — Current AI Task
 
+## CRM paused, feedback queue opened — 9 Oct 2026 (Claude)
+
+- John paused CRM work for now to focus on feedback in the existing system. The daily CRM page
+  refresh still only moves dates; John may ask to stop it.
+- Three items queued in FEEDBACK.md (Q1 to Q3) and NOT started: archive or delete Folders in
+  Spaces; open the ticket preview by clicking the subject (remove the eye icon) with a full screen
+  icon; manual drag ordering of the ticket list. Start only when John says so.
+
 ## CRM visibility decided — 5 Oct 2026 (Claude)
 
 - John: managers and administrators see all leads and opportunities by default; an agent sees
