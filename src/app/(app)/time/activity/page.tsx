@@ -58,6 +58,14 @@ export default async function TeamActivityPage({
   const taskStages = [...new Set(spaces.flatMap((space) => space.statuses.map((s) => s.name)))];
   const working = rows.filter((row) => row.running).length;
 
+  // The same totals the PDF opens with, so the screen and the report agree.
+  const minutesByPerson = new Map<string, number>();
+  for (const row of rows) {
+    minutesByPerson.set(row.userName, (minutesByPerson.get(row.userName) ?? 0) + row.minutes);
+  }
+  const personTotals = [...minutesByPerson.entries()].sort((a, b) => b[1] - a[1]);
+  const totalMinutes = personTotals.reduce((sum, [, minutes]) => sum + minutes, 0);
+
   return (
     <div className="mx-auto max-w-7xl">
       <PageHeader
@@ -88,6 +96,27 @@ export default async function TeamActivityPage({
         {rows.length} {rows.length === 1 ? 'row' : 'rows'}
         {working > 0 ? ` · ${working} working right now` : ''}
       </p>
+
+      {rows.length > 0 ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+          <span className="rounded-[var(--radius-control)] bg-[var(--color-surface-muted)] px-3 py-1.5 font-medium text-[var(--color-ink)]">
+            Total {formatMinutes(totalMinutes)}
+          </span>
+          {personTotals.length > 1
+            ? personTotals.map(([name, minutes]) => (
+                <span
+                  key={name}
+                  className="rounded-[var(--radius-control)] border border-[var(--color-line)] px-3 py-1.5 text-[var(--color-ink-muted)]"
+                >
+                  {name}{' '}
+                  <span className="tabular-nums text-[var(--color-ink)]">
+                    {formatMinutes(minutes)}
+                  </span>
+                </span>
+              ))
+            : null}
+        </div>
+      ) : null}
 
       <Card>
         {rows.length === 0 ? (

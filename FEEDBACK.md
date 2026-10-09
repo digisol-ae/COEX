@@ -57,6 +57,8 @@ of Q1 to Q4. NOT run on real MongoDB.
    downloads it (`/time/activity/pdf`). PDF built with `pdf-lib` (new dependency, pure JS;
    Latin letters only in the PDF, other scripts print as "?"). Filters live in the address
    (`time/activity-filter.ts`).
+   Totals on screen (John, 9 Oct 2026): the page showed no total while the PDF did. A Total chip
+   and one chip per person, for the rows and filters on screen, now sit above the table.
 2. Billable is unchecked by default for every new timer and manual entry, tasks and tickets
    (model default, service default, timesheet form). Existing entries keep their value; no
    migration. Edit forms still show each entry's stored value.
