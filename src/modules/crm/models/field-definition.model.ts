@@ -14,7 +14,7 @@ const fieldDefinitionSchema = new Schema(
 
     entityType: {
       type: String,
-      enum: ['organisation', 'contact', 'location', 'task', 'ticket'],
+      enum: ['organisation', 'contact', 'location', 'task', 'ticket', 'lead'],
       required: true,
       index: true,
     },

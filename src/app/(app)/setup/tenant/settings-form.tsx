@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState, useEffect } from 'react';
-import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
+import { Button, Card, CardSection, Field, Input, Notice, Select, Textarea } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
 import { saveTenantSettingsAction, type TenantFormState } from './actions';
 
@@ -30,6 +30,8 @@ export function TenantSettingsForm({
     currency: string;
     taskPrefix: string;
     ticketPrefix: string;
+    leadPrefix: string;
+    leadSources: string;
     attachmentRetentionMonths: number;
     workingDays: number[];
     dayStart: string;
@@ -88,6 +90,10 @@ export function TenantSettingsForm({
               <Input name="ticketPrefix" defaultValue={defaults.ticketPrefix} required />
             </Field>
 
+            <Field label="Lead prefix">
+              <Input name="leadPrefix" defaultValue={defaults.leadPrefix} required />
+            </Field>
+
             <Field label="Keep attachments" hint="Months">
               <Input
                 name="attachmentRetentionMonths"
@@ -99,6 +105,15 @@ export function TenantSettingsForm({
               />
             </Field>
           </div>
+        </CardSection>
+
+        <CardSection title="Lead sources">
+          <Field
+            label="Where leads come from"
+            hint="One per line. Removing a source here never changes leads already recorded with it."
+          >
+            <Textarea name="leadSources" rows={6} defaultValue={defaults.leadSources} />
+          </Field>
         </CardSection>
 
         <CardSection title="Working calendar">

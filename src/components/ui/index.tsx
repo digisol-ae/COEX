@@ -135,6 +135,10 @@ export function Input({ className, ...props }: ComponentProps<'input'>) {
   return <input {...props} className={clsx(CONTROL_CLASSES, className)} />;
 }
 
+export function Textarea({ className, ...props }: ComponentProps<'textarea'>) {
+  return <textarea {...props} className={clsx(CONTROL_CLASSES, className)} />;
+}
+
 export function Select({ className, ...props }: ComponentProps<'select'>) {
   return <select {...props} className={clsx(CONTROL_CLASSES, className)} />;
 }

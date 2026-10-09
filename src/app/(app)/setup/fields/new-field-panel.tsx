@@ -42,6 +42,7 @@ export function NewFieldPanel() {
               <option value="location">Site</option>
               <option value="task">Task</option>
               <option value="ticket">Ticket</option>
+              <option value="lead">Lead</option>
             </Select>
           </Field>
 
