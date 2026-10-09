@@ -36,7 +36,7 @@ const timeEntrySchema = new Schema(
     minutes: { type: Number, default: 0 },
 
     note: { type: String, default: null },
-    billable: { type: Boolean, default: true, index: true },
+    billable: { type: Boolean, default: false, index: true },
 
     source: { type: String, enum: ['timer', 'manual'], default: 'manual' },
     running: { type: Boolean, default: false },

@@ -33,6 +33,8 @@ export interface TenantSettingsInput {
   currency: string;
   taskPrefix: string;
   ticketPrefix: string;
+  leadPrefix: string;
+  leadSources: string[];
   attachmentRetentionMonths: number;
   workingDays: number[];
   dayStartMinutes: number;
@@ -48,6 +50,8 @@ export async function updateTenantSettings(input: TenantSettingsInput): Promise<
     currency: tenant.currency,
     taskPrefix: tenant.numbering?.taskPrefix ?? '',
     ticketPrefix: tenant.numbering?.ticketPrefix ?? '',
+    leadPrefix: tenant.numbering?.leadPrefix ?? '',
+    leadSources: tenant.leadSources,
     attachmentRetentionMonths: tenant.attachmentRetentionMonths,
     workingDays: tenant.workingDays,
     dayStartMinutes: tenant.dayStartMinutes,
@@ -63,6 +67,8 @@ export async function updateTenantSettings(input: TenantSettingsInput): Promise<
         currency: input.currency,
         'numbering.taskPrefix': input.taskPrefix.trim(),
         'numbering.ticketPrefix': input.ticketPrefix.trim(),
+        'numbering.leadPrefix': input.leadPrefix.trim() || 'L',
+        leadSources: input.leadSources,
         attachmentRetentionMonths: input.attachmentRetentionMonths,
         workingDays: input.workingDays,
         dayStartMinutes: input.dayStartMinutes,

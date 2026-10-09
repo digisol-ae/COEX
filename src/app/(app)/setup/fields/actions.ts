@@ -14,7 +14,7 @@ export interface FieldFormState {
   saved?: boolean;
 }
 
-const ENTITIES = ['organisation', 'contact', 'location', 'task', 'ticket'] as const;
+const ENTITIES = ['organisation', 'contact', 'location', 'task', 'ticket', 'lead'] as const;
 const TYPES = ['text', 'number', 'date', 'select', 'checkbox'] as const;
 
 function text(formData: FormData, field: string): string {

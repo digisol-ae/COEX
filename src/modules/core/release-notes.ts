@@ -16,6 +16,44 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-09',
+    date: '9 October 2026',
+    title: 'Leads, tickets, folders and time',
+    sections: [
+      {
+        heading: 'Tickets',
+        items: [
+          'Click a ticket subject to open its quick preview, the same way a task title opens its panel. The eye icon is gone. The preview has a full screen icon that opens the whole ticket.',
+          'Drag tickets in the list to put them in your own order. The order is yours alone and does not change anyone else\'s list. Sorting a column pauses dragging, and "Reset my order" puts the list back to latest activity first.',
+        ],
+      },
+      {
+        heading: 'Folders',
+        items: [
+          'A folder can now be archived from its settings (the gear beside the folder). Choose to keep its tasks in the space, or to archive the folder together with its tasks. Nothing is deleted for good, logged time is kept, and a running timer stops the archive.',
+        ],
+      },
+      {
+        heading: 'Time',
+        items: [
+          'New Team activity page under Time, for people who can see everyone\'s hours: who is working on which task or ticket, the stage it is in, the time they put on it, and a "working now" mark. Filter by days, stage or status, and person.',
+          'New time entries are no longer marked billable by default. Tick Billable on the entries that are. Entries already saved keep their setting.',
+          "The Time section of a task now lists time entries person by person, each with its date and note. People who may see everyone's timesheets see every person; everyone else sees their own entries.",
+        ],
+      },
+      {
+        heading: 'Leads',
+        items: [
+          'A new Leads page under CRM keeps track of possible customers before they are qualified. Add a lead with its name, company, email, mobile number, source and owner. A lead gets a number such as L-1.',
+          'You see the leads you own; managers and administrators see every lead and can filter by owner. Filters with counts show New, Working, Converted and Disqualified leads, and you can search by name, company or email.',
+          'If a new lead has the same email, mobile number or company as an existing lead, customer or contact, COEX tells you who it looks like. You can still save it as a new lead.',
+          'Mark a lead as working when you start on it. To drop one, disqualify it and say why: the lead stays in the list with your reason, and can be reopened.',
+          'Where leads come from is a list you can edit under Setup, Tenant settings. Custom fields can now be added to leads under Setup, Custom fields. Administrators decide who works on leads in Users and roles.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-04',
     date: '4 October 2026',
     title: 'Contracts',

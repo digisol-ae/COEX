@@ -29,6 +29,15 @@ export async function saveTenantSettingsAction(
         currency: String(formData.get('currency') ?? ''),
         taskPrefix: String(formData.get('taskPrefix') ?? ''),
         ticketPrefix: String(formData.get('ticketPrefix') ?? ''),
+        leadPrefix: String(formData.get('leadPrefix') ?? ''),
+        leadSources: [
+          ...new Set(
+            String(formData.get('leadSources') ?? '')
+              .split('\n')
+              .map((source) => source.trim())
+              .filter(Boolean),
+          ),
+        ],
         attachmentRetentionMonths: Number(formData.get('attachmentRetentionMonths') ?? 24),
         workingDays: formData.getAll('workingDays').map(Number),
         dayStartMinutes: toMinutes(String(formData.get('dayStart') ?? '09:00')),

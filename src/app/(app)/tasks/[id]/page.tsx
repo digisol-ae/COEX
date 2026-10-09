@@ -16,8 +16,12 @@ import { getSpace } from '@/modules/tasks/services/space.service';
 import { listFolders } from '@/modules/tasks/services/folder.service';
 import { listUsers } from '@/modules/core/services/user.service';
 import { Badge, Card, CardSection, PageHeader } from '@/components/ui';
-import { getRunningTimer, loggedMinutesForTask } from '@/modules/time/services/time.service';
-import { formatMinutes } from '@/modules/time/week';
+import {
+  getRunningTimer,
+  listTaskTimeByPerson,
+  loggedMinutesForTask,
+} from '@/modules/time/services/time.service';
+import { formatMinutes, toDateKey } from '@/modules/time/week';
 import { toDateTimeInput } from '@/modules/tasks/dates';
 import { TimerButton } from '@/modules/time/components/timer-button';
 import { TaskForm } from './task-form';
@@ -39,6 +43,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
     users,
     timer,
     loggedMinutes,
+    timeByPerson,
     comments,
     ownerIds,
     subtaskOwnerIds,
@@ -51,6 +56,11 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
     users: await listUsers(),
     timer: await getRunningTimer(),
     loggedMinutes: await loggedMinutesForTask(id),
+    // Other people's hours are for those granted timesheet.read.all; everyone else sees their own.
+    timeByPerson: await listTaskTimeByPerson(
+      id,
+      actor.permissions.includes('timesheet.read.all') ? {} : { onlyUserId: actor.id },
+    ),
     comments: await listTaskComments(id),
     ownerIds: await assignableUserIdsForTask(task),
     subtaskOwnerIds: await assignableUserIdsForSubtask(task),
@@ -177,6 +187,44 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
                   <Badge tone="warn">over estimate</Badge>
                 ) : null}
               </div>
+
+              <h3 className="mt-5 text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                Time entries
+              </h3>
+              {timeByPerson.length === 0 ? (
+                <p className="mt-1 text-sm text-[var(--color-ink-muted)]">
+                  No time has been logged on this task yet.
+                </p>
+              ) : (
+                <ul className="mt-2 space-y-3">
+                  {timeByPerson.map((person) => (
+                    <li key={person.userId}>
+                      <p className="flex items-center justify-between text-sm font-medium text-[var(--color-ink)]">
+                        <span>{person.name}</span>
+                        <span className="tabular-nums">{formatMinutes(person.minutes)}</span>
+                      </p>
+                      <ul className="mt-1 divide-y divide-[var(--color-line)] text-xs text-[var(--color-ink-muted)]">
+                        {person.entries.map((entry) => (
+                          <li key={entry.id} className="flex items-baseline gap-3 py-1">
+                            <span className="w-24 shrink-0">{toDateKey(entry.workDate)}</span>
+                            <span className="w-14 shrink-0 tabular-nums">
+                              {formatMinutes(entry.minutes)}
+                            </span>
+                            <span className="min-w-0 flex-1 truncate">
+                              {entry.running ? 'Running now' : (entry.note ?? '')}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {!actor.permissions.includes('timesheet.read.all') && timeByPerson.length > 0 ? (
+                <p className="mt-2 text-xs text-[var(--color-ink-subtle)]">
+                  You see your own entries. The total above includes everyone.
+                </p>
+              ) : null}
             </CardSection>
           </Card>
 

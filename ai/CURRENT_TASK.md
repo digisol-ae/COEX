@@ -1,5 +1,65 @@
 # COEX — Current AI Task
 
+## Team activity page and billable default — 9 Oct 2026 (Claude)
+
+- Built `/time/activity` (Time, `timesheet.read.all`): person, task or ticket, stage, time, working now;
+  filters date range, stage or status, person. New time entries default to not billable. See FEEDBACK.md.
+
+## Feedback batch Q1 to Q5 built — 9 Oct 2026 (Claude)
+
+- Branch claude/vigilant-mendel-brfndj now also carries the other chat's P2.2a Leads branch
+  (merged, docs conflicts resolved by keeping both). CRM work beyond Leads stays paused by John.
+- Built from FEEDBACK.md (section "feedback batch Q1 to Q5"): Q1 folder archive (with or without its
+  tasks, no hard delete), Q2 ticket subject opens the preview, eye icon gone, full screen icon,
+  Q3 personal drag order of the ticket list with reset, Q4 per-person time entries on a task.
+  Q5 (All work shows every space) could not be reproduced: current code and tests scope by space;
+  likely an older deployed build. John to confirm after deploying.
+- John confirmed (9 Oct 2026): ticket order is personal; others' time entries need
+  `timesheet.read.all`; folder "delete" means archive, enough for now.
+- Verified in a scratch copy only: tsc, eslint, Prettier, 143 unit tests, DB tests on FerretDB,
+  Chromium walk-through. Not run on real MongoDB. No PR opened yet.
+- Deploy: `git pull`, `npm ci`, `npm run build`, restart coex-app with --update-env, pm2 save. No
+  migration: new fields (`ticketOrder`, `archivedWithFolder`) have defaults.
+
+## CRM visibility decided — 5 Oct 2026 (Claude)
+
+- John: managers and administrators see all leads and opportunities by default; an agent sees
+  everyone's only when John grants it per person. Modelled as permission `sales.read.all`
+  (managers and tenant administrators by default), everyone sees their own. Recorded in CLAUDE.md,
+  docs/P2-2-CRM-SPEC.md and the user page (republished). No CRM question is open now; P2.2a Leads
+  is ready to build on John's go.
+
+## CRM answers recorded — 5 Oct 2026 (Claude)
+
+- John answered the six CRM questions: everyone sells; several pipelines; no Negotiation stage and
+  stages customizable; lost reasons Price and No reply (customizable); two amounts per deal
+  (one-off and recurring); lead sources all of the proposed plus customizable. Recorded in
+  CLAUDE.md, docs/P2-2-CRM-SPEC.md and the user page docs/crm-for-users.html (republished).
+- One answer still open: whether each person sees only their own leads and deals or everyone's.
+- Leads (P2.2a) were built afterwards: see the next entry.
+
+## P2.2a Leads built — 9 Oct 2026 (Claude)
+
+- John chose "Full CRM P2.2a" as the next task. Built on the spec's proposals, ahead of his answers to
+  the six open questions (docs/P2-2-CRM-SPEC.md, section "Built: P2.2a", lists the departures).
+- Leads page under CRM: add and edit (name, company, email, mobile in E.164, source, owner, notes,
+  custom fields), status filters with counts, source/owner/search filters, start working, disqualify
+  with a required reason (kept, reopenable), archive. Duplicate warning against leads, customers and
+  contacts that never blocks. Salespeople see their own leads; `lead.read.all` sees every lead.
+- Files: crm/models/lead.model.ts, crm/lead-rules.ts, crm/services/lead.service.ts,
+  app/(app)/leads/*, permissions (`lead.read`, `lead.read.all`, `lead.manage`), numbering `lead`
+  (tenant `numbering.leadPrefix`), tenant `leadSources` (Setup, Tenant settings), custom field entity
+  `lead`, shared `Textarea` in components/ui, nav item, release note 2026-10-09.
+- Verified in a scratch copy: tsc, eslint zero warnings, prettier on changed files (CLAUDE.md already
+  failed it before), 138 unit tests, 8 new database tests in tests/database/leads.test.ts plus
+  crm-foundation and custom-fields on FerretDB 1.24, production build, Chromium walk-through (add,
+  duplicate warning keeps the form, save anyway, start working, disqualify, filter, sources in
+  Tenant settings, no browser errors). NOT run on real MongoDB; John's run is the final word.
+- Deploy: `git pull`, `npm ci`, `npm run build`, restart coex-app with --update-env, pm2 save. No
+  migration: new fields have defaults. Grant `lead.manage` to salespeople in Users and roles.
+- Next: John answers the spec's open questions, then P2.2b pipeline and opportunities. Zoho
+  (P2.1d) still waits on API access.
+
 ## Contract emails — 4 Oct 2026 (Claude)
 
 - Email icon on each contract row opens a popup: recipients (the contacts chosen on the contract),

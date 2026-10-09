@@ -590,18 +590,26 @@ export async function quickAddSpaceAction(input: { name: string }): Promise<Task
  * Archiving a folder.
  *
  * The work inside comes out into the space rather than disappearing with the folder, because a
- * folder is a way of grouping and removing it should not remove what was grouped.
+ * folder is a way of grouping and removing it should not remove what was grouped. "Archive with its
+ * tasks" is the explicit second choice (John, 9 Oct 2026). Returns an error rather than throwing so
+ * a running timer is explained in the popup.
  */
-export async function archiveFolderAction(formData: FormData): Promise<void> {
+export async function archiveFolderAction(formData: FormData): Promise<TaskFormState> {
   const actor = await requirePermission('task.manage');
 
   const id = text(formData, 'id');
   const spaceId = text(formData, 'spaceId');
+  const withTasks = text(formData, 'withTasks') === 'yes';
 
-  await asUser(actor, () => archiveFolder(id));
+  try {
+    await asUser(actor, () => archiveFolder(id, { withTasks }));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not archive the folder.' };
+  }
 
   revalidatePath(`/spaces/${spaceId}`);
   revalidatePath('/spaces');
+  return { saved: true };
 }
 
 /** The people picked with @ in a note, sent by the mention picker as one hidden field each. */

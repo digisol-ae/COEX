@@ -45,6 +45,7 @@ export const GROUPS: NavigationGroup[] = [
       { href: '/time', label: 'Timesheet', permission: 'task.read.own' },
       { href: '/time/all', label: 'All timesheets', permission: 'timesheet.read.all' },
       { href: '/time/report', label: 'Time report', permission: 'timesheet.read.all' },
+      { href: '/time/activity', label: 'Team activity', permission: 'timesheet.read.all' },
     ],
   },
   {
@@ -54,7 +55,8 @@ export const GROUPS: NavigationGroup[] = [
       { href: '/customers', label: 'Customers', permission: 'customer.read' },
       { href: '/products', label: 'Products', permission: 'products.read' },
       { href: '/contracts', label: 'Contracts', permission: 'contract.read' },
-      // Leads, pipeline and quotations join here in a later phase.
+      { href: '/leads', label: 'Leads', permission: 'lead.read' },
+      // Opportunities and the pipeline join here with P2.2b.
     ],
   },
   {

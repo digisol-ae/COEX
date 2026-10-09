@@ -30,6 +30,8 @@ export default async function TenantSettingsPage() {
           currency: tenant.currency ?? 'AED',
           taskPrefix: tenant.numbering?.taskPrefix ?? 'T',
           ticketPrefix: tenant.numbering?.ticketPrefix ?? 'S',
+          leadPrefix: tenant.numbering?.leadPrefix ?? 'L',
+          leadSources: tenant.leadSources.join('\n'),
           attachmentRetentionMonths: tenant.attachmentRetentionMonths ?? 24,
           workingDays: tenant.workingDays ?? [1, 2, 3, 4, 5],
           dayStart: toTimeInput(tenant.dayStartMinutes ?? 540),

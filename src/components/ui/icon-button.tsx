@@ -33,6 +33,7 @@ export type IconName =
   | 'access'
   | 'unlink'
   | 'open'
+  | 'expand'
   | 'add'
   | 'archive'
   | 'restore'
@@ -128,6 +129,7 @@ const PATHS: Record<IconName, ReactNode> = {
     </>
   ),
   open: <path d="M9 3h4v4M13 3 7.5 8.5M11.5 9.5V13H3V4.5h3.5" />,
+  expand: <path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9" />,
   add: <path d="M8 3v10M3 8h10" />,
   archive: (
     <>

@@ -1,16 +1,48 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import Link from 'next/link';
 import { Icon, IconButton, IconLink, type IconName } from '@/components/ui/icon-button';
 import type { TicketPreviewData } from '@/modules/tickets/preview';
 import { formatMinutes } from '@/modules/time/week';
 import { formatDateTime } from '@/modules/tasks/dates';
 
-export function TicketPreviewButton({ ticketId }: { ticketId: string }) {
+/**
+ * The ticket subject in a list. A plain click opens the quick preview, the way a task title opens
+ * its side panel (John, 9 Oct 2026); the preview carries the full screen icon that opens the whole
+ * ticket. It stays a real link, so a modified click (new tab, new window) still goes straight to
+ * the ticket.
+ */
+export function TicketSubjectLink({
+  ticketId,
+  className,
+  children,
+}: {
+  ticketId: string;
+  className?: string;
+  children: ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <IconButton icon="preview" label="Preview ticket" onClick={() => setOpen(true)} />
+      <Link
+        href={`/support/tickets/${ticketId}`}
+        className={className}
+        onClick={(event) => {
+          if (
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey ||
+            event.button !== 0
+          )
+            return;
+          event.preventDefault();
+          setOpen(true);
+        }}
+      >
+        {children}
+      </Link>
       {open ? <TicketPreview ticketId={ticketId} onClose={() => setOpen(false)} /> : null}
     </>
   );
@@ -56,7 +88,11 @@ function TicketPreview({ ticketId, onClose }: { ticketId: string; onClose: () =>
           </h2>
         </div>
         <div className="flex shrink-0 gap-1">
-          <IconLink icon="open" label="Open full ticket" href={`/support/tickets/${ticketId}`} />
+          <IconLink
+            icon="expand"
+            label="Open full ticket (full screen)"
+            href={`/support/tickets/${ticketId}`}
+          />
           <IconButton icon="close" label="Close preview" onClick={onClose} />
         </div>
       </header>

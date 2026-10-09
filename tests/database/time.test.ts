@@ -7,6 +7,7 @@ import { createSpace } from '@/modules/tasks/services/space.service';
 import { createTask } from '@/modules/tasks/services/task.service';
 import {
   addManualEntry,
+  listTaskTimeByPerson,
   getRunningTimer,
   removeEntry,
   startTimer,
@@ -105,7 +106,13 @@ describe('manual entries', () => {
     const taskId = await aTask();
 
     await runWithContext(context, async () => {
-      await addManualEntry({ taskId, workDate: today, duration: 90, note: 'Migration run' });
+      await addManualEntry({
+        taskId,
+        workDate: today,
+        duration: 90,
+        note: 'Migration run',
+        billable: true,
+      });
       await addManualEntry({ taskId, workDate: today, duration: 30, billable: false });
     });
 
@@ -389,5 +396,60 @@ describe('correcting an entry', () => {
     await expect(
       runWithContext(otherPerson, () => removeEntry(sheet.entries[0].id)),
     ).rejects.toThrow(/administrator/i);
+  });
+});
+
+describe('time on one task, person by person', () => {
+  it("keeps each person's entries apart and limits a reader to their own on request", async () => {
+    const taskId = await aTask();
+
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 90 }));
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 30 }));
+    await runWithContext(otherPerson, () =>
+      addManualEntry({ taskId, workDate: today, duration: 45, note: 'Review' }),
+    );
+
+    const everyone = await runWithContext(context, () => listTaskTimeByPerson(taskId));
+    expect(everyone).toHaveLength(2);
+    expect(everyone[0].minutes).toBe(120);
+    expect(everyone[0].entries).toHaveLength(2);
+    expect(everyone[1].minutes).toBe(45);
+    expect(everyone[1].entries[0].note).toBe('Review');
+
+    const onlyMine = await runWithContext(otherPerson, () =>
+      listTaskTimeByPerson(taskId, { onlyUserId: String(otherUserId) }),
+    );
+    expect(onlyMine).toHaveLength(1);
+    expect(onlyMine[0].minutes).toBe(45);
+  });
+});
+
+describe('team activity', () => {
+  it('lists who worked on what with its current stage, and filters by stage and day', async () => {
+    const { listTeamActivity } = await import('@/modules/time/services/activity.service');
+    const taskId = await aTask('Review');
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 40 }));
+    await runWithContext(otherPerson, () =>
+      addManualEntry({ taskId, workDate: today, duration: 20 }),
+    );
+
+    const rows = await runWithContext(context, () =>
+      listTeamActivity({ fromDay: today, toDay: today }),
+    );
+    expect(rows).toHaveLength(2);
+    expect(rows[0].status).toBe('To do');
+    expect(rows.map((row) => row.minutes).sort()).toEqual([20, 40]);
+
+    const none = await runWithContext(context, () =>
+      listTeamActivity({ fromDay: today, toDay: today, status: 'Done' }),
+    );
+    expect(none).toHaveLength(0);
+  });
+
+  it('records new time as not billable unless it is ticked', async () => {
+    const taskId = await aTask();
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 30 }));
+    const sheet = await runWithContext(context, () => loadTimesheet(new Date()));
+    expect(sheet.entries[0].billable).toBe(false);
   });
 });

@@ -34,6 +34,8 @@ import {
   type QueueTarget,
 } from '@/modules/tickets/services/queue.service';
 import { markTicketRead } from '@/modules/tickets/services/unread.service';
+import { mergeTicketOrder } from '@/modules/tickets/ticket-order';
+import { getTicketOrder, saveTicketOrder } from '@/modules/core/services/user.service';
 
 import { createOrganisation } from '@/modules/crm/services/organisation.service';
 import { normaliseCc, quickCustomerSchema } from '@/modules/tickets/collaborators';
@@ -471,4 +473,23 @@ export async function restoreCannedReplyAction(formData: FormData): Promise<void
   await asUser(actor, () => restoreCannedReply(text(formData, 'id')));
 
   revalidatePath('/setup/canned-replies');
+}
+
+/**
+ * Saves the order the signed-in person dragged the ticket list into. Personal: it reorders what
+ * they already see and changes nothing for anyone else (John, 9 Oct 2026).
+ */
+export async function saveTicketOrderAction(visibleIds: string[]): Promise<void> {
+  const actor = await requirePermission('ticket.read.own');
+  await asUser(actor, async () => {
+    const previous = await getTicketOrder();
+    await saveTicketOrder(mergeTicketOrder(visibleIds, previous));
+  });
+  revalidatePath('/support/tickets');
+}
+
+export async function resetTicketOrderAction(): Promise<void> {
+  const actor = await requirePermission('ticket.read.own');
+  await asUser(actor, () => saveTicketOrder([]));
+  revalidatePath('/support/tickets');
 }

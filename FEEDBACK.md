@@ -1,5 +1,59 @@
 # FEEDBACK
 
+## John, 9 Oct 2026 — feedback batch Q1 to Q5 (built, answers confirmed, acceptance pending)
+
+John paused CRM work on 9 Oct 2026 for feedback and improvements, then said to start. Built together
+with the Leads branch (P2.2a) and shown in one What's new entry (2026-10-09).
+
+Q1. Tasks, Spaces: archive or delete a Folder. BUILT. Folder settings (gear beside the active folder)
+    has "Archive or remove this folder…" with two choices: archive the folder and keep its tasks in
+    the space (the existing service rule), or archive the folder with its tasks and subtasks
+    (`archivedWithFolder` on the task). Nothing is hard deleted, in line with "nothing deletes";
+    logged time stays; a running timer on one of its tasks refuses the archive. Audited.
+    Not built: a screen to restore an archived folder (data is kept, flagged for restore later).
+
+Q2. Support, Tickets: eye icon removed from the list and the ticket page. The subject opens the
+    quick preview on a plain click (`TicketSubjectLink`); a modified click still opens the ticket
+    in a new tab. The preview's open icon is now a full screen (expand) icon to the whole ticket.
+
+Q3. Support, Tickets: drag to reorder. BUILT as a personal order (assumption, John to confirm):
+    stored on the user (`ticketOrder`), tickets named in it first, the rest in the usual latest
+    activity order; a filtered view saves only what it shows and keeps earlier positions; "Reset my
+    order" clears it. Column sorting pauses dragging. Desktop table only; phone cards have no drag.
+    Pure rules in `tickets/ticket-order.ts`.
+
+Q4. Time: the Time section of a task now lists "Time entries" person by person (date, minutes,
+    note), with each person's total. People with `timesheet.read.all` see everyone; others see
+    their own entries only, under the unchanged total (assumption, John to confirm).
+    `listTaskTimeByPerson` in the time service.
+
+Q5. Tasks, Spaces: "All work" showing every space's tasks. NOT REPRODUCED. A Space's All work tab
+    shows only that space's tasks in the current code (checked in a browser with two spaces, and by
+    the existing database test "returns only the tasks of the space asked for"). The same fault
+    was fixed on 1 Oct (item 4 below; `$and` in listTasks, live at 126767a), so a server that has
+    not pulled that or a later release would still show it. The All tasks page, by design, lists
+    every space. Asked John to confirm after deploying whether it still happens and on which
+    screen.
+
+John's answers (9 Oct 2026), all matching what was built: the ticket order is personal; people
+without `timesheet.read.all` see only their own time entries; archiving is enough for folder
+"delete" for now. Q5 still waits on a retest after deploying.
+
+Verified in a scratch copy: tsc, eslint with no warnings, project Prettier, 143 unit tests,
+database tests for the folder archive and per-person time on FerretDB, and a Chromium walk-through
+of Q1 to Q4. NOT run on real MongoDB.
+
+## John, 9 Oct 2026 — Team activity page and billable default (built, acceptance pending)
+
+1. Team activity (`/time/activity`, under Time, permission `timesheet.read.all`): one row per person
+   and task or ticket, with the item's current stage or status, time in the chosen days, a
+   "working now" mark and last worked. Filters: from/to date (default today), stage or status,
+   person. Built from recorded time only, so people who never start a timer or log time do not show
+   (stated on the page). `time/services/activity.service.ts`.
+2. Billable is unchecked by default for every new timer and manual entry, tasks and tickets
+   (model default, service default, timesheet form). Existing entries keep their value; no
+   migration. Edit forms still show each entry's stored value.
+
 ## 3 October 2026 — To do task color
 
 To do tasks must be yellow; In progress remains blue. Applied to dots, pills and task status selector across themes.

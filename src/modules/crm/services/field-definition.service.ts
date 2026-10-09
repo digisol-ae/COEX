@@ -15,7 +15,7 @@ import { FieldDefinitionModel } from '../models/field-definition.model';
 
 const definitions = () => repository(FieldDefinitionModel);
 
-export type FieldEntity = 'organisation' | 'contact' | 'location' | 'task' | 'ticket';
+export type FieldEntity = 'organisation' | 'contact' | 'location' | 'task' | 'ticket' | 'lead';
 export type FieldType = 'text' | 'number' | 'date' | 'select' | 'checkbox';
 
 export interface FieldDefinitionSummary {

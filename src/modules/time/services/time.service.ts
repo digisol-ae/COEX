@@ -3,6 +3,7 @@ import { getContext } from '@/lib/tenant-context';
 import { repository } from '@/lib/repository';
 import { toObjectId } from '@/lib/ids';
 import { recordAudit, changedFields } from '@/modules/core/services/audit.service';
+import { UserModel } from '@/modules/core/models/user.model';
 import { TaskModel } from '@/modules/tasks/models/task.model';
 import { TicketModel } from '@/modules/tickets/models/ticket.model';
 import { TimeEntryModel } from '../models/time-entry.model';
@@ -75,6 +76,76 @@ export async function loggedMinutesForTask(taskId: string): Promise<number> {
   const found = await entries().find({ taskId: toObjectId(taskId) });
 
   return found.reduce((sum, entry) => sum + (entry.minutes ?? 0), 0);
+}
+
+export interface TaskTimeByPerson {
+  userId: string;
+  name: string;
+  minutes: number;
+  entries: {
+    id: string;
+    workDate: Date;
+    minutes: number;
+    note: string | null;
+    running: boolean;
+    source: 'timer' | 'manual';
+  }[];
+}
+
+/**
+ * The time on one task, kept apart person by person (John, 9 Oct 2026): the task page used to show
+ * only the sum of everyone's hours. `onlyUserId` limits it to one person's own entries, which is
+ * what someone without `timesheet.read.all` may see; the page decides, because who sees other
+ * people's hours is a permission, not a service rule. A running timer counts its elapsed time.
+ */
+export async function listTaskTimeByPerson(
+  taskId: string,
+  options: { onlyUserId?: string } = {},
+): Promise<TaskTimeByPerson[]> {
+  await connectToDatabase();
+
+  const found = await entries()
+    .find({
+      taskId: toObjectId(taskId),
+      ...(options.onlyUserId ? { userId: toObjectId(options.onlyUserId) } : {}),
+    })
+    .sort({ workDate: -1, createdAt: -1 });
+
+  const people = await UserModel.find({
+    _id: { $in: [...new Set(found.map((entry) => String(entry.userId)))] },
+  }).select('name');
+  const names = new Map(people.map((person) => [String(person._id), person.name]));
+
+  const byPerson = new Map<string, TaskTimeByPerson>();
+
+  for (const entry of found) {
+    const userId = String(entry.userId);
+    const startedAt = entry.startedAt ?? entry.createdAt;
+    const minutes = entry.running
+      ? Math.max(0, Math.floor((Date.now() - startedAt.getTime()) / 60000))
+      : (entry.minutes ?? 0);
+
+    const group = byPerson.get(userId) ?? {
+      userId,
+      name: names.get(userId) ?? 'Unknown',
+      minutes: 0,
+      entries: [],
+    };
+    group.minutes += minutes;
+    group.entries.push({
+      id: String(entry._id),
+      workDate: entry.workDate,
+      minutes,
+      note: entry.note ?? null,
+      running: entry.running ?? false,
+      source: entry.source ?? 'manual',
+    });
+    byPerson.set(userId, group);
+  }
+
+  return [...byPerson.values()].sort(
+    (a, b) => b.minutes - a.minutes || a.name.localeCompare(b.name),
+  );
 }
 
 /** Every minute recorded against one ticket, by everyone. */
@@ -374,7 +445,7 @@ export async function addManualEntry(input: ManualEntryInput): Promise<void> {
     workDate,
     minutes: input.duration,
     note: input.note?.trim() || null,
-    billable: input.billable ?? true,
+    billable: input.billable ?? false,
     source: 'manual',
     running: false,
   });

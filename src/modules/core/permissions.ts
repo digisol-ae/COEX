@@ -30,6 +30,9 @@ export const PERMISSIONS = [
   'products.manage',
   'contract.read',
   'contract.manage',
+  'lead.read',
+  'lead.read.all',
+  'lead.manage',
   'task.read.own',
   'task.read.all',
   'timesheet.read.all',
@@ -56,6 +59,9 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'products.manage',
     'contract.read',
     'contract.manage',
+    'lead.read',
+    'lead.read.all',
+    'lead.manage',
     'task.read.all',
     'timesheet.read.all',
     'task.manage',
@@ -71,6 +77,9 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'products.manage',
     'contract.read',
     'contract.manage',
+    'lead.read',
+    'lead.read.all',
+    'lead.manage',
     'task.read.all',
     'timesheet.read.all',
     'task.manage',
@@ -122,6 +131,8 @@ export interface PermissionHolder {
  * whatever else the role grants.
  */
 const IMPLIES: Partial<Record<Permission, Permission[]>> = {
+  'lead.read.all': ['lead.read'],
+  'lead.manage': ['lead.read'],
   'task.read.all': ['task.read.own'],
   'ticket.read.all': ['ticket.read.own'],
 };

@@ -71,3 +71,18 @@ describe('permissions', () => {
     expect([...granted]).toEqual(['ticket.read.own']);
   });
 });
+
+describe('lead permissions', () => {
+  it('gives managers and administrators every lead permission, and agents none', () => {
+    for (const role of ['tenant_admin', 'manager'] as const) {
+      expect(can({ role }, 'lead.manage')).toBe(true);
+      expect(can({ role }, 'lead.read.all')).toBe(true);
+    }
+    expect(can({ role: 'agent' }, 'lead.read')).toBe(false);
+  });
+
+  it('lets a person granted lead.manage see their own leads without a second grant', () => {
+    expect(can({ role: 'agent', permissionGrants: ['lead.manage'] }, 'lead.read')).toBe(true);
+    expect(can({ role: 'agent', permissionGrants: ['lead.manage'] }, 'lead.read.all')).toBe(false);
+  });
+});
