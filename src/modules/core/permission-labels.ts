@@ -28,6 +28,9 @@ export const PERMISSION_GROUPS: {
       { id: 'customer.manage', label: 'Create and edit customers' },
       { id: 'products.read', label: 'View products' },
       { id: 'products.manage', label: 'Create and edit products' },
+      { id: 'lead.read', label: 'View own leads' },
+      { id: 'lead.read.all', label: 'View every lead' },
+      { id: 'lead.manage', label: 'Create and edit leads, convert or disqualify them' },
     ],
   },
   {

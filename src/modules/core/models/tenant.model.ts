@@ -25,6 +25,13 @@ const tenantSchema = new Schema(
       taskPrefix: { type: String, default: 'T' },
       ticketPrefix: { type: String, default: 'S' },
       contractPrefix: { type: String, default: 'C' },
+      leadPrefix: { type: String, default: 'L' },
+    },
+
+    /** Where leads come from; the list is DigiSol's to edit in Setup, Tenant settings. */
+    leadSources: {
+      type: [String],
+      default: () => ['Referral', 'Website', 'Event', 'Phone call', 'Email', 'WhatsApp', 'Other'],
     },
 
     modules: {

@@ -1,5 +1,27 @@
 # COEX — Current AI Task
 
+## P2.2a Leads built — 9 Oct 2026 (Claude)
+
+- John chose "Full CRM P2.2a" as the next task. Built on the spec's proposals, ahead of his answers to
+  the six open questions (docs/P2-2-CRM-SPEC.md, section "Built: P2.2a", lists the departures).
+- Leads page under CRM: add and edit (name, company, email, mobile in E.164, source, owner, notes,
+  custom fields), status filters with counts, source/owner/search filters, start working, disqualify
+  with a required reason (kept, reopenable), archive. Duplicate warning against leads, customers and
+  contacts that never blocks. Salespeople see their own leads; `lead.read.all` sees every lead.
+- Files: crm/models/lead.model.ts, crm/lead-rules.ts, crm/services/lead.service.ts,
+  app/(app)/leads/*, permissions (`lead.read`, `lead.read.all`, `lead.manage`), numbering `lead`
+  (tenant `numbering.leadPrefix`), tenant `leadSources` (Setup, Tenant settings), custom field entity
+  `lead`, shared `Textarea` in components/ui, nav item, release note 2026-10-09.
+- Verified in a scratch copy: tsc, eslint zero warnings, prettier on changed files (CLAUDE.md already
+  failed it before), 138 unit tests, 8 new database tests in tests/database/leads.test.ts plus
+  crm-foundation and custom-fields on FerretDB 1.24, production build, Chromium walk-through (add,
+  duplicate warning keeps the form, save anyway, start working, disqualify, filter, sources in
+  Tenant settings, no browser errors). NOT run on real MongoDB; John's run is the final word.
+- Deploy: `git pull`, `npm ci`, `npm run build`, restart coex-app with --update-env, pm2 save. No
+  migration: new fields have defaults. Grant `lead.manage` to salespeople in Users and roles.
+- Next: John answers the spec's open questions, then P2.2b pipeline and opportunities. Zoho
+  (P2.1d) still waits on API access.
+
 ## Contract emails — 4 Oct 2026 (Claude)
 
 - Email icon on each contract row opens a popup: recipients (the contacts chosen on the contract),

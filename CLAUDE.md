@@ -339,6 +339,9 @@ by `npm install` on the Mac.
   30, per customer) before the end date, and after it, agents see a warning and the contact who
   raises a ticket is warned in the acknowledgement. Payroll will support AED, USD and PKR.
   Details: docs/PHASE-2-PLAN.md, docs/P2-1-CONTRACTS-SPEC.md.
+- Full CRM P2.2a Leads built 9 Oct 2026 on the spec's proposals (docs/P2-2-CRM-SPEC.md, "Built"),
+  before John answered its six open questions. Salespeople see their own leads, managers and
+  administrators all (`lead.read.all`); lead sources are a list in Tenant settings.
 
 ## M6 Channels decisions — 1 Oct 2026 (John)
 - SUSPENDED 4 Oct 2026 (John): the XVERSE team is busy on another project, so M6.3 to M6.6 wait

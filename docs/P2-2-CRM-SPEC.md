@@ -1,6 +1,6 @@
 # P2.2 Full CRM specification (draft for John)
 
-Status: draft, 4 Oct 2026. Nothing here is decided until John confirms it. Contracts (P2.1) is
+Status: draft, 4 Oct 2026. P2.2a (Leads) built 9 Oct 2026, see "Built: P2.2a" at the end. Nothing here is decided until John confirms it. Contracts (P2.1) is
 built; this is the next module in the agreed order. Quotes and invoicing stay in Zoho Books, and
 WhatsApp conversations wait for the suspended Channels work (M6.5).
 
@@ -147,3 +147,23 @@ territories. Any of these is a later decision.
 5. Where do leads come from today, so the first source list matches reality?
 6. Are the reminder defaults right: owner emailed on the next step date, and after 14 days without
    activity?
+
+## Built: P2.2a Leads (9 Oct 2026, Claude)
+
+Built ahead of John's answers to the open questions above, using the spec's proposals; changing any
+of them later is a small edit. Where the build departs from or adds to the spec:
+
+- Permissions: `lead.read`, `lead.read.all` (new) and `lead.manage`. The spec's visibility rule
+  (salespeople see their own leads, managers see all) needs a separate "all" permission, as tasks
+  and tickets have. `lead.manage` implies `lead.read`, `lead.read.all` implies `lead.read`. Held by
+  tenant administrators and managers; an agent is granted per person. `pipeline.manage` waits for
+  P2.2b.
+- Sources are a list on the tenant (`leadSources`, Setup, Tenant settings) rather than a table.
+  A lead keeps its source as text, so removing a source never changes existing leads. Prefix is
+  `numbering.leadPrefix` (default `L`, so L-12).
+- Duplicate warning checks leads (any owner's), customers (email, company) and contacts (email,
+  mobile); company names compare without case, punctuation or legal suffix (LLC, Ltd, FZE...).
+  It warns and never blocks: a tick box saves the lead anyway.
+- Custom fields: new entity type `lead`. Leads have no activity timeline yet (the shared timeline
+  needs a customer); the notes field covers P2.2a and conversion (P2.2c) will carry it across.
+- Not in P2.2a: conversion, opportunities, pipeline, reminders.

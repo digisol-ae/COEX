@@ -12,6 +12,7 @@ const ENTITY_LABEL: Record<string, string> = {
   location: 'Site',
   task: 'Task',
   ticket: 'Ticket',
+  lead: 'Lead',
 };
 
 export default async function FieldsPage() {
