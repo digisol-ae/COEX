@@ -1,8 +1,7 @@
 import { ticketAnalytics, ticketCategory } from '@/modules/tickets/analytics';
-import { TicketPreviewButton } from './ticket-preview-button';
+import { TicketSubjectLink } from './ticket-preview-button';
 import { listCollaboratorOptions } from '@/modules/tickets/services/collaborator.service';
 import { Table } from '@/components/ui';
-import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
 import {
   listTickets,
@@ -10,7 +9,8 @@ import {
   type TicketStatus,
 } from '@/modules/tickets/services/ticket.service';
 import { listQueues } from '@/modules/tickets/services/queue.service';
-import { listUsers } from '@/modules/core/services/user.service';
+import { getTicketOrder, listUsers } from '@/modules/core/services/user.service';
+import { applyTicketOrder } from '@/modules/tickets/ticket-order';
 import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { STATUS_LABELS } from '@/modules/tickets/labels';
 import { Card, EmptyState, Notice, PageHeader } from '@/components/ui';
@@ -19,6 +19,7 @@ import { SlaChip } from '@/components/ui/sla';
 import { LiveRefresh } from '@/components/ui/live-refresh';
 import { formatDateTime } from '@/modules/tasks/dates';
 import { TicketFilters } from './filters';
+import { DraggableTicketRow, ResetTicketOrderButton } from './draggable-ticket-row';
 import { NewTicketPanel } from './new-ticket-panel';
 import { AgentControl, PriorityControl, TicketRowActions } from './ticket-row-actions';
 
@@ -55,6 +56,7 @@ export default async function TicketsPage({
     queues,
     users,
     organisations,
+    ticketOrder,
   } = await asUser(actor, async () => ({
     tickets: await listTickets({
       queueId: params.queue || undefined,
@@ -74,11 +76,12 @@ export default async function TicketsPage({
     queues: await listQueues(),
     users: await listUsers(),
     organisations: await listOrganisations(),
+    ticketOrder: await getTicketOrder(),
   }));
 
   const counts = ticketAnalytics(matchingTickets);
   const category = scope === 'breached' ? 'missed' : scope;
-  const tickets = matchingTickets.filter((ticket) => {
+  const tickets = applyTicketOrder(matchingTickets, ticketOrder).filter((ticket) => {
     if (category === 'delayed' || category === 'missed') return ticketCategory(ticket) === category;
     if (scope === 'unassigned') return ticket.isOpen && !ticket.assigneeId;
     return scope === 'all' || params.status ? true : ticket.isOpen;
@@ -137,17 +140,14 @@ export default async function TicketsPage({
                 <article key={ticket.id} className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <span className="inline-flex items-center gap-1">
-                        <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
-                        <TicketPreviewButton ticketId={ticket.id} />
-                      </span>
-                      <Link
-                        href={`/support/tickets/${ticket.id}`}
+                      <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
+                      <TicketSubjectLink
+                        ticketId={ticket.id}
                         className="mt-2 block text-sm font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
                       >
                         {ticket.unread ? <UnreadMark /> : null}
                         {ticket.subject}
-                      </Link>
+                      </TicketSubjectLink>
                       <p className="mt-1 truncate text-xs text-[var(--color-ink-subtle)]">
                         {[
                           ticket.organisationName,
@@ -216,6 +216,11 @@ export default async function TicketsPage({
               ))}
             </div>
 
+            {ticketOrder.length > 0 ? (
+              <div className="hidden justify-end px-3 pt-2 md:flex">
+                <ResetTicketOrderButton />
+              </div>
+            ) : null}
             <div className="hidden overflow-x-auto md:block">
               <Table className="min-w-[980px] w-full border-collapse text-sm">
                 <thead>
@@ -246,9 +251,11 @@ export default async function TicketsPage({
 
                 <tbody>
                   {tickets.map((ticket) => (
-                    <tr
+                    <DraggableTicketRow
                       key={ticket.id}
-                      data-sort-values={JSON.stringify([
+                      ticketId={ticket.id}
+                      draggable
+                      sortValues={[
                         ticket.number,
                         ticket.subject,
                         STATUS_LABELS[ticket.status],
@@ -258,14 +265,11 @@ export default async function TicketsPage({
                           : null,
                         ticket.assigneeName,
                         new Date(ticket.lastActivityAt).getTime(),
-                      ])}
+                      ]}
                       className="group border-b border-[var(--color-line)] last:border-b-0 hover:bg-[var(--color-surface-muted)]/60"
                     >
                       <td className="px-3 py-2 align-top">
-                        <span className="inline-flex items-center gap-1">
-                          <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
-                          <TicketPreviewButton ticketId={ticket.id} />
-                        </span>
+                        <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
                       </td>
 
                       {/* max-w-0 with w-full lets the subject take whatever the other columns leave and
@@ -273,13 +277,13 @@ export default async function TicketsPage({
                       <td className="w-full max-w-0 px-3 py-2 align-top">
                         <div className="flex items-start gap-2">
                           <div className="min-w-48 flex-1">
-                            <Link
-                              href={`/support/tickets/${ticket.id}`}
+                            <TicketSubjectLink
+                              ticketId={ticket.id}
                               className="block truncate font-medium text-[var(--color-ink)] underline-offset-4 group-hover:underline"
                             >
                               {ticket.unread ? <UnreadMark /> : null}
                               {ticket.subject}
-                            </Link>
+                            </TicketSubjectLink>
 
                             <p className="truncate text-[11px] text-[var(--color-ink-subtle)]">
                               {[
@@ -352,7 +356,7 @@ export default async function TicketsPage({
                       <td className="px-3 py-2 align-top text-[12px] text-[var(--color-ink-muted)]">
                         {formatDateTime(ticket.lastActivityAt)}
                       </td>
-                    </tr>
+                    </DraggableTicketRow>
                   ))}
                 </tbody>
               </Table>

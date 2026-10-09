@@ -18,8 +18,27 @@ export const RELEASE_NOTES: ReleaseNote[] = [
   {
     id: '2026-10-09',
     date: '9 October 2026',
-    title: 'Leads',
+    title: 'Leads, tickets, folders and time',
     sections: [
+      {
+        heading: 'Tickets',
+        items: [
+          'Click a ticket subject to open its quick preview, the same way a task title opens its panel. The eye icon is gone. The preview has a full screen icon that opens the whole ticket.',
+          'Drag tickets in the list to put them in your own order. The order is yours alone and does not change anyone else\'s list. Sorting a column pauses dragging, and "Reset my order" puts the list back to latest activity first.',
+        ],
+      },
+      {
+        heading: 'Folders',
+        items: [
+          'A folder can now be archived from its settings (the gear beside the folder). Choose to keep its tasks in the space, or to archive the folder together with its tasks. Nothing is deleted for good, logged time is kept, and a running timer stops the archive.',
+        ],
+      },
+      {
+        heading: 'Time',
+        items: [
+          "The Time section of a task now lists time entries person by person, each with its date and note. People who may see everyone's timesheets see every person; everyone else sees their own entries.",
+        ],
+      },
       {
         heading: 'Leads',
         items: [

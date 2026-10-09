@@ -7,6 +7,7 @@ import { createSpace } from '@/modules/tasks/services/space.service';
 import { createTask } from '@/modules/tasks/services/task.service';
 import {
   addManualEntry,
+  listTaskTimeByPerson,
   getRunningTimer,
   removeEntry,
   startTimer,
@@ -389,5 +390,30 @@ describe('correcting an entry', () => {
     await expect(
       runWithContext(otherPerson, () => removeEntry(sheet.entries[0].id)),
     ).rejects.toThrow(/administrator/i);
+  });
+});
+
+describe('time on one task, person by person', () => {
+  it("keeps each person's entries apart and limits a reader to their own on request", async () => {
+    const taskId = await aTask();
+
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 90 }));
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 30 }));
+    await runWithContext(otherPerson, () =>
+      addManualEntry({ taskId, workDate: today, duration: 45, note: 'Review' }),
+    );
+
+    const everyone = await runWithContext(context, () => listTaskTimeByPerson(taskId));
+    expect(everyone).toHaveLength(2);
+    expect(everyone[0].minutes).toBe(120);
+    expect(everyone[0].entries).toHaveLength(2);
+    expect(everyone[1].minutes).toBe(45);
+    expect(everyone[1].entries[0].note).toBe('Review');
+
+    const onlyMine = await runWithContext(otherPerson, () =>
+      listTaskTimeByPerson(taskId, { onlyUserId: String(otherUserId) }),
+    );
+    expect(onlyMine).toHaveLength(1);
+    expect(onlyMine[0].minutes).toBe(45);
   });
 });

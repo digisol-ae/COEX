@@ -1,42 +1,43 @@
 # FEEDBACK
 
-## John, 9 Oct 2026 — queued, NOT STARTED (wait for John to say "start working on it")
+## John, 9 Oct 2026 — feedback batch Q1 to Q5 (built, acceptance pending)
 
-John paused CRM work on 9 Oct 2026 to focus on feedback and improvements in the existing system.
-These five items are recorded as asked; nothing is built yet. Ask John which to start first.
+John paused CRM work on 9 Oct 2026 for feedback and improvements, then said to start. Built together
+with the Leads branch (P2.2a) and shown in one What's new entry (2026-10-09).
 
-Q1. Tasks, Spaces: an option to archive or delete a Folder.
-    Notes for whoever builds it: CLAUDE.md says nothing deletes, so "delete" probably means the
-    same archive-with-restore that Spaces already have (decision 8, `archivedWithSpace`); confirm
-    with John whether a true delete is wanted. Archiving a folder takes its tasks and subtasks with
-    it, is refused while a timer runs inside it, and logged time is kept.
+Q1. Tasks, Spaces: archive or delete a Folder. BUILT. Folder settings (gear beside the active folder)
+    has "Archive or remove this folder…" with two choices: archive the folder and keep its tasks in
+    the space (the existing service rule), or archive the folder with its tasks and subtasks
+    (`archivedWithFolder` on the task). Nothing is hard deleted, in line with "nothing deletes";
+    logged time stays; a running timer on one of its tasks refuses the archive. Audited.
+    Not built: a screen to restore an archived folder (data is kept, flagged for restore later).
 
-Q2. Support, Tickets: remove the eye icon (preview). Clicking the ticket subject opens the preview
-    instead, the same way a task title does, and the preview gets a full screen icon that opens the
-    whole ticket.
-    Notes: the preview already exists (`ticket-preview-button`, `/api/tickets/[id]/preview`); task
-    titles already open a side panel, so reuse that pattern. Keep the compact preview content John
-    asked for on 3 Oct. Nothing may be reachable only on hover (phone).
+Q2. Support, Tickets: eye icon removed from the list and the ticket page. The subject opens the
+    quick preview on a plain click (`TicketSubjectLink`); a modified click still opens the ticket
+    in a new tab. The preview's open icon is now a full screen (expand) icon to the whole ticket.
 
-Q3. Support, Tickets: let people change the order of the ticket list manually by dragging.
-    Notes: the Tasks list already has manual drag order with "Reset sort"; column sorting and
-    drag order must not fight (CLAUDE.md, table sorting rule). Open questions for John when
-    starting: is the order personal to each agent or shared by everyone, and does it apply inside
-    the current filter or queue only?
+Q3. Support, Tickets: drag to reorder. BUILT as a personal order (assumption, John to confirm):
+    stored on the user (`ticketOrder`), tickets named in it first, the rest in the usual latest
+    activity order; a filtered view saves only what it shows and keeps earlier positions; "Reset my
+    order" clears it. Column sorting pauses dragging. Desktop table only; phone cards have no drag.
+    Pure rules in `tickets/ticket-order.ts`.
 
-Q4. Time: the Time Entries section currently shows the total time added by all users on the task.
-    It should list each person's own time entries separately.
-    Notes: likely on the task page (`src/app/(app)/tasks/[id]/page.tsx`, time section) and the
-    time service. Agents may see their own entries; who may see other people's entries must respect
-    `timesheet.read.all` (CLAUDE.md, 2 Oct 2026). Ask John whether everyone on the task sees every
-    person's entries, or only people with that permission.
+Q4. Time: the Time section of a task now lists "Time entries" person by person (date, minutes,
+    note), with each person's total. People with `timesheet.read.all` see everyone; others see
+    their own entries only, under the unchanged total (assumption, John to confirm).
+    `listTaskTimeByPerson` in the time service.
 
-Q5. Tasks, Spaces: selecting "All work" shows tasks from every space. Each space should show only
-    the tasks that belong to that space.
-    Notes: "All work" is the first tab in a Space's folder bar
-    (`src/app/(app)/spaces/[id]/folder-bar.tsx`). Check whether the Space page's task query drops
-    the space filter when no folder is chosen. If John means the All tasks page instead, confirm
-    before changing it, because that page is meant to list tasks from every space.
+Q5. Tasks, Spaces: "All work" showing every space's tasks. NOT REPRODUCED. A Space's All work tab
+    shows only that space's tasks in the current code (checked in a browser with two spaces, and by
+    the existing database test "returns only the tasks of the space asked for"). The same fault
+    was fixed on 1 Oct (item 4 below; `$and` in listTasks, live at 126767a), so a server that has
+    not pulled that or a later release would still show it. The All tasks page, by design, lists
+    every space. Asked John to confirm after deploying whether it still happens and on which
+    screen.
+
+Verified in a scratch copy: tsc, eslint with no warnings, project Prettier, 143 unit tests,
+database tests for the folder archive and per-person time on FerretDB, and a Chromium walk-through
+of Q1 to Q4. NOT run on real MongoDB.
 
 ## 3 October 2026 — To do task color
 

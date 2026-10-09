@@ -1,9 +1,9 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useTransition } from 'react';
 import { Button, Field, Input, Notice } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
-import { saveFolderAction, type TaskFormState } from '../../tasks/actions';
+import { archiveFolderAction, saveFolderAction, type TaskFormState } from '../../tasks/actions';
 
 const initialState: TaskFormState = {};
 
@@ -16,12 +16,19 @@ export function FolderSettings({
   spaceId,
   folder,
   users,
+  openTaskCount,
+  onArchived,
 }: {
   spaceId: string;
   folder: { id: string; name: string; description: string | null; memberIds: string[] };
   users: { id: string; name: string }[];
+  openTaskCount: number;
+  onArchived: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
+  const [archiving, startArchive] = useTransition();
   const { showToast } = useToast();
   const [state, action, pending] = useActionState(
     async (previous: TaskFormState, formData: FormData) => {
@@ -34,6 +41,25 @@ export function FolderSettings({
     },
     initialState,
   );
+
+  function archive(withTasks: boolean) {
+    const formData = new FormData();
+    formData.set('id', folder.id);
+    formData.set('spaceId', spaceId);
+    formData.set('withTasks', withTasks ? 'yes' : 'no');
+
+    startArchive(async () => {
+      const result = await archiveFolderAction(formData);
+      if (result.error) {
+        setArchiveError(result.error);
+        return;
+      }
+      setOpen(false);
+      setConfirming(false);
+      onArchived();
+      showToast(withTasks ? 'Folder and its tasks archived.' : 'Folder archived.');
+    });
+  }
 
   if (!open) {
     return (
@@ -119,6 +145,43 @@ export function FolderSettings({
           <Button type="submit" disabled={pending}>
             {pending ? 'Saving' : 'Save folder'}
           </Button>
+        </div>
+
+        <div className="mt-5 border-t border-[var(--color-line)] pt-4">
+          {confirming ? (
+            <div className="space-y-2" role="group" aria-label="Archive this folder">
+              <p className="text-sm text-[var(--color-ink)]">
+                Archive <strong>{folder.name}</strong>? Nothing is deleted for good. Logged time is
+                kept.
+              </p>
+              {archiveError ? <Notice tone="alert">{archiveError}</Notice> : null}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={archiving}
+                  onClick={() => archive(false)}
+                >
+                  Archive folder, keep its tasks in the space
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={archiving}
+                  onClick={() => archive(true)}
+                >
+                  Archive folder and its tasks ({openTaskCount} open)
+                </Button>
+                <Button type="button" variant="secondary" onClick={() => setConfirming(false)}>
+                  Not now
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button type="button" variant="secondary" onClick={() => setConfirming(true)}>
+              Archive or remove this folder…
+            </Button>
+          )}
         </div>
       </form>
     </div>

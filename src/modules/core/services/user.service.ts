@@ -224,6 +224,26 @@ export async function saveNavigationOrder(order: string[]): Promise<void> {
   );
 }
 
+/** The signed-in person's own ticket list order (ticket ids); empty means the normal order. */
+export async function getTicketOrder(): Promise<string[]> {
+  await connectToDatabase();
+  const user = await users().findById(String(getContext().userId)).select('ticketOrder');
+  return user?.ticketOrder ?? [];
+}
+
+/** Saves the signed-in person's ticket order. Only ever their own, and it grants nothing. */
+export async function saveTicketOrder(order: string[]): Promise<void> {
+  await connectToDatabase();
+  const clean = [...new Set(order.map((id) => id.trim()).filter(Boolean))].slice(0, 1000);
+  if (clean.some((id) => !/^[0-9a-f]{24}$/i.test(id))) {
+    throw new Error('That ticket order is not valid.');
+  }
+  await users().updateOne(
+    { _id: toObjectId(String(getContext().userId)) },
+    { $set: { ticketOrder: clean } },
+  );
+}
+
 /** Saves the signed-in person's colour theme. Only ever their own, like the menu order. */
 export async function saveTheme(theme: string): Promise<void> {
   if (!['sunset', 'light', 'dark'].includes(theme)) throw new Error('That theme does not exist.');

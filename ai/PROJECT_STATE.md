@@ -1,12 +1,20 @@
 # COEX — Shared AI Project State
 
-## CRM paused, feedback queue opened — 9 Oct 2026 (Claude)
+## Feedback batch Q1 to Q5 built — 9 Oct 2026 (Claude)
 
-- John paused CRM work for now to focus on feedback in the existing system. The daily CRM page
-  refresh still only moves dates; John may ask to stop it.
-- Five items queued in FEEDBACK.md (Q1 to Q5) and NOT started (Q4 per-person time entries on a task, Q5 a Space's All work tab shows every space's tasks): archive or delete Folders in
-  Spaces; open the ticket preview by clicking the subject (remove the eye icon) with a full screen
-  icon; manual drag ordering of the ticket list. Start only when John says so.
+- Branch claude/vigilant-mendel-brfndj now also carries the other chat's P2.2a Leads branch
+  (merged, docs conflicts resolved by keeping both). CRM work beyond Leads stays paused by John.
+- Built from FEEDBACK.md (section "feedback batch Q1 to Q5"): Q1 folder archive (with or without its
+  tasks, no hard delete), Q2 ticket subject opens the preview, eye icon gone, full screen icon,
+  Q3 personal drag order of the ticket list with reset, Q4 per-person time entries on a task.
+  Q5 (All work shows every space) could not be reproduced: current code and tests scope by space;
+  likely an older deployed build. John to confirm after deploying.
+- Assumptions John should confirm: ticket order is personal; others' time entries need
+  `timesheet.read.all`; folder "delete" means archive.
+- Verified in a scratch copy only: tsc, eslint, Prettier, 143 unit tests, DB tests on FerretDB,
+  Chromium walk-through. Not run on real MongoDB. No PR opened yet.
+- Deploy: `git pull`, `npm ci`, `npm run build`, restart coex-app with --update-env, pm2 save. No
+  migration: new fields (`ticketOrder`, `archivedWithFolder`) have defaults.
 
 ## CRM visibility decided — 5 Oct 2026 (Claude)
 
@@ -23,7 +31,7 @@
   (one-off and recurring); lead sources all of the proposed plus customizable. Recorded in
   CLAUDE.md, docs/P2-2-CRM-SPEC.md and the user page docs/crm-for-users.html (republished).
 - One answer still open: whether each person sees only their own leads and deals or everyone's.
-- No CRM code yet. Next build step is P2.2a Leads, once John says go.
+- Leads (P2.2a) were built afterwards: see the next entry.
 
 ## P2.2a Leads built — 9 Oct 2026 (Claude)
 

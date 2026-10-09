@@ -6,6 +6,7 @@ import { toObjectId } from '@/lib/ids';
 import { recordAudit } from '@/modules/core/services/audit.service';
 import { UserModel } from '@/modules/core/models/user.model';
 import { FolderModel } from '../models/folder.model';
+import { TimeEntryModel } from '@/modules/time/models/time-entry.model';
 import { TaskModel } from '../models/task.model';
 import { actorIsAdministrator } from './access.service';
 
@@ -242,16 +243,55 @@ export async function reorderFolders(spaceId: string, orderedIds: string[]): Pro
   );
 }
 
-export async function archiveFolder(id: string): Promise<void> {
+/**
+ * Archives a folder (John, 9 Oct 2026). Nothing is hard deleted.
+ *
+ * By default the work comes out into the space, because a folder is a way of grouping and removing
+ * it should not remove what was grouped. With `withTasks` the folder's tasks and their subtasks are
+ * archived along with it, for a folder that was made by mistake or whose work is finished and
+ * should leave the lists. Logged time stays, and a timer still running on one of those tasks stops
+ * the archive so nobody's clock ends up on hidden work.
+ */
+export async function archiveFolder(
+  id: string,
+  options: { withTasks?: boolean } = {},
+): Promise<{ tasks: number }> {
   await connectToDatabase();
 
   const folder = await folders().findById(id);
   if (!folder) throw new Error('Folder not found.');
+  if (!(await canOpenFolder(id))) throw new Error('You cannot open this folder.');
 
-  await TaskModel.updateMany(
-    { tenantId: folder.tenantId, folderId: folder._id },
-    { $set: { folderId: null } },
-  );
+  let affected = 0;
+
+  if (options.withTasks) {
+    const taskIds = (
+      await TaskModel.find({ tenantId: folder.tenantId, folderId: folder._id }).select('_id')
+    ).map((task) => task._id);
+
+    const running = await TimeEntryModel.findOne({
+      tenantId: folder.tenantId,
+      taskId: { $in: taskIds },
+      running: true,
+    }).populate<{ userId: { name: string } }>('userId', 'name');
+    if (running) {
+      throw new Error(
+        `${running.userId?.name ?? 'Someone'} has a timer running in this folder. Stop it before archiving.`,
+      );
+    }
+
+    // The folderId stays on the task so the audit record and a later restore know where it lived.
+    const archived = await TaskModel.updateMany(
+      { tenantId: folder.tenantId, _id: { $in: taskIds } },
+      { $set: { deletedAt: new Date(), archivedWithFolder: true } },
+    );
+    affected = archived.modifiedCount;
+  } else {
+    await TaskModel.updateMany(
+      { tenantId: folder.tenantId, folderId: folder._id },
+      { $set: { folderId: null } },
+    );
+  }
 
   await folders().updateOne({ _id: folder._id }, { $set: { status: 'archived' } });
 
@@ -260,7 +300,10 @@ export async function archiveFolder(id: string): Promise<void> {
     entityType: 'Folder',
     entityId: folder._id,
     before: { name: folder.name },
+    after: { withTasks: Boolean(options.withTasks), tasks: affected },
   });
+
+  return { tasks: affected };
 }
 
 /** Who may be given work inside this folder: everyone, or its members when it is private. */

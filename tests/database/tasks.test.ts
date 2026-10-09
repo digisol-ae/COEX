@@ -676,6 +676,40 @@ describe('folders, and who can see what', () => {
   });
 });
 
+describe('archiving a folder with its tasks', () => {
+  it('archives the folder and its tasks, leaves other folders alone, and is audited', async () => {
+    const spaceId = await aSpace();
+    const doomed = await runWithContext(context, () => createFolder({ spaceId, name: 'Old' }));
+    const kept = await runWithContext(context, () => createFolder({ spaceId, name: 'Current' }));
+    await runWithContext(context, () => createTask({ spaceId, folderId: doomed, title: 'Gone' }));
+    await runWithContext(context, () => createTask({ spaceId, folderId: kept, title: 'Stays' }));
+
+    const { archiveFolder } = await import('@/modules/tasks/services/folder.service');
+    const result = await runWithContext(context, () => archiveFolder(doomed, { withTasks: true }));
+    expect(result.tasks).toBe(1);
+
+    const remaining = await runWithContext(context, () => listTasks({ spaceId }));
+    expect(remaining.map((task) => task.title)).toEqual(['Stays']);
+
+    const folders = await runWithContext(context, () => listFolders(spaceId));
+    expect(folders.map((folder) => folder.name)).toEqual(['Current']);
+  });
+
+  it('refuses while a timer runs on one of its tasks', async () => {
+    const spaceId = await aSpace();
+    const folderId = await runWithContext(context, () => createFolder({ spaceId, name: 'Busy' }));
+    const taskId = await runWithContext(context, () =>
+      createTask({ spaceId, folderId, title: 'Being timed' }),
+    );
+    await runWithContext(context, () => startTimer(taskId));
+
+    const { archiveFolder } = await import('@/modules/tasks/services/folder.service');
+    await expect(
+      runWithContext(context, () => archiveFolder(folderId, { withTasks: true })),
+    ).rejects.toThrow(/timer running/);
+  });
+});
+
 describe('archiving a space', () => {
   it('takes its folders and tasks with it, and restore brings back exactly those', async () => {
     const spaceId = await runWithContext(context, () => createSpace({ name: 'Old project' }));
