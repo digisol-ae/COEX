@@ -9,8 +9,8 @@
   Q3 personal drag order of the ticket list with reset, Q4 per-person time entries on a task.
   Q5 (All work shows every space) could not be reproduced: current code and tests scope by space;
   likely an older deployed build. John to confirm after deploying.
-- Assumptions John should confirm: ticket order is personal; others' time entries need
-  `timesheet.read.all`; folder "delete" means archive.
+- John confirmed (9 Oct 2026): ticket order is personal; others' time entries need
+  `timesheet.read.all`; folder "delete" means archive, enough for now.
 - Verified in a scratch copy only: tsc, eslint, Prettier, 143 unit tests, DB tests on FerretDB,
   Chromium walk-through. Not run on real MongoDB. No PR opened yet.
 - Deploy: `git pull`, `npm ci`, `npm run build`, restart coex-app with --update-env, pm2 save. No

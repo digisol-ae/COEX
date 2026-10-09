@@ -1,6 +1,6 @@
 # FEEDBACK
 
-## John, 9 Oct 2026 — feedback batch Q1 to Q5 (built, acceptance pending)
+## John, 9 Oct 2026 — feedback batch Q1 to Q5 (built, answers confirmed, acceptance pending)
 
 John paused CRM work on 9 Oct 2026 for feedback and improvements, then said to start. Built together
 with the Leads branch (P2.2a) and shown in one What's new entry (2026-10-09).
@@ -34,6 +34,10 @@ Q5. Tasks, Spaces: "All work" showing every space's tasks. NOT REPRODUCED. A Spa
     not pulled that or a later release would still show it. The All tasks page, by design, lists
     every space. Asked John to confirm after deploying whether it still happens and on which
     screen.
+
+John's answers (9 Oct 2026), all matching what was built: the ticket order is personal; people
+without `timesheet.read.all` see only their own time entries; archiving is enough for folder
+"delete" for now. Q5 still waits on a retest after deploying.
 
 Verified in a scratch copy: tsc, eslint with no warnings, project Prettier, 143 unit tests,
 database tests for the folder archive and per-person time on FerretDB, and a Chromium walk-through
