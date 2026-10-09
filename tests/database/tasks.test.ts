@@ -676,6 +676,34 @@ describe('folders, and who can see what', () => {
   });
 });
 
+describe('listing several spaces and several people', () => {
+  it('returns tasks of any chosen space and any chosen assignee', async () => {
+    const alpha = await aSpace();
+    const beta = await runWithContext(context, () => createSpace({ name: 'Beta' }));
+    const gamma = await runWithContext(context, () => createSpace({ name: 'Gamma' }));
+    await runWithContext(context, () =>
+      createTask({ spaceId: alpha, title: 'A', assigneeIds: [String(userId)] }),
+    );
+    await runWithContext(context, () =>
+      createTask({ spaceId: beta, title: 'B', assigneeIds: [String(strangerId)] }),
+    );
+    await runWithContext(context, () => createTask({ spaceId: gamma, title: 'C' }));
+
+    const twoSpaces = await runWithContext(context, () => listTasks({ spaceIds: [alpha, beta] }));
+    expect(twoSpaces.map((task) => task.title).sort()).toEqual(['A', 'B']);
+
+    const twoPeople = await runWithContext(context, () =>
+      listTasks({ assigneeIds: [String(userId), String(strangerId)] }),
+    );
+    expect(twoPeople.map((task) => task.title).sort()).toEqual(['A', 'B']);
+
+    const both = await runWithContext(context, () =>
+      listTasks({ spaceIds: [beta, gamma], assigneeIds: [String(strangerId)] }),
+    );
+    expect(both.map((task) => task.title)).toEqual(['B']);
+  });
+});
+
 describe('archiving a folder with its tasks', () => {
   it('archives the folder and its tasks, leaves other folders alone, and is audited', async () => {
     const spaceId = await aSpace();

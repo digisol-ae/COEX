@@ -61,6 +61,17 @@ of Q1 to Q4. NOT run on real MongoDB.
    (model default, service default, timesheet form). Existing entries keep their value; no
    migration. Edit forms still show each entry's stored value.
 
+## John, 9 Oct 2026 — All tasks screen (built, acceptance pending)
+
+1. Spaces filter: pick one, several or all (empty means all). Space chosen in the address as
+   repeated `space=` values.
+2. Assignees filter: one, several or all, for people who can see every task; choosing people
+   replaces the "Mine" chip. Repeated `assignee=` values. Everyone else stays on their own tasks.
+3. Add task now opens a popup (`new-task-popup.tsx`): Personal or any Space, folder, assignees,
+   priority, start, due, description. Personal tasks are for the signed-in person. A failed save
+   keeps what was typed. Personal page keeps its own quick panel. Personal space is not in the
+   Spaces filter (it is created on first use).
+
 ## 3 October 2026 — To do task color
 
 To do tasks must be yellow; In progress remains blue. Applied to dots, pills and task status selector across themes.

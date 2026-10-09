@@ -21,6 +21,13 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     title: 'Leads, tickets, folders and time',
     sections: [
       {
+        heading: 'All tasks',
+        items: [
+          'On All tasks you can now filter by one, several or all Spaces, and by one, several or all people, with the same picker style as assigning people.',
+          'Add task opens a popup where you choose Personal or any Space, then the folder, people, priority and dates.',
+        ],
+      },
+      {
         heading: 'Tickets',
         items: [
           'Click a ticket subject to open its quick preview, the same way a task title opens its panel. The eye icon is gone. The preview has a full screen icon that opens the whole ticket.',

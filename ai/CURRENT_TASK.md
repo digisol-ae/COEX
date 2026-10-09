@@ -1,5 +1,9 @@
 # COEX — Current AI Task
 
+## All tasks screen — 9 Oct 2026 (Claude)
+
+- Multi space and multi assignee filters, and a New task popup (Personal or any Space). See FEEDBACK.md.
+
 ## Team activity page and billable default — 9 Oct 2026 (Claude)
 
 - Built `/time/activity` (Time, `timesheet.read.all`): person, task or ticket, stage, time, working now;
