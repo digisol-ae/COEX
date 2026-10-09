@@ -3,7 +3,7 @@
 ## John, 9 Oct 2026 — queued, NOT STARTED (wait for John to say "start working on it")
 
 John paused CRM work on 9 Oct 2026 to focus on feedback and improvements in the existing system.
-These three items are recorded as asked; nothing is built yet. Ask John which to start first.
+These five items are recorded as asked; nothing is built yet. Ask John which to start first.
 
 Q1. Tasks, Spaces: an option to archive or delete a Folder.
     Notes for whoever builds it: CLAUDE.md says nothing deletes, so "delete" probably means the
@@ -23,6 +23,20 @@ Q3. Support, Tickets: let people change the order of the ticket list manually by
     drag order must not fight (CLAUDE.md, table sorting rule). Open questions for John when
     starting: is the order personal to each agent or shared by everyone, and does it apply inside
     the current filter or queue only?
+
+Q4. Time: the Time Entries section currently shows the total time added by all users on the task.
+    It should list each person's own time entries separately.
+    Notes: likely on the task page (`src/app/(app)/tasks/[id]/page.tsx`, time section) and the
+    time service. Agents may see their own entries; who may see other people's entries must respect
+    `timesheet.read.all` (CLAUDE.md, 2 Oct 2026). Ask John whether everyone on the task sees every
+    person's entries, or only people with that permission.
+
+Q5. Tasks, Spaces: selecting "All work" shows tasks from every space. Each space should show only
+    the tasks that belong to that space.
+    Notes: "All work" is the first tab in a Space's folder bar
+    (`src/app/(app)/spaces/[id]/folder-bar.tsx`). Check whether the Space page's task query drops
+    the space filter when no folder is chosen. If John means the All tasks page instead, confirm
+    before changing it, because that page is meant to list tasks from every space.
 
 ## 3 October 2026 — To do task color
 
