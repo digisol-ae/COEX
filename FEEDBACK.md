@@ -50,6 +50,13 @@ of Q1 to Q4. NOT run on real MongoDB.
    "working now" mark and last worked. Filters: from/to date (default today), stage or status,
    person. Built from recorded time only, so people who never start a timer or log time do not show
    (stated on the page). `time/services/activity.service.ts`.
+   Follow-up the same day: people are picked with the same multi-person picker as Tasks and Spaces;
+   Tasks and Tickets checkboxes (one or both); a Today button beside the dates; task and ticket
+   titles open the same preview popups as Tasks and Support; Share sends the filtered page as a
+   PDF by email (outbox kind `activity_report`, Alert sender, PDF stored then attached) or
+   downloads it (`/time/activity/pdf`). PDF built with `pdf-lib` (new dependency, pure JS;
+   Latin letters only in the PDF, other scripts print as "?"). Filters live in the address
+   (`time/activity-filter.ts`).
 2. Billable is unchecked by default for every new timer and manual entry, tasks and tickets
    (model default, service default, timesheet form). Existing entries keep their value; no
    migration. Edit forms still show each entry's stored value.

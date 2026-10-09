@@ -21,7 +21,10 @@ export interface ActivityFilter {
   /** Calendar days, YYYY-MM-DD, both inclusive. */
   fromDay: string;
   toDay: string;
-  userId?: string;
+  /** Limit to these people; empty or missing means everyone. */
+  userIds?: string[];
+  /** Which kinds to include; missing means both. */
+  kinds?: ('task' | 'ticket')[];
   /** A task stage name or a ticket status, matched against the item's current stage. */
   status?: string;
 }
@@ -52,7 +55,7 @@ export async function listTeamActivity(filter: ActivityFilter): Promise<Activity
 
   const found = await entries().find({
     workDate: { $gte: from, $lt: until },
-    ...(filter.userId ? { userId: toObjectId(filter.userId) } : {}),
+    ...(filter.userIds?.length ? { userId: { $in: filter.userIds.map(toObjectId) } } : {}),
   });
 
   const [people, tasks, tickets] = await Promise.all([
@@ -80,6 +83,7 @@ export async function listTeamActivity(filter: ActivityFilter): Promise<Activity
 
   for (const entry of found) {
     const kind = entry.taskId ? 'task' : 'ticket';
+    if (filter.kinds && !filter.kinds.includes(kind)) continue;
     const itemId = String(entry.taskId ?? entry.ticketId);
     const task = kind === 'task' ? taskById.get(itemId) : undefined;
     const ticket = kind === 'ticket' ? ticketById.get(itemId) : undefined;

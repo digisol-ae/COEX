@@ -446,6 +446,25 @@ describe('team activity', () => {
     expect(none).toHaveLength(0);
   });
 
+  it('limits to chosen people and to tasks or tickets', async () => {
+    const { listTeamActivity } = await import('@/modules/time/services/activity.service');
+    const taskId = await aTask('Review');
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 40 }));
+    await runWithContext(otherPerson, () =>
+      addManualEntry({ taskId, workDate: today, duration: 20 }),
+    );
+
+    const onlyOther = await runWithContext(context, () =>
+      listTeamActivity({ fromDay: today, toDay: today, userIds: [String(otherUserId)] }),
+    );
+    expect(onlyOther.map((row) => row.minutes)).toEqual([20]);
+
+    const ticketsOnly = await runWithContext(context, () =>
+      listTeamActivity({ fromDay: today, toDay: today, kinds: ['ticket'] }),
+    );
+    expect(ticketsOnly).toHaveLength(0);
+  });
+
   it('records new time as not billable unless it is ticked', async () => {
     const taskId = await aTask();
     await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 30 }));
