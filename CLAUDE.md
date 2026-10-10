@@ -343,6 +343,13 @@ by `npm install` on the Mac.
   before John answered its six open questions. Salespeople see their own leads, managers and
   administrators all (`lead.read.all`); lead sources are a list in Tenant settings.
 
+## Architecture revamp — 10 Oct 2026 (John)
+- The dev team's direction: backend Node.js with Express, frontend Next.js alone, MongoDB unchanged.
+  One monorepo with shared types; Entra sign in lives in the Express API; the 30 second poll stays.
+  Done without disturbing agents: same domain, cookie and database, a feature flag per module,
+  Tickets last. Starts after P2.2b is accepted. Until a module has switched, decision 1 (Next.js with
+  server actions) still describes it. Plan: docs/ARCHITECTURE-REVAMP.md.
+
 ## M6 Channels decisions — 1 Oct 2026 (John)
 - SUSPENDED 4 Oct 2026 (John): the XVERSE team is busy on another project, so M6.3 to M6.6 wait
   until further notice. M6.1 and M6.2 stay in the code as merged; do not extend them. Next work is

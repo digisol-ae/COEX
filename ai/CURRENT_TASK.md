@@ -1,5 +1,13 @@
 # COEX — Current AI Task
 
+## Architecture revamp planned — 10 Oct 2026 (Claude)
+
+- John agreed the dev team's direction (Express API, Next.js only frontend, MongoDB unchanged) and
+  the plan in docs/ARCHITECTURE-REVAMP.md: monorepo, Entra in Express, 30 second poll kept, P2.2b
+  first. No code changed; this is documentation and a decision record in CLAUDE.md.
+- Next: P2.2b (pipeline and opportunities; John still owes answers to the spec's six questions),
+  then Phase 0 (monorepo skeleton and `packages/shared`).
+
 ## P2.2a Leads built — 9 Oct 2026 (Claude)
 
 - John chose "Full CRM P2.2a" as the next task. Built on the spec's proposals, ahead of his answers to
