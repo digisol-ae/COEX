@@ -188,8 +188,13 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
                 ) : null}
               </div>
 
-              <h3 className="mt-5 text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                Time entries
+              <h3 className="mt-5 flex items-baseline justify-between text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                <span>Time entries</span>
+                {actor.permissions.includes('timesheet.read.all') && timeByPerson.length > 0 ? (
+                  <span title="Everyone's time on this task added together">
+                    All people {formatMinutes(timeByPerson.reduce((sum, p) => sum + p.minutes, 0))}
+                  </span>
+                ) : null}
               </h3>
               {timeByPerson.length === 0 ? (
                 <p className="mt-1 text-sm text-[var(--color-ink-muted)]">

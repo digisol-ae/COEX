@@ -21,14 +21,21 @@ import {
  * The worker calls this every few minutes. From nine in the morning, Gulf time, it reports once on
  * the previous working day: the day is claimed with an atomic update before anything is queued, so
  * a restart, a second worker or a slow loop can never send a day twice. A failed send is lost
- * rather than repeated, the same trade as renewal reminders. Saturday, Sunday and any other day
- * outside the tenant's working calendar are skipped, and so is the morning after one.
+ * rather than repeated, the same trade as renewal reminders.
  *
- * Agents here are people with the agent or senior agent role who are active. Managers and
- * administrators are not nagged about their own hours; they receive the combined summary.
+ * Everyone on the staff gets their own note, managers and administrators included (John, 10 Oct
+ * 2026). A day outside the tenant's working calendar, such as a Saturday or Sunday, is not
+ * reported on, except that anyone who did log time that day still gets their thanks. The combined
+ * summary goes only to the addresses switched on in Setup, Email.
  */
 
-const AGENT_ROLES: ('agent' | 'senior_agent')[] = ['agent', 'senior_agent'];
+const STAFF_ROLES: ('platform_admin' | 'tenant_admin' | 'manager' | 'senior_agent' | 'agent')[] = [
+  'platform_admin',
+  'tenant_admin',
+  'manager',
+  'senior_agent',
+  'agent',
+];
 
 export async function sendDailyReportForTenant(
   tenantId: Types.ObjectId,
@@ -42,7 +49,7 @@ export async function sendDailyReportForTenant(
 
   const tenant = await TenantModel.findById(tenantId).select('workingDays');
   const day = previousDayKey(today);
-  if (!isWorkingDay(day, tenant?.workingDays ?? [1, 2, 3, 4, 5])) return 0;
+  const workingDay = isWorkingDay(day, tenant?.workingDays ?? [1, 2, 3, 4, 5]);
 
   const claimed = await EmailSettingsModel.findOneAndUpdate(
     { _id: settings._id, 'dailyReport.lastSentFor': { $ne: day } },
@@ -59,7 +66,7 @@ export async function sendDailyReportForTenant(
 
   const agents = await UserModel.find({
     tenantId,
-    role: { $in: AGENT_ROLES },
+    role: { $in: STAFF_ROLES },
     status: 'active',
     deletedAt: null,
   }).select('name email');
@@ -79,11 +86,18 @@ export async function sendDailyReportForTenant(
     perAgent.set(String(entry.userId), row);
   }
 
-  const days: AgentDay[] = agents.map((agent) => ({
-    name: agent.name,
-    minutes: perAgent.get(String(agent._id))?.minutes ?? 0,
-    items: perAgent.get(String(agent._id))?.items.size ?? 0,
+  const everyone = agents.map((agent) => ({
+    agent,
+    day: {
+      name: agent.name,
+      minutes: perAgent.get(String(agent._id))?.minutes ?? 0,
+      items: perAgent.get(String(agent._id))?.items.size ?? 0,
+    } satisfies AgentDay,
   }));
+  // On a day off only the people who worked are written to; nobody is reminded to log a day off.
+  const reported = workingDay ? everyone : everyone.filter((row) => row.day.minutes > 0);
+  if (reported.length === 0) return 0;
+  const days = reported.map((row) => row.day);
 
   let queued = 0;
 
@@ -91,9 +105,9 @@ export async function sendDailyReportForTenant(
     // No signed in person: a fresh id means nobody is skipped as "the one acting".
     { tenantId, userId: new Types.ObjectId(), isPlatformAdmin: false },
     async () => {
-      for (const [index, agent] of agents.entries()) {
+      for (const { agent, day: agentDay } of reported) {
         if (!agent.email) continue;
-        const message = agentEmail(day, days[index], minimumMinutes);
+        const message = agentEmail(day, agentDay, minimumMinutes);
         if (await queueEmail({ kind: 'daily_report', to: agent.email, ...message })) queued += 1;
       }
 

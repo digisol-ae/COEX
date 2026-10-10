@@ -132,7 +132,7 @@ const emailSettingsSchema = new Schema(
     dailyReport: {
       enabled: { type: Boolean, default: false },
       minimumHours: { type: Number, default: 6 },
-      summaryRecipients: { type: [String], default: ['ali@digisol.ae', 'umbreen@digisol.ae'] },
+      summaryRecipients: { type: [String], default: [] },
       lastSentFor: { type: String, default: null },
     },
 

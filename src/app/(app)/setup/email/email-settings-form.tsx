@@ -389,10 +389,12 @@ export function EmailSettingsForm({
         <CardSection title="Daily performance email">
           <div className="space-y-3">
             <p className="text-sm text-[var(--color-ink-muted)]">
-              At 9:00 (Gulf time) on each working day, every agent is emailed how much time they
-              logged the day before: thanked when they met the target, and politely encouraged to
-              log their work honestly when they did not. One combined summary goes to the people
-              below. Sent from the Alert sender.
+              At 9:00 (Gulf time) every morning, each person on the staff, managers and
+              administrators included, is emailed how much time they logged the day before: thanked
+              when they met the target, and politely encouraged to log their work honestly when they
+              did not. A day off such as Saturday or Sunday is skipped, except that anyone who did
+              log time that day still gets their thanks. One combined summary goes only to the
+              addresses below. Sent from the Alert sender.
             </p>
             <Toggle
               name="dailyReportEnabled"
@@ -414,7 +416,7 @@ export function EmailSettingsForm({
             </Field>
             <Field
               label="Combined summary goes to"
-              hint="Email addresses, separated by commas. They need not be COEX users."
+              hint="One or more email addresses, separated by commas. Leave empty to send no summary. They need not be COEX users."
             >
               <Input
                 name="dailyReportRecipients"
