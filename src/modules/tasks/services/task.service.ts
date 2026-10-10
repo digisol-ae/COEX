@@ -94,6 +94,7 @@ export interface TaskSummary {
   subtasks: { id: string; title: string; done: boolean; assigneeId: string | null }[];
   documentCount: number;
   documentLinks: { id: string; title: string; url: string }[];
+  /** The signed-in person's own logged time on this task, not everyone's added together. */
   loggedMinutes: number;
   isClosed: boolean;
   isOverdue: boolean;
@@ -170,8 +171,11 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   // Batched the same way documentCount and subtaskCount are, so a list of a hundred tasks costs
   // one extra query rather than one per task. A running entry has not yet had its minutes written,
   // so its live elapsed time is added in here rather than waiting for it to stop.
+  // Only the signed-in person's own time: summing every assignee's timer made a shared task look
+  // like it had taken the hours of all of them together (John, 10 Oct 2026).
   const timeEntries = await TimeEntryModel.find({
     tenantId: getContext().tenantId,
+    userId: toObjectId(String(getContext().userId)),
     taskId: { $in: found.map((task) => task._id) },
     deletedAt: null,
   }).select('taskId minutes running startedAt createdAt');

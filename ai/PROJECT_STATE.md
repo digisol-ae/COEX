@@ -1,5 +1,9 @@
 # COEX — Shared AI Project State
 
+## Time on shared tasks — 10 Oct 2026 (Claude)
+
+- Task and ticket screens show the viewer's own logged time, not all assignees added together. See FEEDBACK.md.
+
 ## All tasks screen — 9 Oct 2026 (Claude)
 
 - Multi space and multi assignee filters, and a New task popup (Personal or any Space). See FEEDBACK.md.

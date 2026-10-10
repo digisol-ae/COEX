@@ -155,7 +155,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
               <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
                 <div>
                   <p className="text-xs tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                    Logged
+                    Your time
                   </p>
                   <p className="text-lg font-medium text-[var(--color-ink)] tabular-nums">
                     {formatMinutes(loggedMinutes)}
@@ -220,11 +220,6 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
                   ))}
                 </ul>
               )}
-              {!actor.permissions.includes('timesheet.read.all') && timeByPerson.length > 0 ? (
-                <p className="mt-2 text-xs text-[var(--color-ink-subtle)]">
-                  You see your own entries. The total above includes everyone.
-                </p>
-              ) : null}
             </CardSection>
           </Card>
 

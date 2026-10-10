@@ -8,6 +8,7 @@ import { createTask } from '@/modules/tasks/services/task.service';
 import {
   addManualEntry,
   listTaskTimeByPerson,
+  loggedMinutesForTask,
   getRunningTimer,
   removeEntry,
   startTimer,
@@ -470,5 +471,29 @@ describe('team activity', () => {
     await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 30 }));
     const sheet = await runWithContext(context, () => loadTimesheet(new Date()));
     expect(sheet.entries[0].billable).toBe(false);
+  });
+});
+
+describe('a task shared by several people', () => {
+  it('shows each person their own time, never everyone added together', async () => {
+    const { listTasks } = await import('@/modules/tasks/services/task.service');
+    const taskId = await aTask('Shared');
+
+    await runWithContext(context, () => addManualEntry({ taskId, workDate: today, duration: 60 }));
+    await runWithContext(otherPerson, () =>
+      addManualEntry({ taskId, workDate: today, duration: 45 }),
+    );
+
+    expect(await runWithContext(context, () => loggedMinutesForTask(taskId))).toBe(60);
+    expect(await runWithContext(otherPerson, () => loggedMinutesForTask(taskId))).toBe(45);
+
+    const mine = await runWithContext(context, () => listTasks({}));
+    expect(mine.find((task) => task.id === taskId)?.loggedMinutes).toBe(60);
+    const theirs = await runWithContext(otherPerson, () => listTasks({}));
+    expect(theirs.find((task) => task.id === taskId)?.loggedMinutes).toBe(45);
+
+    // Each timesheet already held only its owner's entries.
+    const sheet = await runWithContext(otherPerson, () => loadTimesheet(new Date()));
+    expect(sheet.totalMinutes).toBe(45);
   });
 });
