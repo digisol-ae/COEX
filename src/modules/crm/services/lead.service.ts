@@ -4,7 +4,6 @@ import { repository } from '@/lib/repository';
 import { getContext } from '@/lib/tenant-context';
 import { recordAudit, changedFields } from '@/modules/core/services/audit.service';
 import { nextNumber } from '@/modules/core/services/numbering.service';
-import { permissionsFor, type Permission, type Role } from '@/modules/core/permissions';
 import { TenantModel } from '@/modules/core/models/tenant.model';
 import { UserModel } from '@/modules/core/models/user.model';
 import { LEAD_STATUSES, LeadModel } from '../models/lead.model';
@@ -18,6 +17,7 @@ import {
   type LeadStatus,
 } from '../lead-rules';
 import { normaliseMobile } from '../phone';
+import { actorCan } from './access.service';
 
 /**
  * Leads: possible customers before they are qualified (Full CRM, P2.2a).
@@ -73,23 +73,6 @@ export class DuplicateLeadError extends Error {
   constructor(public readonly duplicates: LeadDuplicate[]) {
     super('This looks like someone already in COEX.');
   }
-}
-
-/** Read from the account rather than taken from the caller, as the Tasks module does. */
-async function actorCan(permission: Permission): Promise<boolean> {
-  const context = getContext();
-  if (context.isPlatformAdmin) return true;
-
-  const user = await UserModel.findOne({ _id: context.userId }).select(
-    'role permissionGrants permissionDenials',
-  );
-  if (!user) return false;
-
-  return permissionsFor({
-    role: user.role as Role,
-    permissionGrants: user.permissionGrants ?? [],
-    permissionDenials: user.permissionDenials ?? [],
-  }).has(permission);
 }
 
 async function ownLeadsOnly(): Promise<boolean> {

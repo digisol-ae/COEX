@@ -86,3 +86,26 @@ describe('lead permissions', () => {
     expect(can({ role: 'agent', permissionGrants: ['lead.manage'] }, 'lead.read.all')).toBe(false);
   });
 });
+
+describe('opportunity and pipeline permissions', () => {
+  it('gives managers and administrators all four, and agents none', () => {
+    for (const role of ['tenant_admin', 'manager'] as const) {
+      for (const permission of [
+        'opportunity.read',
+        'opportunity.read.all',
+        'opportunity.manage',
+        'pipeline.manage',
+      ] as const) {
+        expect(can({ role }, permission)).toBe(true);
+      }
+    }
+    expect(can({ role: 'agent' }, 'opportunity.read')).toBe(false);
+  });
+
+  it('lets a granted salesperson see and manage their own deals but not edit the pipeline', () => {
+    const salesperson = { role: 'agent', permissionGrants: ['opportunity.manage'] } as const;
+    expect(can(salesperson, 'opportunity.read')).toBe(true);
+    expect(can(salesperson, 'opportunity.read.all')).toBe(false);
+    expect(can(salesperson, 'pipeline.manage')).toBe(false);
+  });
+});

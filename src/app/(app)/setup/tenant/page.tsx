@@ -31,6 +31,7 @@ export default async function TenantSettingsPage() {
           taskPrefix: tenant.numbering?.taskPrefix ?? 'T',
           ticketPrefix: tenant.numbering?.ticketPrefix ?? 'S',
           leadPrefix: tenant.numbering?.leadPrefix ?? 'L',
+          opportunityPrefix: tenant.numbering?.opportunityPrefix ?? 'O',
           leadSources: tenant.leadSources.join('\n'),
           attachmentRetentionMonths: tenant.attachmentRetentionMonths ?? 24,
           workingDays: tenant.workingDays ?? [1, 2, 3, 4, 5],

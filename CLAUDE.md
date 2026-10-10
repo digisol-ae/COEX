@@ -342,6 +342,10 @@ by `npm install` on the Mac.
 - Full CRM P2.2a Leads built 9 Oct 2026 on the spec's proposals (docs/P2-2-CRM-SPEC.md, "Built"),
   before John answered its six open questions. Salespeople see their own leads, managers and
   administrators all (`lead.read.all`); lead sources are a list in Tenant settings.
+- John answered the CRM spec's six questions on 10 Oct 2026: everyone may sell and John grants
+  access per person; one simple pipeline; the proposed stages and lost reasons; opportunity value
+  as separate one-off and recurring amounts; the proposed lead sources; the proposed reminder
+  defaults. P2.2b (pipeline and opportunities) built the same day; see docs/P2-2-CRM-SPEC.md.
 
 ## Architecture revamp — 10 Oct 2026 (John)
 - The dev team's direction: backend Node.js with Express, frontend Next.js alone, MongoDB unchanged.

@@ -30,6 +30,7 @@ export async function saveTenantSettingsAction(
         taskPrefix: String(formData.get('taskPrefix') ?? ''),
         ticketPrefix: String(formData.get('ticketPrefix') ?? ''),
         leadPrefix: String(formData.get('leadPrefix') ?? ''),
+        opportunityPrefix: String(formData.get('opportunityPrefix') ?? ''),
         leadSources: [
           ...new Set(
             String(formData.get('leadSources') ?? '')

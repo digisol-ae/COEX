@@ -1,5 +1,25 @@
 # COEX — Current AI Task
 
+## P2.2b Pipeline and opportunities built — 10 Oct 2026 (Claude)
+
+- John answered the six CRM questions (CLAUDE.md, docs/P2-2-CRM-SPEC.md "Answers"). Built P2.2b:
+  Setup, Pipeline (stages, chances, lost reasons), Opportunities list (status, stage, owner, search
+  filters, per currency totals, next step flags), add/edit popup, move popup (Lost asks for a
+  reason, reopening asks for a reason and `pipeline.manage`), opportunity page with history.
+- Files: crm/models/pipeline-stage.model.ts, opportunity.model.ts, crm/opportunity-rules.ts,
+  crm/services/pipeline.service.ts, opportunity.service.ts, access.service.ts (shared permission
+  check, lead.service now uses it), app/(app)/opportunities/*, app/(app)/setup/pipeline/*,
+  permissions, numbering `opportunity`, tenant `lostReasons` and `opportunityPrefix`, `stage_changed`
+  timeline kind, nav items, release note 2026-10-10.
+- Verified in a scratch copy: tsc, eslint zero warnings, prettier, 145 unit tests, 11 new database
+  tests (tests/database/opportunities.test.ts) plus the lead tests on FerretDB, production build,
+  Chromium walk-through (add stage, add opportunity, Lost needs a reason, reopen needs a reason,
+  detail page history, nav, no browser errors). NOT run on real MongoDB; John's run is final.
+- Deploy: `git pull`, `npm ci`, `npm run build`, restart coex-app with --update-env, pm2 save. No
+  migration: stages are created on first use. Grant the opportunity permissions per person.
+- Next: P2.2c (lead conversion, pipeline board, customer page panel, win to contract), then P2.2d
+  (reminders, dashboard card), then the architecture revamp Phase 0.
+
 ## Architecture revamp planned — 10 Oct 2026 (Claude)
 
 - John agreed the dev team's direction (Express API, Next.js only frontend, MongoDB unchanged) and

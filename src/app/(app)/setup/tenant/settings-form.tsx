@@ -31,6 +31,7 @@ export function TenantSettingsForm({
     taskPrefix: string;
     ticketPrefix: string;
     leadPrefix: string;
+    opportunityPrefix: string;
     leadSources: string;
     attachmentRetentionMonths: number;
     workingDays: number[];
@@ -81,7 +82,7 @@ export function TenantSettingsForm({
         </CardSection>
 
         <CardSection title="Numbering and retention">
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Task prefix" hint="For example DGS-T-1042">
               <Input name="taskPrefix" defaultValue={defaults.taskPrefix} required />
             </Field>
@@ -92,6 +93,10 @@ export function TenantSettingsForm({
 
             <Field label="Lead prefix">
               <Input name="leadPrefix" defaultValue={defaults.leadPrefix} required />
+            </Field>
+
+            <Field label="Opportunity prefix">
+              <Input name="opportunityPrefix" defaultValue={defaults.opportunityPrefix} required />
             </Field>
 
             <Field label="Keep attachments" hint="Months">

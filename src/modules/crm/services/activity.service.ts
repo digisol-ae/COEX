@@ -27,7 +27,8 @@ export type ActivityKind =
   | 'ticket_resolved'
   | 'task_created'
   | 'task_completed'
-  | 'document_shared';
+  | 'document_shared'
+  | 'stage_changed';
 
 export interface ActivityInput {
   organisationId: string | Types.ObjectId;

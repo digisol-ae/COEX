@@ -26,6 +26,13 @@ const tenantSchema = new Schema(
       ticketPrefix: { type: String, default: 'S' },
       contractPrefix: { type: String, default: 'C' },
       leadPrefix: { type: String, default: 'L' },
+      opportunityPrefix: { type: String, default: 'O' },
+    },
+
+    /** Why deals are lost; edited in Setup, Pipeline. Kept as text on each opportunity. */
+    lostReasons: {
+      type: [String],
+      default: () => ['Price', 'Competitor', 'Timing', 'No budget', 'No reply'],
     },
 
     /** Where leads come from; the list is DigiSol's to edit in Setup, Tenant settings. */

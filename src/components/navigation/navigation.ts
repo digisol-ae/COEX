@@ -55,7 +55,7 @@ export const GROUPS: NavigationGroup[] = [
       { href: '/products', label: 'Products', permission: 'products.read' },
       { href: '/contracts', label: 'Contracts', permission: 'contract.read' },
       { href: '/leads', label: 'Leads', permission: 'lead.read' },
-      // Opportunities and the pipeline join here with P2.2b.
+      { href: '/opportunities', label: 'Opportunities', permission: 'opportunity.read' },
     ],
   },
   {
@@ -82,6 +82,7 @@ export const GROUPS: NavigationGroup[] = [
     items: [
       { href: '/setup/queues', label: 'Queues', permission: 'tenant.manage' },
       { href: '/setup/email', label: 'Email', permission: 'tenant.manage' },
+      { href: '/setup/pipeline', label: 'Pipeline', permission: 'pipeline.manage' },
       { href: '/setup/whatsapp', label: 'WhatsApp', permission: 'tenant.manage' },
       { href: '/setup/canned-replies', label: 'Saved replies', permission: 'ticket.manage' },
       { href: '/setup/tenant', label: 'Tenant settings', permission: 'tenant.manage' },

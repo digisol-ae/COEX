@@ -31,6 +31,16 @@ export const PERMISSION_GROUPS: {
       { id: 'lead.read', label: 'View own leads' },
       { id: 'lead.read.all', label: 'View every lead' },
       { id: 'lead.manage', label: 'Create and edit leads, convert or disqualify them' },
+      { id: 'opportunity.read', label: 'View own opportunities' },
+      { id: 'opportunity.read.all', label: 'View every opportunity' },
+      {
+        id: 'opportunity.manage',
+        label: 'Create and edit opportunities, move them through the pipeline',
+      },
+      {
+        id: 'pipeline.manage',
+        label: 'Edit pipeline stages and lost reasons, reopen won or lost deals',
+      },
     ],
   },
   {

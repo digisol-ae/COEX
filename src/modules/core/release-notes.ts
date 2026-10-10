@@ -16,6 +16,24 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-10',
+    date: '10 October 2026',
+    title: 'Opportunities and the sales pipeline',
+    sections: [
+      {
+        heading: 'Opportunities',
+        items: [
+          'A new Opportunities page under CRM tracks potential sales to customers, from first interest to won or lost. Each opportunity has a number such as O-1, a customer and contact, an owner, a one-off value (licence, setup) and a separate recurring value per year (AMC, subscription), a currency, the products, an expected close date and the Zoho Books quote number.',
+          'Every deal sits in a pipeline stage: Qualified, Needs analysis, Proposal sent, Negotiation, Won or Lost. Use the move icon to change the stage. Moving a deal to Lost asks why, from a list of reasons. Winning a deal turns a prospect into a client.',
+          'Each open deal should have a next step and a date. Deals without one are flagged, and a next step past its date shows as overdue.',
+          'You see the opportunities you own; managers and administrators see every one. Totals are shown per currency and are never added across currencies.',
+          'Open an opportunity to see its details and its full history. A manager can reopen a won or lost deal by giving a reason.',
+          'Managers and administrators can change the stages, their chance of winning and the list of lost reasons under Setup, Pipeline. Administrators decide who works on opportunities in Users and roles.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-09',
     date: '9 October 2026',
     title: 'Leads',

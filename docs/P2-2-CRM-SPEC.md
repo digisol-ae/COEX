@@ -1,6 +1,6 @@
 # P2.2 Full CRM specification (draft for John)
 
-Status: draft, 4 Oct 2026. P2.2a (Leads) built 9 Oct 2026, see "Built: P2.2a" at the end. Nothing here is decided until John confirms it. Contracts (P2.1) is
+Status: draft, 4 Oct 2026. John answered the six open questions on 10 Oct 2026 (see "Answers" at the end). P2.2a (Leads) built 9 Oct 2026, see "Built: P2.2a" at the end. Nothing here is decided until John confirms it. Contracts (P2.1) is
 built; this is the next module in the agreed order. Quotes and invoicing stay in Zoho Books, and
 WhatsApp conversations wait for the suspended Channels work (M6.5).
 
@@ -167,3 +167,31 @@ of them later is a small edit. Where the build departs from or adds to the spec:
 - Custom fields: new entity type `lead`. Leads have no activity timeline yet (the shared timeline
   needs a customer); the notes field covers P2.2a and conversion (P2.2c) will carry it across.
 - Not in P2.2a: conversion, opportunities, pipeline, reminders.
+
+## Answers (John, 10 Oct 2026)
+
+1. Everyone may sell; John grants access per person (the lead and opportunity permissions are
+   granted in Users and roles; managers and administrators hold them by default).
+2. One pipeline, kept simple: "we are still learning".
+3. The proposed stages and lost reasons are right.
+4. Opportunity value has two separate amounts, one-off and recurring.
+5. The proposed lead source list stands.
+6. The reminder defaults are right (owner emailed on the next step date, and after 14 days without
+   activity).
+
+## Built: P2.2b Pipeline and opportunities (10 Oct 2026, Claude)
+
+- Permissions: `opportunity.read`, `opportunity.read.all`, `opportunity.manage`, `pipeline.manage`.
+  `.manage` and `.read.all` imply `.read`. Salespeople see their own opportunities; `pipeline.manage`
+  edits stages and lost reasons and is the permission to reopen a won or lost deal (with a reason).
+- Pipeline stages (`PipelineStage`) are created on first use from the agreed set, one won, one lost,
+  both fixed at the end. Open stages can be added, reordered and removed; a stage with deals in it
+  cannot be renamed or removed, but its chance can change. Lost reasons are a tenant list
+  (Setup, Pipeline) kept as text on each opportunity. Prefix `numbering.opportunityPrefix`
+  (default `O`).
+- Recurring value is entered per year (an AMC billed monthly is still its yearly value).
+- Moving stage takes the chance from the new stage, writes an audit entry and a `stage_changed`
+  entry on the customer's timeline; winning turns a prospect into a client.
+- Not in P2.2b (kept for later milestones): lead conversion, the pipeline board and the "create a
+  contract" shortcut on winning (P2.2c); the customer page panel (P2.2c); reminders, dashboard
+  card and the `next_step_set` timeline entry (P2.2d).
