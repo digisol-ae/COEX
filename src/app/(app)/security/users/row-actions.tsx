@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react';
 import { Button, Notice, Select } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
-import { ROLES } from '@/modules/core/permissions';
+import { ROLES } from '@coex/shared/core/permissions';
 import {
   changeRoleAction,
   resetPasswordAction,
@@ -11,8 +11,8 @@ import {
   updateUserAccessAction,
   type UserFormState,
 } from './actions';
-import { PERMISSION_GROUPS } from '@/modules/core/permission-labels';
-import { permissionsFor, type Permission, type Role } from '@/modules/core/permissions';
+import { PERMISSION_GROUPS } from '@coex/shared/core/permission-labels';
+import { permissionsFor, type Permission, type Role } from '@coex/shared/core/permissions';
 
 const initialState: UserFormState = {};
 

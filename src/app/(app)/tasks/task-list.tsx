@@ -7,8 +7,8 @@ import { Card, EmptyState, Notice, Table, Th } from '@/components/ui';
 import { StatusDot } from '@/components/ui/pill';
 import { DocumentBadge } from '@/components/ui/task-badges';
 import { CardTimerButton } from '@/modules/time/components/card-timer-button';
-import { formatCompactDate, formatDateTime } from '@/modules/tasks/dates';
-import { formatMinutes } from '@/modules/time/week';
+import { formatCompactDate, formatDateTime } from '@coex/shared/tasks/dates';
+import { formatMinutes } from '@coex/shared/time/week';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
 import {
   AssigneePicker,

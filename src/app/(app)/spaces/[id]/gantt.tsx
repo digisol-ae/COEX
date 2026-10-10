@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { Card, CardSection, EmptyState } from '@/components/ui';
-import { formatDateTime } from '@/modules/tasks/dates';
-import { formatMinutes } from '@/modules/time/week';
+import { formatDateTime } from '@coex/shared/tasks/dates';
+import { formatMinutes } from '@coex/shared/time/week';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
 
 /**

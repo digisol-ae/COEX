@@ -102,7 +102,7 @@ The full scope document lives in the Claude project "ECHO System Development" as
     {{agent}}, {{agent_title}} and {{queue}}; a line whose placeholder is empty is dropped. With
     "sign automatically" (default on) the server adds it to every customer email from the queue,
     replies and the acknowledgement (which has no agent), and a saved reply's {{signature}} then
-    inserts nothing. All customer-email text is built by tickets/email-text.ts, which the Preview
+    inserts nothing. All customer-email text is built by packages/shared/src/tickets/email-text.ts, which the Preview
     buttons (queue signature, saved replies, acknowledgement) also use, so a preview is what goes
     out.
 13. Tasks and Tickets are natural partners and stay directly connected: escalation creates a task
@@ -193,7 +193,7 @@ never sent to their browser.
   profile or from "Forgot your password?" on the sign-in page. Links work once, for 30 minutes,
   three per account per hour; only a hash is stored; using one signs out every device. The
   forgot page answers the same whether or not an address has an account. Password rules follow
-  NIST SP 800-63B (src/modules/core/password-policy.ts): at least 12 characters, up to 128, no
+  NIST SP 800-63B (packages/shared/src/core/password-policy.ts): at least 12 characters, up to 128, no
   forced symbols or capitals, and common passwords, simple patterns and the person's own name or
   email are refused. The `password_reset` email kind cannot be switched off.
 - The selected item on the dark icon rail glows (`rail-glow` in globals.css, 28 Sep 2026): a light
@@ -205,7 +205,12 @@ never sent to their browser.
 
 ## Where things live
 
-- `src/modules/<module>/` one folder per module, never importing from a sibling module (Tasks and
+- `packages/shared/` (`@coex/shared`, 12 Oct 2026): every Mongoose model and the pure business rules
+  (statuses, phone numbers, week maths, email text, permissions). Folder layout mirrors the modules;
+  import as `@coex/shared/crm/models/lead.model`. It never imports services, `@/` paths or
+  anything HTTP. See packages/shared/README.md.
+- `src/modules/<module>/` one folder per module, services, components and actions only (models and
+  pure rules live in `packages/shared`), never importing from a sibling module (Tasks and
   Tickets excepted, decision 13)
 - `src/modules/core/` tenancy, users, audit log, outbox, shared primitives
 - `src/lib/` framework level helpers: database connection, tenant context, utilities
@@ -357,6 +362,10 @@ by `npm install` on the Mac.
   Done without disturbing agents: same domain, cookie and database, a feature flag per module,
   Tickets last. Starts after P2.2b is accepted. Until a module has switched, decision 1 (Next.js with
   server actions) still describes it. Plan: docs/ARCHITECTURE-REVAMP.md.
+- Phase 0 built 12 Oct 2026: npm workspaces, `packages/shared` holds the models and pure rules and
+  the app imports them from there. The app itself stays at the repository root for now, so
+  deployment, pm2 and `.env.local` are unchanged; it moves to `apps/web` together with the first
+  `apps/api` in Phase 1.
 
 ## M6 Channels decisions — 1 Oct 2026 (John)
 - SUSPENDED 4 Oct 2026 (John): the XVERSE team is busy on another project, so M6.3 to M6.6 wait

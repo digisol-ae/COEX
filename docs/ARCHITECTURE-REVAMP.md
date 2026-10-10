@@ -77,6 +77,8 @@ stay as they are. Decision 13 (Tasks and Tickets read each other directly) carri
 
 ### Phase 0: agree and prepare (about 1 to 2 weeks, no risk to agents)
 
+Status: built 12 Oct 2026 (see "Phase 0 as built" below).
+
 - Dev team reviews this document; the open points above are settled.
 - Create the monorepo skeleton (npm workspaces), move `packages/shared` first (models, schemas,
   pure helpers) and make today's app import from it. Behaviour unchanged, all 138 unit tests and the
@@ -131,3 +133,33 @@ Checklist for every module:
 
 Hosting changes, a different database, a new auth provider, server sent events, mobile apps. Each
 is a separate decision for John.
+
+## Phase 0 as built (12 Oct 2026, Claude)
+
+- npm workspaces at the repository root (`workspaces: ["packages/*"]`) and one package,
+  `@coex/shared` (`packages/shared`). It holds the 33 Mongoose models and 21 pure files (permissions,
+  permission labels, password policy, phone, lead, contract and opportunity rules, contract email
+  text, task statuses, dates, office day and document links, week and clock maths, ticket email text,
+  business hours, canned reply text, preview, collaborators, channel canonical schemas). Release
+  notes stay in the web app: they are content, not a shared rule.
+- The package ships TypeScript source. Applications import
+  `@coex/shared/<module>/<path>` (an `exports` wildcard to `src/<path>.ts`); Next compiles it through
+  `transpilePackages`, `tsx` workers and Vitest resolve it through the workspace link. `mongoose` is
+  a peer dependency so there is exactly one copy and one model registry.
+- 131 files had their imports rewritten mechanically (a codemod, not by hand); nothing else
+  changed. Behaviour is identical.
+- **Deviation from the layout above:** the Next.js app stays at the repository root instead of
+  moving to `apps/web` now. A physical move changes deployment paths, pm2's working directory and
+  where `.env.local` lives, which is exactly the disturbance this plan exists to avoid. The move to
+  `apps/web` happens in Phase 1 in one step, together with the creation of `apps/api` and the
+  matching change to `deploy/` and the pm2 processes.
+- CI now type-checks the shared package on its own, lints and format-checks `packages/`.
+- Deploy: unchanged commands. `npm ci` at the root installs the workspace link. No migration, no new
+  process, no restart beyond the usual `pm2 restart ... --update-env`.
+- Verified in a scratch copy: type check of both packages, ESLint zero warnings, Prettier, 146 unit
+  tests, 59 database tests (leads, opportunities, contracts, CRM foundation, custom fields) on
+  FerretDB, production build, and the email worker starting under `tsx`. The full database suite on
+  real MongoDB is still John's run.
+- Next (Phase 1): `apps/api` skeleton, session and tenant middleware, health check, Apache route for
+  `/api/v2`, workers moved over one at a time, Entra in Express, and the move of the web app to
+  `apps/web`.

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { elapsedClock } from '../elapsed-clock';
+import { elapsedClock } from '@coex/shared/time/elapsed-clock';
 import { Button } from '@/components/ui';
 import { startTicketTimerAction, stopTimerAction } from '@/app/(app)/time/actions';
 

@@ -1,6 +1,6 @@
 import { getContext } from '@/lib/tenant-context';
-import { permissionsFor, type Permission, type Role } from '@/modules/core/permissions';
-import { UserModel } from '@/modules/core/models/user.model';
+import { permissionsFor, type Permission, type Role } from '@coex/shared/core/permissions';
+import { UserModel } from '@coex/shared/core/models/user.model';
 
 /**
  * Whether the signed-in person holds a permission, read from their account rather than taken from

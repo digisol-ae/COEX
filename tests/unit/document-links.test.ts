@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseDocumentLink } from '@/modules/tasks/document-links';
+import { parseDocumentLink } from '@coex/shared/tasks/document-links';
 
 /** Pure validation, no database. */
 

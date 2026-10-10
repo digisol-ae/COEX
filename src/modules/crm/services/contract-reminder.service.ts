@@ -2,11 +2,11 @@ import { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { runWithContext } from '@/lib/tenant-context';
 import { alertStaff, appBaseUrl } from '@/modules/core/services/email.service';
-import { TenantModel } from '@/modules/core/models/tenant.model';
-import { UserModel } from '@/modules/core/models/user.model';
-import { ContractModel } from '../models/contract.model';
-import { OrganisationModel } from '../models/organisation.model';
-import { daysBetween, reminderDue, todayKey } from '../contract-status';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { ContractModel } from '@coex/shared/crm/models/contract.model';
+import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
+import { daysBetween, reminderDue, todayKey } from '@coex/shared/crm/contract-status';
 
 /**
  * Renewal reminders, sent by the email worker.

@@ -16,6 +16,8 @@ const nextConfig: NextConfig = {
   // A phone on the same Wi-Fi reaches the development server by the Mac's LAN address rather
   // than localhost. Keep that temporary address in .env.local, never in source control.
   allowedDevOrigins: process.env.COEX_DEV_ORIGIN ? [process.env.COEX_DEV_ORIGIN] : undefined,
+  // The shared package ships TypeScript source, so Next compiles it with the app.
+  transpilePackages: ['@coex/shared'],
   turbopack: {
     root: process.cwd(),
   },

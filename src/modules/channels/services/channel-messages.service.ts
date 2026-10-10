@@ -4,7 +4,7 @@ import { connectToDatabase } from '@/lib/db';
 import { toObjectId } from '@/lib/ids';
 import { openSecret } from '@/lib/secret-box';
 import { getContext, type RequestContext } from '@/lib/tenant-context';
-import { TenantModel } from '@/modules/core/models/tenant.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import {
   CHANNEL_ACCOUNTS,
   toE164,
@@ -13,9 +13,12 @@ import {
   type CanonicalOutbound,
   type CanonicalStatus,
   type ChannelAccount,
-} from '../canonical';
-import { ChannelMessageModel, type ChannelMessage } from '../models/channel-message.model';
-import { ChannelSettingsModel } from '../models/channel-settings.model';
+} from '@coex/shared/channels/canonical';
+import {
+  ChannelMessageModel,
+  type ChannelMessage,
+} from '@coex/shared/channels/models/channel-message.model';
+import { ChannelSettingsModel } from '@coex/shared/channels/models/channel-settings.model';
 import { ProviderNotReadyError, providerFor } from '../providers';
 import { SIGNATURE_HEADER, TIMESTAMP_HEADER, verifySignature } from '../signature';
 import { channelSettingsDocument } from './channel-settings.service';

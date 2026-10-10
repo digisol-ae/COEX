@@ -2,11 +2,11 @@ import { afterAll, beforeAll, beforeEach, expect, it } from 'vitest';
 import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
-import { TenantModel } from '@/modules/core/models/tenant.model';
-import { UserModel } from '@/modules/core/models/user.model';
-import { EmailSettingsModel } from '@/modules/core/models/email-settings.model';
-import { EmailOutboxModel } from '@/modules/core/models/email-outbox.model';
-import { ContactModel } from '@/modules/crm/models/contact.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { EmailSettingsModel } from '@coex/shared/core/models/email-settings.model';
+import { EmailOutboxModel } from '@coex/shared/core/models/email-outbox.model';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
 import { createOrganisation } from '@/modules/crm/services/organisation.service';
 import { createQueue } from '@/modules/tickets/services/queue.service';
 import {

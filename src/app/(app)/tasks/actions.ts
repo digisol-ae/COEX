@@ -1,5 +1,5 @@
 'use server';
-import { validateSpaceStatuses } from '@/modules/tasks/statuses';
+import { validateSpaceStatuses } from '@coex/shared/tasks/statuses';
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';

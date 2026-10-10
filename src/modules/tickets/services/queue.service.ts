@@ -2,10 +2,10 @@ import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { toObjectId, toOptionalObjectId } from '@/lib/ids';
 import { recordAudit, changedFields } from '@/modules/core/services/audit.service';
-import { UserModel } from '@/modules/core/models/user.model';
-import { QueueModel, DEFAULT_TARGETS, type Queue } from '../models/queue.model';
-import { TicketModel } from '../models/ticket.model';
-import { formatWorkingMinutes } from '../business-hours';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { QueueModel, DEFAULT_TARGETS, type Queue } from '@coex/shared/tickets/models/queue.model';
+import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
+import { formatWorkingMinutes } from '@coex/shared/tickets/business-hours';
 
 /**
  * Queues.

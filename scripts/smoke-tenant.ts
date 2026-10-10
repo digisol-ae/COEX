@@ -1,10 +1,10 @@
 import { randomBytes } from 'node:crypto';
 import mongoose from 'mongoose';
-import { TenantModel } from '../src/modules/core/models/tenant.model';
-import { UserModel } from '../src/modules/core/models/user.model';
-import { SpaceModel } from '../src/modules/tasks/models/space.model';
-import { FolderModel } from '../src/modules/tasks/models/folder.model';
-import { QueueModel, DEFAULT_TARGETS } from '../src/modules/tickets/models/queue.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { SpaceModel } from '@coex/shared/tasks/models/space.model';
+import { FolderModel } from '@coex/shared/tasks/models/folder.model';
+import { QueueModel, DEFAULT_TARGETS } from '@coex/shared/tickets/models/queue.model';
 import { hashPassword } from '../src/lib/password';
 
 /**

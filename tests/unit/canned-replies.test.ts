@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { expandCannedReply } from '@/modules/tickets/canned-reply-text';
-import { formatWorkingMinutes } from '@/modules/tickets/business-hours';
+import { expandCannedReply } from '@coex/shared/tickets/canned-reply-text';
+import { formatWorkingMinutes } from '@coex/shared/tickets/business-hours';
 import { untilDue } from '@/modules/tickets/labels';
 
 describe('expanding a saved reply', () => {

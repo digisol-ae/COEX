@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createDeskCloseSchedule } from '@/modules/tasks/desk-close-schedule';
-import { officeDate, officeInstant } from '@/modules/tasks/office-day';
+import { createDeskCloseSchedule } from '@coex/shared/tasks/desk-close-schedule';
+import { officeDate, officeInstant } from '@coex/shared/tasks/office-day';
 
 describe('office-day close', () => {
   const cutoff = new Date('2026-09-30T19:59:59Z');

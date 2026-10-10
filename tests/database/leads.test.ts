@@ -2,12 +2,12 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
-import { TenantModel } from '@/modules/core/models/tenant.model';
-import { UserModel } from '@/modules/core/models/user.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
 import { createOrganisation } from '@/modules/crm/services/organisation.service';
-import { OrganisationModel } from '@/modules/crm/models/organisation.model';
-import { ContactModel } from '@/modules/crm/models/contact.model';
-import { ActivityModel } from '@/modules/crm/models/activity.model';
+import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
+import { ActivityModel } from '@coex/shared/crm/models/activity.model';
 import { listOpportunities } from '@/modules/crm/services/opportunity.service';
 import { createContact } from '@/modules/crm/services/contact.service';
 import {

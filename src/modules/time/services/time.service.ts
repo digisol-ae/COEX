@@ -3,11 +3,11 @@ import { getContext } from '@/lib/tenant-context';
 import { repository } from '@/lib/repository';
 import { toObjectId } from '@/lib/ids';
 import { recordAudit, changedFields } from '@/modules/core/services/audit.service';
-import { TaskModel } from '@/modules/tasks/models/task.model';
-import { TicketModel } from '@/modules/tickets/models/ticket.model';
-import { TimeEntryModel } from '../models/time-entry.model';
-import { WeekLockModel } from '../models/week-lock.model';
-import { startOfDay, startOfWeek, toDateKey } from '../week';
+import { TaskModel } from '@coex/shared/tasks/models/task.model';
+import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
+import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
+import { WeekLockModel } from '@coex/shared/time/models/week-lock.model';
+import { startOfDay, startOfWeek, toDateKey } from '@coex/shared/time/week';
 
 /**
  * Time tracking.

@@ -1,6 +1,6 @@
 import type { Types } from 'mongoose';
-import { AuditLogModel } from '../models/audit-log.model';
-import { UserModel } from '../models/user.model';
+import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
 import { getContext, peekContext } from '@/lib/tenant-context';
 import { toObjectId } from '@/lib/ids';
 

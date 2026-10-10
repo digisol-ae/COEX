@@ -2,7 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
-import { TenantModel } from '@/modules/core/models/tenant.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import { createSpace } from '@/modules/tasks/services/space.service';
 import { createTask } from '@/modules/tasks/services/task.service';
 import {
@@ -20,7 +20,7 @@ import {
   lockWeek,
   unlockWeek,
 } from '@/modules/time/services/timesheet.service';
-import { endOfWeek, startOfWeek, toDateKey } from '@/modules/time/week';
+import { endOfWeek, startOfWeek, toDateKey } from '@coex/shared/time/week';
 
 const tenantId = new Types.ObjectId();
 const userId = new Types.ObjectId();

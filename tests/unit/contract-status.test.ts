@@ -3,7 +3,7 @@ import {
   SAMPLE_CONTRACT_EMAIL_VALUES,
   defaultContractTemplate,
   fillContractTemplate,
-} from '@/modules/crm/contract-email';
+} from '@coex/shared/crm/contract-email';
 import {
   billingSchedule,
   contractExpiryNotice,
@@ -16,7 +16,7 @@ import {
   reminderDue,
   renewalTerm,
   todayKey,
-} from '@/modules/crm/contract-status';
+} from '@coex/shared/crm/contract-status';
 
 describe('deriveContractStatus', () => {
   const active = (endDate: string) => ({ status: 'active' as const, endDate });

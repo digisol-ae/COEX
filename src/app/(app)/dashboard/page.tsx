@@ -4,7 +4,7 @@ import { loadDashboard } from '@/modules/tasks/services/dashboard.service';
 import { loadDeskSnapshot } from '@/modules/tickets/services/metrics.service';
 import { untilDue } from '@/modules/tickets/labels';
 import { Card, CardSection, EmptyState, PageHeader } from '@/components/ui';
-import { formatMinutes } from '@/modules/time/week';
+import { formatMinutes } from '@coex/shared/time/week';
 import { loadMyWork, parseWorkFilter } from '@/modules/tasks/services/my-work.service';
 import { loadOpportunitySnapshot } from '@/modules/crm/services/opportunity.service';
 import { fromMinorUnits } from '@/modules/crm/services/product.service';

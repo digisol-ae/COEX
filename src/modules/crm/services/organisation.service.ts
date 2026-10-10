@@ -1,9 +1,9 @@
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { recordAudit, changedFields } from '@/modules/core/services/audit.service';
-import { OrganisationModel } from '../models/organisation.model';
-import { ContactModel } from '../models/contact.model';
-import { LocationModel } from '../models/location.model';
+import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
+import { LocationModel } from '@coex/shared/crm/models/location.model';
 
 /**
  * The customer master.

@@ -1,10 +1,10 @@
 import { asUser, requirePermission } from '@/lib/session';
 import { loadTotals } from '@/modules/time/services/timesheet.service';
-import { formatMinutes, startOfWeek } from '@/modules/time/week';
+import { formatMinutes, startOfWeek } from '@coex/shared/time/week';
 import { Card, CardSection, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { IconLink } from '@/components/ui/icon-button';
 import { PeriodPicker } from './period-picker';
-import { toDateKey } from '@/modules/time/week';
+import { toDateKey } from '@coex/shared/time/week';
 
 export const metadata = { title: 'Time report · COEX' };
 

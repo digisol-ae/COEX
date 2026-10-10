@@ -9,7 +9,7 @@ import { createTicketAction, quickCreateCustomerAction, type SupportFormState } 
 import { TicketAttachmentPicker } from '@/components/ui/ticket-attachment-picker';
 
 import { CollaboratorPicker } from './collaborator-picker';
-import type { CollaboratorOption } from '@/modules/tickets/collaborators';
+import type { CollaboratorOption } from '@coex/shared/tickets/collaborators';
 
 const initialState: SupportFormState = {};
 

@@ -2,8 +2,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
-import { TenantModel } from '@/modules/core/models/tenant.model';
-import { UserModel } from '@/modules/core/models/user.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
 import {
   archiveSpace,
   createSpace,
@@ -28,8 +28,8 @@ import {
   countMyOpenTasks,
   taskOrigin,
 } from '@/modules/tasks/services/task.service';
-import { AuditLogModel } from '@/modules/core/models/audit-log.model';
-import { TaskModel } from '@/modules/tasks/models/task.model';
+import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
+import { TaskModel } from '@coex/shared/tasks/models/task.model';
 import { loadDashboard } from '@/modules/tasks/services/dashboard.service';
 
 const tenantId = new Types.ObjectId();
@@ -745,7 +745,7 @@ it('counts exactly the visible open assigned task list for the Tasks badge', asy
       assigneeIds: [String(userId)],
     });
     // Simulate an older inconsistent assignment after membership changed; it must not leak in the badge.
-    const { FolderModel } = await import('@/modules/tasks/models/folder.model');
+    const { FolderModel } = await import('@coex/shared/tasks/models/folder.model');
     await FolderModel.updateOne({ _id: folderId, tenantId }, { $set: { memberIds: [strangerId] } });
     expect(privateTaskId).toBeTruthy();
     expect(await countMyOpenTasks(String(userId))).toBe(

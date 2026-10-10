@@ -1,11 +1,11 @@
 import { connectToDatabase } from '@/lib/db';
 import { toObjectId } from '@/lib/ids';
 import { getContext } from '@/lib/tenant-context';
-import { TaskModel } from '../models/task.model';
-import { SpaceModel } from '../models/space.model';
-import { UserModel } from '@/modules/core/models/user.model';
-import { TimeEntryModel } from '@/modules/time/models/time-entry.model';
-import { endOfWeek, startOfWeek } from '@/modules/time/week';
+import { TaskModel } from '@coex/shared/tasks/models/task.model';
+import { SpaceModel } from '@coex/shared/tasks/models/space.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
+import { endOfWeek, startOfWeek } from '@coex/shared/time/week';
 
 /**
  * The numbers behind the dashboard.

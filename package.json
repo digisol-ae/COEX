@@ -2,6 +2,9 @@
   "name": "coex",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev --port 3100",
     "build": "next build",
@@ -20,9 +23,11 @@
     "check": "npm run test && npm run build",
     "email:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/email-worker.ts",
     "desk:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/desk-close-worker.ts",
-    "channels:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/channel-worker.ts"
+    "channels:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/channel-worker.ts",
+    "typecheck": "tsc --noEmit && npm run typecheck -w @coex/shared"
   },
   "dependencies": {
+    "@coex/shared": "*",
     "@node-rs/argon2": "^2.2.1",
     "@types/nodemailer": "^8.0.2",
     "bcryptjs": "^3.0.3",

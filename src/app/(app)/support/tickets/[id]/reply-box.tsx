@@ -3,7 +3,7 @@
 import { useActionState, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { Button, Card, CardSection, Notice } from '@/components/ui';
-import { expandCannedReply, type ReplyContext } from '@/modules/tickets/canned-reply-text';
+import { expandCannedReply, type ReplyContext } from '@coex/shared/tickets/canned-reply-text';
 import type { CannedReplySummary } from '@/modules/tickets/services/canned-reply.service';
 import { MentionTextarea, type MentionPerson } from '@/components/ui/mention-textarea';
 import { replyAction, type SupportFormState } from '../../actions';

@@ -9,13 +9,17 @@ import {
   type ContractTemplateKey,
   type ContractTemplates,
 } from '@/modules/core/services/email.service';
-import { TenantModel } from '@/modules/core/models/tenant.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import { recordActivity } from './activity.service';
 import { nextNumber } from '@/modules/core/services/numbering.service';
-import { BILLING_FREQUENCIES, CONTRACT_TYPES, ContractModel } from '../models/contract.model';
-import { ContactModel } from '../models/contact.model';
-import { OrganisationModel } from '../models/organisation.model';
-import { ProductModel } from '../models/product.model';
+import {
+  BILLING_FREQUENCIES,
+  CONTRACT_TYPES,
+  ContractModel,
+} from '@coex/shared/crm/models/contract.model';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
+import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
+import { ProductModel } from '@coex/shared/crm/models/product.model';
 import {
   DEFAULT_EXPIRY_WARNING_DAYS,
   daysBetween,
@@ -25,13 +29,13 @@ import {
   todayKey,
   type ContractStatus,
   type StoredContractStatus,
-} from '../contract-status';
+} from '@coex/shared/crm/contract-status';
 import { toMinorUnits } from './product.service';
 import {
   defaultContractTemplate,
   fillContractTemplate,
   type ContractEmailValues,
-} from '../contract-email';
+} from '@coex/shared/crm/contract-email';
 
 /**
  * Contracts and annual maintenance agreements.

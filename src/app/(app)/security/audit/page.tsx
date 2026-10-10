@@ -1,7 +1,7 @@
 import { asUser, requirePermission } from '@/lib/session';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
-import { AuditLogModel } from '@/modules/core/models/audit-log.model';
+import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 
 export const metadata = { title: 'Audit log · COEX' };

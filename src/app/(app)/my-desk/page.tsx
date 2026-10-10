@@ -1,4 +1,4 @@
-import { officeDate } from '@/modules/tasks/office-day';
+import { officeDate } from '@coex/shared/tasks/office-day';
 import { asUser, requirePermission } from '@/lib/session';
 import { listTasks } from '@/modules/tasks/services/task.service';
 import { listSpaces } from '@/modules/tasks/services/space.service';

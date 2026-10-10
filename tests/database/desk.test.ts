@@ -2,8 +2,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
-import { TenantModel } from '@/modules/core/models/tenant.model';
-import { UserModel } from '@/modules/core/models/user.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
 import { createSpace, getSpace, updateSpace } from '@/modules/tasks/services/space.service';
 import { createTask, getTask, moveTask } from '@/modules/tasks/services/task.service';
 import {
@@ -14,7 +14,7 @@ import {
   setDeskTaskSelected,
 } from '@/modules/tasks/services/desk.service';
 import { closeOfficeDay } from '@/modules/tasks/services/desk-close.service';
-import { DeskSnapshotModel } from '@/modules/tasks/models/desk-snapshot.model';
+import { DeskSnapshotModel } from '@coex/shared/tasks/models/desk-snapshot.model';
 const tenantId = new Types.ObjectId(),
   userId = new Types.ObjectId(),
   otherId = new Types.ObjectId();

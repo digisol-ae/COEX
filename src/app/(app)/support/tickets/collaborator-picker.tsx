@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Input, Notice } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
-import { normaliseCc, type CollaboratorOption } from '@/modules/tickets/collaborators';
+import { normaliseCc, type CollaboratorOption } from '@coex/shared/tickets/collaborators';
 
 export function CollaboratorPicker({
   options,

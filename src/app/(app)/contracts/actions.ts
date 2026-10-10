@@ -17,7 +17,7 @@ import {
   type ContractType,
 } from '@/modules/crm/services/contract.service';
 import { createProduct } from '@/modules/crm/services/product.service';
-import { BILLING_FREQUENCIES, CONTRACT_TYPES } from '@/modules/crm/models/contract.model';
+import { BILLING_FREQUENCIES, CONTRACT_TYPES } from '@coex/shared/crm/models/contract.model';
 
 export interface ContractFormState {
   error?: string;

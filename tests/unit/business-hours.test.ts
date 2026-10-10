@@ -4,7 +4,7 @@ import {
   nextWorkingMoment,
   workingMinutesBetween,
   type WorkingCalendar,
-} from '@/modules/tickets/business-hours';
+} from '@coex/shared/tickets/business-hours';
 
 /**
  * Pure arithmetic, no database. These are the tests that stop a four hour response target from

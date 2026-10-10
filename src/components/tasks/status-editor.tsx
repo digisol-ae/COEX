@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Input } from '@/components/ui';
-import type { SpaceStatus } from '@/modules/tasks/statuses';
+import type { SpaceStatus } from '@coex/shared/tasks/statuses';
 
 export function StatusEditor({ initial }: { initial: SpaceStatus[] }) {
   const [statuses, setStatuses] = useState(initial);

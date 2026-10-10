@@ -6,8 +6,8 @@ import { fileStorage } from '@/lib/storage';
 import { recordAudit } from '@/modules/core/services/audit.service';
 import { attachFilesToQueuedEmail } from '@/modules/core/services/email.service';
 import { repository } from '@/lib/repository';
-import { TicketMessageModel } from '../models/ticket-message.model';
-import { TicketModel } from '../models/ticket.model';
+import { TicketMessageModel } from '@coex/shared/tickets/models/ticket-message.model';
+import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
 
 /**
  * Attachments on a ticket.

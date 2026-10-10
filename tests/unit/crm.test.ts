@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normaliseMobile, splitMobile } from '@/modules/crm/phone';
+import { normaliseMobile, splitMobile } from '@coex/shared/crm/phone';
 import { fromMinorUnits, toMinorUnits } from '@/modules/crm/services/product.service';
 
 /** Pure functions, no database. These run on every push. */

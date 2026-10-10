@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
 import { listUsers } from '@/modules/core/services/user.service';
 import { loadTimesheet } from '@/modules/time/services/timesheet.service';
-import { daysOfWeek, formatMinutes, startOfWeek, toDateKey } from '@/modules/time/week';
+import { daysOfWeek, formatMinutes, startOfWeek, toDateKey } from '@coex/shared/time/week';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
 

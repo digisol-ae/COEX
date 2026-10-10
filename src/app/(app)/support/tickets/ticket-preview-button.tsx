@@ -2,9 +2,9 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { Icon, IconButton, IconLink, type IconName } from '@/components/ui/icon-button';
-import type { TicketPreviewData } from '@/modules/tickets/preview';
-import { formatMinutes } from '@/modules/time/week';
-import { formatDateTime } from '@/modules/tasks/dates';
+import type { TicketPreviewData } from '@coex/shared/tickets/preview';
+import { formatMinutes } from '@coex/shared/time/week';
+import { formatDateTime } from '@coex/shared/tasks/dates';
 
 export function TicketPreviewButton({ ticketId }: { ticketId: string }) {
   const [open, setOpen] = useState(false);

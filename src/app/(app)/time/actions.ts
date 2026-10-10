@@ -12,7 +12,7 @@ import {
   updateEntry,
 } from '@/modules/time/services/time.service';
 import { lockWeek, unlockWeek } from '@/modules/time/services/timesheet.service';
-import { formatMinutes, parseDuration } from '@/modules/time/week';
+import { formatMinutes, parseDuration } from '@coex/shared/time/week';
 import { historyFor } from '@/modules/core/services/audit.service';
 
 export interface TimeFormState {

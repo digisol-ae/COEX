@@ -3,16 +3,19 @@ import { connectToDatabase } from '@/lib/db';
 import { toObjectId } from '@/lib/ids';
 import { openSecret } from '@/lib/secret-box';
 import { getContext, runWithContext } from '@/lib/tenant-context';
-import { TenantModel } from '@/modules/core/models/tenant.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import { alertStaff, appBaseUrl } from '@/modules/core/services/email.service';
-import { ContactModel } from '@/modules/crm/models/contact.model';
-import { OrganisationModel } from '@/modules/crm/models/organisation.model';
-import { TicketMessageModel } from '@/modules/tickets/models/ticket-message.model';
-import { TicketModel } from '@/modules/tickets/models/ticket.model';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
+import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
+import { TicketMessageModel } from '@coex/shared/tickets/models/ticket-message.model';
+import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
 import { attachToMessage } from '@/modules/tickets/services/attachment.service';
 import { createTicket } from '@/modules/tickets/services/ticket.service';
-import { ChannelMessageModel, type ChannelMessage } from '../models/channel-message.model';
-import { ChannelSettingsModel } from '../models/channel-settings.model';
+import {
+  ChannelMessageModel,
+  type ChannelMessage,
+} from '@coex/shared/channels/models/channel-message.model';
+import { ChannelSettingsModel } from '@coex/shared/channels/models/channel-settings.model';
 import { queueChannelMessage } from './channel-messages.service';
 
 /**

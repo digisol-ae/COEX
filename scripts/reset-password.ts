@@ -10,8 +10,8 @@
 
 import { randomBytes } from 'node:crypto';
 import mongoose from 'mongoose';
-import { UserModel } from '../src/modules/core/models/user.model';
-import { AuditLogModel } from '../src/modules/core/models/audit-log.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
 import { hashPassword } from '../src/lib/password';
 
 const EMAIL = process.env.RESET_EMAIL;
@@ -20,7 +20,9 @@ async function main() {
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
-    throw new Error('MONGODB_URI is not set. Run this with npm run reset:password so .env.local is loaded.');
+    throw new Error(
+      'MONGODB_URI is not set. Run this with npm run reset:password so .env.local is loaded.',
+    );
   }
 
   if (!EMAIL) {

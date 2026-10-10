@@ -1,9 +1,9 @@
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { toObjectId } from '@/lib/ids';
-import { UserModel } from '@/modules/core/models/user.model';
-import { TicketModel } from '../models/ticket.model';
-import { QueueModel } from '../models/queue.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
+import { QueueModel } from '@coex/shared/tickets/models/queue.model';
 import type { TicketStatus } from './ticket.service';
 
 /** Open means anything a person still has to deal with, named rather than defined by exclusion. */

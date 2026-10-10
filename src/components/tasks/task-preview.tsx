@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import type { TaskOrigin, TaskSummary } from '@/modules/tasks/services/task.service';
-import { formatDateTime } from '@/modules/tasks/dates';
-import { formatMinutes } from '@/modules/time/week';
+import { formatDateTime } from '@coex/shared/tasks/dates';
+import { formatMinutes } from '@coex/shared/time/week';
 import { IconButton, IconLink } from '@/components/ui/icon-button';
 import { DeskTaskButton } from './desk-task-button';
 import { TaskOriginLines } from './task-origin';

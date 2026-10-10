@@ -1,6 +1,6 @@
 import { loadTimesheet, loadTotals } from './timesheet.service';
-import { formatMinutes } from '../week';
-import { toDateKey } from '../week';
+import { formatMinutes } from '@coex/shared/time/week';
+import { toDateKey } from '@coex/shared/time/week';
 
 /**
  * Exports.

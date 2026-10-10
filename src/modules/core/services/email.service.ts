@@ -5,11 +5,11 @@ import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { openSecret, sealSecret } from '@/lib/secret-box';
 import { fileStorage } from '@/lib/storage';
-import { EmailSettingsModel } from '../models/email-settings.model';
-import { EmailOutboxModel } from '../models/email-outbox.model';
-import { UserModel } from '../models/user.model';
+import { EmailSettingsModel } from '@coex/shared/core/models/email-settings.model';
+import { EmailOutboxModel } from '@coex/shared/core/models/email-outbox.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
 import { recordAudit } from './audit.service';
-import { permissionsFor, type Role } from '../permissions';
+import { permissionsFor, type Role } from '@coex/shared/core/permissions';
 
 /**
  * Email for a tenant: its settings, the outbox every request writes to, and the delivery the email

@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
-import { ROLES } from '@/modules/core/permissions';
+import { ROLES } from '@coex/shared/core/permissions';
 import { createUserAction, type UserFormState } from './actions';
 
 const initialState: UserFormState = {};

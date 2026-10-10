@@ -8,12 +8,12 @@ import {
   customerEmailText,
   fillAcknowledgement,
   renderSignature,
-} from '@/modules/tickets/email-text';
+} from '@coex/shared/tickets/email-text';
 import {
   CONTRACT_EMAIL_PLACEHOLDERS,
   SAMPLE_CONTRACT_EMAIL_VALUES,
   fillContractTemplate,
-} from '@/modules/crm/contract-email';
+} from '@coex/shared/crm/contract-email';
 import {
   saveEmailSettingsAction,
   sendTestEmailAction,

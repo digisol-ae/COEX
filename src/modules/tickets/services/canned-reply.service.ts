@@ -2,9 +2,13 @@ import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { toOptionalObjectId } from '@/lib/ids';
 import { recordAudit } from '@/modules/core/services/audit.service';
-import { CannedReplyModel } from '../models/canned-reply.model';
+import { CannedReplyModel } from '@coex/shared/tickets/models/canned-reply.model';
 
-export { expandCannedReply, PLACEHOLDERS, type ReplyContext } from '../canned-reply-text';
+export {
+  expandCannedReply,
+  PLACEHOLDERS,
+  type ReplyContext,
+} from '@coex/shared/tickets/canned-reply-text';
 
 /**
  * Saved replies.

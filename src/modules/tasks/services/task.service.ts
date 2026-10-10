@@ -6,29 +6,29 @@ import { toObjectId, toOptionalObjectId } from '@/lib/ids';
 import { recordAudit, changedFields } from '@/modules/core/services/audit.service';
 import { nextNumber } from '@/modules/core/services/numbering.service';
 import { recordActivity } from '@/modules/crm/services/activity.service';
-import { UserModel } from '@/modules/core/models/user.model';
-import { TaskModel } from '../models/task.model';
-import { TaskCommentModel } from '../models/task-comment.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { TaskModel } from '@coex/shared/tasks/models/task.model';
+import { TaskCommentModel } from '@coex/shared/tasks/models/task-comment.model';
 import { alertStaff, appBaseUrl } from '@/modules/core/services/email.service';
 import {
   alertMentioned,
   mentionableUsers,
   type MentionableUser,
 } from '@/modules/core/services/mention.service';
-import { SpaceModel } from '../models/space.model';
-import { FolderModel } from '../models/folder.model';
-import { TimeEntryModel } from '@/modules/time/models/time-entry.model';
+import { SpaceModel } from '@coex/shared/tasks/models/space.model';
+import { FolderModel } from '@coex/shared/tasks/models/folder.model';
+import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
 import { assignableMemberIds, canOpenFolder, visibleFolderFilter } from './folder.service';
 import { assignableSpaceMemberIds, canOpenSpace, visibleSpaceFilter } from './space.service';
-import { parseDocumentLink } from '../document-links';
-import { TenantModel } from '@/modules/core/models/tenant.model';
+import { parseDocumentLink } from '@coex/shared/tasks/document-links';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import {
   DEFAULT_CALENDAR,
   workingMinutesBetween,
   type WorkingCalendar,
-} from '@/modules/tickets/business-hours';
-import { TicketModel } from '@/modules/tickets/models/ticket.model';
-import { TicketMessageModel } from '@/modules/tickets/models/ticket-message.model';
+} from '@coex/shared/tickets/business-hours';
+import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
+import { TicketMessageModel } from '@coex/shared/tickets/models/ticket-message.model';
 
 /**
  * Tasks.

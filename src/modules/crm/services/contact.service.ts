@@ -2,8 +2,8 @@ import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { toObjectId } from '@/lib/ids';
 import { recordAudit } from '@/modules/core/services/audit.service';
-import { ContactModel } from '../models/contact.model';
-import { normaliseMobile } from '../phone';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
+import { normaliseMobile } from '@coex/shared/crm/phone';
 
 /**
  * People inside a customer organisation.

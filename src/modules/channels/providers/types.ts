@@ -3,7 +3,7 @@ import type {
   CanonicalOutbound,
   CanonicalStatus,
   ParsedBatch,
-} from '../canonical';
+} from '@coex/shared/channels/canonical';
 
 export interface ProviderConfig {
   baseUrl: string;

@@ -17,15 +17,17 @@
  */
 
 import mongoose from 'mongoose';
-import { TaskModel } from '../src/modules/tasks/models/task.model';
-import { SpaceModel } from '../src/modules/tasks/models/space.model';
-import { TimeEntryModel } from '../src/modules/time/models/time-entry.model';
+import { TaskModel } from '@coex/shared/tasks/models/task.model';
+import { SpaceModel } from '@coex/shared/tasks/models/space.model';
+import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
 
 async function main() {
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
-    throw new Error('MONGODB_URI is not set. Run this with npm run check:tasks so .env.local is loaded.');
+    throw new Error(
+      'MONGODB_URI is not set. Run this with npm run check:tasks so .env.local is loaded.',
+    );
   }
 
   await mongoose.connect(uri);
@@ -42,7 +44,9 @@ async function main() {
 
     console.log('');
     console.log(`Deleted: ${task.number} "${task.title}"`);
-    console.log(`  along with ${entries.deletedCount} timer ${entries.deletedCount === 1 ? 'entry' : 'entries'} logged against it.`);
+    console.log(
+      `  along with ${entries.deletedCount} timer ${entries.deletedCount === 1 ? 'entry' : 'entries'} logged against it.`,
+    );
     await mongoose.disconnect();
     return;
   }

@@ -9,7 +9,7 @@ import {
   updateUserAccess,
   updateUserRole,
 } from '@/modules/core/services/user.service';
-import { PERMISSIONS, ROLES, type Permission, type Role } from '@/modules/core/permissions';
+import { PERMISSIONS, ROLES, type Permission, type Role } from '@coex/shared/core/permissions';
 
 export interface UserFormState {
   error?: string;

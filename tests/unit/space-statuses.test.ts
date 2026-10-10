@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { isDeskTaskDone } from '@/modules/tasks/services/desk.service';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
-import { assertUsedStatusesPreserved, validateSpaceStatuses } from '@/modules/tasks/statuses';
+import { assertUsedStatusesPreserved, validateSpaceStatuses } from '@coex/shared/tasks/statuses';
 const original = [
   { name: 'To do', isClosed: false },
   { name: 'Done', isClosed: true },

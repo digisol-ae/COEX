@@ -1,6 +1,6 @@
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
-import { UserModel } from '../models/user.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
 import { alertStaff } from './email.service';
 
 /**

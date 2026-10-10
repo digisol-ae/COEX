@@ -3,16 +3,16 @@ import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
 import { sealSecret } from '@/lib/secret-box';
-import { TenantModel } from '@/modules/core/models/tenant.model';
-import { UserModel } from '@/modules/core/models/user.model';
-import { ContactModel } from '@/modules/crm/models/contact.model';
-import { OrganisationModel } from '@/modules/crm/models/organisation.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
+import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
 import { createQueue } from '@/modules/tickets/services/queue.service';
 import { changeStatus } from '@/modules/tickets/services/ticket.service';
-import { TicketModel } from '@/modules/tickets/models/ticket.model';
-import { TicketMessageModel } from '@/modules/tickets/models/ticket-message.model';
-import { ChannelSettingsModel } from '@/modules/channels/models/channel-settings.model';
-import { ChannelMessageModel } from '@/modules/channels/models/channel-message.model';
+import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
+import { TicketMessageModel } from '@coex/shared/tickets/models/ticket-message.model';
+import { ChannelSettingsModel } from '@coex/shared/channels/models/channel-settings.model';
+import { ChannelMessageModel } from '@coex/shared/channels/models/channel-message.model';
 import {
   acknowledgeOutbox,
   authenticateChannelRequest,

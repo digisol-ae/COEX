@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { elapsedClock } from '@/modules/time/elapsed-clock';
+import { elapsedClock } from '@coex/shared/time/elapsed-clock';
 
 it('renders seconds, minute/hour rollover and durations longer than a day', () => {
   const start = '2026-10-03T00:00:00Z';

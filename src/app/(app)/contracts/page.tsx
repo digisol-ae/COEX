@@ -10,7 +10,7 @@ import {
   matchesContractFilter,
   parseContractFilter,
   type ContractFilter,
-} from '@/modules/crm/contract-status';
+} from '@coex/shared/crm/contract-status';
 import { archiveContractAction, renewContractAction, setContractStatusAction } from './actions';
 import { ContractEmailButton } from './contract-email-button';
 import { ContractPanel } from './contract-panel';

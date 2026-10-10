@@ -7,7 +7,7 @@ import {
   SIGNATURE_PLACEHOLDERS,
   customerEmailText,
   renderSignature,
-} from '@/modules/tickets/email-text';
+} from '@coex/shared/tickets/email-text';
 
 /**
  * The queue's signature (John, 28 Sep 2026): several lines, placeholders for whoever replies, a

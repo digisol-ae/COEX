@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { duplicateReasons, isOpenLead, normaliseCompany } from '@/modules/crm/lead-rules';
+import { duplicateReasons, isOpenLead, normaliseCompany } from '@coex/shared/crm/lead-rules';
 
 describe('lead rules', () => {
   it('treats only new and working leads as open', () => {

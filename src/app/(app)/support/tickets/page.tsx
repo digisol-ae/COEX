@@ -17,7 +17,7 @@ import { Card, EmptyState, Notice, PageHeader } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
 import { SlaChip } from '@/components/ui/sla';
 import { LiveRefresh } from '@/components/ui/live-refresh';
-import { formatDateTime } from '@/modules/tasks/dates';
+import { formatDateTime } from '@coex/shared/tasks/dates';
 import { TicketFilters } from './filters';
 import { NewTicketPanel } from './new-ticket-panel';
 import { AgentControl, PriorityControl, TicketRowActions } from './ticket-row-actions';

@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import { Card, CardSection, EmptyState } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
-import { formatDateTime } from '@/modules/tasks/dates';
+import { formatDateTime } from '@coex/shared/tasks/dates';
 import { channelLabel } from '@/modules/tickets/labels';
 import type { TicketMessageView } from '@/modules/tickets/services/ticket.service';
 import { formatBytes, PROCESSED_IMAGE_TYPES } from '@/modules/tickets/services/attachment.service';

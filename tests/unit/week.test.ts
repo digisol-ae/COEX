@@ -5,7 +5,7 @@ import {
   parseDuration,
   startOfWeek,
   toDateKey,
-} from '@/modules/time/week';
+} from '@coex/shared/time/week';
 import { toCsv } from '@/modules/time/services/export.service';
 import { progressPercent } from '@/modules/tasks/services/space.service';
 

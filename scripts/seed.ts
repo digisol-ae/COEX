@@ -10,9 +10,9 @@
 
 import { randomBytes } from 'node:crypto';
 import mongoose from 'mongoose';
-import { TenantModel } from '../src/modules/core/models/tenant.model';
-import { UserModel } from '../src/modules/core/models/user.model';
-import { AuditLogModel } from '../src/modules/core/models/audit-log.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
 import { hashPassword } from '../src/lib/password';
 
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? 'ali@digisol.ae';

@@ -2,7 +2,7 @@ import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { toObjectId } from '@/lib/ids';
 import { recordAudit } from '@/modules/core/services/audit.service';
-import { LocationModel } from '../models/location.model';
+import { LocationModel } from '@coex/shared/crm/models/location.model';
 
 /** Branches and sites under a customer. Contracts attaches coverage here in a later phase. */
 

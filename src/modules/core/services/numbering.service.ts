@@ -1,7 +1,7 @@
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
-import { NumberSeriesModel } from '../models/number-series.model';
-import { TenantModel } from '../models/tenant.model';
+import { NumberSeriesModel } from '@coex/shared/core/models/number-series.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
 
 /**
  * Hands out the next number in a series.

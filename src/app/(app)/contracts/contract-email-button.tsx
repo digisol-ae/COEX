@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { Button, Field, Input, Notice, Select } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
 import { useToast } from '@/components/ui/toast';
-import { fillContractTemplate, CONTRACT_EMAIL_PLACEHOLDERS } from '@/modules/crm/contract-email';
+import { fillContractTemplate, CONTRACT_EMAIL_PLACEHOLDERS } from '@coex/shared/crm/contract-email';
 import type { ContractEmailDraft } from '@/modules/crm/services/contract.service';
 import { prepareContractEmailAction, sendContractEmailAction } from './actions';
 

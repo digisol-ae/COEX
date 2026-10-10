@@ -2,8 +2,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
-import { TenantModel } from '@/modules/core/models/tenant.model';
-import { UserModel } from '@/modules/core/models/user.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
 import { createSpace } from '@/modules/tasks/services/space.service';
 import {
   addTaskComment,
@@ -19,7 +19,7 @@ import {
   saveNavigationOrder,
   updateMyProfile,
 } from '@/modules/core/services/user.service';
-import { SessionModel } from '@/modules/core/models/session.model';
+import { SessionModel } from '@coex/shared/core/models/session.model';
 import { createSession } from '@/modules/core/services/session.service';
 import {
   requestPasswordReset,
@@ -28,8 +28,8 @@ import {
 } from '@/modules/core/services/password-reset.service';
 import { verifyPassword } from '@/lib/password';
 import { loadMyWork } from '@/modules/tasks/services/my-work.service';
-import { EmailSettingsModel } from '@/modules/core/models/email-settings.model';
-import { EmailOutboxModel } from '@/modules/core/models/email-outbox.model';
+import { EmailSettingsModel } from '@coex/shared/core/models/email-settings.model';
+import { EmailOutboxModel } from '@coex/shared/core/models/email-outbox.model';
 import {
   addReply,
   assignTicket,
@@ -51,7 +51,7 @@ import {
   updateQueue,
 } from '@/modules/tickets/services/queue.service';
 import { countUnreadTickets, markTicketRead } from '@/modules/tickets/services/unread.service';
-import { TicketModel } from '@/modules/tickets/models/ticket.model';
+import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
 import {
   countMyOpenTickets,
   loadDeskMetrics,

@@ -3,10 +3,10 @@ import { getContext } from '@/lib/tenant-context';
 import { toObjectId } from '@/lib/ids';
 import { openSecret, sealSecret } from '@/lib/secret-box';
 import { recordAudit } from '@/modules/core/services/audit.service';
-import { TenantModel } from '@/modules/core/models/tenant.model';
-import { toE164 } from '../canonical';
-import { ChannelMessageModel } from '../models/channel-message.model';
-import { ChannelSettingsModel } from '../models/channel-settings.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { toE164 } from '@coex/shared/channels/canonical';
+import { ChannelMessageModel } from '@coex/shared/channels/models/channel-message.model';
+import { ChannelSettingsModel } from '@coex/shared/channels/models/channel-settings.model';
 import { newSigningSecret } from '../signature';
 
 export type ChannelProviderName = 'mock' | 'xverse';

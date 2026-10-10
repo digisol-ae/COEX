@@ -12,9 +12,13 @@ import { fromMinorUnits, listProducts } from '@/modules/crm/services/product.ser
 import { listUsers } from '@/modules/core/services/user.service';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
-import { OPPORTUNITY_STATUSES } from '@/modules/crm/models/opportunity.model';
-import { lacksNextStep, nextStepOverdue, totalsByCurrency } from '@/modules/crm/opportunity-rules';
-import { todayKey } from '@/modules/crm/contract-status';
+import { OPPORTUNITY_STATUSES } from '@coex/shared/crm/models/opportunity.model';
+import {
+  lacksNextStep,
+  nextStepOverdue,
+  totalsByCurrency,
+} from '@coex/shared/crm/opportunity-rules';
+import { todayKey } from '@coex/shared/crm/contract-status';
 import { archiveOpportunityAction } from './actions';
 import { PipelineBoard, type BoardColumn } from './board';
 import { MoveButton } from './move-button';

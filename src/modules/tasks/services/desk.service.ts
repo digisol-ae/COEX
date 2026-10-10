@@ -1,13 +1,13 @@
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { toObjectId } from '@/lib/ids';
-import { DeskEntryModel } from '../models/desk-entry.model';
-import { DeskSnapshotModel } from '../models/desk-snapshot.model';
+import { DeskEntryModel } from '@coex/shared/tasks/models/desk-entry.model';
+import { DeskSnapshotModel } from '@coex/shared/tasks/models/desk-snapshot.model';
 import { getTask, listTasks, type TaskSummary } from './task.service';
 import { actorHasPermission } from './access.service';
-import { UserModel } from '@/modules/core/models/user.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
 
-import { nextOfficeDate, officeDate, officeInstant } from '../office-day';
+import { nextOfficeDate, officeDate, officeInstant } from '@coex/shared/tasks/office-day';
 
 /** The configured completion flag determines whether a desk task is finished. Shared so the
  * archival and the score always agree on what "done" means. */

@@ -12,7 +12,7 @@ import { listUsers } from '@/modules/core/services/user.service';
 import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
-import { LEAD_STATUSES } from '@/modules/crm/models/lead.model';
+import { LEAD_STATUSES } from '@coex/shared/crm/models/lead.model';
 import { archiveLeadAction, startWorkingLeadAction } from './actions';
 import { ConvertButton } from './convert-button';
 import { DisqualifyButton } from './disqualify-button';

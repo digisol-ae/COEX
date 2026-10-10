@@ -5,7 +5,7 @@ import { Badge, Button, Card, CardSection, Field, Input, Notice, Select } from '
 import { useToast } from '@/components/ui/toast';
 import { IconButton } from '@/components/ui/icon-button';
 import { Avatar } from '@/components/ui/avatar';
-import { formatWorkingMinutes } from '@/modules/tickets/business-hours';
+import { formatWorkingMinutes } from '@coex/shared/tickets/business-hours';
 import { SignatureEditor } from './signature-editor';
 import type { QueueSummary } from '@/modules/tickets/services/queue.service';
 import {

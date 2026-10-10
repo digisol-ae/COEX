@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { inboundSchema, parseBatch, statusSchema } from '../canonical';
+import { inboundSchema, parseBatch, statusSchema } from '@coex/shared/channels/canonical';
 import { ProviderNotReadyError, type ChannelProvider } from './types';
 
 /**

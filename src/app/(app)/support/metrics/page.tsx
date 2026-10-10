@@ -6,7 +6,7 @@ import {
   type DeskRow,
 } from '@/modules/tickets/services/metrics.service';
 import { listQueues } from '@/modules/tickets/services/queue.service';
-import { formatWorkingMinutes } from '@/modules/tickets/business-hours';
+import { formatWorkingMinutes } from '@coex/shared/tickets/business-hours';
 import { Card, CardSection, EmptyState, PageHeader } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
 import { MetricsFilters } from './filters';

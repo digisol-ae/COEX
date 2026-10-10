@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import type { Types } from 'mongoose';
-import { SessionModel } from '../models/session.model';
+import { SessionModel } from '@coex/shared/core/models/session.model';
 
 /**
  * Session lifecycle.

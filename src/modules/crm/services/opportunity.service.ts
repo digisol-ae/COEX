@@ -4,12 +4,12 @@ import { repository } from '@/lib/repository';
 import { getContext } from '@/lib/tenant-context';
 import { recordAudit, changedFields } from '@/modules/core/services/audit.service';
 import { nextNumber } from '@/modules/core/services/numbering.service';
-import { UserModel } from '@/modules/core/models/user.model';
-import { OPPORTUNITY_STATUSES, OpportunityModel } from '../models/opportunity.model';
-import { PipelineStageModel } from '../models/pipeline-stage.model';
-import { ContactModel } from '../models/contact.model';
-import { OrganisationModel } from '../models/organisation.model';
-import { ProductModel } from '../models/product.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { OPPORTUNITY_STATUSES, OpportunityModel } from '@coex/shared/crm/models/opportunity.model';
+import { PipelineStageModel } from '@coex/shared/crm/models/pipeline-stage.model';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
+import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
+import { ProductModel } from '@coex/shared/crm/models/product.model';
 import {
   clampProbability,
   lacksNextStep,
@@ -18,8 +18,8 @@ import {
   totalsByCurrency,
   type OpportunityStatus,
   type StageKind,
-} from '../opportunity-rules';
-import { todayKey } from '../contract-status';
+} from '@coex/shared/crm/opportunity-rules';
+import { todayKey } from '@coex/shared/crm/contract-status';
 import { actorCan } from './access.service';
 import { recordActivity } from './activity.service';
 import { listLostReasons, listStages } from './pipeline.service';

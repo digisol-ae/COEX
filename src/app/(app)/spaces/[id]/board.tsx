@@ -18,8 +18,8 @@ import {
 } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
 import { Chip, StatusDot, StatusPill } from '@/components/ui/pill';
-import { formatDateTime } from '@/modules/tasks/dates';
-import { formatMinutes } from '@/modules/time/week';
+import { formatDateTime } from '@coex/shared/tasks/dates';
+import { formatMinutes } from '@coex/shared/time/week';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
 import { Gantt } from './gantt';
 import { ViewTabs } from './view-tabs';

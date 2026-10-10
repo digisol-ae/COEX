@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react';
 import { Button, Card, CardSection, Notice } from '@/components/ui';
-import type { CollaboratorOption } from '@/modules/tickets/collaborators';
+import type { CollaboratorOption } from '@coex/shared/tickets/collaborators';
 import { saveCollaboratorsAction, type SupportFormState } from '../../actions';
 import { CollaboratorPicker } from '../collaborator-picker';
 

@@ -1,4 +1,4 @@
-import { normaliseCc } from '../collaborators';
+import { normaliseCc } from '@coex/shared/tickets/collaborators';
 import {
   alertStaff,
   newTicketAlertRecipients,
@@ -18,23 +18,23 @@ import { recordAudit, changedFields } from '@/modules/core/services/audit.servic
 import { nextNumber } from '@/modules/core/services/numbering.service';
 import { recordActivity } from '@/modules/crm/services/activity.service';
 import { alertMentioned, mentionableUsers } from '@/modules/core/services/mention.service';
-import { TenantModel } from '@/modules/core/models/tenant.model';
-import { UserModel } from '@/modules/core/models/user.model';
-import { OrganisationModel } from '@/modules/crm/models/organisation.model';
-import { ContactModel } from '@/modules/crm/models/contact.model';
-import { TaskModel } from '@/modules/tasks/models/task.model';
-import { TicketModel } from '../models/ticket.model';
-import { TicketMessageModel } from '../models/ticket-message.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
+import { TaskModel } from '@coex/shared/tasks/models/task.model';
+import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
+import { TicketMessageModel } from '@coex/shared/tickets/models/ticket-message.model';
 import { unreadAmong } from './unread.service';
 import { ALLOWED_TRANSITIONS } from '../labels';
-import { customerEmailText, renderSignature } from '../email-text';
-import { QueueModel, DEFAULT_TARGETS } from '../models/queue.model';
+import { customerEmailText, renderSignature } from '@coex/shared/tickets/email-text';
+import { QueueModel, DEFAULT_TARGETS } from '@coex/shared/tickets/models/queue.model';
 import {
   DEFAULT_CALENDAR,
   addWorkingMinutes,
   workingMinutesBetween,
   type WorkingCalendar,
-} from '../business-hours';
+} from '@coex/shared/tickets/business-hours';
 
 /**
  * Tickets.

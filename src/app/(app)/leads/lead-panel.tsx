@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/toast';
 import { MobileInput } from '@/modules/crm/components/mobile-input';
 import { CustomFields, type CustomFieldValues } from '@/modules/crm/components/custom-fields';
 import type { FieldDefinitionSummary } from '@/modules/crm/services/field-definition.service';
-import { splitMobile } from '@/modules/crm/phone';
+import { splitMobile } from '@coex/shared/crm/phone';
 import { saveLeadAction, type LeadFormState } from './actions';
 
 export interface LeadFormValues {

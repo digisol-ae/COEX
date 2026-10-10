@@ -1,7 +1,7 @@
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { recordAudit } from '@/modules/core/services/audit.service';
-import { FieldDefinitionModel } from '../models/field-definition.model';
+import { FieldDefinitionModel } from '@coex/shared/crm/models/field-definition.model';
 
 /**
  * Per tenant custom fields.

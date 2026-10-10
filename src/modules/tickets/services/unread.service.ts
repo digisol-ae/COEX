@@ -2,8 +2,8 @@ import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { toObjectId } from '@/lib/ids';
-import { TicketModel } from '../models/ticket.model';
-import { TicketReadModel } from '../models/ticket-read.model';
+import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
+import { TicketReadModel } from '@coex/shared/tickets/models/ticket-read.model';
 
 /**
  * The "something new here" mark on tickets and on the Support icon.

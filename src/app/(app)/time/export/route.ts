@@ -1,6 +1,6 @@
 import { asUser, getSignedInUser } from '@/lib/session';
 import { timesheetCsv } from '@/modules/time/services/export.service';
-import { toDateKey } from '@/modules/time/week';
+import { toDateKey } from '@coex/shared/time/week';
 
 /**
  * Downloads a week as CSV.

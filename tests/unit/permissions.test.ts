@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { can, permissionsFor } from '@/modules/core/permissions';
+import { can, permissionsFor } from '@coex/shared/core/permissions';
 
 /**
  * These exist because of a bug found by opening the product and looking at it: a tenant

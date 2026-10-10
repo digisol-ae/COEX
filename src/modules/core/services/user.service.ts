@@ -4,12 +4,12 @@ import { hashPassword } from '@/lib/password';
 import { repository } from '@/lib/repository';
 import { getContext } from '@/lib/tenant-context';
 import { toObjectId } from '@/lib/ids';
-import { UserModel } from '../models/user.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
 import { recordAudit, changedFields } from './audit.service';
 import { revokeAllSessionsForUser } from './session.service';
 import { notifyPasswordSetByAdmin } from './password-reset.service';
-import type { Role, Permission } from '../permissions';
-import { PERMISSIONS } from '../permissions';
+import type { Role, Permission } from '@coex/shared/core/permissions';
+import { PERMISSIONS } from '@coex/shared/core/permissions';
 
 /**
  * User administration inside one tenant.

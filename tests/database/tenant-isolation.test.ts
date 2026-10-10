@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
 import { repository } from '@/lib/repository';
-import { UserModel } from '@/modules/core/models/user.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
 
 /**
  * The acceptance test for milestone one.

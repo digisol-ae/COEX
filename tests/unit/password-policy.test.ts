@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { passwordProblem, passwordStrength } from '@/modules/core/password-policy';
+import { passwordProblem, passwordStrength } from '@coex/shared/core/password-policy';
 
 const about = { email: 'fatima.noor@digisol.ae', name: 'Fatima Noor' };
 

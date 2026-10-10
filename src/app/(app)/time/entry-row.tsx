@@ -5,7 +5,7 @@ import { useEffect, useState, useTransition, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
 import { Badge, Button, Field, Input, Notice, Select, Td } from '@/components/ui';
-import { formatMinutes, toDateKey } from '@/modules/time/week';
+import { formatMinutes, toDateKey } from '@coex/shared/time/week';
 import { IconButton } from '@/components/ui/icon-button';
 import { entryHistoryAction, removeTimeAction, saveEntryAction } from './actions';
 

@@ -1,7 +1,7 @@
 import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { runWithContext } from '@/lib/tenant-context';
-import { DeskEntryModel } from '../models/desk-entry.model';
+import { DeskEntryModel } from '@coex/shared/tasks/models/desk-entry.model';
 import { finishMyDesk } from './desk.service';
 
 /**

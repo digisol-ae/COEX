@@ -1,12 +1,16 @@
-import { assertUsedStatusesPreserved, validateSpaceStatuses, type SpaceStatus } from '../statuses';
+import {
+  assertUsedStatusesPreserved,
+  validateSpaceStatuses,
+  type SpaceStatus,
+} from '@coex/shared/tasks/statuses';
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { toObjectId, toOptionalObjectId } from '@/lib/ids';
 import { recordAudit } from '@/modules/core/services/audit.service';
-import { SpaceModel } from '../models/space.model';
-import { TaskModel } from '../models/task.model';
-import { FolderModel } from '../models/folder.model';
-import { TimeEntryModel } from '@/modules/time/models/time-entry.model';
+import { SpaceModel } from '@coex/shared/tasks/models/space.model';
+import { TaskModel } from '@coex/shared/tasks/models/task.model';
+import { FolderModel } from '@coex/shared/tasks/models/folder.model';
+import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
 import { visibleFolderFilter } from './folder.service';
 import { getContext } from '@/lib/tenant-context';
 import { actorIsAdministrator } from './access.service';

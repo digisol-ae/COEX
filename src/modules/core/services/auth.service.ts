@@ -1,7 +1,7 @@
 import { connectToDatabase } from '@/lib/db';
 import { verifyPassword } from '@/lib/password';
-import { UserModel } from '../models/user.model';
-import { TenantModel } from '../models/tenant.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import { createSession, revokeSession } from './session.service';
 import { recordUnauthenticatedAudit } from './audit.service';
 

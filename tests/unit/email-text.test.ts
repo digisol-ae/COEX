@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { customerEmailText, renderSignature } from '@/modules/tickets/email-text';
-import { expandCannedReply } from '@/modules/tickets/canned-reply-text';
+import { customerEmailText, renderSignature } from '@coex/shared/tickets/email-text';
+import { expandCannedReply } from '@coex/shared/tickets/canned-reply-text';
 
 const signature = 'Kind regards,\n{{agent}}\n{{agent_title}}\nDigiSol {{queue}}';
 

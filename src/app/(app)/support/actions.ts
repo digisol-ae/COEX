@@ -36,7 +36,7 @@ import {
 import { markTicketRead } from '@/modules/tickets/services/unread.service';
 
 import { createOrganisation } from '@/modules/crm/services/organisation.service';
-import { normaliseCc, quickCustomerSchema } from '@/modules/tickets/collaborators';
+import { normaliseCc, quickCustomerSchema } from '@coex/shared/tickets/collaborators';
 import { setTicketCollaborators } from '@/modules/tickets/services/collaborator.service';
 import { getTicketDetail } from '@/modules/tickets/services/ticket.service';
 

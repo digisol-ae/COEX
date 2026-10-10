@@ -4,9 +4,9 @@ import { repository } from '@/lib/repository';
 import { getContext } from '@/lib/tenant-context';
 import { toObjectId } from '@/lib/ids';
 import { recordAudit } from '@/modules/core/services/audit.service';
-import { UserModel } from '@/modules/core/models/user.model';
-import { FolderModel } from '../models/folder.model';
-import { TaskModel } from '../models/task.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { FolderModel } from '@coex/shared/tasks/models/folder.model';
+import { TaskModel } from '@coex/shared/tasks/models/task.model';
 import { actorIsAdministrator } from './access.service';
 
 /**

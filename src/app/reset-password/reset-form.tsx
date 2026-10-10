@@ -9,7 +9,7 @@ import {
   PASSWORD_MIN,
   passwordProblem,
   passwordStrength,
-} from '@/modules/core/password-policy';
+} from '@coex/shared/core/password-policy';
 import { resetPasswordAction, type ResetState } from './actions';
 
 const initialState: ResetState = {};

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Input, Select } from '@/components/ui';
-import { COUNTRIES, DEFAULT_COUNTRY, countryFor } from '../phone';
+import { COUNTRIES, DEFAULT_COUNTRY, countryFor } from '@coex/shared/crm/phone';
 
 /**
  * Country beside the number, rather than a guess made from the digits.

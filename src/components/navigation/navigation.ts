@@ -1,4 +1,4 @@
-import type { Permission } from '@/modules/core/permissions';
+import type { Permission } from '@coex/shared/core/permissions';
 
 /**
  * The shape of the product, expressed as menus.

@@ -1,4 +1,4 @@
-import { formatDateTime } from '@/modules/tasks/dates';
+import { formatDateTime } from '@coex/shared/tasks/dates';
 import type { TaskOrigin } from '@/modules/tasks/services/task.service';
 
 /**

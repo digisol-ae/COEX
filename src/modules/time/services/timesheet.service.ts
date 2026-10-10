@@ -3,15 +3,15 @@ import { getContext } from '@/lib/tenant-context';
 import { repository } from '@/lib/repository';
 import { toObjectId } from '@/lib/ids';
 import { recordAudit } from '@/modules/core/services/audit.service';
-import { UserModel } from '@/modules/core/models/user.model';
-import { TaskModel } from '@/modules/tasks/models/task.model';
-import { SpaceModel } from '@/modules/tasks/models/space.model';
-import { OrganisationModel } from '@/modules/crm/models/organisation.model';
-import { TimeEntryModel } from '../models/time-entry.model';
-import { WeekLockModel } from '../models/week-lock.model';
-import { AuditLogModel } from '@/modules/core/models/audit-log.model';
-import { endOfWeek, startOfWeek } from '../week';
-import { toDateKey } from '../week';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { TaskModel } from '@coex/shared/tasks/models/task.model';
+import { SpaceModel } from '@coex/shared/tasks/models/space.model';
+import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
+import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
+import { WeekLockModel } from '@coex/shared/time/models/week-lock.model';
+import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
+import { endOfWeek, startOfWeek } from '@coex/shared/time/week';
+import { toDateKey } from '@coex/shared/time/week';
 
 /** Reading time back: one person's week, and totals by space, person and customer. */
 

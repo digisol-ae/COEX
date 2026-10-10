@@ -4,19 +4,19 @@ import { repository } from '@/lib/repository';
 import { getContext } from '@/lib/tenant-context';
 import { recordAudit, changedFields } from '@/modules/core/services/audit.service';
 import { nextNumber } from '@/modules/core/services/numbering.service';
-import { TenantModel } from '@/modules/core/models/tenant.model';
-import { UserModel } from '@/modules/core/models/user.model';
-import { LEAD_STATUSES, LeadModel } from '../models/lead.model';
-import { ContactModel } from '../models/contact.model';
-import { OrganisationModel } from '../models/organisation.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { LEAD_STATUSES, LeadModel } from '@coex/shared/crm/models/lead.model';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
+import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
 import {
   duplicateReasons,
   isOpenLead,
   normaliseCompany,
   type DuplicateReason,
   type LeadStatus,
-} from '../lead-rules';
-import { normaliseMobile } from '../phone';
+} from '@coex/shared/crm/lead-rules';
+import { normaliseMobile } from '@coex/shared/crm/phone';
 import { actorCan } from './access.service';
 import { recordActivity } from './activity.service';
 import { createContact } from './contact.service';

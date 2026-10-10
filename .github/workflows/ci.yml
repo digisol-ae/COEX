@@ -26,13 +26,13 @@ jobs:
         run: npm ci
 
       - name: Types
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
       - name: Lint
-        run: npx eslint src --max-warnings=0
+        run: npx eslint src packages --max-warnings=0
 
       - name: Format
-        run: npx prettier --check "src/**/*.{ts,tsx,css}" "tests/**/*.ts"
+        run: npx prettier --check "src/**/*.{ts,tsx,css}" "packages/**/*.ts" "tests/**/*.ts"
 
       - name: Unit tests
         run: npm run test:unit

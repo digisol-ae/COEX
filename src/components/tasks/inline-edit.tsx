@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
 import { Avatar } from '@/components/ui/avatar';
 import { PriorityFlag } from '@/components/ui/pill';
-import { toDateTimeInput } from '@/modules/tasks/dates';
+import { toDateTimeInput } from '@coex/shared/tasks/dates';
 
 /**
  * Setting a date, a priority or an owner without opening the task.

@@ -8,8 +8,8 @@ import { clsx } from 'clsx';
 import { Button, Input, Notice } from '@/components/ui';
 import { IconButton, IconLink } from '@/components/ui/icon-button';
 import { StatusDot } from '@/components/ui/pill';
-import { formatMinutes } from '@/modules/time/week';
-import { formatDateTime } from '@/modules/tasks/dates';
+import { formatMinutes } from '@coex/shared/time/week';
+import { formatDateTime } from '@coex/shared/tasks/dates';
 import type { TaskOrigin, TaskSummary } from '@/modules/tasks/services/task.service';
 import { TaskOriginLines } from './task-origin';
 import {

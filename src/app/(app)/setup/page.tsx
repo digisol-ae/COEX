@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { requireUser } from '@/lib/session';
 import { Card, PageHeader } from '@/components/ui';
-import type { Permission } from '@/modules/core/permissions';
+import type { Permission } from '@coex/shared/core/permissions';
 
 export const metadata = { title: 'Setup · COEX' };
 

@@ -1,4 +1,4 @@
-import { ackSchema, parseBatch } from '@/modules/channels/canonical';
+import { ackSchema, parseBatch } from '@coex/shared/channels/canonical';
 import { handleChannelCall } from '@/modules/channels/http';
 import { acknowledgeOutbox } from '@/modules/channels/services/channel-messages.service';
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normaliseCc, quickCustomerSchema } from '@/modules/tickets/collaborators';
+import { normaliseCc, quickCustomerSchema } from '@coex/shared/tickets/collaborators';
 
 describe('ticket collaborators', () => {
   it('deduplicates addresses regardless of case and excludes the primary recipient', () => {

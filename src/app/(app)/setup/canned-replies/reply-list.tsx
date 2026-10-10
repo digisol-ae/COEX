@@ -4,8 +4,8 @@ import { useActionState, useEffect, useState } from 'react';
 import { Badge, Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
 import { IconButton } from '@/components/ui/icon-button';
-import { PLACEHOLDERS, expandCannedReply } from '@/modules/tickets/canned-reply-text';
-import { customerEmailText, renderSignature } from '@/modules/tickets/email-text';
+import { PLACEHOLDERS, expandCannedReply } from '@coex/shared/tickets/canned-reply-text';
+import { customerEmailText, renderSignature } from '@coex/shared/tickets/email-text';
 import { EmailPreview, SAMPLE } from '@/components/ui/email-preview';
 import type { CannedReplySummary } from '@/modules/tickets/services/canned-reply.service';
 import {

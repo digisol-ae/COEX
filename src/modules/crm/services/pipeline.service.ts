@@ -2,15 +2,15 @@ import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { getContext } from '@/lib/tenant-context';
 import { recordAudit } from '@/modules/core/services/audit.service';
-import { TenantModel } from '@/modules/core/models/tenant.model';
-import { PipelineStageModel } from '../models/pipeline-stage.model';
-import { OpportunityModel } from '../models/opportunity.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { PipelineStageModel } from '@coex/shared/crm/models/pipeline-stage.model';
+import { OpportunityModel } from '@coex/shared/crm/models/opportunity.model';
 import {
   DEFAULT_STAGES,
   DEFAULT_STALE_DAYS,
   clampProbability,
   type StageKind,
-} from '../opportunity-rules';
+} from '@coex/shared/crm/opportunity-rules';
 import { actorCan } from './access.service';
 
 /**

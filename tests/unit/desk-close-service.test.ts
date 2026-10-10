@@ -8,7 +8,7 @@ const mocked = vi.hoisted(() => ({
 }));
 vi.mock('@/lib/db', () => ({ connectToDatabase: mocked.connect }));
 vi.mock('@/lib/tenant-context', () => ({ runWithContext: mocked.context }));
-vi.mock('@/modules/tasks/models/desk-entry.model', () => ({
+vi.mock('@coex/shared/tasks/models/desk-entry.model', () => ({
   DeskEntryModel: { aggregate: mocked.aggregate },
 }));
 vi.mock('@/modules/tasks/services/desk.service', () => ({ finishMyDesk: mocked.finish }));

@@ -2,9 +2,9 @@ import type { ParsedMail } from 'mailparser';
 import { connectToDatabase } from '@/lib/db';
 import { runWithContext } from '@/lib/tenant-context';
 import { toObjectId } from '@/lib/ids';
-import { ContactModel } from '@/modules/crm/models/contact.model';
-import { OrganisationModel } from '@/modules/crm/models/organisation.model';
-import { TenantModel } from '@/modules/core/models/tenant.model';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
+import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import {
   alertStaff,
   appBaseUrl,
@@ -13,14 +13,18 @@ import {
   ownEmailAddresses,
   queueEmail,
 } from '@/modules/core/services/email.service';
-import { EmailSettingsModel } from '@/modules/core/models/email-settings.model';
-import { TicketMessageModel } from '../models/ticket-message.model';
-import { TicketModel } from '../models/ticket.model';
+import { EmailSettingsModel } from '@coex/shared/core/models/email-settings.model';
+import { TicketMessageModel } from '@coex/shared/tickets/models/ticket-message.model';
+import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
 import { attachToMessage } from './attachment.service';
 import { createTicket } from './ticket.service';
-import { QueueModel } from '../models/queue.model';
+import { QueueModel } from '@coex/shared/tickets/models/queue.model';
 import { contractNoticeFor } from '@/modules/crm/services/contract.service';
-import { customerEmailText, fillAcknowledgement, renderSignature } from '../email-text';
+import {
+  customerEmailText,
+  fillAcknowledgement,
+  renderSignature,
+} from '@coex/shared/tickets/email-text';
 
 export interface InboundEmailConfig {
   tenantId: string;

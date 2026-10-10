@@ -15,11 +15,11 @@ import {
   Table,
   Th,
 } from '@/components/ui';
-import { formatMinutes } from '@/modules/time/week';
+import { formatMinutes } from '@coex/shared/time/week';
 import { IconButton, IconLink } from '@/components/ui/icon-button';
 import { EntryRow, type Entry } from './entry-row';
 import { addTimeAction, lockWeekAction, type TimeFormState } from './actions';
-import { toDateKey } from '@/modules/time/week';
+import { toDateKey } from '@coex/shared/time/week';
 
 const initialState: TimeFormState = {};
 

@@ -1,7 +1,7 @@
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { recordAudit, changedFields } from '@/modules/core/services/audit.service';
-import { ProductModel } from '../models/product.model';
+import { ProductModel } from '@coex/shared/crm/models/product.model';
 
 /**
  * What DigiSol sells and supports.

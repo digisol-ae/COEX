@@ -5,7 +5,7 @@ import {
   parseBatch,
   statusSchema,
   toE164,
-} from '@/modules/channels/canonical';
+} from '@coex/shared/channels/canonical';
 import { signPayload, verifySignature } from '@/modules/channels/signature';
 import { mockProvider, providerFor, ProviderNotReadyError } from '@/modules/channels/providers';
 import {

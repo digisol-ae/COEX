@@ -1,5 +1,19 @@
 # COEX — Shared AI Project State
 
+## Architecture revamp Phase 0 built — 12 Oct 2026 (Claude)
+
+- npm workspaces plus `packages/shared` (`@coex/shared`): all 33 models and 21 pure files moved
+  there, 131 files re-imported by codemod, no behaviour change. The web app stays at the repository
+  root (deviation recorded in docs/ARCHITECTURE-REVAMP.md, "Phase 0 as built"). CI checks the new
+  package. package-lock.json regenerated.
+- Verified in a scratch copy: typecheck (both packages), eslint zero warnings, prettier, 146 unit,
+  59 database tests on FerretDB, production build, email worker boots under tsx. NOT run: the full
+  database suite on real MongoDB.
+- John on the Mac: `git pull`, then `npm install` (once, to link the workspace; a plain `npm ci`
+  also works), `npm run typecheck`, `npm run test:unit`, `npm run build`. Deploy as usual with
+  `npm ci`; nothing else changes.
+- Next: Phase 1, `apps/api` skeleton beside the app (docs/ARCHITECTURE-REVAMP.md).
+
 ## P2.2c and P2.2d built — 11 Oct 2026 (Claude)
 
 - John said go ahead. P2.2c: lead conversion (customer, contact, optional opportunity, lead kept

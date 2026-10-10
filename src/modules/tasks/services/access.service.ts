@@ -1,6 +1,6 @@
 import { getContext } from '@/lib/tenant-context';
-import { UserModel } from '@/modules/core/models/user.model';
-import { permissionsFor, type Permission, type Role } from '@/modules/core/permissions';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { permissionsFor, type Permission, type Role } from '@coex/shared/core/permissions';
 
 /** Tenant administrators remain able to administer private task areas. */
 export async function actorIsAdministrator(): Promise<boolean> {

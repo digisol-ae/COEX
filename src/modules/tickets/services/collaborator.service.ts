@@ -1,13 +1,13 @@
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { repository } from '@/lib/repository';
-import { ContactModel } from '@/modules/crm/models/contact.model';
-import { OrganisationModel } from '@/modules/crm/models/organisation.model';
-import { LocationModel } from '@/modules/crm/models/location.model';
-import { UserModel } from '@/modules/core/models/user.model';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
+import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
+import { LocationModel } from '@coex/shared/crm/models/location.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
 import { recordAudit } from '@/modules/core/services/audit.service';
-import { TicketModel } from '../models/ticket.model';
-import { normaliseCc, type CollaboratorOption } from '../collaborators';
+import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
+import { normaliseCc, type CollaboratorOption } from '@coex/shared/tickets/collaborators';
 
 export async function listCollaboratorOptions(): Promise<CollaboratorOption[]> {
   await connectToDatabase();

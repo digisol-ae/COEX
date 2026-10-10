@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Avatar } from '@/components/ui/avatar';
 import { Button, Card, CardSection, Notice } from '@/components/ui';
 import { MentionTextarea, type MentionPerson } from '@/components/ui/mention-textarea';
-import { formatDateTime } from '@/modules/tasks/dates';
+import { formatDateTime } from '@coex/shared/tasks/dates';
 import { addTaskCommentAction, type TaskFormState } from '../actions';
 
 const initialState: TaskFormState = {};

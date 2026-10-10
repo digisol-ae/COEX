@@ -1,6 +1,6 @@
 import { asUser, getSignedInUser } from '@/lib/session';
 import { totalsCsv } from '@/modules/time/services/export.service';
-import { toDateKey } from '@/modules/time/week';
+import { toDateKey } from '@coex/shared/time/week';
 
 /** The time report as CSV. Only someone who can see all tasks may export the whole tenant. */
 export async function GET(request: Request) {

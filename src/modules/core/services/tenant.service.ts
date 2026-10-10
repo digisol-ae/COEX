@@ -1,9 +1,9 @@
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
-import { TenantModel } from '../models/tenant.model';
-import { UserModel } from '../models/user.model';
-import { AuditLogModel } from '../models/audit-log.model';
-import { QueueModel } from '@/modules/tickets/models/queue.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
+import { QueueModel } from '@coex/shared/tickets/models/queue.model';
 import { recordAudit, changedFields } from './audit.service';
 import { hashPassword } from '@/lib/password';
 import { randomBytes } from 'node:crypto';

@@ -5,9 +5,9 @@ import { redirect } from 'next/navigation';
 import { connectToDatabase } from './db';
 import { runWithContext, type RequestContext } from './tenant-context';
 import { SESSION_COOKIE, resolveSession } from '@/modules/core/services/session.service';
-import { UserModel } from '@/modules/core/models/user.model';
-import { TenantModel } from '@/modules/core/models/tenant.model';
-import { can, permissionsFor, type Permission, type Role } from '@/modules/core/permissions';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { can, permissionsFor, type Permission, type Role } from '@coex/shared/core/permissions';
 
 /**
  * The bridge between an HTTP request and the tenant context the data layer expects.

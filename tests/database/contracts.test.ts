@@ -6,11 +6,11 @@ import {
   createOrganisation,
   updateOrganisation,
 } from '@/modules/crm/services/organisation.service';
-import { EmailSettingsModel } from '@/modules/core/models/email-settings.model';
-import { OrganisationModel } from '@/modules/crm/models/organisation.model';
-import { UserModel } from '@/modules/core/models/user.model';
-import { ActivityModel } from '@/modules/crm/models/activity.model';
-import { EmailOutboxModel } from '@/modules/core/models/email-outbox.model';
+import { EmailSettingsModel } from '@coex/shared/core/models/email-settings.model';
+import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { ActivityModel } from '@coex/shared/crm/models/activity.model';
+import { EmailOutboxModel } from '@coex/shared/core/models/email-outbox.model';
 import { sendRenewalRemindersForTenant } from '@/modules/crm/services/contract-reminder.service';
 import { createContact, listContacts } from '@/modules/crm/services/contact.service';
 import { createProduct } from '@/modules/crm/services/product.service';
@@ -27,7 +27,7 @@ import {
   updateContract,
   type ContractInput,
 } from '@/modules/crm/services/contract.service';
-import { todayKey } from '@/modules/crm/contract-status';
+import { todayKey } from '@coex/shared/crm/contract-status';
 
 const contextOne = {
   tenantId: new Types.ObjectId(),

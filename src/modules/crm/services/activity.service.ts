@@ -2,8 +2,8 @@ import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { repository } from '@/lib/repository';
-import { ActivityModel } from '../models/activity.model';
-import { UserModel } from '@/modules/core/models/user.model';
+import { ActivityModel } from '@coex/shared/crm/models/activity.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
 import { toObjectId, toOptionalObjectId } from '@/lib/ids';
 
 /**
