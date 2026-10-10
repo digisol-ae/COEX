@@ -94,6 +94,8 @@ export async function saveEmailSettingsAction(
           taskAssigned: flag(formData, 'taskAssigned'),
           mentioned: flag(formData, 'mentioned'),
           contractRenewal: flag(formData, 'contractRenewal'),
+          nextStepDue: flag(formData, 'nextStepDue'),
+          opportunityStale: flag(formData, 'opportunityStale'),
           ticketCreated: newTicketAlert(text(formData, 'ticketCreated')),
         },
       }),

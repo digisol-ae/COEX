@@ -346,6 +346,10 @@ by `npm install` on the Mac.
   access per person; one simple pipeline; the proposed stages and lost reasons; opportunity value
   as separate one-off and recurring amounts; the proposed lead sources; the proposed reminder
   defaults. P2.2b (pipeline and opportunities) built the same day; see docs/P2-2-CRM-SPEC.md.
+- P2.2c and P2.2d built 11 Oct 2026 (John: "go ahead"): lead conversion, pipeline board, win to
+  contract prefill, customer page panel, opportunity reminders in the `coex-mail` worker, dashboard
+  card. The full CRM plan is now complete; see "Built: P2.2c and P2.2d" in the spec. Next: the
+  architecture revamp (docs/ARCHITECTURE-REVAMP.md), Phase 0.
 
 ## Architecture revamp — 10 Oct 2026 (John)
 - The dev team's direction: backend Node.js with Express, frontend Next.js alone, MongoDB unchanged.

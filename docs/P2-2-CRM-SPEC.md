@@ -195,3 +195,32 @@ of them later is a small edit. Where the build departs from or adds to the spec:
 - Not in P2.2b (kept for later milestones): lead conversion, the pipeline board and the "create a
   contract" shortcut on winning (P2.2c); the customer page panel (P2.2c); reminders, dashboard
   card and the `next_step_set` timeline entry (P2.2d).
+
+## Built: P2.2c and P2.2d (11 Oct 2026, Claude)
+
+- **Lead conversion** (`convertLead`): creates a prospect customer (named after the company, then the
+  lead; or adds the lead to a chosen customer), a contact (an existing contact with the same email or
+  mobile is reused) and optionally an opportunity owned by the lead's owner. The salesperson becomes
+  the new customer's owner. The lead's notes go to the customer's timeline as a note; the lead is kept,
+  marked converted, with `convertedTo`. Needs `lead.manage` and `customer.manage` (and
+  `opportunity.manage` for the opportunity). The result dialog refreshes the page only when closed,
+  because the row stops offering Convert once converted.
+- **Pipeline board**: `/opportunities?view=board`, columns are stages. Dragging between open stages
+  moves at once; Won, Lost and any move of a closed deal go through the same dialog as the list, which
+  asks for the lost reason or the reopen reason. Every card has the move button, so nothing is
+  drag only.
+- **Win to contract**: after a win the dialog links to the opportunity page, where a Create contract
+  card opens the contract form prefilled (customer, title, products, value, currency, Zoho quote
+  number, a year's term). Optional; shown to people with `contract.manage`.
+- **Customer page** gains an Opportunities panel for people with `opportunity.read`.
+- **Reminders** (`opportunity-reminder.service`, run hourly by the existing `coex-mail` worker): the
+  owner is emailed on the day a next step is due (`next_step_due`) and when an open opportunity has
+  had no activity for the tenant's number of days (`opportunity_stale`, default 14, Setup, Pipeline).
+  Both are claimed atomically, so none is sent twice; a stale reminder repeats only after new
+  activity. Switchable in Setup, Email. Activity means any edit, stage move or creation
+  (`lastActivityAt`).
+- **Timeline**: setting or changing a next step writes `next_step_set` on the customer timeline.
+- **Dashboard card** "My opportunities": open deals by stage, how many lack a next step or are
+  overdue, totals per currency. Always the person's own deals, even for a manager.
+- Not built (stated so nobody assumes it): forecasting, targets, multiple pipelines, lead scoring,
+  web forms (see "Not included" above).

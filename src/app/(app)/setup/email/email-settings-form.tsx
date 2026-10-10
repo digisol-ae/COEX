@@ -381,6 +381,16 @@ export function EmailSettingsForm({
               label="A contract I own is nearing its end date"
               defaultChecked={staff.contractRenewal}
             />
+            <Toggle
+              name="nextStepDue"
+              label="The next step date of an opportunity I own arrives"
+              defaultChecked={staff.nextStepDue}
+            />
+            <Toggle
+              name="opportunityStale"
+              label="An opportunity I own has had no activity for a while"
+              defaultChecked={staff.opportunityStale}
+            />
           </div>
         </CardSection>
       </Card>

@@ -6,6 +6,12 @@ import { TenantModel } from '@/modules/core/models/tenant.model';
 import { UserModel } from '@/modules/core/models/user.model';
 import { OrganisationModel } from '@/modules/crm/models/organisation.model';
 import { ActivityModel } from '@/modules/crm/models/activity.model';
+import { OpportunityModel } from '@/modules/crm/models/opportunity.model';
+import { EmailOutboxModel } from '@/modules/core/models/email-outbox.model';
+import { EmailSettingsModel } from '@/modules/core/models/email-settings.model';
+import { sendOpportunityRemindersForTenant } from '@/modules/crm/services/opportunity-reminder.service';
+import { getStaleDays, saveStaleDays } from '@/modules/crm/services/pipeline.service';
+import { loadOpportunitySnapshot } from '@/modules/crm/services/opportunity.service';
 import { createOrganisation } from '@/modules/crm/services/organisation.service';
 import {
   addStage,
@@ -307,3 +313,123 @@ describe('opportunities', () => {
 function await_input(): OpportunityInput {
   return { organisationId: String(new Types.ObjectId()), title: 'Taken' };
 }
+
+describe('next steps, reminders and the dashboard snapshot', () => {
+  const sendingOn = () =>
+    EmailSettingsModel.create({
+      tenantId,
+      outbound: {
+        enabled: true,
+        host: 'smtp.example.com',
+        username: 'helpdesk@example.com',
+        fromName: 'Support',
+        fromAddress: 'helpdesk@example.com',
+      },
+    });
+
+  it('writes the next step to the customer timeline when it is set or changed', async () => {
+    const organisationId = await asManager(() =>
+      createOrganisation({ name: 'Step Clinic', kind: 'prospect' }),
+    );
+    const id = await asManager(async () =>
+      createOpportunity(
+        await input({ organisationId, nextStep: 'Send proposal', nextStepDate: '2026-11-01' }),
+      ),
+    );
+    await asManager(async () =>
+      updateOpportunity(
+        id,
+        await input({ organisationId, nextStep: 'Call back', nextStepDate: '2026-11-05' }),
+      ),
+    );
+
+    const steps = await ActivityModel.find({ organisationId, kind: 'next_step_set' });
+    expect(steps.map((entry) => entry.summary).sort()).toEqual([
+      'Next step on O-1: Call back (2026-11-05)',
+      'Next step on O-1: Send proposal (2026-11-01)',
+    ]);
+  });
+
+  it('emails the owner once when the next step date arrives, and never twice', async () => {
+    await sendingOn();
+    const id = await asSales(async () =>
+      createOpportunity(await input({ nextStep: 'Send proposal', nextStepDate: '2026-12-01' })),
+    );
+
+    expect(await sendOpportunityRemindersForTenant(tenantId, '2026-11-30')).toBe(0);
+    expect(await sendOpportunityRemindersForTenant(tenantId, '2026-12-01')).toBe(1);
+    expect(await sendOpportunityRemindersForTenant(tenantId, '2026-12-01')).toBe(0);
+
+    const mail = await EmailOutboxModel.find({ kind: 'next_step_due' });
+    expect(mail).toHaveLength(1);
+    expect(mail[0]?.to).toBe('s@x.com');
+    expect(mail[0]?.subject).toContain('Next step due today');
+    expect(id).toBeTruthy();
+  });
+
+  it('emails the owner once after the stale period, and again only after new activity', async () => {
+    await sendingOn();
+    const id = await asSales(async () => createOpportunity(await input()));
+    const longAgo = new Date('2026-09-01T00:00:00Z');
+    await OpportunityModel.updateOne({ _id: id }, { $set: { lastActivityAt: longAgo } });
+
+    const now = new Date('2026-10-01T00:00:00Z');
+    expect(await sendOpportunityRemindersForTenant(tenantId, '2026-10-01', now)).toBe(1);
+    expect(await sendOpportunityRemindersForTenant(tenantId, '2026-10-02', now)).toBe(0);
+    expect(await EmailOutboxModel.countDocuments({ kind: 'opportunity_stale' })).toBe(1);
+
+    // Activity restarts the clock; another fourteen quiet days earn another reminder.
+    await asSales(async () => updateOpportunity(id, await input({ title: 'Touched' })));
+    const later = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+    expect(await sendOpportunityRemindersForTenant(tenantId, '2026-11-01', later)).toBe(1);
+    expect(await EmailOutboxModel.countDocuments({ kind: 'opportunity_stale' })).toBe(2);
+  });
+
+  it('does not remind about won or lost deals, and honours the configured days', async () => {
+    await sendingOn();
+    const id = await asManager(async () => createOpportunity(await input()));
+    await asManager(async () => moveOpportunity(id, (await stageNamed('Won')).id));
+    await OpportunityModel.updateOne(
+      { _id: id },
+      { $set: { lastActivityAt: new Date('2020-01-01') } },
+    );
+    expect(await sendOpportunityRemindersForTenant(tenantId, '2026-10-01')).toBe(0);
+
+    await asManager(() => saveStaleDays(30));
+    expect(await asManager(() => getStaleDays())).toBe(30);
+    await expect(asManager(() => saveStaleDays(0))).rejects.toThrow('between 1 and 365');
+    await expect(asSales(() => saveStaleDays(5))).rejects.toThrow('may not change the pipeline');
+  });
+
+  it('summarises my open deals by stage and counts the ones needing attention', async () => {
+    const stage = await stageNamed('Proposal sent');
+    await asSales(async () => createOpportunity(await input({ title: 'No step' })));
+    await asSales(async () =>
+      createOpportunity(
+        await input({
+          title: 'Late',
+          stageId: stage.id,
+          nextStep: 'Call',
+          nextStepDate: '2020-01-01',
+        }),
+      ),
+    );
+    await asSales(async () =>
+      createOpportunity(
+        await input({ title: 'Fine', nextStep: 'Call', nextStepDate: '2999-01-01' }),
+      ),
+    );
+    await asOtherSales(async () => createOpportunity(await input({ title: 'Not mine' })));
+
+    const snapshot = await asSales(() => loadOpportunitySnapshot());
+    expect(snapshot.openCount).toBe(3);
+    expect(snapshot.withoutNextStep).toBe(1);
+    expect(snapshot.overdueNextStep).toBe(1);
+    expect(snapshot.byStage.find((row) => row.stageName === 'Proposal sent')?.count).toBe(1);
+    expect(snapshot.byStage.find((row) => row.stageName === 'Qualified')?.count).toBe(2);
+    expect(snapshot.totals[0]?.count).toBe(3);
+
+    // A manager who can see every deal still gets only their own on the dashboard.
+    expect((await asManager(() => loadOpportunitySnapshot())).openCount).toBe(0);
+  });
+});

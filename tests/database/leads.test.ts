@@ -5,10 +5,15 @@ import { runWithContext } from '@/lib/tenant-context';
 import { TenantModel } from '@/modules/core/models/tenant.model';
 import { UserModel } from '@/modules/core/models/user.model';
 import { createOrganisation } from '@/modules/crm/services/organisation.service';
+import { OrganisationModel } from '@/modules/crm/models/organisation.model';
+import { ContactModel } from '@/modules/crm/models/contact.model';
+import { ActivityModel } from '@/modules/crm/models/activity.model';
+import { listOpportunities } from '@/modules/crm/services/opportunity.service';
 import { createContact } from '@/modules/crm/services/contact.service';
 import {
   DuplicateLeadError,
   archiveLead,
+  convertLead,
   createLead,
   disqualifyLead,
   listLeads,
@@ -195,5 +200,81 @@ describe('leads', () => {
     const otherTenant = new Types.ObjectId();
     const found = await runWithContext(as(managerId, otherTenant), () => listLeads());
     expect(found).toHaveLength(0);
+  });
+
+  it('converts a lead into a prospect customer, a contact and an opportunity, and keeps the lead', async () => {
+    const id = await asSales(() =>
+      createLead({
+        name: 'Dr Amal',
+        company: 'Amal Dental',
+        email: 'amal@x.com',
+        mobile: '050 123 4567',
+        source: 'Referral',
+        notes: 'Met at the expo',
+      }),
+    );
+
+    const result = await asManager(() =>
+      convertLead(id, { opportunity: { title: 'R4+ rollout', oneOff: '5,000' } }),
+    );
+
+    const organisation = await OrganisationModel.findById(result.organisationId);
+    expect(organisation?.name).toBe('Amal Dental');
+    expect(organisation?.kind).toBe('prospect');
+    expect(String(organisation?.ownerId)).toBe(String(salesId));
+
+    const contact = await ContactModel.findById(result.contactId);
+    expect(contact?.email).toBe('amal@x.com');
+    expect(contact?.mobile).toBe('+971501234567');
+    expect(contact?.isPrimary).toBe(true);
+
+    const [deal] = await asManager(() => listOpportunities());
+    expect(deal?.title).toBe('R4+ rollout');
+    expect(deal?.ownerId).toBe(String(salesId));
+    expect(deal?.oneOffMinorUnits).toBe(500000);
+
+    const note = await ActivityModel.findOne({
+      organisationId: result.organisationId,
+      kind: 'note',
+    });
+    expect(note?.summary).toContain('Converted from lead L-1');
+    expect(note?.body).toBe('Met at the expo');
+
+    const [converted] = await asManager(() => listLeads({ status: 'converted' }));
+    expect(converted?.convertedOrganisationId).toBe(result.organisationId);
+    await expect(asManager(() => convertLead(id, {}))).rejects.toThrow('still being worked');
+    await expect(asManager(() => updateLead(id, { name: 'Edited' }))).rejects.toThrow('converted');
+  });
+
+  it('adds the lead to an existing customer and reuses a contact with the same email', async () => {
+    const { organisationId, contactId } = await asManager(async () => {
+      const organisationId = await createOrganisation({ name: 'Known Clinic', kind: 'client' });
+      const contactId = await createContact({
+        organisationId,
+        name: 'Known Person',
+        email: 'known@x.com',
+      });
+      return { organisationId, contactId };
+    });
+
+    const id = await asManager(() =>
+      createLead({ name: 'Known P', email: 'known@x.com' }, { confirmDuplicates: true }),
+    );
+    const result = await asManager(() => convertLead(id, { organisationId }));
+
+    expect(result.organisationId).toBe(organisationId);
+    expect(result.contactId).toBe(contactId);
+    expect(await ContactModel.countDocuments({ organisationId })).toBe(1);
+    expect(result.opportunityId).toBeNull();
+  });
+
+  it('needs permission to manage customers, and refuses a lead that is not open', async () => {
+    const id = await asSales(() => createLead({ name: 'Needs customer rights' }));
+
+    // The salesperson holds lead.manage only, not customer.manage.
+    await expect(asSales(() => convertLead(id, {}))).rejects.toThrow('manage customers');
+
+    await asManager(() => disqualifyLead(id, 'No budget'));
+    await expect(asManager(() => convertLead(id, {}))).rejects.toThrow('still being worked');
   });
 });

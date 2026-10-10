@@ -16,6 +16,29 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-11',
+    date: '11 October 2026',
+    title: 'Convert leads, the pipeline board and sales reminders',
+    sections: [
+      {
+        heading: 'Leads and opportunities',
+        items: [
+          "Convert a lead with the customer icon on its row. COEX creates the customer (or adds the lead to one you choose), the contact, and, if you tick it, an opportunity for the salesperson who owns the lead. The lead stays in the list marked Converted, with a link to its customer, and its notes appear on the customer's history.",
+          'Opportunities now have a Board view: one column for each pipeline stage, with a card for each deal. Drag a card to another stage, or use the move icon on the card. Dropping a card on Won or Lost, or moving a closed deal, asks for what is needed first.',
+          'When you win a deal, COEX offers to create the contract for the sale. The contract form opens already filled in with the customer, the products, the value and the Zoho Books quote number. It is optional, and the contract stays a draft until a manager activates it.',
+          "A customer's page now lists that customer's opportunities, and its history shows each next step that was set.",
+        ],
+      },
+      {
+        heading: 'Reminders and dashboard',
+        items: [
+          'The owner of an opportunity gets an email on the day its next step is due, and again when an open opportunity has had no activity for 14 days. Managers can change the number of days under Setup, Pipeline, and switch either email off under Setup, Email.',
+          'The dashboard shows My opportunities for people who work on them: how many are in each stage, how many have no next step and how many next steps are overdue.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-10',
     date: '10 October 2026',
     title: 'Opportunities and the sales pipeline',

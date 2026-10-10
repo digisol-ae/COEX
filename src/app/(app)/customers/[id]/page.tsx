@@ -6,6 +6,8 @@ import { listContacts } from '@/modules/crm/services/contact.service';
 import { listLocations } from '@/modules/crm/services/location.service';
 import { listTimeline } from '@/modules/crm/services/activity.service';
 import { listFieldDefinitions } from '@/modules/crm/services/field-definition.service';
+import { listOpportunities } from '@/modules/crm/services/opportunity.service';
+import { fromMinorUnits } from '@/modules/crm/services/product.service';
 import { Badge, Card, CardSection, PageHeader } from '@/components/ui';
 import { DetailsForm } from './details-form';
 import { ContactsPanel } from './contacts-panel';
@@ -19,9 +21,12 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   const organisation = await asUser(actor, () => getOrganisation(id));
   if (!organisation) notFound();
 
-  const { contacts, locations, timeline, customFieldDefinitions } = await asUser(
+  const seesOpportunities = actor.permissions.includes('opportunity.read');
+
+  const { contacts, locations, timeline, customFieldDefinitions, opportunities } = await asUser(
     actor,
     async () => ({
+      opportunities: seesOpportunities ? await listOpportunities({ organisationId: id }) : [],
       contacts: await listContacts(id),
       locations: await listLocations(id),
       timeline: await listTimeline(id),
@@ -83,6 +88,36 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
               />
             </CardSection>
           </Card>
+
+          {seesOpportunities ? (
+            <Card>
+              <CardSection title="Opportunities">
+                {opportunities.length === 0 ? (
+                  <p className="text-sm text-[var(--color-ink-muted)]">
+                    No opportunities for this customer yet.
+                  </p>
+                ) : (
+                  <ul className="space-y-2 text-sm">
+                    {opportunities.map((deal) => (
+                      <li key={deal.id}>
+                        <Link
+                          href={`/opportunities/${deal.id}`}
+                          className="font-medium hover:underline"
+                        >
+                          {deal.title}
+                        </Link>
+                        <div className="text-xs text-[var(--color-ink-subtle)]">
+                          {deal.number} · {deal.stageName} · {deal.currency}{' '}
+                          {fromMinorUnits(deal.oneOffMinorUnits)} one-off,{' '}
+                          {fromMinorUnits(deal.recurringMinorUnits)} per year
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardSection>
+            </Card>
+          ) : null}
 
           <ContactsPanel organisationId={id} contacts={contacts} canWrite={editable} />
           <LocationsPanel organisationId={id} locations={locations} canWrite={editable} />

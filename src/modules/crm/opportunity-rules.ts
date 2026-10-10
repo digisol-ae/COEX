@@ -66,3 +66,12 @@ export function totalsByCurrency(
 
   return [...totals.values()].sort((a, b) => a.currency.localeCompare(b.currency));
 }
+
+export const DEFAULT_STALE_DAYS = 14;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** No activity for the configured number of days. Pure, so the reminder rule needs no database. */
+export function isStale(lastActivityAt: Date, now: Date, staleDays: number): boolean {
+  return now.getTime() - lastActivityAt.getTime() >= staleDays * DAY_MS;
+}

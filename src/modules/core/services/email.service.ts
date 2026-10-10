@@ -27,6 +27,8 @@ export type OutboxKind =
   | 'task_assigned'
   | 'mentioned'
   | 'contract_renewal'
+  | 'next_step_due'
+  | 'opportunity_stale'
   | 'contract_email'
   | 'password_reset'
   | 'ticket_created'
@@ -50,6 +52,8 @@ const SENDER_FOR: Record<OutboxKind, SenderRole> = {
   task_assigned: 'alert',
   mentioned: 'alert',
   contract_renewal: 'alert',
+  next_step_due: 'alert',
+  opportunity_stale: 'alert',
   contract_email: 'contracts',
   password_reset: 'admin',
   password_set_by_admin: 'admin',
@@ -65,7 +69,9 @@ type StaffAlert =
   | 'task_assigned'
   | 'mentioned'
   | 'ticket_created'
-  | 'contract_renewal';
+  | 'contract_renewal'
+  | 'next_step_due'
+  | 'opportunity_stale';
 
 export type NewTicketAlert = 'off' | 'admins' | 'desk';
 
@@ -153,6 +159,8 @@ export interface EmailSettingsView {
     taskAssigned: boolean;
     mentioned: boolean;
     contractRenewal: boolean;
+    nextStepDue: boolean;
+    opportunityStale: boolean;
     ticketCreated: NewTicketAlert;
   };
   pendingCount: number;
@@ -303,6 +311,8 @@ export async function getEmailSettings(): Promise<EmailSettingsView> {
       taskAssigned: staff.taskAssigned ?? true,
       mentioned: staff.mentioned ?? true,
       contractRenewal: staff.contractRenewal ?? true,
+      nextStepDue: staff.nextStepDue ?? true,
+      opportunityStale: staff.opportunityStale ?? true,
       ticketCreated: (staff.ticketCreated as NewTicketAlert | undefined) ?? 'admins',
     },
     pendingCount,
@@ -532,6 +542,8 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
     task_assigned: settings.staff?.taskAssigned ?? true,
     mentioned: settings.staff?.mentioned ?? true,
     contract_renewal: settings.staff?.contractRenewal ?? true,
+    next_step_due: settings.staff?.nextStepDue ?? true,
+    opportunity_stale: settings.staff?.opportunityStale ?? true,
     // A person pressed Send on a contract: that choice is the permission.
     contract_email: true,
     ticket_created: (settings.staff?.ticketCreated ?? 'admins') !== 'off',

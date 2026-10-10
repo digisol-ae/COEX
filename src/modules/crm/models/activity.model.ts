@@ -39,6 +39,7 @@ const activitySchema = new Schema(
         'task_completed',
         'document_shared',
         'stage_changed',
+        'next_step_set',
       ],
       required: true,
       index: true,

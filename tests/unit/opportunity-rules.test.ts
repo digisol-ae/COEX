@@ -63,3 +63,14 @@ describe('opportunity rules', () => {
     ]);
   });
 });
+
+describe('stale rule', () => {
+  it('is stale once the configured days have passed without activity', async () => {
+    const { isStale } = await import('@/modules/crm/opportunity-rules');
+    const last = new Date('2026-10-01T00:00:00Z');
+
+    expect(isStale(last, new Date('2026-10-14T23:59:00Z'), 14)).toBe(false);
+    expect(isStale(last, new Date('2026-10-15T00:00:00Z'), 14)).toBe(true);
+    expect(isStale(last, new Date('2026-10-15T00:00:00Z'), 30)).toBe(false);
+  });
+});

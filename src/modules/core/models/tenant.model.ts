@@ -29,6 +29,9 @@ const tenantSchema = new Schema(
       opportunityPrefix: { type: String, default: 'O' },
     },
 
+    /** Days without activity before the owner of an open opportunity is reminded. */
+    opportunityStaleDays: { type: Number, default: 14 },
+
     /** Why deals are lost; edited in Setup, Pipeline. Kept as text on each opportunity. */
     lostReasons: {
       type: [String],

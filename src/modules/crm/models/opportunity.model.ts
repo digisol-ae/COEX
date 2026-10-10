@@ -52,6 +52,14 @@ const opportunitySchema = new Schema(
     quoteReference: { type: String, default: null },
 
     notes: { type: String, default: null },
+
+    /** Last time anyone touched the deal; the stale reminder counts days from here. */
+    lastActivityAt: { type: Date, default: Date.now },
+    /** The next step date a reminder was already sent for, so it is sent once per date. */
+    nextStepRemindedFor: { type: String, default: null },
+    /** When the stale reminder was last sent; a new one waits for fresh activity first. */
+    staleRemindedAt: { type: Date, default: null },
+
     deletedAt: { type: Date, default: null, index: true },
   },
   { timestamps: true },

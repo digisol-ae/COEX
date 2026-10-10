@@ -9,6 +9,7 @@ import {
   moveStageAction,
   removeStageAction,
   saveLostReasonsAction,
+  saveStaleDaysAction,
   updateStageAction,
   type PipelineFormState,
 } from './actions';
@@ -102,9 +103,11 @@ function StageRow({
 export function PipelineEditor({
   stages,
   lostReasons,
+  staleDays,
 }: {
   stages: StageRowValues[];
   lostReasons: string[];
+  staleDays: number;
 }) {
   const { showToast } = useToast();
   const [added, addAction, adding] = useActionState(addStageAction, initialState);
@@ -112,12 +115,14 @@ export function PipelineEditor({
     saveLostReasonsAction,
     initialState,
   );
+  const [stale, staleAction, savingStale] = useActionState(saveStaleDaysAction, initialState);
   const openStages = stages.filter((stage) => stage.kind === 'open');
 
   useEffect(() => {
     if (added.saved) showToast('Stage added.');
     if (reasons.saved) showToast('Lost reasons saved.');
-  }, [added, reasons, showToast]);
+    if (stale.saved) showToast('Reminder days saved.');
+  }, [added, reasons, stale, showToast]);
 
   return (
     <div className="space-y-4">
@@ -163,6 +168,29 @@ export function PipelineEditor({
               Save lost reasons
             </Button>
           </form>
+        </CardSection>
+      </Card>
+
+      <Card>
+        <CardSection title="Reminders">
+          <p className="mb-3 text-sm text-[var(--color-ink-muted)]">
+            The owner is emailed when a next step date arrives, and when an open opportunity has had
+            no activity for this many days. Switch either off under Setup, Email.
+          </p>
+          <form action={staleAction} className="flex flex-wrap items-end gap-2">
+            <Field label="Days without activity">
+              <Input
+                name="days"
+                inputMode="numeric"
+                defaultValue={String(staleDays)}
+                className="w-24"
+              />
+            </Field>
+            <Button type="submit" disabled={savingStale}>
+              Save
+            </Button>
+          </form>
+          {stale.error ? <Notice tone="alert">{stale.error}</Notice> : null}
         </CardSection>
       </Card>
     </div>

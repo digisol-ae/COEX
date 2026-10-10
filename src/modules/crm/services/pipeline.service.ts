@@ -5,7 +5,12 @@ import { recordAudit } from '@/modules/core/services/audit.service';
 import { TenantModel } from '@/modules/core/models/tenant.model';
 import { PipelineStageModel } from '../models/pipeline-stage.model';
 import { OpportunityModel } from '../models/opportunity.model';
-import { DEFAULT_STAGES, clampProbability, type StageKind } from '../opportunity-rules';
+import {
+  DEFAULT_STAGES,
+  DEFAULT_STALE_DAYS,
+  clampProbability,
+  type StageKind,
+} from '../opportunity-rules';
 import { actorCan } from './access.service';
 
 /**
@@ -208,5 +213,33 @@ export async function saveLostReasons(reasons: string[]): Promise<void> {
     entityType: 'Tenant',
     before: { lostReasons: before },
     after: { lostReasons: cleaned },
+  });
+}
+
+export async function getStaleDays(): Promise<number> {
+  await connectToDatabase();
+  const tenant = await TenantModel.findOne({ _id: getContext().tenantId });
+  return tenant?.opportunityStaleDays ?? DEFAULT_STALE_DAYS;
+}
+
+export async function saveStaleDays(days: number): Promise<void> {
+  await connectToDatabase();
+  await requirePipelineManage();
+
+  if (!Number.isInteger(days) || days < 1 || days > 365) {
+    throw new Error('Enter a whole number of days between 1 and 365.');
+  }
+
+  const before = await getStaleDays();
+  await TenantModel.updateOne(
+    { _id: getContext().tenantId },
+    { $set: { opportunityStaleDays: days } },
+  );
+
+  await recordAudit({
+    action: 'pipeline.stale_days_updated',
+    entityType: 'Tenant',
+    before: { opportunityStaleDays: before },
+    after: { opportunityStaleDays: days },
   });
 }

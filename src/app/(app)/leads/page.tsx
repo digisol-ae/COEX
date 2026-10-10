@@ -9,10 +9,12 @@ import {
 } from '@/modules/crm/services/lead.service';
 import { listFieldDefinitions } from '@/modules/crm/services/field-definition.service';
 import { listUsers } from '@/modules/core/services/user.service';
+import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
 import { LEAD_STATUSES } from '@/modules/crm/models/lead.model';
 import { archiveLeadAction, startWorkingLeadAction } from './actions';
+import { ConvertButton } from './convert-button';
 import { DisqualifyButton } from './disqualify-button';
 import { LeadPanel } from './lead-panel';
 
@@ -52,13 +54,15 @@ export default async function LeadsPage({
     search: params.q || undefined,
   };
 
-  const [leads, everyLead, sources, fields, users] = await asUser(actor, () =>
+  const canConvert = actor.permissions.includes('customer.manage');
+  const [leads, everyLead, sources, fields, users, organisations] = await asUser(actor, () =>
     Promise.all([
       listLeads(filter),
       listLeads(),
       listLeadSources(),
       listFieldDefinitions('lead'),
       listUsers(),
+      canConvert ? listOrganisations() : Promise.resolve([]),
     ]),
   );
 
@@ -199,6 +203,16 @@ export default async function LeadsPage({
                   <Td className="text-[var(--color-ink-muted)]">{lead.ownerName}</Td>
                   <Td>
                     <Badge tone={STATUS_TONE[lead.status]}>{STATUS_LABEL[lead.status]}</Badge>
+                    {lead.convertedOrganisationId ? (
+                      <div className="mt-1 text-xs">
+                        <Link
+                          className="underline"
+                          href={`/customers/${lead.convertedOrganisationId}`}
+                        >
+                          Open customer
+                        </Link>
+                      </div>
+                    ) : null}
                     {lead.disqualifiedReason ? (
                       <div className="mt-1 text-xs text-[var(--color-ink-subtle)]">
                         {lead.disqualifiedReason}
@@ -239,6 +253,15 @@ export default async function LeadsPage({
                               }
                             />
                           </form>
+                        ) : null}
+                        {(lead.status === 'new' || lead.status === 'working') && canConvert ? (
+                          <ConvertButton
+                            leadId={lead.id}
+                            leadName={lead.name}
+                            defaultCustomerName={lead.company ?? lead.name}
+                            customers={organisations.map(({ id, name }) => ({ id, name }))}
+                            canCreateOpportunity={actor.permissions.includes('opportunity.manage')}
+                          />
                         ) : null}
                         {lead.status === 'new' || lead.status === 'working' ? (
                           <DisqualifyButton leadId={lead.id} leadName={lead.name} />

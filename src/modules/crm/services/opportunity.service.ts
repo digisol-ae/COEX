@@ -12,10 +12,14 @@ import { OrganisationModel } from '../models/organisation.model';
 import { ProductModel } from '../models/product.model';
 import {
   clampProbability,
+  lacksNextStep,
+  nextStepOverdue,
   statusForStage,
+  totalsByCurrency,
   type OpportunityStatus,
   type StageKind,
 } from '../opportunity-rules';
+import { todayKey } from '../contract-status';
 import { actorCan } from './access.service';
 import { recordActivity } from './activity.service';
 import { listLostReasons, listStages } from './pipeline.service';
@@ -104,6 +108,24 @@ async function visible(id: string) {
   return found;
 }
 
+/** The customer's timeline shows what is planned next, so a colleague opening the customer sees it. */
+async function recordNextStep(deal: {
+  _id: Types.ObjectId;
+  organisationId: Types.ObjectId;
+  contactId?: Types.ObjectId | null;
+  number: string;
+  nextStep?: string | null;
+  nextStepDate?: string | null;
+}): Promise<void> {
+  await recordActivity({
+    organisationId: deal.organisationId,
+    contactId: deal.contactId,
+    kind: 'next_step_set',
+    summary: `Next step on ${deal.number}: ${deal.nextStep}${deal.nextStepDate ? ` (${deal.nextStepDate})` : ''}`,
+    sourceId: deal._id,
+  });
+}
+
 async function prepare(input: OpportunityInput) {
   const title = input.title.trim();
   if (!title) throw new Error('An opportunity needs a title.');
@@ -177,6 +199,7 @@ export async function createOpportunity(input: OpportunityInput): Promise<string
     stageId: new Types.ObjectId(stage.id),
     status: 'open',
     probability: clampProbability(input.probability ?? stage.probability),
+    lastActivityAt: new Date(),
   });
 
   await recordAudit({
@@ -192,6 +215,7 @@ export async function createOpportunity(input: OpportunityInput): Promise<string
     summary: `Opportunity ${created.number} "${created.title}" opened in ${stage.name}`,
     sourceId: created._id,
   });
+  if (created.nextStep) await recordNextStep(created);
 
   return String(created._id);
 }
@@ -212,12 +236,21 @@ export async function updateOpportunity(id: string, input: OpportunityInput): Pr
     {
       $set: {
         ...fields,
+        lastActivityAt: new Date(),
         ...(input.probability === null || input.probability === undefined
           ? {}
           : { probability: clampProbability(input.probability) }),
       },
     },
   );
+
+  if (
+    after &&
+    (before.nextStep !== after.nextStep || before.nextStepDate !== after.nextStepDate) &&
+    after.nextStep
+  ) {
+    await recordNextStep(after);
+  }
 
   await recordAudit({
     action: 'opportunity.updated',
@@ -300,6 +333,7 @@ export async function moveOpportunity(
         status,
         lostReason,
         closedAt: status === 'open' ? null : new Date(),
+        lastActivityAt: new Date(),
         // Taken from the stage, so Won reads 100% and Lost 0%; an open deal keeps what was set by hand
         // only while it stays in the same stage, which a move by definition does not.
         probability: stage.probability ?? 0,
@@ -449,4 +483,35 @@ export async function listOpportunities(
 export async function getOpportunity(id: string): Promise<OpportunitySummary | null> {
   if (!Types.ObjectId.isValid(id)) return null;
   return (await listOpportunities({ id }))[0] ?? null;
+}
+
+export interface OpportunitySnapshot {
+  byStage: { stageId: string; stageName: string; count: number }[];
+  openCount: number;
+  withoutNextStep: number;
+  overdueNextStep: number;
+  totals: ReturnType<typeof totalsByCurrency>;
+}
+
+/**
+ * My open opportunities by stage, and how many need attention: no next step, or one past its date.
+ * Always the signed-in person's own deals, even for a manager who can see them all, because the
+ * dashboard answers "what do I have to do".
+ */
+export async function loadOpportunitySnapshot(): Promise<OpportunitySnapshot> {
+  const mine = await listOpportunities({ status: 'open', ownerId: String(getContext().userId) });
+  const today = todayKey();
+  const stageList = (await listStages()).filter((stage) => stage.kind === 'open');
+
+  return {
+    byStage: stageList.map((stage) => ({
+      stageId: stage.id,
+      stageName: stage.name,
+      count: mine.filter((deal) => deal.stageId === stage.id).length,
+    })),
+    openCount: mine.length,
+    withoutNextStep: mine.filter((deal) => lacksNextStep(deal)).length,
+    overdueNextStep: mine.filter((deal) => nextStepOverdue(deal, today)).length,
+    totals: totalsByCurrency(mine),
+  };
 }

@@ -9,16 +9,27 @@ import { todayKey } from '@/modules/crm/contract-status';
 import { lacksNextStep, nextStepOverdue } from '@/modules/crm/opportunity-rules';
 import { Badge, Card, CardSection, Notice, PageHeader } from '@/components/ui';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { ContractPanel } from '@/app/(app)/contracts/contract-panel';
+import { listOrganisations } from '@/modules/crm/services/organisation.service';
+import { suggestedEndDate } from '@/modules/crm/services/contract.service';
 import { MoveButton } from '../move-button';
 
 export const metadata = { title: 'Opportunity · COEX' };
 
 const STATUS_TONE = { open: 'warn', won: 'ok', lost: 'alert' } as const;
 
-export default async function OpportunityPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function OpportunityPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ contract?: string }>;
+}) {
   const { id } = await params;
+  const openContract = (await searchParams).contract === '1';
   const actor = await requirePermission('opportunity.read');
   const editable = actor.permissions.includes('opportunity.manage');
+  const canCreateContract = actor.permissions.includes('contract.manage');
 
   const [opportunity, stages, lostReasons, productList, history] = await asUser(actor, () =>
     Promise.all([
@@ -30,6 +41,15 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
     ]),
   );
   if (!opportunity) notFound();
+
+  const customers =
+    opportunity.status === 'won' && canCreateContract
+      ? (await asUser(actor, () => listOrganisations())).map(({ id: customerId, name }) => ({
+          id: customerId,
+          name,
+        }))
+      : [];
+  const startToday = todayKey();
 
   const productNames = productList
     .filter((product) => opportunity.productIds.includes(product.id))
@@ -55,6 +75,7 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
                   currentStageId={opportunity.stageId}
                   closed={opportunity.status !== 'open'}
                   canReopen={actor.permissions.includes('pipeline.manage')}
+                  canCreateContract={canCreateContract}
                   stages={stages.map(({ id: stageId, name, kind }) => ({
                     id: stageId,
                     name,
@@ -138,6 +159,42 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
             ) : null}
           </CardSection>
         </Card>
+
+        {opportunity.status === 'won' && canCreateContract ? (
+          <Card>
+            <CardSection title="Next: a contract for this sale">
+              <p className="mb-3 text-sm text-[var(--color-ink-muted)]">
+                Optional. This opens the contract form already filled in with the customer, the
+                products and the value. The contract stays a separate record that a manager
+                activates; invoicing stays in Zoho Books.
+              </p>
+              <ContractPanel
+                organisations={customers}
+                products={productList
+                  .filter((product) => product.status === 'active')
+                  .map(({ id: productId, name, code }) => ({ id: productId, name, code }))}
+                defaultOpen={openContract}
+                prefill={{
+                  organisationId: opportunity.organisationId,
+                  title: opportunity.title,
+                  type: opportunity.recurringMinorUnits > 0 ? 'amc' : 'project',
+                  startDate: startToday,
+                  endDate: suggestedEndDate(startToday),
+                  billingFrequency: 'yearly',
+                  value: fromMinorUnits(
+                    opportunity.recurringMinorUnits > 0
+                      ? opportunity.recurringMinorUnits
+                      : opportunity.oneOffMinorUnits,
+                  ),
+                  currency: opportunity.currency,
+                  productIds: opportunity.productIds,
+                  zohoReference: opportunity.quoteReference ?? '',
+                  notes: `From opportunity ${opportunity.number}`,
+                }}
+              />
+            </CardSection>
+          </Card>
+        ) : null}
 
         <Card>
           <CardSection title="History">

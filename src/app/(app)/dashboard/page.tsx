@@ -6,6 +6,8 @@ import { untilDue } from '@/modules/tickets/labels';
 import { Card, CardSection, EmptyState, PageHeader } from '@/components/ui';
 import { formatMinutes } from '@/modules/time/week';
 import { loadMyWork, parseWorkFilter } from '@/modules/tasks/services/my-work.service';
+import { loadOpportunitySnapshot } from '@/modules/crm/services/opportunity.service';
+import { fromMinorUnits } from '@/modules/crm/services/product.service';
 import { MyWork } from './my-work';
 
 export const metadata = { title: 'Dashboard · COEX' };
@@ -31,7 +33,10 @@ export default async function DashboardPage({
 
   const seesTasks = user.permissions.includes('task.read.own');
 
-  const { data, desk, work } = await asUser(user, async () => ({
+  const seesOpportunities = user.permissions.includes('opportunity.read');
+
+  const { data, desk, work, opportunities } = await asUser(user, async () => ({
+    opportunities: seesOpportunities ? await loadOpportunitySnapshot() : null,
     data: await loadDashboard({ onlyAssigneeId: seesEverything ? undefined : user.id }),
     desk: seesTickets ? await loadDeskSnapshot({ userId: user.id }) : null,
     work: await loadMyWork({ filter, seesTickets, seesTasks }),
@@ -85,6 +90,54 @@ export default async function DashboardPage({
           </Link>
         ))}
       </div>
+
+      {opportunities && opportunities.openCount + opportunities.byStage.length > 0 ? (
+        <Card className="mt-4">
+          <CardSection title="My opportunities">
+            <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 text-sm">
+              {opportunities.byStage.map((row) => (
+                <Link
+                  key={row.stageId}
+                  href={`/opportunities?stage=${row.stageId}`}
+                  className="hover:underline"
+                >
+                  <span className="text-[var(--color-ink-muted)]">{row.stageName}</span>{' '}
+                  <span className="font-semibold tabular-nums">{row.count}</span>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+              <span
+                className={
+                  opportunities.overdueNextStep > 0
+                    ? 'text-[var(--color-status-alert)]'
+                    : 'text-[var(--color-ink-muted)]'
+                }
+              >
+                Next step overdue: <strong>{opportunities.overdueNextStep}</strong>
+              </span>
+              <span
+                className={
+                  opportunities.withoutNextStep > 0
+                    ? 'text-[var(--color-status-warn)]'
+                    : 'text-[var(--color-ink-muted)]'
+                }
+              >
+                No next step: <strong>{opportunities.withoutNextStep}</strong>
+              </span>
+              {opportunities.totals.map((line) => (
+                <span key={line.currency} className="text-[var(--color-ink-muted)]">
+                  {line.currency} one-off {fromMinorUnits(line.oneOffMinorUnits)}, per year{' '}
+                  {fromMinorUnits(line.recurringMinorUnits)}
+                </span>
+              ))}
+              <Link href="/opportunities" className="underline underline-offset-4">
+                Open opportunities
+              </Link>
+            </div>
+          </CardSection>
+        </Card>
+      ) : null}
 
       <Card className="mt-4 px-5 py-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">

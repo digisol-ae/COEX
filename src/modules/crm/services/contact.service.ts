@@ -52,7 +52,7 @@ export interface ContactInput {
   country?: string;
 }
 
-export async function createContact(input: ContactInput): Promise<void> {
+export async function createContact(input: ContactInput): Promise<string> {
   await connectToDatabase();
 
   const mobile = normaliseMobile(input.mobile, input.country ?? 'AE');
@@ -77,6 +77,8 @@ export async function createContact(input: ContactInput): Promise<void> {
     entityId: created._id,
     after: { name: created.name, email: created.email, mobile: created.mobile },
   });
+
+  return String(created._id);
 }
 
 export async function archiveContact(id: string): Promise<void> {

@@ -20,6 +20,8 @@ const emailOutboxSchema = new Schema(
         'task_assigned',
         'mentioned',
         'contract_renewal',
+        'next_step_due',
+        'opportunity_stale',
         'contract_email',
         'password_reset',
         'ticket_created',

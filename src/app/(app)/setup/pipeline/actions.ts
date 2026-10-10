@@ -7,6 +7,7 @@ import {
   moveStage,
   removeStage,
   saveLostReasons,
+  saveStaleDays,
   updateStage,
 } from '@/modules/crm/services/pipeline.service';
 
@@ -82,4 +83,13 @@ export async function saveLostReasonsAction(
   const actor = await requirePermission('pipeline.manage');
 
   return run(() => asUser(actor, () => saveLostReasons(text(formData, 'reasons').split('\n'))));
+}
+
+export async function saveStaleDaysAction(
+  _previous: PipelineFormState,
+  formData: FormData,
+): Promise<PipelineFormState> {
+  const actor = await requirePermission('pipeline.manage');
+
+  return run(() => asUser(actor, () => saveStaleDays(Number(text(formData, 'days')))));
 }

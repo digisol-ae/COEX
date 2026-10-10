@@ -5,6 +5,7 @@ import { asUser, requirePermission } from '@/lib/session';
 import {
   DuplicateLeadError,
   archiveLead,
+  convertLead,
   createLead,
   disqualifyLead,
   startWorkingLead,
@@ -114,4 +115,25 @@ export async function archiveLeadAction(formData: FormData): Promise<void> {
 
   await asUser(actor, () => archiveLead(text(formData, 'id')));
   revalidatePath('/leads');
+}
+
+export async function convertLeadAction(
+  id: string,
+  input: {
+    organisationId?: string;
+    newCustomerName?: string;
+    opportunity?: { title: string; oneOff?: string; recurring?: string; currency?: string };
+  },
+): Promise<{ error?: string; organisationId?: string; opportunityId?: string | null }> {
+  const actor = await requirePermission('lead.manage');
+
+  try {
+    // No revalidation here: the lead's row stops offering Convert, and refreshing the page now
+    // would remove this dialog before the person sees where the customer went. The dialog
+    // refreshes the page when it is closed.
+    const result = await asUser(actor, () => convertLead(id, input));
+    return { organisationId: result.organisationId, opportunityId: result.opportunityId };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not convert the lead.' };
+  }
 }

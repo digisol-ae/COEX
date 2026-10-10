@@ -1,5 +1,30 @@
 # COEX — Current AI Task
 
+## P2.2c and P2.2d built — 11 Oct 2026 (Claude)
+
+- John said go ahead. P2.2c: lead conversion (customer, contact, optional opportunity, lead kept
+  as converted), pipeline board (drag between open stages, dialog for Won, Lost and reopening), win
+  to contract prefill, customer page Opportunities panel. P2.2d: hourly opportunity reminders in the
+  `coex-mail` worker (next step day, stale after N days, Setup, Pipeline), two new Setup, Email
+  toggles, `next_step_set` timeline entries, dashboard card "My opportunities".
+- Files: crm/services/lead.service.ts (convertLead), opportunity.service.ts (lastActivityAt,
+  loadOpportunitySnapshot), opportunity-reminder.service.ts, pipeline.service.ts (stale days),
+  contact.service.ts (createContact returns the id), crm/opportunity-rules.ts (isStale),
+  scripts/email-worker.ts, email.service.ts and email models/settings (two alert kinds),
+  app/(app)/leads/convert-button.tsx, opportunities/board.tsx and move-button.tsx (MoveDialog),
+  opportunities/[id]/page.tsx, contracts/contract-panel.tsx (prefill), customers/[id]/page.tsx,
+  dashboard/page.tsx, setup/pipeline/*, release note 2026-10-11.
+- Verified in a scratch copy: tsc, eslint zero warnings, prettier, 146 unit tests, 27 database
+  tests (leads and opportunities, including conversion, reminders and the snapshot) on FerretDB,
+  production build, Chromium walk-through (convert with opportunity, customer panel and timeline,
+  board drag between adjacent stages, Won dialog and prefilled contract form, dashboard card, Setup
+  fields; no browser errors). A long headless drag to the far Won column could not be driven by
+  Playwright, so that drop was exercised with synthetic drag events; John should drag once by hand.
+  NOT run on real MongoDB; John's run is final.
+- Deploy: `git pull`, `npm ci`, `npm run build`, restart coex-app AND coex-mail with --update-env
+  (the worker sends the new reminders), pm2 save. No migration: new fields have defaults.
+- Next: architecture revamp Phase 0 (monorepo skeleton and packages/shared), docs/ARCHITECTURE-REVAMP.md.
+
 ## P2.2b Pipeline and opportunities built — 10 Oct 2026 (Claude)
 
 - John answered the six CRM questions (CLAUDE.md, docs/P2-2-CRM-SPEC.md "Answers"). Built P2.2b:

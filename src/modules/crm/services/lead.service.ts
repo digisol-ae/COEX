@@ -18,6 +18,10 @@ import {
 } from '../lead-rules';
 import { normaliseMobile } from '../phone';
 import { actorCan } from './access.service';
+import { recordActivity } from './activity.service';
+import { createContact } from './contact.service';
+import { createOpportunity } from './opportunity.service';
+import { createOrganisation } from './organisation.service';
 
 /**
  * Leads: possible customers before they are qualified (Full CRM, P2.2a).
@@ -45,6 +49,8 @@ export interface LeadSummary {
   disqualifiedReason: string | null;
   notes: string | null;
   customFields: Record<string, unknown>;
+  /** The customer a converted lead became, so its row can link to it. */
+  convertedOrganisationId: string | null;
   createdAt: Date;
 }
 
@@ -396,6 +402,9 @@ export async function listLeads(filter: LeadFilter = {}): Promise<LeadSummary[]>
     disqualifiedReason: lead.disqualifiedReason ?? null,
     notes: lead.notes ?? null,
     customFields: Object.fromEntries(lead.customFields ?? []),
+    convertedOrganisationId: lead.convertedTo?.organisationId
+      ? String(lead.convertedTo.organisationId)
+      : null,
     createdAt: lead.createdAt,
   }));
 }
@@ -404,4 +413,127 @@ export async function listLeads(filter: LeadFilter = {}): Promise<LeadSummary[]>
 export async function listLeadSources(): Promise<string[]> {
   await connectToDatabase();
   return sourceList();
+}
+
+export interface ConvertLeadInput {
+  /** An existing customer to add the lead to. Left out, a new prospect customer is created. */
+  organisationId?: string;
+  /** Name for the new customer; defaults to the lead's company, then the lead's name. */
+  newCustomerName?: string;
+  /** Also open an opportunity for the customer, owned by the lead's owner. */
+  opportunity?: { title: string; oneOff?: string; recurring?: string; currency?: string };
+}
+
+export interface ConvertLeadResult {
+  organisationId: string;
+  contactId: string;
+  opportunityId: string | null;
+}
+
+/**
+ * Turns a lead into a customer, a contact and optionally an opportunity, in one step (P2.2c).
+ *
+ * The customer is a prospect until a deal is won. If the person picks an existing customer, the
+ * lead is added to it; a contact with the same email or mobile is reused rather than duplicated.
+ * The lead's notes land on the customer's timeline and the lead is kept, marked converted.
+ */
+export async function convertLead(id: string, input: ConvertLeadInput): Promise<ConvertLeadResult> {
+  await connectToDatabase();
+  await requireManage();
+
+  if (!(await actorCan('customer.manage'))) {
+    throw new Error(
+      'Converting a lead creates a customer, which needs permission to manage customers.',
+    );
+  }
+  if (input.opportunity && !(await actorCan('opportunity.manage'))) {
+    throw new Error('You may not create opportunities.');
+  }
+  if (input.opportunity && !input.opportunity.title.trim()) {
+    throw new Error('Give the opportunity a title.');
+  }
+
+  const lead = await visibleLead(id);
+  if (!lead) throw new Error('Lead not found.');
+  if (!isOpenLead(lead.status as LeadStatus)) {
+    throw new Error('Only a lead that is still being worked can be converted.');
+  }
+
+  let organisationId: string;
+  if (input.organisationId) {
+    if (!(await organisations().findById(input.organisationId))) {
+      throw new Error('That customer was not found.');
+    }
+    organisationId = input.organisationId;
+  } else {
+    organisationId = await createOrganisation({
+      name: input.newCustomerName?.trim() || lead.company || lead.name,
+      kind: 'prospect',
+      email: lead.email ?? undefined,
+      phone: lead.mobile ?? undefined,
+    });
+    // The salesperson who worked the lead owns the customer, so renewals and deals reach them.
+    await organisations().updateOne({ _id: organisationId }, { $set: { ownerId: lead.ownerId } });
+  }
+
+  const sameContact = await contactRecords().findOne({
+    organisationId,
+    $or: [
+      ...(lead.email ? [{ email: lead.email }] : []),
+      ...(lead.mobile ? [{ mobile: lead.mobile }] : []),
+    ],
+  });
+  const contactId = sameContact
+    ? String(sameContact._id)
+    : await createContact({
+        organisationId,
+        name: lead.name,
+        email: lead.email ?? undefined,
+        mobile: lead.mobile ?? undefined,
+        isPrimary: (await contactRecords().count({ organisationId })) === 0,
+      });
+
+  const opportunityId = input.opportunity
+    ? await createOpportunity({
+        organisationId,
+        contactId,
+        ownerId: String(lead.ownerId),
+        title: input.opportunity.title,
+        oneOff: input.opportunity.oneOff,
+        recurring: input.opportunity.recurring,
+        currency: input.opportunity.currency,
+      })
+    : null;
+
+  await recordActivity({
+    organisationId,
+    contactId,
+    kind: 'note',
+    summary: `Converted from lead ${lead.number}${lead.source ? ` (source: ${lead.source})` : ''}`,
+    body: lead.notes,
+  });
+
+  await leads().updateOne(
+    { _id: lead._id },
+    {
+      $set: {
+        status: 'converted',
+        convertedTo: {
+          organisationId: new Types.ObjectId(organisationId),
+          contactId: new Types.ObjectId(contactId),
+          opportunityId: opportunityId ? new Types.ObjectId(opportunityId) : null,
+        },
+      },
+    },
+  );
+
+  await recordAudit({
+    action: 'lead.converted',
+    entityType: 'Lead',
+    entityId: lead._id,
+    before: { status: lead.status },
+    after: { status: 'converted', organisationId, contactId, opportunityId },
+  });
+
+  return { organisationId, contactId, opportunityId };
 }

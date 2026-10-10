@@ -16,6 +16,7 @@ import { OPPORTUNITY_STATUSES } from '@/modules/crm/models/opportunity.model';
 import { lacksNextStep, nextStepOverdue, totalsByCurrency } from '@/modules/crm/opportunity-rules';
 import { todayKey } from '@/modules/crm/contract-status';
 import { archiveOpportunityAction } from './actions';
+import { PipelineBoard, type BoardColumn } from './board';
 import { MoveButton } from './move-button';
 import { OpportunityPanel } from './opportunity-panel';
 
@@ -32,7 +33,13 @@ const STATUS_TONE = { open: 'warn', won: 'ok', lost: 'alert' } as const;
 export default async function OpportunitiesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; stage?: string; owner?: string; q?: string }>;
+  searchParams: Promise<{
+    status?: string;
+    stage?: string;
+    owner?: string;
+    q?: string;
+    view?: string;
+  }>;
 }) {
   const params = await searchParams;
   const actor = await requirePermission('opportunity.read');
@@ -77,7 +84,38 @@ export default async function OpportunitiesPage({
 
   const countFor = (option: OpportunityFilter['status']) =>
     everyItem.filter((item) => !option || item.status === option).length;
-  const link = (next: Partial<Record<'status' | 'stage' | 'owner' | 'q', string | undefined>>) => {
+  const board = params.view === 'board';
+  const boardColumns: BoardColumn[] = stages.map((stage) => ({
+    stage: {
+      id: stage.id,
+      name: stage.name,
+      kind: stage.kind,
+      probability: stage.probability,
+    },
+    cards: items
+      .filter((item) => item.stageId === stage.id)
+      .map((item) => ({
+        id: item.id,
+        number: item.number,
+        title: item.title,
+        organisationName: item.organisationName,
+        ownerName: item.ownerName,
+        status: item.status,
+        stageId: item.stageId,
+        value: `${item.currency} ${fromMinorUnits(item.oneOffMinorUnits)} + ${fromMinorUnits(item.recurringMinorUnits)}/yr`,
+        nextStep: item.nextStep,
+        nextStepDate: item.nextStepDate,
+        flag: lacksNextStep(item)
+          ? ('no-step' as const)
+          : nextStepOverdue(item, today)
+            ? ('overdue' as const)
+            : ('none' as const),
+        lostReason: item.lostReason,
+      })),
+  }));
+  const link = (
+    next: Partial<Record<'status' | 'stage' | 'owner' | 'q' | 'view', string | undefined>>,
+  ) => {
     const query = new URLSearchParams();
     for (const [key, value] of Object.entries({ ...params, ...next }))
       if (value) query.set(key, value);
@@ -180,138 +218,179 @@ export default async function OpportunitiesPage({
         </p>
       ) : null}
 
-      <Card>
-        {items.length === 0 ? (
-          <EmptyState
-            message={
-              everyItem.length === 0
-                ? 'No opportunities yet. Add the first one.'
-                : 'No opportunities match these filters.'
-            }
-          />
+      <div className="mb-3 flex gap-2 text-sm" aria-label="View">
+        <Link
+          href={link({ view: undefined })}
+          aria-current={board ? undefined : 'true'}
+          className={clsx(
+            'rounded-[var(--radius-control)] px-3 py-1',
+            board ? '' : 'bg-[var(--color-surface-sunken)] font-medium',
+          )}
+        >
+          List
+        </Link>
+        <Link
+          href={link({ view: 'board' })}
+          aria-current={board ? 'true' : undefined}
+          className={clsx(
+            'rounded-[var(--radius-control)] px-3 py-1',
+            board ? 'bg-[var(--color-surface-sunken)] font-medium' : '',
+          )}
+        >
+          Board
+        </Link>
+      </div>
+
+      {board ? (
+        items.length === 0 ? (
+          <Card>
+            <EmptyState message="No opportunities match these filters." />
+          </Card>
         ) : (
-          <Table>
-            <thead>
-              <tr>
-                <Th>Opportunity</Th>
-                <Th>Customer</Th>
-                <Th>Stage</Th>
-                <Th>Value</Th>
-                <Th>Next step</Th>
-                <Th>Owner</Th>
-                <Th>{''}</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr
-                  key={item.id}
-                  data-sort-values={JSON.stringify([
-                    item.number,
-                    item.organisationName,
-                    item.stageName,
-                    item.oneOffMinorUnits + item.recurringMinorUnits,
-                    item.nextStepDate ?? '',
-                    item.ownerName,
-                  ])}
-                >
-                  <Td>
-                    <Link
-                      href={`/opportunities/${item.id}`}
-                      className="font-medium text-[var(--color-ink)] hover:underline"
-                    >
-                      {item.title}
-                    </Link>
-                    <div className="font-mono text-xs text-[var(--color-ink-subtle)]">
-                      {item.number}
-                    </div>
-                  </Td>
-                  <Td>{item.organisationName}</Td>
-                  <Td>
-                    <Badge tone={STATUS_TONE[item.status]}>{item.stageName}</Badge>
-                    <div className="mt-1 text-xs text-[var(--color-ink-subtle)]">
-                      {item.status === 'lost' && item.lostReason
-                        ? item.lostReason
-                        : `${item.probability}%`}
-                    </div>
-                  </Td>
-                  <Td className="text-[var(--color-ink-muted)]">
-                    {item.currency} {fromMinorUnits(item.oneOffMinorUnits)} one-off
-                    <br />
-                    {fromMinorUnits(item.recurringMinorUnits)} per year
-                  </Td>
-                  <Td className="text-[var(--color-ink-muted)]">
-                    {lacksNextStep(item) ? (
-                      <span className="text-[var(--color-status-warn)]">No next step</span>
-                    ) : (
-                      item.nextStep
-                    )}
-                    {item.nextStepDate ? (
-                      <div
-                        className={clsx(
-                          'text-xs',
-                          nextStepOverdue(item, today)
-                            ? 'text-[var(--color-status-alert)]'
-                            : 'text-[var(--color-ink-subtle)]',
-                        )}
-                      >
-                        {item.nextStepDate}
-                        {nextStepOverdue(item, today) ? ' (overdue)' : ''}
-                      </div>
-                    ) : null}
-                  </Td>
-                  <Td className="text-[var(--color-ink-muted)]">{item.ownerName}</Td>
-                  <Td>
-                    {editable ? (
-                      <div className="flex items-center justify-end gap-1">
-                        {item.status === 'open' ? (
-                          <OpportunityPanel
-                            organisations={customers}
-                            products={productChoices}
-                            owners={owners}
-                            openStages={openStages}
-                            currentUserId={actor.id}
-                            opportunity={{
-                              id: item.id,
-                              organisationId: item.organisationId,
-                              contactId: item.contactId ?? '',
-                              title: item.title,
-                              ownerId: item.ownerId,
-                              oneOff: fromMinorUnits(item.oneOffMinorUnits),
-                              recurring: fromMinorUnits(item.recurringMinorUnits),
-                              currency: item.currency,
-                              expectedCloseDate: item.expectedCloseDate ?? '',
-                              probability: String(item.probability),
-                              productIds: item.productIds,
-                              nextStep: item.nextStep ?? '',
-                              nextStepDate: item.nextStepDate ?? '',
-                              quoteReference: item.quoteReference ?? '',
-                              notes: item.notes ?? '',
-                            }}
-                          />
-                        ) : null}
-                        <MoveButton
-                          opportunityId={item.id}
-                          title={item.title}
-                          currentStageId={item.stageId}
-                          closed={item.status !== 'open'}
-                          canReopen={canReopen}
-                          stages={stages.map(({ id, name, kind }) => ({ id, name, kind }))}
-                          lostReasons={lostReasons}
-                        />
-                        <form action={archiveOpportunityAction}>
-                          <input type="hidden" name="id" value={item.id} />
-                          <IconButton type="submit" icon="archive" label="Archive opportunity" />
-                        </form>
-                      </div>
-                    ) : null}
-                  </Td>
+          <PipelineBoard
+            columns={boardColumns}
+            stages={stages.map(({ id, name, kind }) => ({ id, name, kind }))}
+            lostReasons={lostReasons}
+            canMove={editable}
+            canReopen={canReopen}
+            canCreateContract={actor.permissions.includes('contract.manage')}
+          />
+        )
+      ) : (
+        <Card>
+          {items.length === 0 ? (
+            <EmptyState
+              message={
+                everyItem.length === 0
+                  ? 'No opportunities yet. Add the first one.'
+                  : 'No opportunities match these filters.'
+              }
+            />
+          ) : (
+            <Table>
+              <thead>
+                <tr>
+                  <Th>Opportunity</Th>
+                  <Th>Customer</Th>
+                  <Th>Stage</Th>
+                  <Th>Value</Th>
+                  <Th>Next step</Th>
+                  <Th>Owner</Th>
+                  <Th>{''}</Th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
-        )}
-      </Card>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <tr
+                    key={item.id}
+                    data-sort-values={JSON.stringify([
+                      item.number,
+                      item.organisationName,
+                      item.stageName,
+                      item.oneOffMinorUnits + item.recurringMinorUnits,
+                      item.nextStepDate ?? '',
+                      item.ownerName,
+                    ])}
+                  >
+                    <Td>
+                      <Link
+                        href={`/opportunities/${item.id}`}
+                        className="font-medium text-[var(--color-ink)] hover:underline"
+                      >
+                        {item.title}
+                      </Link>
+                      <div className="font-mono text-xs text-[var(--color-ink-subtle)]">
+                        {item.number}
+                      </div>
+                    </Td>
+                    <Td>{item.organisationName}</Td>
+                    <Td>
+                      <Badge tone={STATUS_TONE[item.status]}>{item.stageName}</Badge>
+                      <div className="mt-1 text-xs text-[var(--color-ink-subtle)]">
+                        {item.status === 'lost' && item.lostReason
+                          ? item.lostReason
+                          : `${item.probability}%`}
+                      </div>
+                    </Td>
+                    <Td className="text-[var(--color-ink-muted)]">
+                      {item.currency} {fromMinorUnits(item.oneOffMinorUnits)} one-off
+                      <br />
+                      {fromMinorUnits(item.recurringMinorUnits)} per year
+                    </Td>
+                    <Td className="text-[var(--color-ink-muted)]">
+                      {lacksNextStep(item) ? (
+                        <span className="text-[var(--color-status-warn)]">No next step</span>
+                      ) : (
+                        item.nextStep
+                      )}
+                      {item.nextStepDate ? (
+                        <div
+                          className={clsx(
+                            'text-xs',
+                            nextStepOverdue(item, today)
+                              ? 'text-[var(--color-status-alert)]'
+                              : 'text-[var(--color-ink-subtle)]',
+                          )}
+                        >
+                          {item.nextStepDate}
+                          {nextStepOverdue(item, today) ? ' (overdue)' : ''}
+                        </div>
+                      ) : null}
+                    </Td>
+                    <Td className="text-[var(--color-ink-muted)]">{item.ownerName}</Td>
+                    <Td>
+                      {editable ? (
+                        <div className="flex items-center justify-end gap-1">
+                          {item.status === 'open' ? (
+                            <OpportunityPanel
+                              organisations={customers}
+                              products={productChoices}
+                              owners={owners}
+                              openStages={openStages}
+                              currentUserId={actor.id}
+                              opportunity={{
+                                id: item.id,
+                                organisationId: item.organisationId,
+                                contactId: item.contactId ?? '',
+                                title: item.title,
+                                ownerId: item.ownerId,
+                                oneOff: fromMinorUnits(item.oneOffMinorUnits),
+                                recurring: fromMinorUnits(item.recurringMinorUnits),
+                                currency: item.currency,
+                                expectedCloseDate: item.expectedCloseDate ?? '',
+                                probability: String(item.probability),
+                                productIds: item.productIds,
+                                nextStep: item.nextStep ?? '',
+                                nextStepDate: item.nextStepDate ?? '',
+                                quoteReference: item.quoteReference ?? '',
+                                notes: item.notes ?? '',
+                              }}
+                            />
+                          ) : null}
+                          <MoveButton
+                            opportunityId={item.id}
+                            title={item.title}
+                            currentStageId={item.stageId}
+                            closed={item.status !== 'open'}
+                            canReopen={canReopen}
+                            canCreateContract={actor.permissions.includes('contract.manage')}
+                            stages={stages.map(({ id, name, kind }) => ({ id, name, kind }))}
+                            lostReasons={lostReasons}
+                          />
+                          <form action={archiveOpportunityAction}>
+                            <input type="hidden" name="id" value={item.id} />
+                            <IconButton type="submit" icon="archive" label="Archive opportunity" />
+                          </form>
+                        </div>
+                      ) : null}
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </Card>
+      )}
     </div>
   );
 }

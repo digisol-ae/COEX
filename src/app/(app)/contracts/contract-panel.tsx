@@ -40,19 +40,27 @@ export function ContractPanel({
   organisations,
   products,
   contract,
+  prefill,
+  defaultOpen = false,
 }: {
   organisations: { id: string; name: string }[];
   products: { id: string; name: string; code: string }[];
   contract?: ContractFormValues;
+  /** Starting values for a new contract, such as one raised from a won opportunity. */
+  prefill?: Partial<ContractFormValues>;
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
-  const [endDate, setEndDate] = useState(contract?.endDate ?? '');
-  const [organisationId, setOrganisationId] = useState(contract?.organisationId ?? '');
+  // Editing shows the stored contract; a new one may start from a prefill. Either way the form
+  // reads its defaults from the seed.
+  const seed: Partial<ContractFormValues> | undefined = contract ?? prefill;
+  const [open, setOpen] = useState(defaultOpen);
+  const [endDate, setEndDate] = useState(seed?.endDate ?? '');
+  const [organisationId, setOrganisationId] = useState(seed?.organisationId ?? '');
   const [contacts, setContacts] = useState<{
     organisationId: string;
     list: { id: string; name: string; email: string | null }[];
   }>({ organisationId: '', list: [] });
-  const [supportHours, setSupportHours] = useState(contract?.supportHoursEnabled ?? false);
+  const [supportHours, setSupportHours] = useState(seed?.supportHoursEnabled ?? false);
   const { showToast } = useToast();
   const [state, formAction, pending] = useActionState(
     async (previous: ContractFormState, formData: FormData) => {
@@ -115,7 +123,7 @@ export function ContractPanel({
                 key={`organisationId-${text('organisationId')}`}
                 name="organisationId"
                 required
-                defaultValue={text('organisationId', contract?.organisationId)}
+                defaultValue={text('organisationId', seed?.organisationId)}
                 onChange={(event) => setOrganisationId(event.target.value)}
               >
                 <option value="" disabled>
@@ -133,7 +141,7 @@ export function ContractPanel({
               <Select
                 key={`type-${text('type')}`}
                 name="type"
-                defaultValue={text('type', contract?.type ?? 'amc')}
+                defaultValue={text('type', seed?.type ?? 'amc')}
               >
                 <option value="amc">Annual maintenance (AMC)</option>
                 <option value="project">Project</option>
@@ -143,7 +151,7 @@ export function ContractPanel({
           </div>
 
           <Field label="Title">
-            <Input name="title" required defaultValue={text('title', contract?.title)} />
+            <Input name="title" required defaultValue={text('title', seed?.title)} />
           </Field>
 
           <div className="grid gap-3 sm:grid-cols-3">
@@ -152,7 +160,7 @@ export function ContractPanel({
                 type="date"
                 name="startDate"
                 required
-                defaultValue={text('startDate', contract?.startDate)}
+                defaultValue={text('startDate', seed?.startDate)}
                 onChange={(event) => {
                   if (!endDate) setEndDate(yearFrom(event.target.value));
                 }}
@@ -171,7 +179,7 @@ export function ContractPanel({
               <Select
                 key={`billingFrequency-${text('billingFrequency')}`}
                 name="billingFrequency"
-                defaultValue={text('billingFrequency', contract?.billingFrequency ?? 'yearly')}
+                defaultValue={text('billingFrequency', seed?.billingFrequency ?? 'yearly')}
               >
                 <option value="monthly">Monthly</option>
                 <option value="bimonthly">Every two months</option>
@@ -183,17 +191,13 @@ export function ContractPanel({
 
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Amount per billing period" hint="Invoicing itself stays in Zoho Books">
-              <Input
-                name="value"
-                inputMode="decimal"
-                defaultValue={text('value', contract?.value)}
-              />
+              <Input name="value" inputMode="decimal" defaultValue={text('value', seed?.value)} />
             </Field>
             <Field label="Currency">
               <Select
                 key={`currency-${text('currency')}`}
                 name="currency"
-                defaultValue={text('currency', contract?.currency ?? 'AED')}
+                defaultValue={text('currency', seed?.currency ?? 'AED')}
               >
                 <option>AED</option>
                 <option>USD</option>
@@ -215,7 +219,7 @@ export function ContractPanel({
                     defaultChecked={
                       Array.isArray(kept?.productIds)
                         ? kept.productIds.includes(product.id)
-                        : contract?.productIds.includes(product.id)
+                        : seed?.productIds?.includes(product.id)
                     }
                   />
                   {product.name}
@@ -261,7 +265,7 @@ export function ContractPanel({
                         defaultChecked={
                           Array.isArray(kept?.contactIds)
                             ? kept.contactIds.includes(person.id)
-                            : contract?.contactIds.includes(person.id)
+                            : seed?.contactIds?.includes(person.id)
                         }
                       />
                       {person.name}
@@ -282,13 +286,13 @@ export function ContractPanel({
               <Input
                 name="documentUrl"
                 type="url"
-                defaultValue={text('documentUrl', contract?.documentUrl)}
+                defaultValue={text('documentUrl', seed?.documentUrl)}
               />
             </Field>
             <Field label="Zoho Books reference">
               <Input
                 name="zohoReference"
-                defaultValue={text('zohoReference', contract?.zohoReference)}
+                defaultValue={text('zohoReference', seed?.zohoReference)}
               />
             </Field>
           </div>
@@ -308,14 +312,14 @@ export function ContractPanel({
                 name="includedHoursPerPeriod"
                 inputMode="decimal"
                 placeholder="Hours per billing period"
-                defaultValue={text('includedHoursPerPeriod', contract?.includedHoursPerPeriod)}
+                defaultValue={text('includedHoursPerPeriod', seed?.includedHoursPerPeriod)}
                 className="w-56"
               />
             ) : null}
           </div>
 
           <Field label="Notes">
-            <Input name="notes" defaultValue={text('notes', contract?.notes)} />
+            <Input name="notes" defaultValue={text('notes', seed?.notes)} />
           </Field>
 
           {state.error ? <Notice tone="alert">{state.error}</Notice> : null}

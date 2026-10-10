@@ -28,7 +28,8 @@ export type ActivityKind =
   | 'task_created'
   | 'task_completed'
   | 'document_shared'
-  | 'stage_changed';
+  | 'stage_changed'
+  | 'next_step_set';
 
 export interface ActivityInput {
   organisationId: string | Types.ObjectId;

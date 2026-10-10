@@ -6,6 +6,7 @@ import {
   type MailboxConfig,
 } from '../src/modules/core/services/email.service';
 import { sendDueRenewalReminders } from '../src/modules/crm/services/contract-reminder.service';
+import { sendDueOpportunityReminders } from '../src/modules/crm/services/opportunity-reminder.service';
 import { syncMailbox } from '../src/modules/tickets/services/mailbox.service';
 
 /**
@@ -180,11 +181,21 @@ async function remindAboutRenewals() {
   }
 }
 
+async function remindAboutOpportunities() {
+  try {
+    const sent = await sendDueOpportunityReminders();
+    if (sent > 0) log(`queued ${sent} opportunity reminder(s).`);
+  } catch (error) {
+    log(`opportunity reminders failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
 async function main() {
   log('COEX email worker starting.');
   await reconcile();
   await deliver();
   void remindAboutRenewals();
+  void remindAboutOpportunities();
 
   setInterval(
     () => void reconcile().catch((error) => log(`settings reload failed: ${error}`)),
@@ -192,6 +203,7 @@ async function main() {
   );
   setInterval(() => void deliver(), OUTBOX_MS);
   setInterval(() => void remindAboutRenewals(), RENEWALS_MS);
+  setInterval(() => void remindAboutOpportunities(), RENEWALS_MS);
   setInterval(() => {
     for (const watcher of watchers.values()) void runSync(watcher);
   }, SWEEP_MS);
