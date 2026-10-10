@@ -1,5 +1,13 @@
 # COEX — Shared AI Project State
 
+## Daily performance email — 10 Oct 2026 (Claude)
+
+- 9:00 Gulf every morning: everyone on the staff (managers and administrators too) gets thanks or a polite reminder about yesterday's hours; a day off is skipped unless the person worked; the combined summary goes only to the addresses entered in Setup, Email (default empty). Task page shows "All people" total to those with timesheet.read.all. Setup, Email; off by default; worker `coex-mail` must be restarted. See FEEDBACK.md.
+
+## Time on shared tasks — 10 Oct 2026 (Claude)
+
+- Task and ticket screens show the viewer's own logged time, not all assignees added together. See FEEDBACK.md.
+
 ## All tasks screen — 9 Oct 2026 (Claude)
 
 - Multi space and multi assignee filters, and a New task popup (Personal or any Space). See FEEDBACK.md.

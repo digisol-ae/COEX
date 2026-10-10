@@ -153,7 +153,9 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
                 />
                 <span>{CHANNEL_LABELS[ticket.channel] ?? ticket.channel}</span>
                 <span>Raised {formatDateTime(ticket.createdAt)}</span>
-                {loggedMinutes > 0 ? <span>{formatMinutes(loggedMinutes)} logged</span> : null}
+                {loggedMinutes > 0 ? (
+                  <span>{formatMinutes(loggedMinutes)} logged by you</span>
+                ) : null}
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-2">

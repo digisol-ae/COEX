@@ -6,6 +6,7 @@ import {
   type MailboxConfig,
 } from '../src/modules/core/services/email.service';
 import { sendDueRenewalReminders } from '../src/modules/crm/services/contract-reminder.service';
+import { sendDailyReports } from '../src/modules/time/services/daily-report.service';
 import { syncMailbox } from '../src/modules/tickets/services/mailbox.service';
 
 /**
@@ -180,11 +181,23 @@ async function remindAboutRenewals() {
   }
 }
 
+async function sendDailyPerformanceEmails() {
+  try {
+    const queued = await sendDailyReports();
+    if (queued > 0) log(`queued ${queued} daily performance email(s).`);
+  } catch (error) {
+    log(
+      `daily performance emails failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
 async function main() {
   log('COEX email worker starting.');
   await reconcile();
   await deliver();
   void remindAboutRenewals();
+  void sendDailyPerformanceEmails();
 
   setInterval(
     () => void reconcile().catch((error) => log(`settings reload failed: ${error}`)),
@@ -192,6 +205,8 @@ async function main() {
   );
   setInterval(() => void deliver(), OUTBOX_MS);
   setInterval(() => void remindAboutRenewals(), RENEWALS_MS);
+  // Every ten minutes: nine o'clock is not missed by a restart, and the day is claimed once.
+  setInterval(() => void sendDailyPerformanceEmails(), 10 * 60 * 1000);
   setInterval(() => {
     for (const watcher of watchers.values()) void runSync(watcher);
   }, SWEEP_MS);

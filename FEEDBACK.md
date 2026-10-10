@@ -74,6 +74,36 @@ of Q1 to Q4. NOT run on real MongoDB.
    keeps what was typed. Personal page keeps its own quick panel. Personal space is not in the
    Spaces filter (it is created on first use).
 
+## John, 10 Oct 2026 — time on a shared task (built, acceptance pending)
+
+When several assignees ran timers on one task, task screens showed everyone's hours added together.
+Now every task and ticket screen shows the viewer's own time only: the All tasks and Spaces lists
+(column "My time"), the task page ("Your time"), task panel and preview, ticket page and preview.
+`loggedMinutesForTask/Ticket` and `listTasks` take the signed-in person's entries; timesheets
+already held only their owner's entries and are unchanged. People with `timesheet.read.all` still
+see each person's hours separately in Time entries on the task page. No grand total of everyone is
+shown on a task any more (assumption: John's wording said accumulated hours must not appear). The
+"over estimate" badge now compares the viewer's own time. The Time report and All timesheets still
+total everyone, by person.
+
+## John, 10 Oct 2026 — daily performance email (built, acceptance pending)
+
+At 9:00 Gulf time every morning the email worker (`coex-mail`) reports on the previous day. Everyone
+active on the staff gets their own note, managers and administrators included: thanks when they
+logged at least the target hours, a polite reminder and encouragement to log honestly when below it
+or at zero. A day off (Saturday, Sunday, outside the tenant working days) is skipped, except that
+anyone who did log time that day still gets their thanks (John's answer, 10 Oct); nobody is reminded
+about a day off. The combined summary goes ONLY to the addresses entered in Setup, Email, "Daily
+performance email" (one or more, default empty, so enter ali@digisol.ae and umbreen@digisol.ae
+there); the same screen has the on/off switch and the target hours (default 6). OFF until switched
+on. Each day is claimed once (`dailyReport.lastSentFor`), so restarts never repeat it. Wording is in
+`time/daily-report.ts`; sent from the Alert sender, outbox kind `daily_report`. Turning it on after
+9:00 reports on the previous day straight away. There is no leave calendar: someone on leave gets
+the gentle reminder.
+
+Also (John, 10 Oct): managers and others with `timesheet.read.all` now see "All people" on the
+task page's Time entries, the total of everyone's time on that task, beside each person's own.
+
 ## 3 October 2026 — To do task color
 
 To do tasks must be yellow; In progress remains blue. Applied to dots, pills and task status selector across themes.

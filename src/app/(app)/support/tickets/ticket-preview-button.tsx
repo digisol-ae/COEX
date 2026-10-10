@@ -115,7 +115,7 @@ function TicketPreview({ ticketId, onClose }: { ticketId: string; onClose: () =>
                 ['customer', 'Customer', detail.customer],
                 ['contact', 'Contact', detail.contact],
                 ['contact', 'Agent', detail.assignee ?? 'Unassigned'],
-                ['clock', 'Logged time', formatMinutes(detail.loggedMinutes)],
+                ['clock', 'Your time', formatMinutes(detail.loggedMinutes)],
                 [
                   'attachment',
                   'Attachments',

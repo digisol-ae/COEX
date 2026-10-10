@@ -372,7 +372,7 @@ export function TaskList({
                     <Th>Status</Th>
                     <Th>Task</Th>
                     <Th>Due</Th>
-                    <Th>Time</Th>
+                    <Th>My time</Th>
                     {!hideAssignees ? <Th>Assignees</Th> : null}
                     <Th>Priority</Th>
                   </tr>

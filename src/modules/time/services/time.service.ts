@@ -69,11 +69,21 @@ export async function getRunningTimer(userId?: string): Promise<RunningTimer | n
   };
 }
 
-/** Total time recorded against one task, by everyone. */
-export async function loggedMinutesForTask(taskId: string): Promise<number> {
+/**
+ * Time recorded against one task by one person, the signed-in person unless told otherwise.
+ *
+ * Never a sum over everyone (John, 10 Oct 2026): when several people are assigned and each runs a
+ * timer, a task's screen showed all of their hours added together, and nobody could tell what they
+ * had put in themselves. A person's own time is what their timesheet holds; other people's entries
+ * stay on the task page for those allowed to see them (`listTaskTimeByPerson`).
+ */
+export async function loggedMinutesForTask(taskId: string, userId?: string): Promise<number> {
   await connectToDatabase();
 
-  const found = await entries().find({ taskId: toObjectId(taskId) });
+  const found = await entries().find({
+    taskId: toObjectId(taskId),
+    userId: toObjectId(userId ?? String(getContext().userId)),
+  });
 
   return found.reduce((sum, entry) => sum + (entry.minutes ?? 0), 0);
 }
@@ -148,11 +158,14 @@ export async function listTaskTimeByPerson(
   );
 }
 
-/** Every minute recorded against one ticket, by everyone. */
-export async function loggedMinutesForTicket(ticketId: string): Promise<number> {
+/** Time one person recorded against one ticket, the signed-in person unless told otherwise. */
+export async function loggedMinutesForTicket(ticketId: string, userId?: string): Promise<number> {
   await connectToDatabase();
 
-  const found = await entries().find({ ticketId: toObjectId(ticketId) });
+  const found = await entries().find({
+    ticketId: toObjectId(ticketId),
+    userId: toObjectId(userId ?? String(getContext().userId)),
+  });
 
   return found.reduce((sum, entry) => sum + (entry.minutes ?? 0), 0);
 }
