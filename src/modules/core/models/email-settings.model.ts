@@ -124,6 +124,18 @@ const emailSettingsSchema = new Schema(
       ticketCreated: { type: String, enum: ['off', 'admins', 'desk'], default: 'admins' },
     },
 
+    /**
+     * The daily performance email (John, 10 Oct 2026). Off until someone turns it on in Setup,
+     * Email, so deploying never starts mailing agents by surprise. `lastSentFor` is the working day
+     * already reported on; the worker claims it atomically so a restart never repeats a day.
+     */
+    dailyReport: {
+      enabled: { type: Boolean, default: false },
+      minimumHours: { type: Number, default: 6 },
+      summaryRecipients: { type: [String], default: ['ali@digisol.ae', 'umbreen@digisol.ae'] },
+      lastSentFor: { type: String, default: null },
+    },
+
     updatedById: { type: Schema.Types.ObjectId, ref: 'User', default: null },
   },
   { timestamps: true },

@@ -43,6 +43,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
       {
         heading: 'Time',
         items: [
+          'A short email each working morning at 9:00 tells every agent how much time they logged the day before: a thank you for a full day, and a polite reminder to log their work honestly when little or nothing was logged. Administrators switch it on, set the target hours and choose who gets the combined summary in Setup, Email.',
           'When a task is shared and several people run their timers, each person now sees only their own time on it ("Your time", "My time" in the list). The hours of everyone are no longer added together on the task. People who may see everyone\'s hours still see each person separately in the task\'s Time entries.',
           'New Team activity page under Time, for people who can see everyone\'s hours: who is working on which task or ticket, the stage it is in, the time they put on it, and a "working now" mark. Filter by days (with a Today button), stage or status, one or several people, and Tasks, Tickets or both. Click a task or ticket for the same quick preview as on Tasks and Support. Share sends the page as a PDF by email, or downloads it.',
           'New time entries are no longer marked billable by default. Tick Billable on the entries that are. Entries already saved keep their setting.',

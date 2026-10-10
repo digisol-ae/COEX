@@ -86,6 +86,21 @@ shown on a task any more (assumption: John's wording said accumulated hours must
 "over estimate" badge now compares the viewer's own time. The Time report and All timesheets still
 total everyone, by person.
 
+## John, 10 Oct 2026 — daily performance email (built, acceptance pending)
+
+At 9:00 Gulf time on each working day the email worker (`coex-mail`) reports on the previous working
+day. Each active agent and senior agent gets their own note: thanks when they logged at least the
+target hours, a polite reminder and encouragement to log honestly when below it or at zero. One
+combined summary (everyone's hours, who met the target) goes to the summary recipients, default
+ali@digisol.ae and umbreen@digisol.ae, editable in Setup, Email, "Daily performance email", with the
+on/off switch and the target (default 6 hours). OFF until switched on, so deploying mails nobody by
+surprise. Saturday and Sunday (the tenant's non-working days) and the morning after them are
+skipped. Each day is claimed once (`dailyReport.lastSentFor`), so restarts never repeat it. Managers
+and administrators get the summary only (assumption: "agents" means the agent and senior agent
+roles). Wording is in `time/daily-report.ts`; sent from the Alert sender, outbox kind `daily_report`.
+Turning it on after 9:00 reports on the previous working day straight away. There is no leave
+calendar: someone on leave gets the gentle reminder.
+
 ## 3 October 2026 — To do task color
 
 To do tasks must be yellow; In progress remains blue. Applied to dots, pills and task status selector across themes.

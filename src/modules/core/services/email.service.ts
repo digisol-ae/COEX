@@ -29,6 +29,7 @@ export type OutboxKind =
   | 'contract_renewal'
   | 'contract_email'
   | 'activity_report'
+  | 'daily_report'
   | 'password_reset'
   | 'ticket_created'
   | 'password_set_by_admin'
@@ -53,6 +54,7 @@ const SENDER_FOR: Record<OutboxKind, SenderRole> = {
   contract_renewal: 'alert',
   contract_email: 'contracts',
   activity_report: 'alert',
+  daily_report: 'alert',
   password_reset: 'admin',
   password_set_by_admin: 'admin',
 };
@@ -157,6 +159,7 @@ export interface EmailSettingsView {
     contractRenewal: boolean;
     ticketCreated: NewTicketAlert;
   };
+  dailyReport: { enabled: boolean; minimumHours: number; summaryRecipients: string[] };
   pendingCount: number;
   failedCount: number;
 }
@@ -307,6 +310,11 @@ export async function getEmailSettings(): Promise<EmailSettingsView> {
       contractRenewal: staff.contractRenewal ?? true,
       ticketCreated: (staff.ticketCreated as NewTicketAlert | undefined) ?? 'admins',
     },
+    dailyReport: {
+      enabled: settings.dailyReport?.enabled ?? false,
+      minimumHours: settings.dailyReport?.minimumHours ?? 6,
+      summaryRecipients: [...(settings.dailyReport?.summaryRecipients ?? [])],
+    },
     pendingCount,
     failedCount,
   };
@@ -337,6 +345,7 @@ export interface EmailSettingsInput {
   contractTemplates: ContractTemplates;
   customer: EmailSettingsView['customer'];
   staff: EmailSettingsView['staff'];
+  dailyReport: EmailSettingsView['dailyReport'];
 }
 
 export async function saveEmailSettings(input: EmailSettingsInput): Promise<void> {
@@ -426,6 +435,20 @@ export async function saveEmailSettings(input: EmailSettingsInput): Promise<void
     emailPublicReplies: input.customer.emailPublicReplies,
   };
   settings.staff = { ...input.staff };
+
+  const reportHours = Number(input.dailyReport.minimumHours);
+  if (!(reportHours >= 0.5 && reportHours <= 14)) {
+    throw new Error('The daily report target must be between half an hour and 14 hours.');
+  }
+  const reportRecipients = [
+    ...new Set(input.dailyReport.summaryRecipients.map((address) => address.trim().toLowerCase())),
+  ].filter(Boolean);
+  const badAddress = reportRecipients.find((address) => !isEmailAddress(address));
+  if (badAddress) throw new Error(`${badAddress} is not a valid email address.`);
+  // Set field by field so the day already reported on is never overwritten by a settings save.
+  settings.set('dailyReport.enabled', input.dailyReport.enabled);
+  settings.set('dailyReport.minimumHours', reportHours);
+  settings.set('dailyReport.summaryRecipients', reportRecipients);
   settings.updatedById = context.userId;
 
   await settings.save();
@@ -446,6 +469,7 @@ export async function saveEmailSettings(input: EmailSettingsInput): Promise<void
       autoReply: input.customer.autoReplyEnabled,
       emailPublicReplies: input.customer.emailPublicReplies,
       staff: input.staff,
+      dailyReport: { ...input.dailyReport, summaryRecipients: reportRecipients },
     },
   });
 }
@@ -540,6 +564,8 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
     contract_email: true,
     // A person pressed Share: that choice is the permission.
     activity_report: true,
+    // The worker only queues these when the daily report is switched on in Setup.
+    daily_report: true,
     ticket_created: (settings.staff?.ticketCreated ?? 'admins') !== 'off',
     // The account holder was told their password changed; like a reset link, not switchable.
     password_set_by_admin: true,

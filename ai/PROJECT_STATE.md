@@ -1,5 +1,9 @@
 # COEX — Shared AI Project State
 
+## Daily performance email — 10 Oct 2026 (Claude)
+
+- 9:00 Gulf, working days: each agent gets thanks or a polite reminder about yesterday's logged hours; combined summary to configurable recipients (default ali@ and umbreen@digisol.ae). Setup, Email; off by default; worker `coex-mail` must be restarted. See FEEDBACK.md.
+
 ## Time on shared tasks — 10 Oct 2026 (Claude)
 
 - Task and ticket screens show the viewer's own logged time, not all assignees added together. See FEEDBACK.md.

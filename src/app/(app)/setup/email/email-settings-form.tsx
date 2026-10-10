@@ -68,7 +68,7 @@ export function EmailSettingsForm({
   const runTest = (action: () => Promise<EmailFormState>) =>
     startTest(async () => setTestResult(await action()));
 
-  const { inbound, outbound, customer, staff } = settings;
+  const { inbound, outbound, customer, staff, dailyReport } = settings;
   const [intakeQueueId, setIntakeQueueId] = useState(inbound.queueId ?? '');
   const [ackBody, setAckBody] = useState(customer.autoReplyBody);
   const [previewing, setPreviewing] = useState(false);
@@ -381,6 +381,47 @@ export function EmailSettingsForm({
               label="A contract I own is nearing its end date"
               defaultChecked={staff.contractRenewal}
             />
+          </div>
+        </CardSection>
+      </Card>
+
+      <Card>
+        <CardSection title="Daily performance email">
+          <div className="space-y-3">
+            <p className="text-sm text-[var(--color-ink-muted)]">
+              At 9:00 (Gulf time) on each working day, every agent is emailed how much time they
+              logged the day before: thanked when they met the target, and politely encouraged to
+              log their work honestly when they did not. One combined summary goes to the people
+              below. Sent from the Alert sender.
+            </p>
+            <Toggle
+              name="dailyReportEnabled"
+              label="Send the daily performance emails"
+              defaultChecked={dailyReport.enabled}
+            />
+            <Field
+              label="Target hours for a working day"
+              hint="Under this, the agent gets the gentle reminder."
+            >
+              <Input
+                name="dailyReportHours"
+                type="number"
+                step="0.5"
+                min="0.5"
+                max="14"
+                defaultValue={dailyReport.minimumHours}
+              />
+            </Field>
+            <Field
+              label="Combined summary goes to"
+              hint="Email addresses, separated by commas. They need not be COEX users."
+            >
+              <Input
+                name="dailyReportRecipients"
+                defaultValue={dailyReport.summaryRecipients.join(', ')}
+                placeholder="name@example.com, name2@example.com"
+              />
+            </Field>
           </div>
         </CardSection>
       </Card>
