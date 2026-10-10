@@ -23,6 +23,8 @@ const emailOutboxSchema = new Schema(
         'next_step_due',
         'opportunity_stale',
         'contract_email',
+        'activity_report',
+        'daily_report',
         'password_reset',
         'ticket_created',
         'password_set_by_admin',

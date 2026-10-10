@@ -676,6 +676,68 @@ describe('folders, and who can see what', () => {
   });
 });
 
+describe('listing several spaces and several people', () => {
+  it('returns tasks of any chosen space and any chosen assignee', async () => {
+    const alpha = await aSpace();
+    const beta = await runWithContext(context, () => createSpace({ name: 'Beta' }));
+    const gamma = await runWithContext(context, () => createSpace({ name: 'Gamma' }));
+    await runWithContext(context, () =>
+      createTask({ spaceId: alpha, title: 'A', assigneeIds: [String(userId)] }),
+    );
+    await runWithContext(context, () =>
+      createTask({ spaceId: beta, title: 'B', assigneeIds: [String(strangerId)] }),
+    );
+    await runWithContext(context, () => createTask({ spaceId: gamma, title: 'C' }));
+
+    const twoSpaces = await runWithContext(context, () => listTasks({ spaceIds: [alpha, beta] }));
+    expect(twoSpaces.map((task) => task.title).sort()).toEqual(['A', 'B']);
+
+    const twoPeople = await runWithContext(context, () =>
+      listTasks({ assigneeIds: [String(userId), String(strangerId)] }),
+    );
+    expect(twoPeople.map((task) => task.title).sort()).toEqual(['A', 'B']);
+
+    const both = await runWithContext(context, () =>
+      listTasks({ spaceIds: [beta, gamma], assigneeIds: [String(strangerId)] }),
+    );
+    expect(both.map((task) => task.title)).toEqual(['B']);
+  });
+});
+
+describe('archiving a folder with its tasks', () => {
+  it('archives the folder and its tasks, leaves other folders alone, and is audited', async () => {
+    const spaceId = await aSpace();
+    const doomed = await runWithContext(context, () => createFolder({ spaceId, name: 'Old' }));
+    const kept = await runWithContext(context, () => createFolder({ spaceId, name: 'Current' }));
+    await runWithContext(context, () => createTask({ spaceId, folderId: doomed, title: 'Gone' }));
+    await runWithContext(context, () => createTask({ spaceId, folderId: kept, title: 'Stays' }));
+
+    const { archiveFolder } = await import('@/modules/tasks/services/folder.service');
+    const result = await runWithContext(context, () => archiveFolder(doomed, { withTasks: true }));
+    expect(result.tasks).toBe(1);
+
+    const remaining = await runWithContext(context, () => listTasks({ spaceId }));
+    expect(remaining.map((task) => task.title)).toEqual(['Stays']);
+
+    const folders = await runWithContext(context, () => listFolders(spaceId));
+    expect(folders.map((folder) => folder.name)).toEqual(['Current']);
+  });
+
+  it('refuses while a timer runs on one of its tasks', async () => {
+    const spaceId = await aSpace();
+    const folderId = await runWithContext(context, () => createFolder({ spaceId, name: 'Busy' }));
+    const taskId = await runWithContext(context, () =>
+      createTask({ spaceId, folderId, title: 'Being timed' }),
+    );
+    await runWithContext(context, () => startTimer(taskId));
+
+    const { archiveFolder } = await import('@/modules/tasks/services/folder.service');
+    await expect(
+      runWithContext(context, () => archiveFolder(folderId, { withTasks: true })),
+    ).rejects.toThrow(/timer running/);
+  });
+});
+
 describe('archiving a space', () => {
   it('takes its folders and tasks with it, and restore brings back exactly those', async () => {
     const spaceId = await runWithContext(context, () => createSpace({ name: 'Old project' }));

@@ -1,5 +1,109 @@
 # FEEDBACK
 
+## John, 9 Oct 2026 — feedback batch Q1 to Q5 (built, answers confirmed, acceptance pending)
+
+John paused CRM work on 9 Oct 2026 for feedback and improvements, then said to start. Built together
+with the Leads branch (P2.2a) and shown in one What's new entry (2026-10-09).
+
+Q1. Tasks, Spaces: archive or delete a Folder. BUILT. Folder settings (gear beside the active folder)
+    has "Archive or remove this folder…" with two choices: archive the folder and keep its tasks in
+    the space (the existing service rule), or archive the folder with its tasks and subtasks
+    (`archivedWithFolder` on the task). Nothing is hard deleted, in line with "nothing deletes";
+    logged time stays; a running timer on one of its tasks refuses the archive. Audited.
+    Not built: a screen to restore an archived folder (data is kept, flagged for restore later).
+
+Q2. Support, Tickets: eye icon removed from the list and the ticket page. The subject opens the
+    quick preview on a plain click (`TicketSubjectLink`); a modified click still opens the ticket
+    in a new tab. The preview's open icon is now a full screen (expand) icon to the whole ticket.
+
+Q3. Support, Tickets: drag to reorder. BUILT as a personal order (assumption, John to confirm):
+    stored on the user (`ticketOrder`), tickets named in it first, the rest in the usual latest
+    activity order; a filtered view saves only what it shows and keeps earlier positions; "Reset my
+    order" clears it. Column sorting pauses dragging. Desktop table only; phone cards have no drag.
+    Pure rules in `tickets/ticket-order.ts`.
+
+Q4. Time: the Time section of a task now lists "Time entries" person by person (date, minutes,
+    note), with each person's total. People with `timesheet.read.all` see everyone; others see
+    their own entries only, under the unchanged total (assumption, John to confirm).
+    `listTaskTimeByPerson` in the time service.
+
+Q5. Tasks, Spaces: "All work" showing every space's tasks. NOT REPRODUCED. A Space's All work tab
+    shows only that space's tasks in the current code (checked in a browser with two spaces, and by
+    the existing database test "returns only the tasks of the space asked for"). The same fault
+    was fixed on 1 Oct (item 4 below; `$and` in listTasks, live at 126767a), so a server that has
+    not pulled that or a later release would still show it. The All tasks page, by design, lists
+    every space. Asked John to confirm after deploying whether it still happens and on which
+    screen.
+
+John's answers (9 Oct 2026), all matching what was built: the ticket order is personal; people
+without `timesheet.read.all` see only their own time entries; archiving is enough for folder
+"delete" for now. Q5 still waits on a retest after deploying.
+
+Verified in a scratch copy: tsc, eslint with no warnings, project Prettier, 143 unit tests,
+database tests for the folder archive and per-person time on FerretDB, and a Chromium walk-through
+of Q1 to Q4. NOT run on real MongoDB.
+
+## John, 9 Oct 2026 — Team activity page and billable default (built, acceptance pending)
+
+1. Team activity (`/time/activity`, under Time, permission `timesheet.read.all`): one row per person
+   and task or ticket, with the item's current stage or status, time in the chosen days, a
+   "working now" mark and last worked. Filters: from/to date (default today), stage or status,
+   person. Built from recorded time only, so people who never start a timer or log time do not show
+   (stated on the page). `time/services/activity.service.ts`.
+   Follow-up the same day: people are picked with the same multi-person picker as Tasks and Spaces;
+   Tasks and Tickets checkboxes (one or both); a Today button beside the dates; task and ticket
+   titles open the same preview popups as Tasks and Support; Share sends the filtered page as a
+   PDF by email (outbox kind `activity_report`, Alert sender, PDF stored then attached) or
+   downloads it (`/time/activity/pdf`). PDF built with `pdf-lib` (new dependency, pure JS;
+   Latin letters only in the PDF, other scripts print as "?"). Filters live in the address
+   (`time/activity-filter.ts`).
+   Totals on screen (John, 9 Oct 2026): the page showed no total while the PDF did. A Total chip
+   and one chip per person, for the rows and filters on screen, now sit above the table.
+2. Billable is unchecked by default for every new timer and manual entry, tasks and tickets
+   (model default, service default, timesheet form). Existing entries keep their value; no
+   migration. Edit forms still show each entry's stored value.
+
+## John, 9 Oct 2026 — All tasks screen (built, acceptance pending)
+
+1. Spaces filter: pick one, several or all (empty means all). Space chosen in the address as
+   repeated `space=` values.
+2. Assignees filter: one, several or all, for people who can see every task; choosing people
+   replaces the "Mine" chip. Repeated `assignee=` values. Everyone else stays on their own tasks.
+3. Add task now opens a popup (`new-task-popup.tsx`): Personal or any Space, folder, assignees,
+   priority, start, due, description. Personal tasks are for the signed-in person. A failed save
+   keeps what was typed. Personal page keeps its own quick panel. Personal space is not in the
+   Spaces filter (it is created on first use).
+
+## John, 10 Oct 2026 — time on a shared task (built, acceptance pending)
+
+When several assignees ran timers on one task, task screens showed everyone's hours added together.
+Now every task and ticket screen shows the viewer's own time only: the All tasks and Spaces lists
+(column "My time"), the task page ("Your time"), task panel and preview, ticket page and preview.
+`loggedMinutesForTask/Ticket` and `listTasks` take the signed-in person's entries; timesheets
+already held only their owner's entries and are unchanged. People with `timesheet.read.all` still
+see each person's hours separately in Time entries on the task page. No grand total of everyone is
+shown on a task any more (assumption: John's wording said accumulated hours must not appear). The
+"over estimate" badge now compares the viewer's own time. The Time report and All timesheets still
+total everyone, by person.
+
+## John, 10 Oct 2026 — daily performance email (built, acceptance pending)
+
+At 9:00 Gulf time every morning the email worker (`coex-mail`) reports on the previous day. Everyone
+active on the staff gets their own note, managers and administrators included: thanks when they
+logged at least the target hours, a polite reminder and encouragement to log honestly when below it
+or at zero. A day off (Saturday, Sunday, outside the tenant working days) is skipped, except that
+anyone who did log time that day still gets their thanks (John's answer, 10 Oct); nobody is reminded
+about a day off. The combined summary goes ONLY to the addresses entered in Setup, Email, "Daily
+performance email" (one or more, default empty, so enter ali@digisol.ae and umbreen@digisol.ae
+there); the same screen has the on/off switch and the target hours (default 6). OFF until switched
+on. Each day is claimed once (`dailyReport.lastSentFor`), so restarts never repeat it. Wording is in
+`time/daily-report.ts`; sent from the Alert sender, outbox kind `daily_report`. Turning it on after
+9:00 reports on the previous day straight away. There is no leave calendar: someone on leave gets
+the gentle reminder.
+
+Also (John, 10 Oct): managers and others with `timesheet.read.all` now see "All people" on the
+task page's Time entries, the total of everyone's time on that task, beside each person's own.
+
 ## 3 October 2026 — To do task color
 
 To do tasks must be yellow; In progress remains blue. Applied to dots, pills and task status selector across themes.

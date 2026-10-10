@@ -367,6 +367,20 @@ by `npm install` on the Mac.
   deployment, pm2 and `.env.local` are unchanged; it moves to `apps/web` together with the first
   `apps/api` in Phase 1.
 
+## CRM decisions — 5 Oct 2026 (John)
+- Everyone on the team sells: all staff can own and work leads and opportunities, and always see
+  their own. Seeing everyone's is the permission `sales.read.all`: held by managers and tenant
+  administrators by default, and granted to an agent only per person in Users and roles, as John
+  decides (5 Oct 2026), the same pattern as `timesheet.read.all`.
+- Several pipelines, each with its own stages (for example new clinics versus upgrades and extra
+  modules). An opportunity belongs to one pipeline.
+- No Negotiation stage. Stages are fully customizable per pipeline: add, rename, reorder; exactly
+  one Won and one Lost. Starting set: Qualified, Needs analysis, Proposal sent, Won, Lost.
+- Lost reasons start as Price and No reply, plus a free text note; the list is customizable.
+- An opportunity carries two amounts: one-off (licence, setup) and recurring (AMC, subscription).
+- Lead sources start with all of: Referral, Website, Event, Phone call, Email, WhatsApp, Other; the
+  list is customizable. Spec: docs/P2-2-CRM-SPEC.md. User page: docs/crm-for-users.html.
+
 ## M6 Channels decisions — 1 Oct 2026 (John)
 - SUSPENDED 4 Oct 2026 (John): the XVERSE team is busy on another project, so M6.3 to M6.6 wait
   until further notice. M6.1 and M6.2 stay in the code as merged; do not extend them. Next work is

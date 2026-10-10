@@ -1,5 +1,4 @@
 import { customerReplySenders } from '@/modules/core/services/email.service';
-import { TicketPreviewButton } from '../ticket-preview-button';
 import { listCollaboratorOptions } from '@/modules/tickets/services/collaborator.service';
 import { CollaboratorsPanel } from './collaborators-panel';
 import { notFound } from 'next/navigation';
@@ -154,11 +153,12 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
                 />
                 <span>{CHANNEL_LABELS[ticket.channel] ?? ticket.channel}</span>
                 <span>Raised {formatDateTime(ticket.createdAt)}</span>
-                {loggedMinutes > 0 ? <span>{formatMinutes(loggedMinutes)} logged</span> : null}
+                {loggedMinutes > 0 ? (
+                  <span>{formatMinutes(loggedMinutes)} logged by you</span>
+                ) : null}
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <TicketPreviewButton ticketId={ticket.id} />
                 <TicketTimerButton
                   ticketId={ticket.id}
                   running={timerRunning}

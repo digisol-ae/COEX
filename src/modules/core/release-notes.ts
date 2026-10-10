@@ -59,8 +59,38 @@ export const RELEASE_NOTES: ReleaseNote[] = [
   {
     id: '2026-10-09',
     date: '9 October 2026',
-    title: 'Leads',
+    title: 'Leads, tickets, folders and time',
     sections: [
+      {
+        heading: 'All tasks',
+        items: [
+          'On All tasks you can now filter by one, several or all Spaces, and by one, several or all people, with the same picker style as assigning people.',
+          'Add task opens a popup where you choose Personal or any Space, then the folder, people, priority and dates.',
+        ],
+      },
+      {
+        heading: 'Tickets',
+        items: [
+          'Click a ticket subject to open its quick preview, the same way a task title opens its panel. The eye icon is gone. The preview has a full screen icon that opens the whole ticket.',
+          'Drag tickets in the list to put them in your own order. The order is yours alone and does not change anyone else\'s list. Sorting a column pauses dragging, and "Reset my order" puts the list back to latest activity first.',
+        ],
+      },
+      {
+        heading: 'Folders',
+        items: [
+          'A folder can now be archived from its settings (the gear beside the folder). Choose to keep its tasks in the space, or to archive the folder together with its tasks. Nothing is deleted for good, logged time is kept, and a running timer stops the archive.',
+        ],
+      },
+      {
+        heading: 'Time',
+        items: [
+          'A short email each morning at 9:00 tells each person how much time they logged the day before: a thank you for a full day, and a polite reminder to log their work honestly when little or nothing was logged. Days off such as Saturday and Sunday are skipped unless you worked. Administrators switch it on, set the target hours and choose who gets the combined summary in Setup, Email.',
+          'When a task is shared and several people run their timers, each person now sees only their own time on it ("Your time", "My time" in the list). The hours of everyone are no longer added together on the task. People who may see everyone\'s hours still see each person separately in the task\'s Time entries, with an All people total.',
+          'New Team activity page under Time, for people who can see everyone\'s hours: who is working on which task or ticket, the stage it is in, the time they put on it, and a "working now" mark. Filter by days (with a Today button), stage or status, one or several people, and Tasks, Tickets or both. Click a task or ticket for the same quick preview as on Tasks and Support. Share sends the page as a PDF by email, or downloads it.',
+          'New time entries are no longer marked billable by default. Tick Billable on the entries that are. Entries already saved keep their setting.',
+          "The Time section of a task now lists time entries person by person, each with its date and note. People who may see everyone's timesheets see every person; everyone else sees their own entries.",
+        ],
+      },
       {
         heading: 'Leads',
         items: [

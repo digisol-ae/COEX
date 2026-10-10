@@ -76,7 +76,7 @@ export function TaskPreview({ task, onClose }: { task: TaskSummary; onClose: () 
           <dd>{task.endAt ? formatDateTime(task.endAt) : 'No date'}</dd>
         </div>
         <div>
-          <dt className="text-[var(--color-ink-subtle)]">Logged</dt>
+          <dt className="text-[var(--color-ink-subtle)]">Your time</dt>
           <dd>{formatMinutes(detail?.loggedMinutes ?? task.loggedMinutes)}</dd>
         </div>
       </dl>

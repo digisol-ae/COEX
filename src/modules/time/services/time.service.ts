@@ -3,6 +3,7 @@ import { getContext } from '@/lib/tenant-context';
 import { repository } from '@/lib/repository';
 import { toObjectId } from '@/lib/ids';
 import { recordAudit, changedFields } from '@/modules/core/services/audit.service';
+import { UserModel } from '@coex/shared/core/models/user.model';
 import { TaskModel } from '@coex/shared/tasks/models/task.model';
 import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
 import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
@@ -68,20 +69,103 @@ export async function getRunningTimer(userId?: string): Promise<RunningTimer | n
   };
 }
 
-/** Total time recorded against one task, by everyone. */
-export async function loggedMinutesForTask(taskId: string): Promise<number> {
+/**
+ * Time recorded against one task by one person, the signed-in person unless told otherwise.
+ *
+ * Never a sum over everyone (John, 10 Oct 2026): when several people are assigned and each runs a
+ * timer, a task's screen showed all of their hours added together, and nobody could tell what they
+ * had put in themselves. A person's own time is what their timesheet holds; other people's entries
+ * stay on the task page for those allowed to see them (`listTaskTimeByPerson`).
+ */
+export async function loggedMinutesForTask(taskId: string, userId?: string): Promise<number> {
   await connectToDatabase();
 
-  const found = await entries().find({ taskId: toObjectId(taskId) });
+  const found = await entries().find({
+    taskId: toObjectId(taskId),
+    userId: toObjectId(userId ?? String(getContext().userId)),
+  });
 
   return found.reduce((sum, entry) => sum + (entry.minutes ?? 0), 0);
 }
 
-/** Every minute recorded against one ticket, by everyone. */
-export async function loggedMinutesForTicket(ticketId: string): Promise<number> {
+export interface TaskTimeByPerson {
+  userId: string;
+  name: string;
+  minutes: number;
+  entries: {
+    id: string;
+    workDate: Date;
+    minutes: number;
+    note: string | null;
+    running: boolean;
+    source: 'timer' | 'manual';
+  }[];
+}
+
+/**
+ * The time on one task, kept apart person by person (John, 9 Oct 2026): the task page used to show
+ * only the sum of everyone's hours. `onlyUserId` limits it to one person's own entries, which is
+ * what someone without `timesheet.read.all` may see; the page decides, because who sees other
+ * people's hours is a permission, not a service rule. A running timer counts its elapsed time.
+ */
+export async function listTaskTimeByPerson(
+  taskId: string,
+  options: { onlyUserId?: string } = {},
+): Promise<TaskTimeByPerson[]> {
   await connectToDatabase();
 
-  const found = await entries().find({ ticketId: toObjectId(ticketId) });
+  const found = await entries()
+    .find({
+      taskId: toObjectId(taskId),
+      ...(options.onlyUserId ? { userId: toObjectId(options.onlyUserId) } : {}),
+    })
+    .sort({ workDate: -1, createdAt: -1 });
+
+  const people = await UserModel.find({
+    _id: { $in: [...new Set(found.map((entry) => String(entry.userId)))] },
+  }).select('name');
+  const names = new Map(people.map((person) => [String(person._id), person.name]));
+
+  const byPerson = new Map<string, TaskTimeByPerson>();
+
+  for (const entry of found) {
+    const userId = String(entry.userId);
+    const startedAt = entry.startedAt ?? entry.createdAt;
+    const minutes = entry.running
+      ? Math.max(0, Math.floor((Date.now() - startedAt.getTime()) / 60000))
+      : (entry.minutes ?? 0);
+
+    const group = byPerson.get(userId) ?? {
+      userId,
+      name: names.get(userId) ?? 'Unknown',
+      minutes: 0,
+      entries: [],
+    };
+    group.minutes += minutes;
+    group.entries.push({
+      id: String(entry._id),
+      workDate: entry.workDate,
+      minutes,
+      note: entry.note ?? null,
+      running: entry.running ?? false,
+      source: entry.source ?? 'manual',
+    });
+    byPerson.set(userId, group);
+  }
+
+  return [...byPerson.values()].sort(
+    (a, b) => b.minutes - a.minutes || a.name.localeCompare(b.name),
+  );
+}
+
+/** Time one person recorded against one ticket, the signed-in person unless told otherwise. */
+export async function loggedMinutesForTicket(ticketId: string, userId?: string): Promise<number> {
+  await connectToDatabase();
+
+  const found = await entries().find({
+    ticketId: toObjectId(ticketId),
+    userId: toObjectId(userId ?? String(getContext().userId)),
+  });
 
   return found.reduce((sum, entry) => sum + (entry.minutes ?? 0), 0);
 }
@@ -374,7 +458,7 @@ export async function addManualEntry(input: ManualEntryInput): Promise<void> {
     workDate,
     minutes: input.duration,
     note: input.note?.trim() || null,
-    billable: input.billable ?? true,
+    billable: input.billable ?? false,
     source: 'manual',
     running: false,
   });

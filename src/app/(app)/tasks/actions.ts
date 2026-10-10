@@ -210,6 +210,46 @@ export async function createPersonalTaskAction(
 }
 
 /**
+ * The New task popup on All tasks (John, 9 Oct 2026): one form that creates the task in Personal
+ * or in any Space, with its folder, people, priority and dates. Personal tasks go to the signed-in
+ * person, as before; for a Space the service applies its private Space and Folder rules.
+ */
+export async function createTaskAnywhereAction(
+  _previous: TaskFormState,
+  formData: FormData,
+): Promise<TaskFormState> {
+  const actor = await requirePermission('task.manage');
+  const destination = text(formData, 'spaceId');
+
+  try {
+    await asUser(actor, async () => {
+      const personal = destination === 'personal';
+      const spaceId = personal ? await personalSpaceForCurrentUser() : destination;
+      if (!spaceId) throw new Error('Choose where the task goes.');
+
+      await createTask({
+        spaceId,
+        title: text(formData, 'title'),
+        description: text(formData, 'description'),
+        priority: toPriority(text(formData, 'priority')),
+        assigneeIds: personal ? [actor.id] : assigneesFrom(formData),
+        startAt: text(formData, 'startAt') || null,
+        endAt: text(formData, 'endAt') || null,
+        folderId: personal ? null : text(formData, 'folderId') || null,
+      });
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not create the task.' };
+  }
+
+  revalidatePath('/tasks');
+  revalidatePath('/spaces');
+  revalidatePath('/personal');
+  revalidatePath('/dashboard');
+  return { saved: true };
+}
+
+/**
  * Adding a task from the foot of a column or a group.
  *
  * A title and nothing else, straight into the column it was typed under. Capture and detail are
@@ -590,18 +630,26 @@ export async function quickAddSpaceAction(input: { name: string }): Promise<Task
  * Archiving a folder.
  *
  * The work inside comes out into the space rather than disappearing with the folder, because a
- * folder is a way of grouping and removing it should not remove what was grouped.
+ * folder is a way of grouping and removing it should not remove what was grouped. "Archive with its
+ * tasks" is the explicit second choice (John, 9 Oct 2026). Returns an error rather than throwing so
+ * a running timer is explained in the popup.
  */
-export async function archiveFolderAction(formData: FormData): Promise<void> {
+export async function archiveFolderAction(formData: FormData): Promise<TaskFormState> {
   const actor = await requirePermission('task.manage');
 
   const id = text(formData, 'id');
   const spaceId = text(formData, 'spaceId');
+  const withTasks = text(formData, 'withTasks') === 'yes';
 
-  await asUser(actor, () => archiveFolder(id));
+  try {
+    await asUser(actor, () => archiveFolder(id, { withTasks }));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not archive the folder.' };
+  }
 
   revalidatePath(`/spaces/${spaceId}`);
   revalidatePath('/spaces');
+  return { saved: true };
 }
 
 /** The people picked with @ in a note, sent by the mention picker as one hidden field each. */

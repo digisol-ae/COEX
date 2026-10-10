@@ -41,6 +41,9 @@ const userSchema = new Schema(
      */
     navigationOrder: { type: [String], default: [] },
 
+    /** The person's own drag order for the ticket list, as ticket ids. See tickets/ticket-order.ts. */
+    ticketOrder: { type: [String], default: [] },
+
     /** The person's colour theme, on the account so it follows them across devices. */
     theme: { type: String, enum: ['sunset', 'light', 'dark'], default: 'sunset' },
 

@@ -129,6 +129,8 @@ const taskSchema = new Schema(
     deletedAt: { type: Date, default: null, index: true },
     /** Archived because its Space was, so restoring the Space brings back exactly these. */
     archivedWithSpace: { type: Boolean, default: false },
+    /** Archived because its Folder was, so a folder restore can bring back exactly these. */
+    archivedWithFolder: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

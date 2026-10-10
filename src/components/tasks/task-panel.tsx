@@ -306,7 +306,7 @@ export function TaskPanel({
 
             <Row label="Hours">
               <span className="text-[var(--color-ink-muted)] tabular-nums">
-                {detail ? formatMinutes(detail.loggedMinutes) : '…'} logged
+                {detail ? formatMinutes(detail.loggedMinutes) : '…'} logged by you
                 {task.plannedMinutes ? ` · ${formatMinutes(task.plannedMinutes)} planned` : ''}
                 {task.estimateMinutes ? ` · ${formatMinutes(task.estimateMinutes)} estimated` : ''}
               </span>

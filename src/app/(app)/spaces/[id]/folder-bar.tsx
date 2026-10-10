@@ -62,7 +62,13 @@ export function FolderBar({
         ))}
 
         {canManage && active ? (
-          <FolderSettings spaceId={spaceId} folder={active} users={users} />
+          <FolderSettings
+            spaceId={spaceId}
+            folder={active}
+            users={users}
+            openTaskCount={counts[active.id] ?? 0}
+            onArchived={() => onSelect(null)}
+          />
         ) : null}
 
         {canManage && !adding ? (

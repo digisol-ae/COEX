@@ -151,7 +151,7 @@ export function Popover({
   );
 }
 
-function MenuItem({
+export function MenuItem({
   onClick,
   selected,
   children,

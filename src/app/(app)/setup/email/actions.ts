@@ -98,6 +98,13 @@ export async function saveEmailSettingsAction(
           opportunityStale: flag(formData, 'opportunityStale'),
           ticketCreated: newTicketAlert(text(formData, 'ticketCreated')),
         },
+        dailyReport: {
+          enabled: flag(formData, 'dailyReportEnabled'),
+          minimumHours: Number(text(formData, 'dailyReportHours') || '6'),
+          summaryRecipients: text(formData, 'dailyReportRecipients')
+            .split(/[\s,;]+/)
+            .filter(Boolean),
+        },
       }),
     );
   } catch (error) {

@@ -94,6 +94,7 @@ export interface TaskSummary {
   subtasks: { id: string; title: string; done: boolean; assigneeId: string | null }[];
   documentCount: number;
   documentLinks: { id: string; title: string; url: string }[];
+  /** The signed-in person's own logged time on this task, not everyone's added together. */
   loggedMinutes: number;
   isClosed: boolean;
   isOverdue: boolean;
@@ -101,9 +102,15 @@ export interface TaskSummary {
 }
 
 export interface TaskFilter {
+  /** Only these tasks, for screens that already know which ones they need. */
+  ids?: string[];
   spaceId?: string;
+  /** Any of these spaces; used by the All tasks screen's space picker. */
+  spaceIds?: string[];
   folderId?: string;
   assigneeId?: string;
+  /** Assigned to any of these people. */
+  assigneeIds?: string[];
   status?: string;
   includeClosed?: boolean;
   overdueOnly?: boolean;
@@ -115,9 +122,14 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
 
   const query: Record<string, unknown> = {};
 
+  if (filter.ids) query._id = { $in: filter.ids.map(toObjectId) };
   if (filter.spaceId) query.spaceId = toObjectId(filter.spaceId);
+  else if (filter.spaceIds?.length) query.spaceId = { $in: filter.spaceIds.map(toObjectId) };
   if (filter.folderId) query.folderId = toObjectId(filter.folderId);
   if (filter.assigneeId) query.assigneeIds = toObjectId(filter.assigneeId);
+  else if (filter.assigneeIds?.length) {
+    query.assigneeIds = { $in: filter.assigneeIds.map(toObjectId) };
+  }
   if (filter.status) query.status = filter.status;
   if (!filter.includeClosed) query.isClosed = false;
   if (filter.overdueOnly) query.endAt = { $lt: new Date() };
@@ -159,8 +171,11 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   // Batched the same way documentCount and subtaskCount are, so a list of a hundred tasks costs
   // one extra query rather than one per task. A running entry has not yet had its minutes written,
   // so its live elapsed time is added in here rather than waiting for it to stop.
+  // Only the signed-in person's own time: summing every assignee's timer made a shared task look
+  // like it had taken the hours of all of them together (John, 10 Oct 2026).
   const timeEntries = await TimeEntryModel.find({
     tenantId: getContext().tenantId,
+    userId: toObjectId(String(getContext().userId)),
     taskId: { $in: found.map((task) => task._id) },
     deletedAt: null,
   }).select('taskId minutes running startedAt createdAt');

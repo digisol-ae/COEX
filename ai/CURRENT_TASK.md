@@ -66,6 +66,55 @@
   first. No code changed; this is documentation and a decision record in CLAUDE.md.
 - Next: P2.2b (pipeline and opportunities; John still owes answers to the spec's six questions),
   then Phase 0 (monorepo skeleton and `packages/shared`).
+## Daily performance email — 10 Oct 2026 (Claude)
+
+- 9:00 Gulf every morning: everyone on the staff (managers and administrators too) gets thanks or a polite reminder about yesterday's hours; a day off is skipped unless the person worked; the combined summary goes only to the addresses entered in Setup, Email (default empty). Task page shows "All people" total to those with timesheet.read.all. Setup, Email; off by default; worker `coex-mail` must be restarted. See FEEDBACK.md.
+
+## Time on shared tasks — 10 Oct 2026 (Claude)
+
+- Task and ticket screens show the viewer's own logged time, not all assignees added together. See FEEDBACK.md.
+
+## All tasks screen — 9 Oct 2026 (Claude)
+
+- Multi space and multi assignee filters, and a New task popup (Personal or any Space). See FEEDBACK.md.
+
+## Team activity page and billable default — 9 Oct 2026 (Claude)
+
+- Built `/time/activity` (Time, `timesheet.read.all`): person, task or ticket, stage, time, working now;
+  filters date range (Today button), stage or status, several people, Tasks/Tickets checkboxes; preview popups; Share as PDF by email or download (new dependency pdf-lib, so `npm ci` on deploy). New time entries default to not billable. See FEEDBACK.md.
+
+## Feedback batch Q1 to Q5 built — 9 Oct 2026 (Claude)
+
+- Branch claude/vigilant-mendel-brfndj now also carries the other chat's P2.2a Leads branch
+  (merged, docs conflicts resolved by keeping both). CRM work beyond Leads stays paused by John.
+- Built from FEEDBACK.md (section "feedback batch Q1 to Q5"): Q1 folder archive (with or without its
+  tasks, no hard delete), Q2 ticket subject opens the preview, eye icon gone, full screen icon,
+  Q3 personal drag order of the ticket list with reset, Q4 per-person time entries on a task.
+  Q5 (All work shows every space) could not be reproduced: current code and tests scope by space;
+  likely an older deployed build. John to confirm after deploying.
+- John confirmed (9 Oct 2026): ticket order is personal; others' time entries need
+  `timesheet.read.all`; folder "delete" means archive, enough for now.
+- Verified in a scratch copy only: tsc, eslint, Prettier, 143 unit tests, DB tests on FerretDB,
+  Chromium walk-through. Not run on real MongoDB. No PR opened yet.
+- Deploy: `git pull`, `npm ci`, `npm run build`, restart coex-app with --update-env, pm2 save. No
+  migration: new fields (`ticketOrder`, `archivedWithFolder`) have defaults.
+
+## CRM visibility decided — 5 Oct 2026 (Claude)
+
+- John: managers and administrators see all leads and opportunities by default; an agent sees
+  everyone's only when John grants it per person. Modelled as permission `sales.read.all`
+  (managers and tenant administrators by default), everyone sees their own. Recorded in CLAUDE.md,
+  docs/P2-2-CRM-SPEC.md and the user page (republished). No CRM question is open now; P2.2a Leads
+  is ready to build on John's go.
+
+## CRM answers recorded — 5 Oct 2026 (Claude)
+
+- John answered the six CRM questions: everyone sells; several pipelines; no Negotiation stage and
+  stages customizable; lost reasons Price and No reply (customizable); two amounts per deal
+  (one-off and recurring); lead sources all of the proposed plus customizable. Recorded in
+  CLAUDE.md, docs/P2-2-CRM-SPEC.md and the user page docs/crm-for-users.html (republished).
+- One answer still open: whether each person sees only their own leads and deals or everyone's.
+- Leads (P2.2a) were built afterwards: see the next entry.
 
 ## P2.2a Leads built — 9 Oct 2026 (Claude)
 

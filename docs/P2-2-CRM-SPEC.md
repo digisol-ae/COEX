@@ -148,6 +148,25 @@ territories. Any of these is a later decision.
 6. Are the reminder defaults right: owner emailed on the next step date, and after 14 days without
    activity?
 
+## John's answers, 5 Oct 2026 (these override anything above that disagrees)
+
+1. Everyone sells: all staff roles hold the lead and opportunity permissions by default and see
+   their own records. Seeing everyone's is a separate permission, `sales.read.all`: managers and
+   tenant administrators have it by default; an agent only when John grants it per person in Users
+   and roles (confirmed 5 Oct 2026).
+2. Several pipelines, each with its own stages. A `Pipeline` record (name, order, stages) replaces
+   the single pipeline; an opportunity stores its `pipelineId` and `stageId`. Pipelines and stages
+   are managed in Setup (`pipeline.manage`).
+3. No Negotiation. Stages are customizable (add, rename, reorder, set default probability); each
+   pipeline has exactly one Won and one Lost stage, and a stage in use cannot be removed. Default
+   set: Qualified, Needs analysis, Proposal sent, Won, Lost.
+4. Lost reasons: Price and No reply to start, plus free text; a customizable list in Setup.
+5. Value is two amounts: one-off and recurring, each with its own currency.
+6. Lead sources: Referral, Website, Event, Phone call, Email, WhatsApp, Other to start; a
+   customizable list in Setup.
+
+Milestone effect: P2.2b now includes Setup for pipelines, stages, sources and lost reasons.
+
 ## Built: P2.2a Leads (9 Oct 2026, Claude)
 
 Built ahead of John's answers to the open questions above, using the spec's proposals; changing any

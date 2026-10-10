@@ -133,8 +133,8 @@ ol.asks { margin: 16px 0 0; padding-left: 20px; display: grid; gap: 8px; color: 
     <h1 style="margin-top:12px">COEX CRM: from first call to signed contract</h1>
     <p class="lead">Track every possible sale in one place, see who owns it and what happens next, and turn a won deal into a customer and a contract without typing it twice.</p>
     <div class="meta">
-      <span><b>Last updated</b> 4 Oct 2026</span>
-      <span><b>Next update</b> Mon 5 Oct 2026. Every working day while being built, then weekly</span>
+      <span><b>Last updated</b> 9 Oct 2026</span>
+      <span><b>Next update</b> Mon 12 Oct 2026. Every working day while being built, then weekly</span>
       <span><b>For</b> sales, managers, support</span>
     </div>
     <div class="live-row" aria-label="Already live in COEX">
@@ -200,9 +200,9 @@ ol.asks { margin: 16px 0 0; padding-left: 20px; display: grid; gap: 8px; color: 
       <div class="words">
         <h3>3. Pipeline board</h3>
         <ul>
+          <li><b>Pick a pipeline</b>, such as New clinics or Upgrades and modules. Each has its own stages.</li>
           <li><b>Drag a card</b> to the next stage, or use the card's menu on a phone.</li>
-          <li><b>Red edge</b> means the next step is overdue or missing.</li>
-          <li><b>Column totals</b> are shown per currency, never mixed.</li>
+          <li><b>Red edge</b> means the next step is overdue or missing. Totals are per currency.</li>
         </ul>
       </div>
       <div class="shot" role="img" aria-label="Mockup of the pipeline board">
@@ -210,16 +210,17 @@ ol.asks { margin: 16px 0 0; padding-left: 20px; display: grid; gap: 8px; color: 
         <div class="shot-body">
           <div class="rail" aria-hidden="true"><i></i><i></i><i class="on"></i><i></i></div>
           <div class="screen">
+            <div class="row" style="margin-bottom:10px"><span class="pill info">New clinics</span><span class="pill">Upgrades and modules</span></div>
             <div class="board">
               <div class="col"><h5>Qualified <span>2</span></h5>
                 <div class="card"><b>Bright Smile</b>R4 rollout<br><small>AED 48,000 · call Tue</small></div>
-                <div class="card late"><b>Latif Dental</b>dOne upgrade<br><small>AED 9,500 · no next step</small></div></div>
+                <div class="card late"><b>Latif Dental</b>R4 setup<br><small>AED 9,500 · no next step</small></div></div>
+              <div class="col"><h5>Needs analysis <span>1</span></h5>
+                <div class="card"><b>Reem Ortho</b>R4 + training<br><small>USD 6,200 · demo Fri</small></div></div>
               <div class="col"><h5>Proposal sent <span>1</span></h5>
-                <div class="card"><b>Artier Dental</b>XVerse module<br><small>AED 22,000 · follow up Thu</small></div></div>
-              <div class="col"><h5>Negotiation <span>1</span></h5>
-                <div class="card"><b>Reem Ortho</b>R4 + training<br><small>USD 6,200 · sign Fri</small></div></div>
+                <div class="card"><b>Noor Clinic</b>R4 rollout<br><small>AED 22,000 · follow up Thu</small></div></div>
               <div class="col"><h5>Won <span>1</span></h5>
-                <div class="card"><b>Noor Clinic</b>AMC renewal<br><small>AED 12,000</small></div></div>
+                <div class="card"><b>Salma Dental</b>R4 rollout<br><small>AED 35,000</small></div></div>
             </div>
           </div>
         </div>
@@ -230,7 +231,7 @@ ol.asks { margin: 16px 0 0; padding-left: 20px; display: grid; gap: 8px; color: 
       <div class="words">
         <h3>4. One opportunity</h3>
         <ul>
-          <li><b>Everything on one page:</b> value, products, owner, expected close date.</li>
+          <li><b>Everything on one page:</b> one-off and recurring amounts, products, owner, expected close date.</li>
           <li><b>Always a next step</b> with a date. Calls, meetings and notes are logged in two clicks.</li>
           <li><b>Win it</b> and COEX offers to create the contract, already filled in.</li>
         </ul>
@@ -241,7 +242,7 @@ ol.asks { margin: 16px 0 0; padding-left: 20px; display: grid; gap: 8px; color: 
           <div class="rail" aria-hidden="true"><i></i><i></i><i class="on"></i><i></i></div>
           <div class="screen">
             <div class="row" style="justify-content:space-between"><h4 style="margin:0">XVerse module · Artier Dental</h4><span class="pill info">Proposal sent</span></div>
-            <div class="row" style="margin:10px 0"><span class="pill">AED 22,000</span><span class="pill">Close by 30 Oct</span><span class="pill">Owner: Omar</span></div>
+            <div class="row" style="margin:10px 0"><span class="pill">One-off AED 15,000</span><span class="pill">Recurring AED 7,000 a year</span><span class="pill">Close by 30 Oct</span><span class="pill">Owner: Omar</span></div>
             <div class="field"><span>Next step</span><div>Follow up on the proposal · Thu 9 Oct</div></div>
             <div class="row"><span class="btn pri">Mark won</span><span class="btn">Mark lost</span><span class="btn">Log a call</span></div>
             <p style="font-size:11.5px;color:var(--ink-3);margin-top:10px">Timeline: Proposal emailed · Meeting held · Stage changed to Proposal sent</p>
@@ -287,8 +288,32 @@ ol.asks { margin: 16px 0 0; padding-left: 20px; display: grid; gap: 8px; color: 
         <div class="screen">
           <div class="mail">
             <div class="sub">Next step due today: XVerse module · Artier Dental</div>
-            <p>Follow up on the proposal. The deal is worth AED 22,000 and is in Proposal sent.</p>
+            <p>Follow up on the proposal. The deal is worth AED 15,000 one-off and AED 7,000 a year, and is in Proposal sent.</p>
             <p style="margin-top:6px;color:var(--ink-3)">Open the opportunity in COEX</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="words">
+        <h3>7. Make it yours</h3>
+        <ul>
+          <li><b>Pipelines and stages:</b> add, rename and reorder them. Each pipeline keeps one Won and one Lost stage.</li>
+          <li><b>Lead sources and lost reasons</b> are your own lists. Add one in a few seconds.</li>
+          <li>Changes apply to new work straight away. A stage with deals in it cannot be removed until they move.</li>
+        </ul>
+      </div>
+      <div class="shot" role="img" aria-label="Mockup of the CRM settings">
+        <div class="shot-bar"><span>Setup › CRM</span><span>example data</span></div>
+        <div class="shot-body">
+          <div class="rail" aria-hidden="true"><i></i><i></i><i></i><i class="on"></i></div>
+          <div class="screen">
+            <div class="panels">
+              <div class="panel"><h5>Pipeline: New clinics</h5>1 Qualified<br>2 Needs analysis<br>3 Proposal sent<br>4 Won · 5 Lost<br><span class="btn" style="margin-top:6px;display:inline-block">Add stage</span></div>
+              <div class="panel"><h5>Lead sources</h5>Referral · Website<br>Event · Phone call<br>Email · WhatsApp<br>Other<br><span class="btn" style="margin-top:6px;display:inline-block">Add source</span></div>
+              <div class="panel"><h5>Lost reasons</h5>Price<br>No reply<br><span class="btn" style="margin-top:6px;display:inline-block">Add reason</span></div>
+            </div>
           </div>
         </div>
       </div>
@@ -298,7 +323,7 @@ ol.asks { margin: 16px 0 0; padding-left: 20px; display: grid; gap: 8px; color: 
 
   <h2>House rules</h2>
   <div class="rules">
-    <div class="rule"><b>Who sees what</b><p>Salespeople see their own leads and deals. Managers and administrators see all of them.</p></div>
+    <div class="rule"><b>Who sees what</b><p>Everyone works their own leads and deals. Managers and administrators see everyone's. An agent sees everyone's only if you grant it to that person.</p></div>
     <div class="rule"><b>Nothing is deleted</b><p>Leads are disqualified and deals marked lost, always with a reason. You can always find them again.</p></div>
     <div class="rule"><b>Money stays honest</b><p>Amounts keep their own currency. AED, USD and PKR are never added together.</p></div>
     <div class="rule"><b>Quotes and invoices</b><p>These stay in Zoho Books. COEX keeps the quote number as a reference.</p></div>
@@ -310,26 +335,28 @@ ol.asks { margin: 16px 0 0; padding-left: 20px; display: grid; gap: 8px; color: 
   <div class="tablewrap">
     <table class="plan">
       <tr><th>Step</th><th>What you get</th><th>Status</th></tr>
-      <tr><td><b>A. Leads</b></td><td>Add, find, convert and disqualify leads, with duplicate warnings</td><td><span class="chip next">Waiting for answers</span></td></tr>
-      <tr><td><b>B. Opportunities</b></td><td>Stages you can edit, deal page, next steps, won and lost reasons</td><td><span class="chip">Planned</span></td></tr>
+      <tr><td><b>A. Leads</b></td><td>Add, find, convert and disqualify leads, with duplicate warnings and your own source list</td><td><span class="chip next">Next up</span></td></tr>
+      <tr><td><b>B. Opportunities</b></td><td>Several pipelines with stages you set up, deal page with one-off and recurring amounts, next steps, won and lost reasons</td><td><span class="chip">Planned</span></td></tr>
       <tr><td><b>C. Board and conversion</b></td><td>The pipeline board, lead conversion, customer page panel, win to contract</td><td><span class="chip">Planned</span></td></tr>
       <tr><td><b>D. Reminders</b></td><td>Next step and quiet deal emails, dashboard card</td><td><span class="chip">Planned</span></td></tr>
     </table>
   </div>
-  <p style="color:var(--ink-3);font-size:13px;margin-top:8px">Dates are added here once the questions below are answered. Status chips: Planned, Waiting for answers, Building, Live.</p>
+  <p style="color:var(--ink-3);font-size:13px;margin-top:8px">Dates are added here when each step is scheduled. Leads is ready to build. Status chips: Planned, Next up, Building, Live.</p>
 
-  <h2>Six answers we need from you</h2>
+  <h2>Decided</h2>
   <ol class="asks">
-    <li>Who sells: a few named people, or everyone on the team?</li>
-    <li>Is one pipeline enough, or do new clinics and upgrades need different stages?</li>
-    <li>Are the stages right (Qualified, Needs analysis, Proposal sent, Negotiation, Won, Lost)?</li>
-    <li>What reasons do you hear when a deal is lost (price, competitor, timing, no budget, no reply)?</li>
-    <li>Should a deal show one-off money (licence, setup) apart from recurring money (AMC)?</li>
-    <li>Where do your leads come from today? This becomes the Source list.</li>
+    <li><b>Everyone sells.</b> Anyone on the team can own leads and deals and always sees their own. Managers and administrators see all by default; for an agent you decide, person by person.</li>
+    <li><b>Different stages for different work.</b> Several pipelines, each with its own stages.</li>
+    <li><b>No Negotiation stage.</b> You can add, rename and reorder stages yourself. We start with Qualified, Needs analysis, Proposal sent, Won, Lost.</li>
+    <li><b>Lost reasons:</b> Price and No reply to start, and you can add more.</li>
+    <li><b>Two amounts on every deal:</b> one-off and recurring.</li>
+    <li><b>Lead sources:</b> Referral, Website, Event, Phone call, Email, WhatsApp and Other to start, and you can add your own.</li>
   </ol>
 
   <h2>What changed</h2>
   <div class="log">
+    <div><time>5 Oct 2026</time><span>Who sees what is decided: managers and administrators see all leads and deals; an agent sees everyone's only when you grant it. No questions are open now.</span></div>
+    <div><time>5 Oct 2026</time><span>Your six answers are in: everyone sells, several pipelines, no Negotiation stage, customizable stages, sources and lost reasons, and two amounts per deal. Board and deal screens updated to match, plus a new settings screen.</span></div>
     <div><time>4 Oct 2026</time><span>First preview published. Customers, contacts, products and contracts are already live; leads and the pipeline are planned.</span></div>
   </div>
 </div>
