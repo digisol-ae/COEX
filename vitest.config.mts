@@ -34,7 +34,7 @@ const environment = readEnvFile('.env.local');
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.test.ts', 'apps/*/tests/**/*.test.ts'],
     fileParallelism: false,
     testTimeout: 30000,
     // testTimeout does not cover beforeAll/beforeEach, whose default is 10 seconds. Every database

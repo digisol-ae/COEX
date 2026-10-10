@@ -1,0 +1,19 @@
+{
+  "name": "@coex/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The COEX Express API, built beside the Next.js app and taking modules over one at a time.",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@coex/shared": "*",
+    "express": "^5.1.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/supertest": "^6.0.3",
+    "supertest": "^7.1.4"
+  }
+}

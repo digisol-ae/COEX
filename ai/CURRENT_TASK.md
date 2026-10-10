@@ -1,5 +1,20 @@
 # COEX — Current AI Task
 
+## Architecture revamp Phase 1a built — 12 Oct 2026 (Claude)
+
+- `apps/api` (Express 5): health, `/me`, read only `/leads`, `defineRoute` declarations, OpenAPI at
+  `/api/v2/openapi.json`, one error shape, same-origin rule for writes. Reads the web app's
+  `coex_session` cookie through the new framework-free `auth-context.service` (web `session.ts`
+  now uses it too). Services imported unchanged; nothing duplicated. Details: docs/ARCHITECTURE-REVAMP.md,
+  "Phase 1a as built", and apps/api/README.md.
+- Verified in a scratch copy: typecheck (3 packages), eslint zero warnings, 163 unit, 10 API tests
+  (emulator, session TTL index disabled there), production build, API started under tsx, web
+  login cookie accepted by the API. NOT run: real MongoDB; nothing deployed.
+- The API is invisible: Apache lines are commented out in deploy/apache-coex.conf and `coex-api` is
+  not started. John on the Mac: `git pull`, `npm install`, `npm run typecheck`, `npm run build`.
+  Deploy as usual with `npm ci` (this adds express).
+- Next: 1b workers into the API, 1c sign in and Entra routes, 1d `apps/web` move.
+
 ## Architecture revamp Phase 0 built — 12 Oct 2026 (Claude)
 
 - npm workspaces plus `packages/shared` (`@coex/shared`): all 33 models and 21 pure files moved

@@ -2,12 +2,14 @@ import { cache } from 'react';
 import { Types } from 'mongoose';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { connectToDatabase } from './db';
 import { runWithContext, type RequestContext } from './tenant-context';
-import { SESSION_COOKIE, resolveSession } from '@/modules/core/services/session.service';
-import { UserModel } from '@coex/shared/core/models/user.model';
-import { TenantModel } from '@coex/shared/core/models/tenant.model';
-import { can, permissionsFor, type Permission, type Role } from '@coex/shared/core/permissions';
+import { SESSION_COOKIE } from '@/modules/core/services/session.service';
+import {
+  resolveAuthenticatedUser,
+  type AuthenticatedUser,
+  type Theme,
+} from '@/modules/core/services/auth-context.service';
+import { can, type Permission } from '@coex/shared/core/permissions';
 
 /**
  * The bridge between an HTTP request and the tenant context the data layer expects.
@@ -16,24 +18,14 @@ import { can, permissionsFor, type Permission, type Role } from '@coex/shared/co
  * about cookies, and nothing above it needs to remember to pass a tenantId.
  */
 
-export interface SignedInUser {
-  id: string;
-  name: string;
-  email: string;
-  role: Role;
-  tenantId: string;
-  tenantName: string;
-  permissions: Permission[];
-  theme: Theme;
-  /** The What's new release this person has acknowledged; null for none yet. */
-  releaseNotesSeen: string | null;
-}
+export type SignedInUser = AuthenticatedUser;
 
-export type Theme = 'sunset' | 'light' | 'dark';
+export type { Theme };
 
 /**
  * Cached per request: the root layout reads it for the theme and every page reads it again, and
- * both should cost one lookup.
+ * both should cost one lookup. The lookup itself lives in auth-context.service so the Express API
+ * resolves sessions exactly the same way.
  */
 export const getSignedInUser = cache(
   async function getSignedInUser(): Promise<SignedInUser | null> {
@@ -42,41 +34,7 @@ export const getSignedInUser = cache(
 
     if (!token) return null;
 
-    await connectToDatabase();
-
-    const session = await resolveSession(token);
-    if (!session) return null;
-
-    const user = await UserModel.findOne({
-      _id: session.userId,
-      status: 'active',
-      deletedAt: null,
-    });
-    if (!user) return null;
-
-    const tenant = await TenantModel.findOne({
-      _id: session.impersonatedTenantId ?? user.tenantId,
-      status: 'active',
-    });
-    if (!tenant) return null;
-
-    return {
-      id: String(user._id),
-      name: user.name,
-      email: user.email,
-      role: user.role as Role,
-      tenantId: String(tenant._id),
-      tenantName: tenant.name,
-      permissions: [
-        ...permissionsFor({
-          role: user.role as Role,
-          permissionGrants: user.permissionGrants,
-          permissionDenials: user.permissionDenials,
-        }),
-      ],
-      theme: (user.theme as Theme | undefined) ?? 'sunset',
-      releaseNotesSeen: user.releaseNotesSeen ?? null,
-    };
+    return resolveAuthenticatedUser(token);
   },
 );
 

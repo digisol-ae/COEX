@@ -163,3 +163,45 @@ is a separate decision for John.
 - Next (Phase 1): `apps/api` skeleton, session and tenant middleware, health check, Apache route for
   `/api/v2`, workers moved over one at a time, Entra in Express, and the move of the web app to
   `apps/web`.
+
+## Phase 1a as built (12 Oct 2026, Claude)
+
+Phase 1 is delivered in steps so each one can be checked on its own. Step 1a is the API beside the
+app; it is invisible until Apache is told to route to it.
+
+- `apps/api` (`@coex/api`): Express 5, TypeScript, started with `npm run api:start` (pm2 process
+  `coex-api`, loopback port 3002) or `npm run api:dev`. It reads the same `.env.local` / `.env`.
+- **Same session, proven.** A person signs in on the web app; the API accepts the very same
+  `coex_session` cookie. Both resolve it through one framework-free service,
+  `core/services/auth-context.service.ts` (the web app's `session.ts` now calls it too), so they can
+  never disagree about who someone is or what they may do. Web sign in was re-verified after this
+  refactor.
+- **Same tenant rule.** After sign in each request runs inside `runWithContext`, so services are
+  scoped to the person's tenant exactly as in a server action. Services still refuse for themselves.
+- **Routes are declared as data** (`defineRoute`): sign in, permission, query, params and body
+  validation (zod), and a response schema that also strips any field it does not name. The OpenAPI
+  3.0 document is generated from the same declarations at `GET /api/v2/openapi.json`, which is the
+  contract for the frontend and backend developers.
+- **Errors**: `{ error: { code, message } }`. A plain `Error` thrown by a service is a refusal
+  (422, message unchanged); validation 400; no session 401; no permission 403; anything unexpected
+  is logged with the request id (`X-Request-Id`) and returns a generic 500.
+- **Writes** must come from our own origin (`sameOriginForWrites`); the cookie is SameSite. No write
+  routes exist yet.
+- **First slice**: `GET /health`, `GET /me`, `GET /leads` (read only), enough to prove the pattern
+  end to end. `GET /leads` uses the existing lead service unchanged.
+- **No duplicate code.** The API imports services from the web app's `src/modules/*/services` (its
+  `@/` alias points there). A module's services are moved into `apps/api` with `git mv` when its
+  screens switch over (Phase 2), so there is only ever one copy of a rule.
+- **Deploy, when John chooses** (nothing changes until then): `npm ci`, `pm2 start npm --name
+  coex-api -- run api:start`, `pm2 save`, then uncomment the two `ProxyPass /api/v2/` lines in the
+  Apache site (deploy/apache-coex.conf) and `sudo apache2ctl configtest && sudo systemctl reload
+  apache2`. Check: `curl https://coex.digisol.ae/api/v2/health`.
+- Verified in a scratch copy: typecheck of all three packages, ESLint zero warnings, 163 unit tests,
+  10 new API tests (supertest against a MongoDB emulator, with the session expiry index disabled
+  because the emulator cannot build it; real MongoDB builds it), production build, the real API
+  started under `tsx`, and the web app's sign in cookie used against `/me` and `/leads`.
+
+Remaining Phase 1 steps, each its own commit: **1b** move the three workers (`coex-mail`,
+`coex-desk-close`, `coex-channels`) into `apps/api`, one at a time; **1c** sign in, sign out, password
+reset and the Entra flow as API routes (still issuing the same cookie); **1d** move the Next.js app
+to `apps/web` with the matching `deploy/` and pm2 changes.

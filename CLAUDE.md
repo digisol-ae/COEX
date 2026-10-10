@@ -209,6 +209,9 @@ never sent to their browser.
   (statuses, phone numbers, week maths, email text, permissions). Folder layout mirrors the modules;
   import as `@coex/shared/crm/models/lead.model`. It never imports services, `@/` paths or
   anything HTTP. See packages/shared/README.md.
+- `apps/api/` (`@coex/api`, 12 Oct 2026): the Express API, running beside the Next.js app and
+  taking modules over one at a time. Same `coex_session` cookie, same tenant context, services
+  imported unchanged from `src/modules/*/services` until a module switches. See apps/api/README.md.
 - `src/modules/<module>/` one folder per module, services, components and actions only (models and
   pure rules live in `packages/shared`), never importing from a sibling module (Tasks and
   Tickets excepted, decision 13)
@@ -366,6 +369,10 @@ by `npm install` on the Mac.
   the app imports them from there. The app itself stays at the repository root for now, so
   deployment, pm2 and `.env.local` are unchanged; it moves to `apps/web` together with the first
   `apps/api` in Phase 1.
+- Phase 1a built 12 Oct 2026: `apps/api` (Express) with health, `/me` and read only `/leads`, OpenAPI
+  generated from declared routes, and proof that the web app's session cookie works against it.
+  Not routed by Apache and not started on the server until John chooses. Remaining: 1b workers,
+  1c sign in and Entra routes, 1d move the web app to `apps/web`.
 
 ## CRM decisions — 5 Oct 2026 (John) — SUPERSEDED
 Superseded on 12 Oct 2026 (John: "use the 10 Oct answers, keep as is"). The current decisions are
