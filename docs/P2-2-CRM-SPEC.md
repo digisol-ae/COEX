@@ -148,7 +148,12 @@ territories. Any of these is a later decision.
 6. Are the reminder defaults right: owner emailed on the next step date, and after 14 days without
    activity?
 
-## John's answers, 5 Oct 2026 (these override anything above that disagrees)
+## John's answers, 5 Oct 2026 (SUPERSEDED by the 10 Oct 2026 answers at the end of this file)
+
+John confirmed on 12 Oct 2026: "use the 10 Oct answers, keep as is". Where this section differs
+(`sales.read.all`, several pipelines, no Negotiation, two lost reasons), the 10 Oct answers and the
+built behaviour win: separate `lead.read.all` and `opportunity.read.all`, one pipeline, the
+proposed stages including Negotiation, and the five proposed lost reasons.
 
 1. Everyone sells: all staff roles hold the lead and opportunity permissions by default and see
    their own records. Seeing everyone's is a separate permission, `sales.read.all`: managers and

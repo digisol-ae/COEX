@@ -367,7 +367,12 @@ by `npm install` on the Mac.
   deployment, pm2 and `.env.local` are unchanged; it moves to `apps/web` together with the first
   `apps/api` in Phase 1.
 
-## CRM decisions — 5 Oct 2026 (John)
+## CRM decisions — 5 Oct 2026 (John) — SUPERSEDED
+Superseded on 12 Oct 2026 (John: "use the 10 Oct answers, keep as is"). The current decisions are
+those of 10 Oct 2026 under "Phase 2 decisions" above: one simple pipeline, the proposed stages
+including Negotiation, five lost reasons, separate `lead.read.all` and `opportunity.read.all`.
+Kept below only as history; do not build from it.
+
 - Everyone on the team sells: all staff can own and work leads and opportunities, and always see
   their own. Seeing everyone's is the permission `sales.read.all`: held by managers and tenant
   administrators by default, and granted to an agent only per person in Users and roles, as John
