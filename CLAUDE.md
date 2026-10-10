@@ -373,6 +373,10 @@ by `npm install` on the Mac.
   generated from declared routes, and proof that the web app's session cookie works against it.
   Not routed by Apache and not started on the server until John chooses. Remaining: 1b workers,
   1c sign in and Entra routes, 1d move the web app to `apps/web`.
+- Phase 1c built 12 Oct 2026 (John: 1c before 1b): login, logout, forgot and reset password and
+  Microsoft Entra as `/api/v2/auth/*`, same services and same cookie, with sign in rate limits. The
+  web login page is not switched. Microsoft Entra through the API needs the redirect URI
+  `https://coex.digisol.ae/api/v2/auth/entra/callback` added in Azure first (John's Microsoft account).
 
 ## CRM decisions — 5 Oct 2026 (John) — SUPERSEDED
 Superseded on 12 Oct 2026 (John: "use the 10 Oct answers, keep as is"). The current decisions are

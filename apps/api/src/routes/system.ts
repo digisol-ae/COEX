@@ -11,7 +11,7 @@ const healthResponse = z.object({
   time: z.string(),
 });
 
-const meResponse = z.object({
+export const meResponse = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),

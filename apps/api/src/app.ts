@@ -4,7 +4,8 @@ import { errorHandler, HttpError } from './http/errors';
 import { requestId, sameOriginForWrites } from './http/middleware';
 import { buildOpenApi } from './http/openapi';
 import { mountRoutes } from './http/route';
-import { routes } from './routes';
+import { buildRoutes } from './routes';
+import type { AnyRoute } from './http/route';
 
 /**
  * The Express application, without a listener, so tests can drive it directly.
@@ -15,7 +16,10 @@ import { routes } from './routes';
 
 export const API_VERSION = '0.1.0';
 
-export function createApp(config: Pick<ApiConfig, 'allowedOrigins'>): Express {
+export function createApp(
+  config: Pick<ApiConfig, 'allowedOrigins'>,
+  routes: AnyRoute[] = buildRoutes(),
+): Express {
   const app = express();
 
   app.disable('x-powered-by');

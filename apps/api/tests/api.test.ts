@@ -199,7 +199,15 @@ describe('openapi', () => {
     expect(response.status).toBe(200);
     expect(response.body.openapi).toBe('3.0.3');
     expect(Object.keys(response.body.paths)).toEqual(
-      expect.arrayContaining(['/api/v2/health', '/api/v2/me', '/api/v2/leads']),
+      expect.arrayContaining([
+        '/api/v2/health',
+        '/api/v2/me',
+        '/api/v2/leads',
+        '/api/v2/auth/login',
+        '/api/v2/auth/logout',
+        '/api/v2/auth/entra',
+        '/api/v2/auth/entra/callback',
+      ]),
     );
 
     const leads = response.body.paths['/api/v2/leads'].get;

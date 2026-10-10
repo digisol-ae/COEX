@@ -56,10 +56,14 @@ export function buildOpenApi(routes: AnyRoute[], version: string) {
           }
         : {}),
       responses: {
-        [String(route.status ?? 200)]: {
-          description: 'Success',
-          content: { 'application/json': { schema: schemaOf(route.response, 'output') } },
-        },
+        ...(route.redirect
+          ? { '302': { description: 'Redirects the browser' } }
+          : {
+              [String(route.status ?? 200)]: {
+                description: 'Success',
+                content: { 'application/json': { schema: schemaOf(route.response, 'output') } },
+              },
+            }),
         ...(route.public
           ? {}
           : {

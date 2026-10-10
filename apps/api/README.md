@@ -49,6 +49,28 @@ the response through its schema (fields the schema does not name are dropped) an
 with its sentence unchanged; validation returns 400; no session 401; missing permission 403;
 anything unexpected is logged with the request id (header `X-Request-Id`) and returns 500.
 
+## Sign in routes (`/api/v2/auth/*`)
+
+| Route | What it does |
+| --- | --- |
+| `POST /auth/login` | Email and password; sets the `coex_session` cookie (httpOnly, SameSite=Lax, Secure in production). 10 attempts per address and email per 10 minutes. |
+| `POST /auth/logout` | Ends the session and clears the cookie. |
+| `POST /auth/forgot-password` | Emails a reset link. Always answers `{ sent: true }`, so it cannot reveal accounts. 5 per address per 10 minutes. |
+| `POST /auth/reset-password/check` | Whether a link is still usable (the token travels in the body, never the URL). |
+| `POST /auth/reset-password` | Sets the new password from a link; the link works once; every device is signed out. |
+| `GET /auth/entra`, `GET /auth/entra/callback` | Microsoft Entra sign in. Redirects, no JSON. |
+
+They call the same services as the web app (`auth.service`, `password-reset.service`,
+`entra.service`), so audit entries, the generic failure message and the password rules are the same.
+A session made here works on the web app and the other way round (checked against the running
+servers). The web app's own login page and `/api/auth/entra` routes are untouched.
+
+**Microsoft Entra needs one change in Azure before it can be used through the API** (John, Microsoft
+account): add the redirect URI `https://coex.digisol.ae/api/v2/auth/entra/callback` to the app
+registration, beside the existing `/api/auth/entra/callback`. Until then `/api/v2/auth/entra` works
+but Microsoft would refuse the return address. Nothing else changes: the same client id, tenant id
+and secret are used.
+
 ## Writes
 
 State changing requests must come from our own origin (`sameOriginForWrites`) and, with the

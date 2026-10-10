@@ -1,5 +1,19 @@
 # COEX — Current AI Task
 
+## Architecture revamp Phase 1c built — 12 Oct 2026 (Claude)
+
+- John: "go ahead with 1c before 1b". `/api/v2/auth/*`: login, logout, forgot password, reset
+  password (check and set), Microsoft Entra start and callback; rate limits on sign in and reset;
+  same services and cookie as the web app. Cross checked on the running servers: an API session works
+  on the web app and an API logout ends it there. The web login page is not switched.
+- **Needs John:** add redirect URI `https://coex.digisol.ae/api/v2/auth/entra/callback` in the Azure
+  app registration before using Entra through the API. Details: apps/api/README.md.
+- Verified in a scratch copy: typecheck, eslint zero warnings, 163 unit, 23 API tests, build, live curl
+  checks. NOT run: real MongoDB, the final Microsoft token exchange. Nothing deployed.
+- John on the Mac: `git pull`, `npm install` (nothing new to install), `npm run typecheck`,
+  `npm run build`. The server needs no change for this step.
+- Next: 1b workers (email, desk-close, channels) into the API, then 1d `apps/web`.
+
 ## Architecture revamp Phase 1a built — 12 Oct 2026 (Claude)
 
 - `apps/api` (Express 5): health, `/me`, read only `/leads`, `defineRoute` declarations, OpenAPI at

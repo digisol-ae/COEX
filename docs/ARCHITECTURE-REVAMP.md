@@ -201,7 +201,37 @@ app; it is invisible until Apache is told to route to it.
   because the emulator cannot build it; real MongoDB builds it), production build, the real API
   started under `tsx`, and the web app's sign in cookie used against `/me` and `/leads`.
 
-Remaining Phase 1 steps, each its own commit: **1b** move the three workers (`coex-mail`,
+Remaining Phase 1 steps (1c is built, below), each its own commit: **1b** move the three workers (`coex-mail`,
 `coex-desk-close`, `coex-channels`) into `apps/api`, one at a time; **1c** sign in, sign out, password
 reset and the Entra flow as API routes (still issuing the same cookie); **1d** move the Next.js app
 to `apps/web` with the matching `deploy/` and pm2 changes.
+
+## Phase 1c as built (12 Oct 2026, Claude)
+
+Sign in, sign out, password reset and Microsoft Entra are now API routes (`/api/v2/auth/*`, table in
+apps/api/README.md), done before the workers because they carry the least risk to agents' daily work
+and unlock the web app's switch to the API.
+
+- Same services, same behaviour: `auth.service`, `password-reset.service` and `entra.service` are
+  the ones the web app uses, unchanged except that `entra.service` takes an optional callback path
+  (default is the web app's, so the web flow is identical). The API adds only the HTTP layer: the
+  cookie, status codes and a rate limit.
+- **One session across both.** A session created through the API was used on the running web app
+  (`/dashboard` answered 200), and after an API logout the web app redirected to `/login`; the web
+  login cookie already worked against the API (1a). Same cookie name and flags (httpOnly,
+  SameSite=Lax, Secure in production, path `/`, 30 day expiry).
+- **New protection on a new surface:** an in memory rate limit on sign in (per address and email) and
+  on password reset (per address), `Retry-After` on 429. In memory is enough for one API process;
+  see `rate-limit.ts` for what to change if it ever runs as several.
+- **Entra** is served at `/api/v2/auth/entra` and `/api/v2/auth/entra/callback`. **John must add
+  `https://coex.digisol.ae/api/v2/auth/entra/callback` as a redirect URI in the Azure app
+  registration** before it can be used; the web app's existing redirect URI keeps working and nothing
+  switches until the login page is pointed at the API.
+- **Not tested end to end:** the final Microsoft token exchange (it needs Microsoft). Tested: not
+  configured redirect, redirect to Microsoft with state and PKCE, the state cookie, and that a
+  cancelled, tampered or unverifiable return signs nobody in.
+- Verified in a scratch copy: typecheck of all packages, ESLint zero warnings, 163 unit tests and 23
+  API tests (13 new, emulator, TTL indexes disabled there), production build, and the running API and
+  web app exercised together with curl.
+- The web login page is **not** switched yet; that is a one line change per form and is held until
+  John wants it, so nothing changes for agents.
