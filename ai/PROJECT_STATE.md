@@ -1,5 +1,12 @@
 # COEX — Shared AI Project State
 
+## Desk-close worker moved to apps/api — 12 Oct 2026 (Claude)
+
+- Rebased onto the other session's Phase 1a/1c API branch (`claude/blissful-heisenberg-wb4e9a`);
+  my own parallel skeleton was dropped. Only the worker move remains: `apps/api/src/workers/desk-close.ts`,
+  same pm2 name and `npm run desk:worker`. Not run against a real MongoDB close.
+- John: after merge, `git pull --ff-only`, `npm ci`, `pm2 restart coex-desk-close --update-env && pm2 save`.
+
 ## Architecture revamp Phase 1c built — 12 Oct 2026 (Claude)
 
 - John: "go ahead with 1c before 1b". `/api/v2/auth/*`: login, logout, forgot password, reset

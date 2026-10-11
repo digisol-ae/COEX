@@ -235,3 +235,16 @@ and unlock the web app's switch to the API.
   web app exercised together with curl.
 - The web login page is **not** switched yet; that is a one line change per form and is held until
   John wants it, so nothing changes for agents.
+
+## Phase 1, workers: desk-close moved (12 Oct 2026, Claude)
+
+- `scripts/desk-close-worker.ts` is now `apps/api/src/workers/desk-close.ts` (history kept),
+  behaviour unchanged. The pm2 name `coex-desk-close` and `npm run desk:worker` are the same, so the
+  deploy steps do not change: `pm2 restart coex-desk-close --update-env` after the pull; never
+  `pm2 start` it again.
+- It reuses the web app's `desk-close.service` through the `@/` path (already mapped in
+  `apps/api/tsconfig.json`) until Tasks switches to the API; the service moves with its module.
+- Verified in a scratch copy: typecheck, ESLint zero warnings, Prettier, unit tests, and the worker
+  starting and stopping cleanly under `tsx`. NOT run: a real office-day close against MongoDB; watch
+  the first 23:59 Gulf close in `pm2 logs coex-desk-close`.
+- Next workers: `coex-channels`, then `coex-mail`.
