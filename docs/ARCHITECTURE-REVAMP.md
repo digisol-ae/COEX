@@ -260,3 +260,13 @@ and unlock the web app's switch to the API.
 - Verified in a scratch copy: typecheck, ESLint zero warnings, Prettier, unit tests, and the worker
   starting and stopping cleanly under `tsx`. NOT run: delivery against a real channel provider.
 - Left: `coex-mail`, the largest worker.
+
+## Dependency fix (12 Oct 2026, Claude)
+
+- `npm audit --omit=dev` on the server reported two high findings: `sharp` below 0.35.5 (a flaw in
+  its bundled librsvg, reachable through image uploads) and `source-map-js` up to 1.2.1 (event-loop
+  denial of service). Lockfile now resolves `sharp` 0.35.5 and `source-map-js` 1.2.2; `package.json`
+  raises the `sharp` floor to ^0.35.5. Production audit: 0 vulnerabilities.
+- Verified in a scratch copy: `npm ci`, typecheck, 163 unit tests, production build, and sharp
+  encoding an image. Deploy: `npm ci` then `npm run build` and restart `coex-app` (sharp is loaded by
+  the web app).
