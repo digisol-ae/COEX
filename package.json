@@ -24,7 +24,7 @@
     "check": "npm run test && npm run build",
     "email:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/email-worker.ts",
     "desk:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local apps/api/src/workers/desk-close.ts",
-    "channels:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/channel-worker.ts",
+    "channels:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local apps/api/src/workers/channels.ts",
     "typecheck": "tsc --noEmit && npm run typecheck -w @coex/shared && npm run typecheck -w @coex/api",
     "api:dev": "tsx watch --env-file-if-exists=.env --env-file-if-exists=.env.local apps/api/src/server.ts",
     "api:start": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local apps/api/src/server.ts"

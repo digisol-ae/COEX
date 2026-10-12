@@ -1,5 +1,8 @@
-import { deliverPendingChannelMessages } from '../src/modules/channels/services/channel-messages.service';
-import { processAllPendingSupportInbound } from '../src/modules/channels/services/support-inbound.service';
+// Until the Channels module switches to the API the worker reuses the web app's services through the
+// @/ path, so there is one copy of the rules. M6.3 onward stays suspended (CLAUDE.md); this only moves
+// the process.
+import { deliverPendingChannelMessages } from '@/modules/channels/services/channel-messages.service';
+import { processAllPendingSupportInbound } from '@/modules/channels/services/support-inbound.service';
 
 /**
  * The WhatsApp channel worker (pm2 name: coex-channels). Every ten seconds it sends the outbox for

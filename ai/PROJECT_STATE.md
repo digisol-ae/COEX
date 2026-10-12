@@ -1,5 +1,12 @@
 # COEX — Shared AI Project State
 
+## Channels worker moved to apps/api — 12 Oct 2026 (Claude)
+
+- `scripts/channel-worker.ts` is now `apps/api/src/workers/channels.ts`; pm2 name `coex-channels` and
+  `npm run channels:worker` unchanged. Not run against a real provider.
+- John: after merge, `git pull --ff-only`, `npm ci`, `pm2 restart coex-channels --update-env && pm2 save`.
+- Next: `coex-mail`.
+
 ## Desk-close worker moved to apps/api — 12 Oct 2026 (Claude)
 
 - Rebased onto the other session's Phase 1a/1c API branch (`claude/blissful-heisenberg-wb4e9a`);

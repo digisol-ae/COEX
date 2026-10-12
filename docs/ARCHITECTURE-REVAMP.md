@@ -248,3 +248,15 @@ and unlock the web app's switch to the API.
   starting and stopping cleanly under `tsx`. NOT run: a real office-day close against MongoDB; watch
   the first 23:59 Gulf close in `pm2 logs coex-desk-close`.
 - Next workers: `coex-channels`, then `coex-mail`.
+
+## Phase 1, workers: channels moved (12 Oct 2026, Claude)
+
+- `scripts/channel-worker.ts` is now `apps/api/src/workers/channels.ts` (history kept), behaviour
+  unchanged. The pm2 name `coex-channels` and `npm run channels:worker` are the same. It reuses the
+  web app's channel services through the `@/` path until the module switches. M6.3 to M6.6 stay
+  suspended; this only moves the process.
+- Deploy: `pm2 restart coex-channels --update-env && pm2 save` after the pull; never `pm2 start` it
+  again. Check `pm2 logs coex-channels --lines 20 --nostream` for "COEX channel worker starting."
+- Verified in a scratch copy: typecheck, ESLint zero warnings, Prettier, unit tests, and the worker
+  starting and stopping cleanly under `tsx`. NOT run: delivery against a real channel provider.
+- Left: `coex-mail`, the largest worker.
