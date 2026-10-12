@@ -1,14 +1,17 @@
+// Until the Email, CRM, Time and Tickets modules switch to the API (revamp Phase 2) the worker reuses
+// the web app's services through the @/ path, so there is one copy of every rule. Only the process
+// moves.
 import { ImapFlow } from 'imapflow';
 import {
   deliverQueuedEmail,
   enabledMailboxes,
   recordMailboxProgress,
   type MailboxConfig,
-} from '../src/modules/core/services/email.service';
-import { sendDueRenewalReminders } from '../src/modules/crm/services/contract-reminder.service';
-import { sendDueOpportunityReminders } from '../src/modules/crm/services/opportunity-reminder.service';
-import { sendDailyReports } from '../src/modules/time/services/daily-report.service';
-import { syncMailbox } from '../src/modules/tickets/services/mailbox.service';
+} from '@/modules/core/services/email.service';
+import { sendDueRenewalReminders } from '@/modules/crm/services/contract-reminder.service';
+import { sendDueOpportunityReminders } from '@/modules/crm/services/opportunity-reminder.service';
+import { sendDailyReports } from '@/modules/time/services/daily-report.service';
+import { syncMailbox } from '@/modules/tickets/services/mailbox.service';
 
 /**
  * The email worker: one long running process beside the web app (pm2 name: coex-mail).

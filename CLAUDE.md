@@ -79,7 +79,7 @@ The full scope document lives in the Claude project "ECHO System Development" as
 11. Ticket-linked Task work updates are internal support notes. They may update the linked ticket,
     but must never notify the customer automatically.
 12. Email is configured per tenant in Setup, Email, not in .env. A separate worker process
-    (scripts/email-worker.ts, pm2 `coex-mail`) holds an IMAP IDLE connection to the support mailbox
+    (apps/api/src/workers/mail.ts, pm2 `coex-mail`) holds an IMAP IDLE connection to the support mailbox
     (push, with a 5 minute safety sweep) and sends queued mail. Progress is tracked by mailbox UID;
     the first run records the current highest UID, so mail already in the inbox never becomes a
     ticket. Requests never send mail: they write to the email outbox and the worker delivers with

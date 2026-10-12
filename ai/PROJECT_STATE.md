@@ -1,5 +1,14 @@
 # COEX — Shared AI Project State
 
+## Mail worker moved to apps/api — 12 Oct 2026 (Claude)
+
+- `scripts/email-worker.ts` is now `apps/api/src/workers/mail.ts`; pm2 name `coex-mail` and
+  `npm run email:worker` unchanged; CLAUDE.md decision 12 path updated. All three workers are now in
+  `apps/api`. Not run against a real mailbox.
+- John: after merge, `git pull --ff-only`, `npm ci`, `pm2 restart coex-mail --update-env && pm2 save`,
+  then `pm2 logs coex-mail --lines 30 --nostream`.
+- Next: John's go for the API process and Apache route, then `apps/web`.
+
 ## Production audit fixed — 12 Oct 2026 (Claude)
 
 - Server `npm audit --omit=dev` showed `sharp` <0.35.5 and `source-map-js` <=1.2.1 (both high).

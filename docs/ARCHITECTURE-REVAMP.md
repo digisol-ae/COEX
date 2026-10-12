@@ -270,3 +270,19 @@ and unlock the web app's switch to the API.
 - Verified in a scratch copy: `npm ci`, typecheck, 163 unit tests, production build, and sharp
   encoding an image. Deploy: `npm ci` then `npm run build` and restart `coex-app` (sharp is loaded by
   the web app).
+
+## Phase 1, workers: mail moved (12 Oct 2026, Claude)
+
+- `scripts/email-worker.ts` is now `apps/api/src/workers/mail.ts` (history kept), behaviour unchanged:
+  IMAP IDLE intake, the outbox, contract and opportunity reminders and the daily performance email.
+  The pm2 name `coex-mail` and `npm run email:worker` are the same. It reuses the web app's services
+  through the `@/` path until those modules switch. This was the last of the three workers.
+- Deploy: `pm2 restart coex-mail --update-env && pm2 save` after the pull; never `pm2 start` it again.
+  Check `pm2 logs coex-mail --lines 30 --nostream`: it should connect to the mailbox and show no
+  errors. Do it outside office hours or accept a few seconds of delay in outgoing mail: the restart
+  re-reads settings and reconnects, and the first run per mailbox never re-imports old mail (progress
+  is tracked by UID).
+- Verified in a scratch copy: typecheck, ESLint zero warnings, Prettier, unit tests, and the worker
+  starting and stopping cleanly under `tsx`. NOT run: a real mailbox, a send, or a reminder pass.
+- Left in Phase 1: Apache route and starting the API on port 3002 (John's go), the Entra redirect URI
+  in Azure (John), and the move of the web app to `apps/web`.
