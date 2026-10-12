@@ -1,8 +1,22 @@
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import type { NextConfig } from 'next';
 
 /**
- * turbopack.root pins the project root to this folder. Without it Next.js walks up the directory
- * tree, finds a stray package-lock.json in the home folder and warns that the root is ambiguous.
+ * The app lives in apps/web, but the settings file (.env, and .env.local on a developer's machine)
+ * stays at the repository root, where the server, the workers and the API already read it. The
+ * launcher bin/run-next.mjs loads those files before starting Next.js, because Next.js only looks
+ * in its own folder.
+ */
+const repositoryRoot = existsSync(path.resolve(process.cwd(), '../../packages/shared'))
+  ? path.resolve(process.cwd(), '../..')
+  : process.cwd();
+
+/**
+ * turbopack.root pins the project root to the repository root, not to apps/web: the shared package
+ * and node_modules live there, and Turbopack must be able to read them. It also stops Next.js
+ * walking up the directory tree, finding a stray package-lock.json in the home folder and warning
+ * that the root is ambiguous.
  *
  * experimental.serverActions.bodySizeLimit raises Next's own request ceiling for anything
  * submitted through a Server Action, ticket attachments included. Next's default is 1MB, which a
@@ -19,7 +33,7 @@ const nextConfig: NextConfig = {
   // The shared package ships TypeScript source, so Next compiles it with the app.
   transpilePackages: ['@coex/shared'],
   turbopack: {
-    root: process.cwd(),
+    root: repositoryRoot,
   },
   experimental: {
     serverActions: {

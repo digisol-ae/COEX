@@ -13,7 +13,7 @@ import mongoose from 'mongoose';
 import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
-import { hashPassword } from '../src/lib/password';
+import { hashPassword } from '../apps/web/src/lib/password';
 
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? 'ali@digisol.ae';
 const ADMIN_NAME = process.env.SEED_ADMIN_NAME ?? 'Syed Muhammad Jan Ali';
