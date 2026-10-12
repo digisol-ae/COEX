@@ -1,5 +1,41 @@
 # COEX — Current AI Task
 
+## Desk-close worker moved to apps/api — 12 Oct 2026 (Claude)
+
+- Rebased onto the other session's Phase 1a/1c API branch (`claude/blissful-heisenberg-wb4e9a`);
+  my own parallel skeleton was dropped. Only the worker move remains: `apps/api/src/workers/desk-close.ts`,
+  same pm2 name and `npm run desk:worker`. Not run against a real MongoDB close.
+- John: after merge, `git pull --ff-only`, `npm ci`, `pm2 restart coex-desk-close --update-env && pm2 save`.
+
+## Architecture revamp Phase 1c built — 12 Oct 2026 (Claude)
+
+- John: "go ahead with 1c before 1b". `/api/v2/auth/*`: login, logout, forgot password, reset
+  password (check and set), Microsoft Entra start and callback; rate limits on sign in and reset;
+  same services and cookie as the web app. Cross checked on the running servers: an API session works
+  on the web app and an API logout ends it there. The web login page is not switched.
+- **Needs John:** add redirect URI `https://coex.digisol.ae/api/v2/auth/entra/callback` in the Azure
+  app registration before using Entra through the API. Details: apps/api/README.md.
+- Verified in a scratch copy: typecheck, eslint zero warnings, 163 unit, 23 API tests, build, live curl
+  checks. NOT run: real MongoDB, the final Microsoft token exchange. Nothing deployed.
+- John on the Mac: `git pull`, `npm install` (nothing new to install), `npm run typecheck`,
+  `npm run build`. The server needs no change for this step.
+- Next: 1b workers (email, desk-close, channels) into the API, then 1d `apps/web`.
+
+## Architecture revamp Phase 1a built — 12 Oct 2026 (Claude)
+
+- `apps/api` (Express 5): health, `/me`, read only `/leads`, `defineRoute` declarations, OpenAPI at
+  `/api/v2/openapi.json`, one error shape, same-origin rule for writes. Reads the web app's
+  `coex_session` cookie through the new framework-free `auth-context.service` (web `session.ts`
+  now uses it too). Services imported unchanged; nothing duplicated. Details: docs/ARCHITECTURE-REVAMP.md,
+  "Phase 1a as built", and apps/api/README.md.
+- Verified in a scratch copy: typecheck (3 packages), eslint zero warnings, 163 unit, 10 API tests
+  (emulator, session TTL index disabled there), production build, API started under tsx, web
+  login cookie accepted by the API. NOT run: real MongoDB; nothing deployed.
+- The API is invisible: Apache lines are commented out in deploy/apache-coex.conf and `coex-api` is
+  not started. John on the Mac: `git pull`, `npm install`, `npm run typecheck`, `npm run build`.
+  Deploy as usual with `npm ci` (this adds express).
+- Next: 1b workers into the API, 1c sign in and Entra routes, 1d `apps/web` move.
+
 ## Architecture revamp Phase 0 built — 12 Oct 2026 (Claude)
 
 - npm workspaces plus `packages/shared` (`@coex/shared`): all 33 models and 21 pure files moved

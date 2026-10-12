@@ -163,3 +163,88 @@ is a separate decision for John.
 - Next (Phase 1): `apps/api` skeleton, session and tenant middleware, health check, Apache route for
   `/api/v2`, workers moved over one at a time, Entra in Express, and the move of the web app to
   `apps/web`.
+
+## Phase 1a as built (12 Oct 2026, Claude)
+
+Phase 1 is delivered in steps so each one can be checked on its own. Step 1a is the API beside the
+app; it is invisible until Apache is told to route to it.
+
+- `apps/api` (`@coex/api`): Express 5, TypeScript, started with `npm run api:start` (pm2 process
+  `coex-api`, loopback port 3002) or `npm run api:dev`. It reads the same `.env.local` / `.env`.
+- **Same session, proven.** A person signs in on the web app; the API accepts the very same
+  `coex_session` cookie. Both resolve it through one framework-free service,
+  `core/services/auth-context.service.ts` (the web app's `session.ts` now calls it too), so they can
+  never disagree about who someone is or what they may do. Web sign in was re-verified after this
+  refactor.
+- **Same tenant rule.** After sign in each request runs inside `runWithContext`, so services are
+  scoped to the person's tenant exactly as in a server action. Services still refuse for themselves.
+- **Routes are declared as data** (`defineRoute`): sign in, permission, query, params and body
+  validation (zod), and a response schema that also strips any field it does not name. The OpenAPI
+  3.0 document is generated from the same declarations at `GET /api/v2/openapi.json`, which is the
+  contract for the frontend and backend developers.
+- **Errors**: `{ error: { code, message } }`. A plain `Error` thrown by a service is a refusal
+  (422, message unchanged); validation 400; no session 401; no permission 403; anything unexpected
+  is logged with the request id (`X-Request-Id`) and returns a generic 500.
+- **Writes** must come from our own origin (`sameOriginForWrites`); the cookie is SameSite. No write
+  routes exist yet.
+- **First slice**: `GET /health`, `GET /me`, `GET /leads` (read only), enough to prove the pattern
+  end to end. `GET /leads` uses the existing lead service unchanged.
+- **No duplicate code.** The API imports services from the web app's `src/modules/*/services` (its
+  `@/` alias points there). A module's services are moved into `apps/api` with `git mv` when its
+  screens switch over (Phase 2), so there is only ever one copy of a rule.
+- **Deploy, when John chooses** (nothing changes until then): `npm ci`, `pm2 start npm --name
+  coex-api -- run api:start`, `pm2 save`, then uncomment the two `ProxyPass /api/v2/` lines in the
+  Apache site (deploy/apache-coex.conf) and `sudo apache2ctl configtest && sudo systemctl reload
+  apache2`. Check: `curl https://coex.digisol.ae/api/v2/health`.
+- Verified in a scratch copy: typecheck of all three packages, ESLint zero warnings, 163 unit tests,
+  10 new API tests (supertest against a MongoDB emulator, with the session expiry index disabled
+  because the emulator cannot build it; real MongoDB builds it), production build, the real API
+  started under `tsx`, and the web app's sign in cookie used against `/me` and `/leads`.
+
+Remaining Phase 1 steps (1c is built, below), each its own commit: **1b** move the three workers (`coex-mail`,
+`coex-desk-close`, `coex-channels`) into `apps/api`, one at a time; **1c** sign in, sign out, password
+reset and the Entra flow as API routes (still issuing the same cookie); **1d** move the Next.js app
+to `apps/web` with the matching `deploy/` and pm2 changes.
+
+## Phase 1c as built (12 Oct 2026, Claude)
+
+Sign in, sign out, password reset and Microsoft Entra are now API routes (`/api/v2/auth/*`, table in
+apps/api/README.md), done before the workers because they carry the least risk to agents' daily work
+and unlock the web app's switch to the API.
+
+- Same services, same behaviour: `auth.service`, `password-reset.service` and `entra.service` are
+  the ones the web app uses, unchanged except that `entra.service` takes an optional callback path
+  (default is the web app's, so the web flow is identical). The API adds only the HTTP layer: the
+  cookie, status codes and a rate limit.
+- **One session across both.** A session created through the API was used on the running web app
+  (`/dashboard` answered 200), and after an API logout the web app redirected to `/login`; the web
+  login cookie already worked against the API (1a). Same cookie name and flags (httpOnly,
+  SameSite=Lax, Secure in production, path `/`, 30 day expiry).
+- **New protection on a new surface:** an in memory rate limit on sign in (per address and email) and
+  on password reset (per address), `Retry-After` on 429. In memory is enough for one API process;
+  see `rate-limit.ts` for what to change if it ever runs as several.
+- **Entra** is served at `/api/v2/auth/entra` and `/api/v2/auth/entra/callback`. **John must add
+  `https://coex.digisol.ae/api/v2/auth/entra/callback` as a redirect URI in the Azure app
+  registration** before it can be used; the web app's existing redirect URI keeps working and nothing
+  switches until the login page is pointed at the API.
+- **Not tested end to end:** the final Microsoft token exchange (it needs Microsoft). Tested: not
+  configured redirect, redirect to Microsoft with state and PKCE, the state cookie, and that a
+  cancelled, tampered or unverifiable return signs nobody in.
+- Verified in a scratch copy: typecheck of all packages, ESLint zero warnings, 163 unit tests and 23
+  API tests (13 new, emulator, TTL indexes disabled there), production build, and the running API and
+  web app exercised together with curl.
+- The web login page is **not** switched yet; that is a one line change per form and is held until
+  John wants it, so nothing changes for agents.
+
+## Phase 1, workers: desk-close moved (12 Oct 2026, Claude)
+
+- `scripts/desk-close-worker.ts` is now `apps/api/src/workers/desk-close.ts` (history kept),
+  behaviour unchanged. The pm2 name `coex-desk-close` and `npm run desk:worker` are the same, so the
+  deploy steps do not change: `pm2 restart coex-desk-close --update-env` after the pull; never
+  `pm2 start` it again.
+- It reuses the web app's `desk-close.service` through the `@/` path (already mapped in
+  `apps/api/tsconfig.json`) until Tasks switches to the API; the service moves with its module.
+- Verified in a scratch copy: typecheck, ESLint zero warnings, Prettier, unit tests, and the worker
+  starting and stopping cleanly under `tsx`. NOT run: a real office-day close against MongoDB; watch
+  the first 23:59 Gulf close in `pm2 logs coex-desk-close`.
+- Next workers: `coex-channels`, then `coex-mail`.

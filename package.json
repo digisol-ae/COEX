@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "dev": "next dev --port 3100",
@@ -22,11 +23,14 @@
     "test:db": "vitest run tests/database",
     "check": "npm run test && npm run build",
     "email:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/email-worker.ts",
-    "desk:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/desk-close-worker.ts",
+    "desk:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local apps/api/src/workers/desk-close.ts",
     "channels:worker": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/channel-worker.ts",
-    "typecheck": "tsc --noEmit && npm run typecheck -w @coex/shared"
+    "typecheck": "tsc --noEmit && npm run typecheck -w @coex/shared && npm run typecheck -w @coex/api",
+    "api:dev": "tsx watch --env-file-if-exists=.env --env-file-if-exists=.env.local apps/api/src/server.ts",
+    "api:start": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local apps/api/src/server.ts"
   },
   "dependencies": {
+    "@coex/api": "*",
     "@coex/shared": "*",
     "@node-rs/argon2": "^2.2.1",
     "@types/nodemailer": "^8.0.2",

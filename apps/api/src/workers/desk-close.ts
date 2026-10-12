@@ -1,4 +1,6 @@
-import { closeOfficeDay } from '../src/modules/tasks/services/desk-close.service';
+// Until Tasks switches to the API (revamp Phase 2) the worker reuses the web app's services, so there
+// is one copy of the rule. The services move here with their module.
+import { closeOfficeDay } from '@/modules/tasks/services/desk-close.service';
 import { createDeskCloseSchedule } from '@coex/shared/tasks/desk-close-schedule';
 import { officeDate } from '@coex/shared/tasks/office-day';
 

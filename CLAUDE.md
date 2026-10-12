@@ -209,6 +209,9 @@ never sent to their browser.
   (statuses, phone numbers, week maths, email text, permissions). Folder layout mirrors the modules;
   import as `@coex/shared/crm/models/lead.model`. It never imports services, `@/` paths or
   anything HTTP. See packages/shared/README.md.
+- `apps/api/` (`@coex/api`, 12 Oct 2026): the Express API, running beside the Next.js app and
+  taking modules over one at a time. Same `coex_session` cookie, same tenant context, services
+  imported unchanged from `src/modules/*/services` until a module switches. See apps/api/README.md.
 - `src/modules/<module>/` one folder per module, services, components and actions only (models and
   pure rules live in `packages/shared`), never importing from a sibling module (Tasks and
   Tickets excepted, decision 13)
@@ -366,8 +369,21 @@ by `npm install` on the Mac.
   the app imports them from there. The app itself stays at the repository root for now, so
   deployment, pm2 and `.env.local` are unchanged; it moves to `apps/web` together with the first
   `apps/api` in Phase 1.
+- Phase 1a built 12 Oct 2026: `apps/api` (Express) with health, `/me` and read only `/leads`, OpenAPI
+  generated from declared routes, and proof that the web app's session cookie works against it.
+  Not routed by Apache and not started on the server until John chooses. Remaining: 1b workers,
+  1c sign in and Entra routes, 1d move the web app to `apps/web`.
+- Phase 1c built 12 Oct 2026 (John: 1c before 1b): login, logout, forgot and reset password and
+  Microsoft Entra as `/api/v2/auth/*`, same services and same cookie, with sign in rate limits. The
+  web login page is not switched. Microsoft Entra through the API needs the redirect URI
+  `https://coex.digisol.ae/api/v2/auth/entra/callback` added in Azure first (John's Microsoft account).
 
-## CRM decisions — 5 Oct 2026 (John)
+## CRM decisions — 5 Oct 2026 (John) — SUPERSEDED
+Superseded on 12 Oct 2026 (John: "use the 10 Oct answers, keep as is"). The current decisions are
+those of 10 Oct 2026 under "Phase 2 decisions" above: one simple pipeline, the proposed stages
+including Negotiation, five lost reasons, separate `lead.read.all` and `opportunity.read.all`.
+Kept below only as history; do not build from it.
+
 - Everyone on the team sells: all staff can own and work leads and opportunities, and always see
   their own. Seeing everyone's is the permission `sales.read.all`: held by managers and tenant
   administrators by default, and granted to an agent only per person in Users and roles, as John

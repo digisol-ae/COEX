@@ -28,7 +28,10 @@ function issuerFromEnvironment() {
   }
 }
 
-function config(): EntraConfig | null {
+/** The path Microsoft sends the person back to. The web app's own route is the default. */
+export const WEB_ENTRA_CALLBACK_PATH = '/api/auth/entra/callback';
+
+function config(callbackPath = WEB_ENTRA_CALLBACK_PATH): EntraConfig | null {
   const clientId = process.env.AUTH_MICROSOFT_ENTRA_ID_ID;
   const clientSecret = process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET;
   const issuer = issuerFromEnvironment();
@@ -38,12 +41,12 @@ function config(): EntraConfig | null {
     clientId,
     clientSecret,
     issuer,
-    redirectUri: `${appUrl.replace(/\/$/, '')}/api/auth/entra/callback`,
+    redirectUri: `${appUrl.replace(/\/$/, '')}${callbackPath}`,
   };
 }
 
-export function isEntraConfigured() {
-  return Boolean(config());
+export function isEntraConfigured(callbackPath?: string) {
+  return Boolean(config(callbackPath));
 }
 
 function endpoints(issuer: string) {
@@ -61,8 +64,8 @@ function challenge(verifier: string) {
 
 /** Starts a server-side OAuth authorization-code flow. The encrypted session cookie is still
  * created only after the callback verifies Entra's signed ID token. */
-export function startEntraSignIn() {
-  const settings = config();
+export function startEntraSignIn(callbackPath?: string) {
+  const settings = config(callbackPath);
   if (!settings) throw new Error('Microsoft sign-in is not configured.');
   const state: EntraState = {
     state: randomBytes(32).toString('base64url'),
@@ -106,8 +109,9 @@ export async function completeEntraSignIn(input: {
   code: string;
   state: string;
   stateCookie?: string;
+  callbackPath?: string;
 }) {
-  const settings = config();
+  const settings = config(input.callbackPath);
   const state = readState(input.stateCookie);
   if (!settings || !state || !same(input.state, state.state))
     throw new Error('Microsoft sign-in could not be verified.');
