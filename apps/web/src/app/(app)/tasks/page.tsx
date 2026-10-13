@@ -24,6 +24,7 @@ export default async function TasksPage({
     mine?: string;
     overdue?: string;
     unassigned?: string;
+    assignedByMe?: string;
     closed?: string;
     space?: string | string[];
     assignee?: string | string[];
@@ -40,7 +41,10 @@ export default async function TasksPage({
   const spaceIds = ids(params.space);
   // Choosing other people is for those who can see every task; everyone else stays on their own.
   const assigneeIds = seesEverything ? ids(params.assignee) : [];
-  const mine = assigneeIds.length === 0 && (params.mine === '1' || !seesEverything);
+  const assignedByMe = params.assignedByMe === '1';
+  // Work I handed to others is by definition not (only) my own, so it replaces "Mine".
+  const mine =
+    !assignedByMe && assigneeIds.length === 0 && (params.mine === '1' || !seesEverything);
 
   const { tasks, spaces, users, folders, runningTimer } = await asUser(actor, async () => ({
     tasks: await listTasks({
@@ -49,6 +53,7 @@ export default async function TasksPage({
       spaceIds,
       overdueOnly: params.overdue === '1',
       unassignedOnly: params.unassigned === '1',
+      assignedById: assignedByMe ? actor.id : undefined,
       includeClosed: params.closed === '1',
     }),
     // Status can be changed from this list, and each space configures its own columns, so the
@@ -70,7 +75,9 @@ export default async function TasksPage({
             ? params.closed !== '1' && !params.overdue && !params.unassigned
               ? `${tasks.length} open task${tasks.length === 1 ? '' : 's'} assigned to you. The Tasks badge counts this list.`
               : 'The work assigned to you, with your selected filters.'
-            : 'Everything open across every space, unless you narrow it below. Overdue first.'
+            : assignedByMe
+              ? 'Tasks you assigned to other people. Assignments made before 1 October 2026 were not recorded.'
+              : 'Everything open across every space, unless you narrow it below. Overdue first.'
         }
         action={
           actor.permissions.includes('task.manage') ? (
@@ -91,6 +98,7 @@ export default async function TasksPage({
         mine={mine}
         overdue={params.overdue === '1'}
         unassigned={params.unassigned === '1'}
+        assignedByMe={assignedByMe}
         closed={params.closed === '1'}
         canSeeAll={seesEverything}
         spaces={spaces.map((space) => ({ id: space.id, name: space.name }))}

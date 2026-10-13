@@ -10,6 +10,7 @@ export function TaskFilters({
   mine,
   overdue,
   unassigned,
+  assignedByMe,
   closed,
   canSeeAll,
   spaces,
@@ -20,6 +21,7 @@ export function TaskFilters({
   mine: boolean;
   overdue: boolean;
   unassigned: boolean;
+  assignedByMe: boolean;
   closed: boolean;
   canSeeAll: boolean;
   spaces: { id: string; name: string }[];
@@ -28,7 +30,7 @@ export function TaskFilters({
   selectedAssigneeIds: string[];
 }) {
   const router = useRouter();
-  const current = { mine, overdue, unassigned, closed };
+  const current = { mine, overdue, unassigned, assignedByMe, closed };
 
   function go(next: { flags?: typeof current; spaceIds?: string[]; assigneeIds?: string[] }) {
     const flags = next.flags ?? current;
@@ -44,7 +46,11 @@ export function TaskFilters({
   }
 
   function toggle(key: keyof typeof current) {
-    go({ flags: { ...current, [key]: !current[key] } });
+    const flags = { ...current, [key]: !current[key] };
+    // "Mine" and "Assigned by me" are alternatives, like "Mine" and a chosen set of people.
+    if (flags[key] && key === 'mine') flags.assignedByMe = false;
+    if (flags[key] && key === 'assignedByMe') flags.mine = false;
+    go({ flags });
   }
 
   const options: { key: keyof typeof current; label: string; visible: boolean }[] = [
@@ -52,6 +58,7 @@ export function TaskFilters({
     { key: 'mine', label: 'Mine', visible: canSeeAll && selectedAssigneeIds.length === 0 },
     { key: 'overdue', label: 'Overdue', visible: true },
     { key: 'unassigned', label: 'Unassigned', visible: canSeeAll },
+    { key: 'assignedByMe', label: 'Assigned by me', visible: true },
     { key: 'closed', label: 'Include done', visible: true },
   ];
 

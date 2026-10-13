@@ -1,5 +1,14 @@
 # COEX — Current AI Task
 
+## Assigned by me filter — 13 Oct 2026 (Claude)
+
+- All tasks has an "Assigned by me" chip (`?assignedByMe=1`): tasks where the signed-in person is the
+  `assignedById` of an assignment to someone other than themselves. It replaces "Mine" (they
+  contradict), is open to everyone including agents, and still passes the Space and Folder visibility
+  filters. Assignments before 1 Oct 2026 carry no assigner and cannot match. What's new entry added.
+- Verified: typecheck and ESLint in a scratch copy. NOT run: the new database test
+  (`the Assigned by me filter` in tests/database/tasks.test.ts); John, run it with `npm test`.
+
 ## Dark theme review — 13 Oct 2026 (Claude)
 
 - Reviewed in code (no browser here) every colour in components: tokens in `globals.css`, literal

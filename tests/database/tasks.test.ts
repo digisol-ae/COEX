@@ -463,6 +463,24 @@ describe('the badge on the rail', () => {
   });
 });
 
+describe('the Assigned by me filter', () => {
+  it('lists the tasks I handed to other people, and not those I kept or others assigned', async () => {
+    const spaceId = await aSpace();
+
+    await runWithContext(context, async () => {
+      await createTask({ spaceId, title: 'Handed over', assigneeIds: [String(adminId)] });
+      await createTask({ spaceId, title: 'Kept for myself', assigneeIds: [String(userId)] });
+    });
+    await runWithContext({ ...context, userId: adminId }, () =>
+      createTask({ spaceId, title: 'Assigned by someone else', assigneeIds: [String(userId)] }),
+    );
+
+    const found = await runWithContext(context, () => listTasks({ assignedById: String(userId) }));
+
+    expect(found.map((task) => task.title)).toEqual(['Handed over']);
+  });
+});
+
 describe('listing one space', () => {
   // Every list used to come back with every visible space's tasks: the visibility filter was
   // merged in under the same spaceId key and replaced the space asked for (John, 1 Oct 2026).

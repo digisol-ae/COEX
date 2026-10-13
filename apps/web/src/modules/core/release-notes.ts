@@ -18,8 +18,14 @@ export const RELEASE_NOTES: ReleaseNote[] = [
   {
     id: '2026-10-13',
     date: '13 October 2026',
-    title: 'Dark theme fixes',
+    title: 'Assigned by me and Dark theme fixes',
     sections: [
+      {
+        heading: 'Tasks',
+        items: [
+          'The Tasks list has a new Assigned by me filter. It shows the tasks you assigned to other people. Assignments made before 1 October 2026 were not recorded, so they do not appear.',
+        ],
+      },
       {
         heading: 'Dark theme',
         items: [

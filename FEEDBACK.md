@@ -325,7 +325,7 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 0e. John, 13 Oct 2026: add an "Assigned by me" filter on the All tasks screen
     (https://coex.digisol.ae/tasks), listing the tasks the signed in person assigned to others.
-    Not built yet. Starting point: each task's `assignments` records `assignedById`
+    Built 13 Oct 2026 on the proposals below (acceptance pending). Starting point: each task's `assignments` records `assignedById`
     (task origin, 1 Oct 2026), so the filter can use it; assignments made before 1 Oct 2026 were
     never recorded and will not appear. Open points for John: whether tasks the person created
     but assigned only to themselves count (proposed: no), and whether it stays in the address like

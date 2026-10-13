@@ -115,6 +115,8 @@ export interface TaskFilter {
   includeClosed?: boolean;
   overdueOnly?: boolean;
   unassignedOnly?: boolean;
+  /** Tasks this person assigned to someone else; an assignment to themselves does not count. */
+  assignedById?: string;
 }
 
 export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]> {
@@ -134,6 +136,15 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   if (!filter.includeClosed) query.isClosed = false;
   if (filter.overdueOnly) query.endAt = { $lt: new Date() };
   if (filter.unassignedOnly) query.assigneeIds = { $size: 0 };
+  if (filter.assignedById) {
+    // Only assignments recorded since 1 Oct 2026 carry who made them, so older ones cannot match.
+    query.assignments = {
+      $elemMatch: {
+        assignedById: toObjectId(filter.assignedById),
+        userId: { $ne: toObjectId(filter.assignedById) },
+      },
+    };
+  }
 
   // Private folders are filtered here rather than in a screen, so nothing that reads tasks can
   // forget to apply it. The conditions are joined with $and, never spread into one object: the
