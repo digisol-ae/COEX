@@ -1,5 +1,15 @@
 # COEX — Current AI Task
 
+## Phase 1 live on the server — 13 Oct 2026 (Claude)
+
+- Web app in `apps/web`, workers in `apps/api`, API skeleton and auth routes merged and deployed. John
+  ran the cutover step by step: backup, pull, `npm ci`, `npm run build`, `pm2 restart coex-app`, then the
+  three workers. All four pm2 processes online; coex-mail reconnected; site checked signed in.
+- Gotcha recorded in deploy/DEPLOYMENT-STATUS.md: a terminal that loaded `.env` has `NODE_ENV=production`
+  and makes `npm ci` skip the build tools. Do the backup in a subshell and deploy in a fresh terminal.
+- Not done: start the API on port 3002 and add the Apache rule; Entra redirect URI in Azure (John).
+  `/time/report` needs a check on real MongoDB. Next: Phase 2, Leads and Contracts first.
+
 ## Web app moved to apps/web — 12 Oct 2026 (Claude)
 
 - Next.js app now in `apps/web` (history kept); `@/` means `apps/web/src` everywhere; `.env` stays at

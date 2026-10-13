@@ -316,3 +316,11 @@ and unlock the web app's switch to the API.
   `$cond` in `$group` (an emulator limit, not this change; it needs a run on real MongoDB). NOT run: a
   real MongoDB, the full database suite, or any pm2 process.
 - Server cutover is a one-time step: see "Cutover to apps/web" in deploy/DEPLOYMENT-STATUS.md.
+
+## Phase 1 status (13 Oct 2026, Claude)
+
+- 1a API skeleton, 1b all three workers in `apps/api`, 1c auth and Entra routes, 1d web app in
+  `apps/web`: built, merged and live on the server (cutover done 13 Oct, see deploy/DEPLOYMENT-STATUS.md).
+- Still not started in production: the API process itself (port 3002) and its Apache route. The Entra
+  redirect URI for `/api/v2/auth/entra/callback` is still to be added in Azure by John.
+- Next: Phase 2, module by module (Leads and Contracts first), behind a flag per module.
