@@ -12,7 +12,7 @@ import { randomBytes } from 'node:crypto';
 import mongoose from 'mongoose';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
-import { hashPassword } from '../src/lib/password';
+import { hashPassword } from '../apps/web/src/lib/password';
 
 const EMAIL = process.env.RESET_EMAIL;
 

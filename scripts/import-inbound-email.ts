@@ -1,6 +1,6 @@
 import { ImapFlow } from 'imapflow';
 import { simpleParser } from 'mailparser';
-import { importInboundEmail } from '../src/modules/tickets/services/inbound-email.service';
+import { importInboundEmail } from '../apps/web/src/modules/tickets/services/inbound-email.service';
 
 const required = (name: string) => {
   const value = process.env[name];

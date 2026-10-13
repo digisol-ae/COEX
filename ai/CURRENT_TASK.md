@@ -1,5 +1,17 @@
 # COEX — Current AI Task
 
+## Web app moved to apps/web — 12 Oct 2026 (Claude)
+
+- Next.js app now in `apps/web` (history kept); `@/` means `apps/web/src` everywhere; `.env` stays at
+  the root and `apps/web/bin/run-next.mjs` loads it; root `npm run dev|build|start` still work and
+  forward arguments. CLAUDE.md "Where things live" updated.
+- Verified in a scratch copy: typecheck, eslint, prettier, 163 unit tests, build, start, root env read
+  at runtime, workers boot, Chromium over 23 screens on FerretDB (22 ok; `/time/report` fails only
+  because FerretDB lacks `$cond`). NOT run: real MongoDB, pm2.
+- John: the server needs a ONE-TIME cutover, outside office hours, with `pm2 describe coex-app` first.
+  Exact steps and rollback: deploy/DEPLOYMENT-STATUS.md, "Cutover to apps/web". Do not run the normal
+  redeploy and walk away: a `coex-app` started with a bare `next start` has nothing to serve afterwards.
+
 ## Mail worker moved to apps/api — 12 Oct 2026 (Claude)
 
 - `scripts/email-worker.ts` is now `apps/api/src/workers/mail.ts`; pm2 name `coex-mail` and

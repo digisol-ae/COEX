@@ -1,0 +1,27 @@
+{
+  "name": "@coex/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The COEX Next.js app: pages and components. Business rules live in @coex/shared and the services under src/modules.",
+  "scripts": {
+    "dev": "node bin/run-next.mjs dev --port ${PORT:-3100}",
+    "build": "node bin/run-next.mjs build",
+    "start": "node bin/run-next.mjs start --port ${PORT:-3100}",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@coex/shared": "*",
+    "clsx": "^2.1.1",
+    "next": "16.3.8",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tailwind-merge": "^3.7.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint-config-next": "16.3.8",
+    "tailwindcss": "^4"
+  }
+}

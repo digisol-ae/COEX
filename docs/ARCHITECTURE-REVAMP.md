@@ -286,3 +286,33 @@ and unlock the web app's switch to the API.
   starting and stopping cleanly under `tsx`. NOT run: a real mailbox, a send, or a reminder pass.
 - Left in Phase 1: Apache route and starting the API on port 3002 (John's go), the Entra redirect URI
   in Azure (John), and the move of the web app to `apps/web`.
+
+## Phase 1d as built: the web app moves to apps/web (12 Oct 2026, Claude)
+
+- `src`, `public`, `next.config.ts` and `postcss.config.mjs` moved to `apps/web` with `git mv`, so
+  history is kept. `apps/web` has its own `package.json` (`@coex/web`: next, react, react-dom, clsx,
+  tailwind-merge, tailwind and the Next ESLint config) and `tsconfig.json`. Shared service-level
+  dependencies (mongoose, nodemailer, imapflow, sharp and so on) stay in the root `package.json`,
+  because the workers and the API use the same services.
+- The `@/` alias now means `apps/web/src`: in `apps/web/tsconfig.json`, the root `tsconfig.json`
+  (scripts and tests, and what `tsx` reads for the workers), `apps/api/tsconfig.json` and
+  `vitest.config.mts`. The scripts in `scripts/` import from `../apps/web/src`.
+- `.env` and `.env.local` stay at the repository root. Next.js only reads its own folder, so
+  `apps/web/bin/run-next.mjs` loads the root files and then starts the Next.js command line. The first
+  attempt (loading them in `next.config.ts`) left the running server without `MONGODB_URI`, because
+  `next start` does not re-run the config; the launcher fixes that. `.env.local` is read before `.env`
+  so it overrides, as for the workers.
+- Root `npm run dev`, `build` and `start` forward to the web package and pass extra arguments through
+  (`npm start -- -p 3001`). `PORT` sets the port, default 3100. `turbopack.root` is the repository root.
+- Uploads: with no `STORAGE_DIR` the default `.storage` is now relative to `apps/web`. Production sets
+  `STORAGE_DIR`, so only a developer's local uploads move; copy `.storage` into `apps/web` if needed.
+- CI lints and format-checks `apps` and `packages`; `npm run typecheck` covers web, scripts and tests,
+  shared and api.
+- Verified in a scratch copy: `npm install` and a fresh lockfile, typecheck of all four, ESLint zero
+  warnings, Prettier, 163 unit tests, production build, `npm start` serving login, CSS and public
+  files, the root `.env` being read at runtime, `npm start -- -p 3952` binding that port, all three
+  workers starting under `tsx`, and a Chromium walk-through of 23 screens against a seeded FerretDB:
+  22 returned 200 and rendered styled; `/time/report` returned 500 because FerretDB does not implement
+  `$cond` in `$group` (an emulator limit, not this change; it needs a run on real MongoDB). NOT run: a
+  real MongoDB, the full database suite, or any pm2 process.
+- Server cutover is a one-time step: see "Cutover to apps/web" in deploy/DEPLOYMENT-STATUS.md.

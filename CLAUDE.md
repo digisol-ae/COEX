@@ -28,7 +28,7 @@ archiving, the floating timer and What's new followed on 27 and 28 Sep. Handed t
 Channels (M6) is suspended until further notice.
 
 What's new: every user-visible change gets an entry at the top of
-src/modules/core/release-notes.ts, in plain words for users. That makes the What's new drawer open
+apps/web/src/modules/core/release-notes.ts, in plain words for users. That makes the What's new drawer open
 once more for everyone until they tick "I understand". Exception: John can keep a change out of What's
 new (Team history, 1 Oct 2026); it is then documented in CLAUDE.md, FEEDBACK.md and ai/ only.
 
@@ -151,7 +151,7 @@ The full scope document lives in the Claude project "ECHO System Development" as
 
 ## Navigation
 
-One file defines the menu: src/components/navigation/navigation.ts. Groups are named after the
+One file defines the menu: apps/web/src/components/navigation/navigation.ts. Groups are named after the
 part of the business they serve, not after the module implementing them. A new module adds a group
 there and nothing else, because the sidebar, the permission filtering and the collapse state all
 read from that list. Permissions are applied on the server, so a link a person may not open is
@@ -161,7 +161,7 @@ never sent to their browser.
 
 - Secondary actions (edit, remove, history, archive, previous and next, download, open) are small
   icon buttons with a tooltip saying what they do: `IconButton` and `IconLink` in
-  src/components/ui/icon-button.tsx. The tooltip is also the accessible name. Primary actions
+  apps/web/src/components/ui/icon-button.tsx. The tooltip is also the accessible name. Primary actions
   (Save, Raise ticket, Add time) and consequential ones (Suspend) keep their words.
 - Popups use frosted glass: `popup-backdrop` on the overlay and `popup-glass` on the panel, both in
   globals.css. Forms that would otherwise open inside a table open as popups instead, so the page
@@ -209,15 +209,19 @@ never sent to their browser.
   (statuses, phone numbers, week maths, email text, permissions). Folder layout mirrors the modules;
   import as `@coex/shared/crm/models/lead.model`. It never imports services, `@/` paths or
   anything HTTP. See packages/shared/README.md.
+- `apps/web/` (`@coex/web`, 12 Oct 2026): the Next.js app, moved from the repository root. Pages,
+  components and the service layer under `apps/web/src`; the `@/` alias points there. `.env` and
+  `.env.local` stay at the repository root (the launcher `apps/web/bin/run-next.mjs` loads them). Root
+  `npm run dev|build|start` still work and forward their arguments.
 - `apps/api/` (`@coex/api`, 12 Oct 2026): the Express API, running beside the Next.js app and
   taking modules over one at a time. Same `coex_session` cookie, same tenant context, services
-  imported unchanged from `src/modules/*/services` until a module switches. See apps/api/README.md.
-- `src/modules/<module>/` one folder per module, services, components and actions only (models and
+  imported unchanged from `apps/web/src/modules/*/services` until a module switches. See apps/api/README.md.
+- `apps/web/src/modules/<module>/` one folder per module, services, components and actions only (models and
   pure rules live in `packages/shared`), never importing from a sibling module (Tasks and
   Tickets excepted, decision 13)
-- `src/modules/core/` tenancy, users, audit log, outbox, shared primitives
-- `src/lib/` framework level helpers: database connection, tenant context, utilities
-- `src/components/ui/` the shared component library
+- `apps/web/src/modules/core/` tenancy, users, audit log, outbox, shared primitives
+- `apps/web/src/lib/` framework level helpers: database connection, tenant context, utilities
+- `apps/web/src/components/ui/` the shared component library
 - `docs/` architecture, data model, onboarding
 - `scripts/` migration and maintenance scripts
 
@@ -377,6 +381,10 @@ by `npm install` on the Mac.
   Microsoft Entra as `/api/v2/auth/*`, same services and same cookie, with sign in rate limits. The
   web login page is not switched. Microsoft Entra through the API needs the redirect URI
   `https://coex.digisol.ae/api/v2/auth/entra/callback` added in Azure first (John's Microsoft account).
+- Phase 1b and 1d built 12 Oct 2026 (John: workers, then the web app): the three workers run from
+  `apps/api/src/workers`, and the Next.js app lives in `apps/web`. Moving the app changes where
+  `next start` finds its build, so `coex-app` is recreated once in pm2; see "Cutover to apps/web" in
+  deploy/DEPLOYMENT-STATUS.md.
 
 ## CRM decisions — 5 Oct 2026 (John) — SUPERSEDED
 Superseded on 12 Oct 2026 (John: "use the 10 Oct answers, keep as is"). The current decisions are

@@ -22,7 +22,7 @@ Until Apache routes `/api/v2` to it (deploy/apache-coex.conf), nothing reaches i
 - **Same tenant rule.** After sign in the request runs inside `runWithContext`, so every service
   call is scoped to the person's tenant exactly as it is in a server action. A service still
   refuses for itself; the route's permission check is a second lock, not the only one.
-- **Same services.** Services are imported unchanged from `src/modules/*/services` (the `@/`
+- **Same services.** Services are imported unchanged from `apps/web/src/modules/*/services` (the `@/`
   alias points at the web app's `src`). When a module's screens switch to the API its services are
   moved here with `git mv`; until then there is one copy, never two.
 

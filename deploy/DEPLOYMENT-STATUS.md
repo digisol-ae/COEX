@@ -134,3 +134,34 @@ Follow this file for the live server; DEPLOY.md is the original design only.
 - Rotate off Raheel's SSH key.
 - Run `npm run migrate:spaces` ONLY against a database written before the Spaces change;
   a fresh seed does not need it.
+
+
+## Cutover to apps/web (12 Oct 2026, revamp Phase 1d)
+
+The Next.js app now lives in `apps/web`. The build lands in `apps/web/.next`, not `/srv/coex/app/.next`,
+so a `next start` that was started from the repository root has nothing to serve. `.env` stays at
+`/srv/coex/app/.env` (the launcher `apps/web/bin/run-next.mjs` reads it). The workers, `npm run ...`
+commands, port and Apache are unchanged. Do this once, outside office hours, and watch the site after.
+
+1. Before the pull, record how `coex-app` is defined: `pm2 describe coex-app` (note "script path",
+   "script args", "exec cwd" and any PORT). Take a backup first: `bash deploy/backup.sh`.
+2. Pull, install and build. The old root `.next` stays untouched until you delete it, so the running
+   site keeps serving while this runs:
+       cd /srv/coex/app && git status --short          # must be empty
+       git pull --ff-only && npm ci && npm run build
+3. Restart the workers as usual (they run from `apps/api`):
+       pm2 restart coex-mail coex-desk-close coex-channels --update-env
+4. Recreate the web process. If `pm2 describe` showed the script as `npm` with `start` in its args, a
+   plain `pm2 restart coex-app --update-env` is enough (root `npm start -- -p 3001` still forwards the
+   flag). In every other case (for example the script is `next` or `node_modules/.bin/next`):
+       pm2 delete coex-app
+       cd /srv/coex/app && PORT=3001 pm2 start npm --name coex-app -- start
+   then `pm2 save` and `pm2 status` (exactly one each of coex-app, coex-mail, coex-desk-close and
+   coex-channels).
+5. Check: `curl -sI https://coex.digisol.ae/login` returns 200, sign in, open Tickets and Tasks, and
+   `pm2 logs coex-app --lines 30 --nostream` shows no errors. After a day, `rm -rf /srv/coex/app/.next`
+   (the old build) and tell no one: nothing reads it.
+
+Rollback (about three minutes): `git checkout 9676795` (the last commit before the move), then
+`npm ci && npm run build`, and start `coex-app` the way step 1 recorded, then `pm2 save`. Return to
+the branch afterwards with `git checkout main`.
