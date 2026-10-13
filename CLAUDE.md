@@ -385,6 +385,8 @@ by `npm install` on the Mac.
   `apps/api/src/workers`, and the Next.js app lives in `apps/web`. Moving the app changes where
   `next start` finds its build, so `coex-app` is recreated once in pm2; see "Cutover to apps/web" in
   deploy/DEPLOYMENT-STATUS.md.
+- Phase 1 is live on the server (13 Oct 2026): the API is built but not started or routed, the workers
+  and the web app run from the new layout. Next: Phase 2 module by module. Start with ai/HANDOFF.md.
 
 ## CRM decisions — 5 Oct 2026 (John) — SUPERSEDED
 Superseded on 12 Oct 2026 (John: "use the 10 Oct answers, keep as is"). The current decisions are

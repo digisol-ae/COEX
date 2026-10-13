@@ -1,5 +1,12 @@
 # COEX — Shared AI Project State
 
+## Session closed — 13 Oct 2026 (Claude)
+
+- No task in flight. Phase 1 of the revamp is merged and live; the full handoff (state, layout rules,
+  deploy rules, open items, how to verify from the sandbox, how John likes to work) is the top section
+  of ai/HANDOFF.md. Next candidates: John's Azure redirect URI, starting the API and its Apache rule,
+  or Phase 2 (Leads and Contracts first).
+
 ## Phase 1 live on the server — 13 Oct 2026 (Claude)
 
 - Web app in `apps/web`, workers in `apps/api`, API skeleton and auth routes merged and deployed. John
