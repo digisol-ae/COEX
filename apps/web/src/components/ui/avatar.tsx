@@ -37,8 +37,8 @@ export function Avatar({ name, size = 'normal' }: { name: string; size?: 'normal
       title={name}
       className={
         size === 'small'
-          ? 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-medium text-white'
-          : 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-medium text-white'
+          ? 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-medium text-[var(--color-person-ink)]'
+          : 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-medium text-[var(--color-person-ink)]'
       }
       style={{ backgroundColor: colourFor(name) }}
     >

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useTransition } from 'react';
-import { Select } from '@/components/ui';
+import { Select, Textarea } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
 import { STATUS_LABELS, canMoveTo } from '@/modules/tickets/labels';
 import type { Priority, TicketStatus } from '@/modules/tickets/services/ticket.service';
@@ -141,11 +141,11 @@ export function AgentControl({
               ))}
             </Select>
             {assigneeId && next !== assigneeId ? (
-              <textarea
+              <Textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Why is this ticket being reassigned?"
-                className="mt-3 w-full rounded-[var(--radius-control)] border border-[var(--color-line)] p-2 text-sm"
+                className="mt-3"
                 rows={3}
               />
             ) : null}
@@ -160,7 +160,7 @@ export function AgentControl({
                 type="button"
                 disabled={pending}
                 onClick={save}
-                className="rounded-[var(--radius-control)] bg-[var(--color-ink)] px-3 py-1.5 text-sm text-white"
+                className="rounded-[var(--radius-control)] bg-[var(--color-action)] px-3 py-1.5 text-sm text-[var(--color-ink-inverse)] hover:bg-[var(--color-action-hover)] disabled:opacity-50"
               >
                 Save
               </button>

@@ -16,6 +16,22 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-13',
+    date: '13 October 2026',
+    title: 'Dark theme fixes',
+    sections: [
+      {
+        heading: 'Dark theme',
+        items: [
+          'The Save button in the Assign agent window is now readable in Dark. It was white on white.',
+          'People’s initials in their coloured circles are now dark on the lighter Dark shades, so they are easier to read.',
+          'What’s new and the Raise ticket window no longer flash bright white when you point at their close button in Dark.',
+          'Windows now dim the page behind them a little more in Dark, so they stand out.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-11',
     date: '11 October 2026',
     title: 'Convert leads, the pipeline board and sales reminders',

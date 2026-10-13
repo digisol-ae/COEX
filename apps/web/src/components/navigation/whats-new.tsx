@@ -93,7 +93,7 @@ export function WhatsNew({ seen }: { seen: string | null }) {
         onMouseDown={(event) => event.stopPropagation()}
         className="popup-glass-gradient whats-new-drawer flex h-full w-full max-w-md flex-col !rounded-none sm:!rounded-l-[1.25rem]"
       >
-        <header className="flex items-start justify-between gap-4 border-b border-white/60 px-6 pt-6 pb-4">
+        <header className="flex items-start justify-between gap-4 border-b border-[var(--color-line)] px-6 pt-6 pb-4">
           <div>
             <h2 id="whats-new-title" className="text-xl font-bold text-[var(--color-ink)]">
               What&apos;s new
@@ -106,7 +106,7 @@ export function WhatsNew({ seen }: { seen: string | null }) {
             type="button"
             onClick={close}
             aria-label="Close"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[var(--color-ink-subtle)] hover:bg-white/60 hover:text-[var(--color-ink)]"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[var(--color-ink-subtle)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
           >
             ✕
           </button>
@@ -155,7 +155,7 @@ export function WhatsNew({ seen }: { seen: string | null }) {
           ))}
         </div>
 
-        <footer className="border-t border-white/60 px-6 py-4">
+        <footer className="border-t border-[var(--color-line)] px-6 py-4">
           {unseen ? (
             <label className="mb-3 flex items-start gap-2.5 text-sm">
               <input

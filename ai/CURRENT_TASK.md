@@ -1,5 +1,18 @@
 # COEX — Current AI Task
 
+## Dark theme review — 13 Oct 2026 (Claude)
+
+- Reviewed in code (no browser here) every colour in components: tokens in `globals.css`, literal
+  colours in tsx, raw form controls. Fixed: Assign agent Save used `bg-ink text-white`, which is white on
+  white in Dark (now `action` and `ink-inverse`, and the reason box uses the shared Textarea); initials
+  on person colours (new `--color-person-ink`, near black in Dark); `white/60` borders and hovers in
+  What's new and Raise ticket; popup backdrop darker in Dark. What's new entry 2026-10-13.
+- Left alone on purpose: the floating timer (own dark green design), toasts (fixed dark), tooltips.
+- Verified: typecheck and ESLint in a scratch copy. NOT seen in a browser: John, check Dark on
+  Tickets, Tasks, What's new, Raise ticket and avatars, and send screenshots of anything else.
+- Raw `<select>`, `<input>` and `<textarea>` in about 35 places use Tailwind's transparent default
+  rather than the shared controls; they read fine in Dark but differ from `Input`. Candidate clean-up.
+
 ## Microsoft sign-in live — 13 Oct 2026 (Claude, with John)
 
 - Entra variables added to the server `.env`; Microsoft sign-in through the web route works (John

@@ -40,7 +40,7 @@ export function Monogram({
     <span
       aria-hidden="true"
       className={clsx(
-        'flex shrink-0 items-center justify-center rounded-[6px] font-medium text-white',
+        'flex shrink-0 items-center justify-center rounded-[6px] font-medium text-[var(--color-person-ink)]',
         size === 'small' ? 'h-5 w-5 text-[9px]' : 'h-6 w-6 text-[10px]',
         className,
       )}

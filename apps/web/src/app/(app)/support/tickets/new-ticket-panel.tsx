@@ -121,7 +121,7 @@ export function NewTicketPanel({
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close"
-                className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-ink-subtle)] hover:bg-white/60 hover:text-[var(--color-ink)]"
+                className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-ink-subtle)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
               >
                 ✕
               </button>

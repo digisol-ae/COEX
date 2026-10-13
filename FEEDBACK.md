@@ -316,7 +316,9 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 0f. John, 13 Oct 2026: the Dark theme does not look good. His example is the "Assign agent" popup on
     the Tickets list in Dark (dropdown with a red outline, a bright white Save button that looks
-    disabled, text and controls blending into the dark glass). Not built yet. Needs a pass over every
+    disabled, text and controls blending into the dark glass). First pass built 13 Oct 2026 (acceptance pending): Assign agent Save was ink on ink (white on
+    white), initials on person colours, white hover and border in What's new and Raise ticket, and a
+    darker backdrop; see ai/CURRENT_TASK.md. Needs a pass over every
     popup and form control in Dark, using colour tokens only (no literal colours, per CLAUDE.md), and
     John's look at which screens bother him most. Open point for John: send the other screens that look
     wrong in Dark, or let Claude review all of them against the Light theme.
