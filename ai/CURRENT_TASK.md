@@ -1,5 +1,12 @@
 # COEX — Current AI Task
 
+## Microsoft sign-in live — 13 Oct 2026 (Claude, with John)
+
+- Entra variables added to the server `.env`; Microsoft sign-in through the web route works (John
+  confirmed). Details and gotchas in deploy/DEPLOYMENT-STATUS.md. Remember the client secret's expiry.
+- Not done: `coex-api` process, Apache `/api/v2` route, the optional `auth` flag to point the login page
+  at the API. Leads work is paused at the flag stage.
+
 ## Leads pages behind a flag — 13 Oct 2026 (Claude)
 
 - `apps/web/src/lib/api-client.ts`: `apiEnabledFor(module)` reads `COEX_API_MODULES` (comma list, for

@@ -179,3 +179,15 @@ Carried out by John, with `coex-app` unchanged in pm2: it runs `npm start -- -p 
 `coex-mail` reconnected to the mailbox. The first build failed once because the terminal still had
 `NODE_ENV=production` from the backup step (see above); a new terminal fixed it. The old
 `/srv/coex/app/.next` can be deleted after a day of stable use.
+
+## Microsoft sign-in switched on — 13 Oct 2026
+
+- Both redirect URIs are registered in the Azure app "COEX by DigiSol": `/api/auth/entra/callback` (web
+  app, in use) and `/api/v2/auth/entra/callback` (API, not yet used).
+- `/srv/coex/app/.env` now holds `AUTH_MICROSOFT_ENTRA_ID_ID`, `_SECRET`, `_ISSUER`
+  (`https://login.microsoftonline.com/<tenant id>/v2.0`) and `AUTH_URL`. The login page shows the
+  Microsoft button only when all four are set. John confirmed a Microsoft sign-in works.
+- Gotchas: the client secret is the **Value** column in Azure, not the Secret ID (36 characters with
+  dashes gives `?entra=failed`). Azure client secrets expire; renew before the date chosen when it was
+  created, or Microsoft sign-in stops. A person can sign in only if a COEX user has the same email.
+- The API (`coex-api`, port 3002) and its Apache route are still not started.
