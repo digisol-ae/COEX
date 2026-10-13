@@ -1,6 +1,106 @@
 # COEX — AI Handoff
 
-## START HERE — committed release for Claude — 3 Oct 2026 (Codex)
+## START HERE — 13 Oct 2026 (Claude, end of session)
+
+### State in one paragraph
+
+Revamp Phase 1 is built, merged to `main` (PRs #15 to #19, `main` at `b69edc2`) and live on the server.
+The repository is now a monorepo: `apps/web` (the Next.js app, moved from the root), `apps/api`
+(Express API plus the three pm2 workers), `packages/shared` (models and pure rules). The API itself is
+NOT started in production and Apache does not route `/api/v2` yet. Users notice nothing.
+
+### What is live and verified (13 Oct 2026)
+
+- Server `/srv/coex/app` follows `main`. pm2 runs exactly four processes, all online: `coex-app`
+  (script `/usr/bin/npm`, args `start -- -p 3001`, cwd `/srv/coex/app`; root `npm start` forwards the
+  flag), `coex-mail` (`apps/api/src/workers/mail.ts`), `coex-desk-close` (`.../desk-close.ts`),
+  `coex-channels` (`.../channels.ts`). npm script names are unchanged (`email:worker`, `desk:worker`,
+  `channels:worker`). Never `pm2 start` an existing process again.
+- Checked after the cutover: login page and stylesheet 200; signed in pages 200; `coex-mail` reconnected
+  to the mailbox; `coex-desk-close` ran a real office-day close from the moved script ("archived desks
+  for 6 user(s)", 12 Oct).
+- Production audit is clean (`sharp` 0.35.5, `source-map-js` 1.2.2). `npm audit` still lists dev-only
+  highs in the lint chain; ignore, never run `npm audit fix --force` on the server.
+
+### How the layout works (read before touching paths)
+
+- `@/` means `apps/web/src` everywhere: `apps/web/tsconfig.json`, root `tsconfig.json` (scripts, tests,
+  and what `tsx` reads for the workers), `apps/api/tsconfig.json`, `vitest.config.mts`. Scripts in
+  `scripts/` import `../apps/web/src/...`. Workers and the API reuse the web app's services through `@/`
+  until a module switches to the API (Phase 2); services then move with their module.
+- `.env` and `.env.local` stay at the repository root. `apps/web/bin/run-next.mjs` loads them before
+  starting Next.js (Next only reads its own folder, and `next start` does not re-run `next.config.ts`;
+  loading them in the config was tried first and failed). Root `npm run dev|build|start` forward to the
+  web package and pass arguments through; `PORT` sets the port (default 3100).
+- Dependencies: web-only packages live in `apps/web/package.json`; service level ones (mongoose,
+  nodemailer, imapflow, sharp...) stay in the root because workers and API use the same services.
+- Session and tenant code lives in `@coex/shared` (`core/session-store`, `core/tenant-context`,
+  `core/database`); `apps/web/src/lib/*` and `session.service.ts` re-export it.
+
+### Deploy rules (learned the hard way, 13 Oct)
+
+- Deploy from a FRESH terminal. A terminal that has loaded `.env` has `NODE_ENV=production`, and then
+  `npm ci` skips the build tools and the build fails with "Cannot find module '@tailwindcss/postcss'".
+  Take backups in a subshell: `(cd /srv/coex/app && set -a && . ./.env && set +a && bash deploy/backup.sh)`.
+- Normal redeploy: `cd /srv/coex/app && git status --short` (must be empty), `git pull --ff-only && npm ci
+  && npm run build`, `pm2 restart coex-app coex-mail coex-desk-close coex-channels --update-env && pm2 save`.
+  The build now lands in `apps/web/.next`; the old root `.next` can be deleted
+  (`rm -rf /srv/coex/app/.next`) after a stable day.
+- Outside UAE office hours; backup first. Full runbook and rollback (`git checkout 9676795`): 
+  deploy/DEPLOYMENT-STATUS.md, "Cutover to apps/web".
+- `git pull` saying "Already up to date" after Claude pushed means the work is on a branch, not merged
+  to `main` yet. John merges, or says "merge" and Claude merges (full 40 character head SHA required).
+
+### Open items (nothing is blocked on Claude)
+
+1. John, Azure: add redirect URI `https://coex.digisol.ae/api/v2/auth/entra/callback` (his Microsoft
+   account) before testing Entra through the API.
+2. Start the API (`npm run api:start`, port 3002, pm2 name `coex-api`) and add the Apache rule
+   (`deploy/apache-coex.conf` has the proposed lines): needs John's go and an off-hours window.
+3. Phase 2 of the revamp, module by module behind a flag per module: Leads and Contracts first, then CRM
+   and Setup, Time, Tasks and My Desk, Tickets and email intake last (docs/ARCHITECTURE-REVAMP.md).
+4. `/time/report` returned 500 only against FerretDB (no `$cond` in `$group`); run it on real MongoDB.
+   The full database suite has not been run on real MongoDB since Phase 0.
+5. Clean up live test data: John reported the three "TEST (Claude) board check" opportunities were
+   gone when checked (cause unknown, nothing in the app deletes them). Disable the throwaway account
+   `ai@claude.com` again and change its password (it was shared in chat; it was reactivated for a login
+   test on 13 Oct).
+6. Pipeline stage "Negotiation" exists live and is CORRECT: CLAUDE.md records John's 12 Oct decision to
+   use the 10 Oct answers (it supersedes the 5 Oct "no Negotiation" note).
+7. Local developer note: with no `STORAGE_DIR`, the default `.storage` is now relative to `apps/web`
+   (production sets `STORAGE_DIR`, unaffected).
+
+### How Claude verified things from the cloud sandbox (reusable)
+
+- Never `npm install` into the real repo folder. Copy tracked files to a scratch folder
+  (`git ls-files -z | tar --null -T - -cf -`), `npm ci` there, run `npm run typecheck`,
+  `npx eslint apps packages --max-warnings=0`, prettier on `apps/**`, `packages/**`, `tests/**`,
+  `npm run test:unit`, `npm run build`. Lockfile changes: `npm install`/`npm update --package-lock-only`
+  in the scratch copy, then copy `package-lock.json` back.
+- Real browser: Playwright with the preinstalled Chromium (`/opt/node22/lib/node_modules/playwright`),
+  launching with the proxy `HTTPS_PROXY` for the live site. Seeded walk-through: FerretDB v1.24
+  (download from GitHub releases; `--handler=sqlite --listen-addr=127.0.0.1:27018 --telemetry=disable`),
+  `npm run seed` with `.env.local` pointing at it. FerretDB lacks `$cond` in `$group`, partial and TTL
+  indexes; failures on those say nothing about the code.
+- The built-in browser and computer use were NOT linked to this session. `curl` through the sandbox
+  proxy reaches `https://coex.digisol.ae`; WebFetch does not. Signing in by `curl` needs the Next.js
+  server action fields (`$ACTION_REF_1`, `$ACTION_1:0`, `$ACTION_1:1`, `$ACTION_KEY`) taken from the
+  login page. Do not write passwords into files or commits.
+
+### Working with John (keep doing this)
+
+- Plain English only, short, commands first; ONE step at a time on the server, wait for his pasted
+  output before the next step. He asked for this on 13 Oct after a long runbook confused him.
+- Replies in English whatever the language he writes. He pushes and deploys himself; Claude commits to
+  the session branch, opens a pull request only when asked, watches it (subscribe, backup check-in),
+  and merges only when John says "merge". Unmerged work stays on `claude/<session>`; after a merge the
+  branch restarts from `origin/main`.
+- Never commit secrets, never run `npm audit fix --force` on the server, never rewrite another
+  session's branch. Two parallel sessions built Phase 1 on 12 Oct; the other session's API (Phase 1a/1c,
+  branch `claude/blissful-heisenberg-wb4e9a`) was kept, the duplicate skeleton dropped. Check for
+  parallel work (`git fetch`, open pull requests) before building.
+
+## (Superseded by the 13 Oct 2026 section above) Committed release for Claude — 3 Oct 2026 (Codex)
 
 - Feature commit: `955ea3f` (44 files), branch `claude/dreamy-carson-86yxhh`.
   Includes today's customer creation, CC, attachments, previews, timer/sender, ticket analytics,
