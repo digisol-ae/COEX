@@ -1,6 +1,20 @@
 # COEX — AI Handoff
 
-## START HERE — committed release for Claude — 3 Oct 2026 (Codex)
+## START HERE — state at 13 Oct 2026 (Claude)
+
+- The sections below dated 3 Oct 2026 (Codex) are history. Their push and VPS pull steps are done or
+  overtaken: Phase 1 of the architecture revamp is merged and live (web app in `apps/web`, workers in
+  `apps/api`, four pm2 processes online). Read `ai/CURRENT_TASK.md` and `ai/PROJECT_STATE.md` for detail.
+- Built: Contracts P2.1a to c, full CRM P2.2a to d, Express API skeleton (health, /me, read-only
+  /leads, auth routes). Not built: P2.1d Zoho link (needs Zoho API access from John), Payroll (needs
+  John's answers on headcount, leave rules, client tenants), revamp Phase 2 (modules to the API).
+- Waiting on John: start `coex-api` on port 3002 plus Apache rule; Entra redirect URI in Azure;
+  check `/time/report` on real MongoDB; 3 Oct database regressions and browser acceptance.
+- Recommended next: revamp Phase 2, Leads and Contracts first (Express routes and zod schemas,
+  supertest tests, web pages behind a flag), per docs/ARCHITECTURE-REVAMP.md. Needs John's go.
+- Pushing and deploying stay with John (Mac keychain, SSH). Work goes on `claude/gallant-faraday-r1u4g8`.
+
+## Committed release for Claude — 3 Oct 2026 (Codex)
 
 - Feature commit: `955ea3f` (44 files), branch `claude/dreamy-carson-86yxhh`.
   Includes today's customer creation, CC, attachments, previews, timer/sender, ticket analytics,
