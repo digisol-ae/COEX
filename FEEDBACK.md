@@ -314,6 +314,13 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
+0f. John, 13 Oct 2026: the Dark theme does not look good. His example is the "Assign agent" popup on
+    the Tickets list in Dark (dropdown with a red outline, a bright white Save button that looks
+    disabled, text and controls blending into the dark glass). Not built yet. Needs a pass over every
+    popup and form control in Dark, using colour tokens only (no literal colours, per CLAUDE.md), and
+    John's look at which screens bother him most. Open point for John: send the other screens that look
+    wrong in Dark, or let Claude review all of them against the Light theme.
+
 0e. John, 13 Oct 2026: add an "Assigned by me" filter on the All tasks screen
     (https://coex.digisol.ae/tasks), listing the tasks the signed in person assigned to others.
     Not built yet. Starting point: each task's `assignments` records `assignedById`
