@@ -144,11 +144,15 @@ so a `next start` that was started from the repository root has nothing to serve
 commands, port and Apache are unchanged. Do this once, outside office hours, and watch the site after.
 
 1. Before the pull, record how `coex-app` is defined: `pm2 describe coex-app` (note "script path",
-   "script args", "exec cwd" and any PORT). Take a backup first: `bash deploy/backup.sh`.
+   "script args", "exec cwd" and any PORT). Take a backup first, in a subshell so the
+   settings do not stay in your terminal: `(cd /srv/coex/app && set -a && . ./.env && set +a && bash deploy/backup.sh)`.
 2. Pull, install and build. The old root `.next` stays untouched until you delete it, so the running
    site keeps serving while this runs:
        cd /srv/coex/app && git status --short          # must be empty
        git pull --ff-only && npm ci && npm run build
+   Run this in a fresh terminal. A terminal that has loaded `.env` has `NODE_ENV=production`, and then
+   `npm ci` leaves out the build tools (Tailwind and others) and the build fails with "Cannot find
+   module '@tailwindcss/postcss'". If you see that, open a new terminal and run it again.
 3. Restart the workers as usual (they run from `apps/api`):
        pm2 restart coex-mail coex-desk-close coex-channels --update-env
 4. Recreate the web process. If `pm2 describe` showed the script as `npm` with `start` in its args, a
@@ -165,3 +169,13 @@ commands, port and Apache are unchanged. Do this once, outside office hours, and
 Rollback (about three minutes): `git checkout 9676795` (the last commit before the move), then
 `npm ci && npm run build`, and start `coex-app` the way step 1 recorded, then `pm2 save`. Return to
 the branch afterwards with `git checkout main`.
+
+### Cutover done (13 Oct 2026)
+
+Carried out by John, with `coex-app` unchanged in pm2: it runs `npm start -- -p 3001` from
+`/srv/coex/app` (script `/usr/bin/npm`), and root `npm start` forwards that flag, so a plain
+`pm2 restart coex-app --update-env` was enough. Result: login page and stylesheet 200, signed-in pages
+200, all four processes online (`coex-app`, `coex-mail`, `coex-desk-close`, `coex-channels`),
+`coex-mail` reconnected to the mailbox. The first build failed once because the terminal still had
+`NODE_ENV=production` from the backup step (see above); a new terminal fixed it. The old
+`/srv/coex/app/.next` can be deleted after a day of stable use.
