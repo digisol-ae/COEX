@@ -1,5 +1,19 @@
 # COEX — Shared AI Project State
 
+## Leads pages behind a flag — 13 Oct 2026 (Claude)
+
+- `apps/web/src/lib/api-client.ts`: `apiEnabledFor(module)` reads `COEX_API_MODULES` (comma list, for
+  example `leads`) and `apiRequest` calls the API from the server with the person's own session
+  cookie (`COEX_API_URL`, default `http://127.0.0.1:3002/api/v2`). Flag unset: nothing changes.
+- With `leads` set, the Leads page lists and every Leads action (save, start working, disqualify,
+  archive, convert) go through the API; a 409 shows the same "save anyway" lookalikes as before.
+- Verified: typecheck, ESLint, Prettier in a scratch copy. NOT run: the app, the API or any test.
+- John, to try it: run `npm test` first; start the API (`apps/api`, port 3002; no Apache rule is needed
+  because the web app calls it on loopback), add `COEX_API_MODULES=leads` to `.env.local`, restart
+  `coex-app`, then use Leads as John. Rollback: remove the line and restart `coex-app`.
+- Not done: Chromium walk-through with the flag on and off, agent pilot, moving the service file,
+  deleting the old server actions (checklist steps 4 to 6), then Contracts.
+
 ## Leads on the API — 13 Oct 2026 (Claude)
 
 - Revamp Phase 2 started with Leads: `apps/api/src/routes/leads.ts` now also serves create (409 with

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { asUser, requirePermission } from '@/lib/session';
+import { ApiConflictError, apiEnabledFor, apiRequest } from '@/lib/api-client';
 import {
   DuplicateLeadError,
   archiveLead,
@@ -11,6 +12,7 @@ import {
   startWorkingLead,
   updateLead,
   type LeadDuplicate,
+  type ConvertLeadResult,
   type LeadInput,
 } from '@/modules/crm/services/lead.service';
 import {
@@ -64,11 +66,30 @@ export async function saveLeadAction(
         customFields: readCustomFieldValues(fields, formData),
       };
 
+      const confirmDuplicates = formData.get('confirmDuplicates') === 'yes';
+
+      if (apiEnabledFor('leads')) {
+        // The API wants absent fields left out and ids as real ids, never empty text.
+        const body = Object.fromEntries(
+          Object.entries(input).filter(([, value]) => value !== '' && value !== undefined),
+        );
+        if (id) await apiRequest('PUT', `/leads/${id}`, { name: input.name, ...body });
+        else await apiRequest('POST', '/leads', { name: input.name, ...body, confirmDuplicates });
+        return;
+      }
+
       if (id) await updateLead(id, input);
-      else
-        await createLead(input, { confirmDuplicates: formData.get('confirmDuplicates') === 'yes' });
+      else await createLead(input, { confirmDuplicates });
     });
   } catch (error) {
+    if (error instanceof ApiConflictError) {
+      return {
+        error: error.message,
+        duplicates: error.details as LeadDuplicate[],
+        values: submittedValues(formData),
+      };
+    }
+
     if (error instanceof DuplicateLeadError) {
       return {
         error: error.message,
@@ -90,7 +111,12 @@ export async function saveLeadAction(
 export async function startWorkingLeadAction(formData: FormData): Promise<void> {
   const actor = await requirePermission('lead.manage');
 
-  await asUser(actor, () => startWorkingLead(text(formData, 'id')));
+  const id = text(formData, 'id');
+  await asUser(actor, () =>
+    apiEnabledFor('leads')
+      ? apiRequest('POST', `/leads/${id}/start-working`)
+      : startWorkingLead(id),
+  );
   revalidatePath('/leads');
 }
 
@@ -101,7 +127,11 @@ export async function disqualifyLeadAction(
   const actor = await requirePermission('lead.manage');
 
   try {
-    await asUser(actor, () => disqualifyLead(id, reason));
+    await asUser(actor, () =>
+      apiEnabledFor('leads')
+        ? apiRequest('POST', `/leads/${id}/disqualify`, { reason })
+        : disqualifyLead(id, reason),
+    );
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not disqualify the lead.' };
   }
@@ -113,7 +143,10 @@ export async function disqualifyLeadAction(
 export async function archiveLeadAction(formData: FormData): Promise<void> {
   const actor = await requirePermission('lead.manage');
 
-  await asUser(actor, () => archiveLead(text(formData, 'id')));
+  const id = text(formData, 'id');
+  await asUser(actor, () =>
+    apiEnabledFor('leads') ? apiRequest('POST', `/leads/${id}/archive`) : archiveLead(id),
+  );
   revalidatePath('/leads');
 }
 
@@ -131,7 +164,11 @@ export async function convertLeadAction(
     // No revalidation here: the lead's row stops offering Convert, and refreshing the page now
     // would remove this dialog before the person sees where the customer went. The dialog
     // refreshes the page when it is closed.
-    const result = await asUser(actor, () => convertLead(id, input));
+    const result = await asUser(actor, () =>
+      apiEnabledFor('leads')
+        ? apiRequest<ConvertLeadResult>('POST', `/leads/${id}/convert`, input)
+        : convertLead(id, input),
+    );
     return { organisationId: result.organisationId, opportunityId: result.opportunityId };
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not convert the lead.' };

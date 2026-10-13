@@ -10,7 +10,7 @@
   John's answers on headcount, leave rules, client tenants), revamp Phase 2 (modules to the API).
 - Waiting on John: start `coex-api` on port 3002 plus Apache rule; Entra redirect URI in Azure;
   check `/time/report` on real MongoDB; 3 Oct database regressions and browser acceptance.
-- Done 13 Oct: Leads write routes on the API (unrun tests, see ai/CURRENT_TASK.md). Recommended next: finish Leads (flag, pages), then Contracts; revamp Phase 2, Leads and Contracts first (Express routes and zod schemas,
+- Done 13 Oct: Leads write routes on the API (unrun tests, see ai/CURRENT_TASK.md). Leads pages now behind `COEX_API_MODULES=leads` (see ai/CURRENT_TASK.md). Recommended next: pilot Leads, then Contracts; revamp Phase 2, Leads and Contracts first (Express routes and zod schemas,
   supertest tests, web pages behind a flag), per docs/ARCHITECTURE-REVAMP.md. Needs John's go.
 - Pushing and deploying stay with John (Mac keychain, SSH). Work goes on `claude/gallant-faraday-r1u4g8`.
 
