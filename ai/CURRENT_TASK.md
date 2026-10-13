@@ -1,5 +1,17 @@
 # COEX — Current AI Task
 
+## Leads on the API — 13 Oct 2026 (Claude)
+
+- Revamp Phase 2 started with Leads: `apps/api/src/routes/leads.ts` now also serves create (409 with
+  the lookalikes unless `confirmDuplicates`), duplicate check, update, start-working, disqualify,
+  archive and convert. Each calls the existing lead service unchanged, so permission and visibility
+  rules stay in one place. List now returns `customFields`.
+- Verified: typecheck, ESLint and Prettier clean in a scratch copy. NOT run: the new supertest cases in
+  `apps/api/tests/api.test.ts` (no MongoDB in the sandbox). John: run `npm test` on the Mac first.
+- Not done yet: the lead service file still lives in the web app, the Leads pages still use server
+  actions, and there is no module flag. Next: flag plus switching the pages, Chromium walk-through,
+  pilot with John (checklist in docs/ARCHITECTURE-REVAMP.md), then Contracts.
+
 ## Phase 1 live on the server — 13 Oct 2026 (Claude)
 
 - Web app in `apps/web`, workers in `apps/api`, API skeleton and auth routes merged and deployed. John

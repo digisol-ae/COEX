@@ -324,3 +324,7 @@ and unlock the web app's switch to the API.
 - Still not started in production: the API process itself (port 3002) and its Apache route. The Entra
   redirect URI for `/api/v2/auth/entra/callback` is still to be added in Azure by John.
 - Next: Phase 2, module by module (Leads and Contracts first), behind a flag per module.
+
+## Phase 2, Leads: routes (13 Oct 2026, Claude)
+
+- Checklist step 1 and 2 for Leads, partly: all lead routes exist under `/api/v2/leads` with zod schemas and supertest cases (written, not yet run against a database). Steps 3 to 6 and moving the service file remain.

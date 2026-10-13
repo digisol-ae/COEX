@@ -167,6 +167,108 @@ describe('leads route', () => {
   });
 });
 
+describe('leads write routes', () => {
+  it('creates, edits, works, disqualifies and archives a lead as its owner', async () => {
+    const cookie = await cookieFor(salesId);
+
+    const created = await request(app)
+      .post('/api/v2/leads')
+      .set('Cookie', cookie)
+      .send({ name: 'Acme Dental', email: 'a@acme.com' });
+    expect(created.status).toBe(201);
+    const id = created.body.id as string;
+
+    expect(
+      (
+        await request(app)
+          .put(`/api/v2/leads/${id}`)
+          .set('Cookie', cookie)
+          .send({ name: 'Acme Dental Group', email: 'a@acme.com' })
+      ).status,
+    ).toBe(200);
+
+    expect(
+      (await request(app).post(`/api/v2/leads/${id}/start-working`).set('Cookie', cookie)).status,
+    ).toBe(200);
+
+    const noReason = await request(app)
+      .post(`/api/v2/leads/${id}/disqualify`)
+      .set('Cookie', cookie)
+      .send({ reason: ' ' });
+    expect(noReason.status).toBe(422);
+
+    expect(
+      (
+        await request(app)
+          .post(`/api/v2/leads/${id}/disqualify`)
+          .set('Cookie', cookie)
+          .send({ reason: 'No budget' })
+      ).status,
+    ).toBe(200);
+
+    expect(
+      (await request(app).post(`/api/v2/leads/${id}/archive`).set('Cookie', cookie)).status,
+    ).toBe(200);
+
+    const list = await request(app).get('/api/v2/leads').set('Cookie', cookie);
+    expect(list.body.leads).toHaveLength(0);
+  });
+
+  it('answers 409 with who it looks like, and saves when confirmed', async () => {
+    const cookie = await cookieFor(salesId);
+    const first = { name: 'First', email: 'same@x.com' };
+
+    await request(app).post('/api/v2/leads').set('Cookie', cookie).send(first);
+
+    const again = await request(app).post('/api/v2/leads').set('Cookie', cookie).send(first);
+    expect(again.status).toBe(409);
+    expect(again.body.error.code).toBe('duplicate');
+    expect(again.body.error.details[0]).toMatchObject({ kind: 'lead', reasons: ['email'] });
+
+    const forced = await request(app)
+      .post('/api/v2/leads')
+      .set('Cookie', cookie)
+      .send({ ...first, confirmDuplicates: true });
+    expect(forced.status).toBe(201);
+
+    const probe = await request(app)
+      .post('/api/v2/leads/duplicates')
+      .set('Cookie', cookie)
+      .send({ email: 'same@x.com' });
+    expect(probe.body.duplicates).toHaveLength(2);
+  });
+
+  it('refuses a person without lead.manage with 403 and another salesperson’s lead with 422', async () => {
+    const created = await request(app)
+      .post('/api/v2/leads')
+      .set('Cookie', await cookieFor(managerId))
+      .send({ name: 'Managers' });
+
+    expect(
+      (
+        await request(app)
+          .post('/api/v2/leads')
+          .set('Cookie', await cookieFor(readerId))
+          .send({ name: 'Nope' })
+      ).status,
+    ).toBe(403);
+
+    const foreign = await request(app)
+      .post(`/api/v2/leads/${created.body.id}/archive`)
+      .set('Cookie', await cookieFor(salesId));
+    expect(foreign.status).toBe(422);
+    expect(foreign.body.error.message).toBe('Lead not found.');
+  });
+
+  it('rejects a malformed id with 400', async () => {
+    const response = await request(app)
+      .post('/api/v2/leads/not-an-id/archive')
+      .set('Cookie', await cookieFor(salesId));
+
+    expect(response.status).toBe(400);
+  });
+});
+
 describe('errors and origin', () => {
   it('returns the standard shape for an unknown route', async () => {
     const response = await request(app).get('/api/v2/nothing-here');
