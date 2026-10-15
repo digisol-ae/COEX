@@ -16,6 +16,37 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-15',
+    date: '15 October 2026',
+    title: 'Ticket filter, office time, Done column and more',
+    sections: [
+      {
+        heading: 'Tickets',
+        items: [
+          'The Tickets list has a new Assigned to picker, so people who may see every ticket can view the tickets of one person. It stays in the address like the other filters.',
+          'When a ticket is marked Resolved or Closed, any timer running on it stops by itself and keeps the time it reached.',
+        ],
+      },
+      {
+        heading: 'Tasks',
+        items: [
+          'Start and due times now stay exactly as you type them. A start of 9:00 used to come back as 10:00. All task times are office time (Dubai), the same on every screen.',
+          'Spaces: completed tasks stay in the Done column of the board, so everyone can review them without opening a Done tab. The Done button above the board hides them if you prefer.',
+          'The Tasks list has a new Created by me filter, to review the tasks you created and follow them up.',
+          'Planned hours are gone. Estimate is now the one field for how long a task should take, and it shows on the board, the list and the timeline.',
+        ],
+      },
+      {
+        heading: 'Time',
+        items: [
+          'The timesheet lists your open tasks and tickets with no time this week, each with an Add time button, so they no longer wait for a timer to be started.',
+          'Time can now be added by hand to a ticket as well as a task, and ticket time shows its ticket number and subject.',
+          'A ticket shows its time entries person by person, like a task does.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-13',
     date: '13 October 2026',
     title: 'Assigned by me and Dark theme fixes',

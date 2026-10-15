@@ -166,20 +166,8 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
                   <p className="text-xs tracking-wide text-[var(--color-ink-subtle)] uppercase">
                     Estimate
                   </p>
-                  <p className="text-lg font-medium text-[var(--color-ink-muted)] tabular-nums">
+                  <p className="text-lg font-medium text-[var(--color-ink)] tabular-nums">
                     {task.estimateMinutes ? formatMinutes(task.estimateMinutes) : 'none'}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                    Planned
-                  </p>
-                  <p
-                    className="text-lg font-medium text-[var(--color-ink-muted)] tabular-nums"
-                    title="Working hours between the start and the end, using the tenant working calendar"
-                  >
-                    {task.plannedMinutes ? formatMinutes(task.plannedMinutes) : 'not scheduled'}
                   </p>
                 </div>
 

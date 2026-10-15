@@ -1,5 +1,20 @@
 # COEX — Current AI Task
 
+## Team feedback batch 1 built — 15 Oct 2026 (Claude)
+
+- Built on the branch, NOT deployed (John: finish the other feedback first, review on his own system):
+  T1 ticket "Assigned to" picker; T2 timers on a ticket stop when it is Resolved or Closed; T3 task times
+  are office time (Asia/Dubai) everywhere, one helper in packages/shared/src/tasks/dates.ts; T5 Planned
+  hours removed, Estimate is the one field (`scripts/copy-planned-to-estimate.ts`, run once with APPLY=1,
+  copies planned into empty estimates); T7 Done column stays visible on boards; T8 "Created by me"
+  (decision: no Remind button); T11 timesheet lists assigned open work with no time and accepts tickets;
+  T12 ticket time per person (the task page already did). What's new entry 2026-10-15.
+- Held by John: T6 portal, T9 subtask assignees, T10 XVERSE task. Still to build: T4 browser notifications.
+- T3 note: a Pakistan browser typing 9:00 now gets 9:00 Dubai time everywhere; it is a display and entry
+  convention, not the person's own clock. Task list grouping (Today, This week) still uses the browser's day.
+- Verified: typecheck, ESLint, Prettier and all unit tests (incl. new task-dates) in a scratch copy. NOT
+  run: database tests (tasks.test.ts changed) and the browser. John: `npm test` on the Mac first.
+
 ## Assigned by me filter — 13 Oct 2026 (Claude)
 
 - All tasks has an "Assigned by me" chip (`?assignedByMe=1`): tasks where the signed-in person is the
