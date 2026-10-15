@@ -1,3 +1,4 @@
+import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { repository } from '@/lib/repository';
@@ -112,11 +113,26 @@ export async function listTaskTimeByPerson(
   taskId: string,
   options: { onlyUserId?: string } = {},
 ): Promise<TaskTimeByPerson[]> {
+  return timeByPerson({ taskId: toObjectId(taskId) }, options);
+}
+
+/** The same breakdown for a ticket: each person's entries apart, never one added up total. */
+export async function listTicketTimeByPerson(
+  ticketId: string,
+  options: { onlyUserId?: string } = {},
+): Promise<TaskTimeByPerson[]> {
+  return timeByPerson({ ticketId: toObjectId(ticketId) }, options);
+}
+
+async function timeByPerson(
+  match: { taskId: Types.ObjectId } | { ticketId: Types.ObjectId },
+  options: { onlyUserId?: string },
+): Promise<TaskTimeByPerson[]> {
   await connectToDatabase();
 
   const found = await entries()
     .find({
-      taskId: toObjectId(taskId),
+      ...match,
       ...(options.onlyUserId ? { userId: toObjectId(options.onlyUserId) } : {}),
     })
     .sort({ workDate: -1, createdAt: -1 });
@@ -419,7 +435,9 @@ export async function stopTimer(entryId?: string): Promise<void> {
 }
 
 export interface ManualEntryInput {
-  taskId: string;
+  /** Exactly one of taskId or ticketId: time is added to a task or to a ticket. */
+  taskId?: string;
+  ticketId?: string;
   workDate: string;
   duration: number;
   note?: string;
@@ -435,15 +453,29 @@ export async function addManualEntry(input: ManualEntryInput): Promise<void> {
     throw new Error('Enter how long the work took, for example 1.5 or 1:30.');
   }
 
-  const task = await TaskModel.findOne({
-    _id: toObjectId(input.taskId),
-    tenantId: context.tenantId,
-    deletedAt: null,
-  });
+  if (Boolean(input.taskId) === Boolean(input.ticketId)) {
+    throw new Error('Choose one task or one ticket to add the time to.');
+  }
 
-  if (!task) throw new Error('Task not found.');
+  const task = input.taskId
+    ? await TaskModel.findOne({
+        _id: toObjectId(input.taskId),
+        tenantId: context.tenantId,
+        deletedAt: null,
+      })
+    : null;
+  const ticket = input.ticketId
+    ? await TicketModel.findOne({
+        _id: toObjectId(input.ticketId),
+        tenantId: context.tenantId,
+        deletedAt: null,
+      })
+    : null;
 
-  if (!task.spaceId) {
+  if (input.taskId && !task) throw new Error('Task not found.');
+  if (input.ticketId && !ticket) throw new Error('Ticket not found.');
+
+  if (task && !task.spaceId) {
     throw new Error('This task has no space, so time cannot be recorded against it.');
   }
 
@@ -452,9 +484,8 @@ export async function addManualEntry(input: ManualEntryInput): Promise<void> {
 
   const created = await entries().create({
     userId: context.userId,
-    taskId: task._id,
-    spaceId: task.spaceId,
-    organisationId: task.organisationId ?? null,
+    ...(task ? { taskId: task._id, spaceId: task.spaceId } : { ticketId: ticket?._id }),
+    organisationId: (task ?? ticket)?.organisationId ?? null,
     workDate,
     minutes: input.duration,
     note: input.note?.trim() || null,
@@ -467,7 +498,11 @@ export async function addManualEntry(input: ManualEntryInput): Promise<void> {
     action: 'time.entry_added',
     entityType: 'TimeEntry',
     entityId: created._id,
-    after: { task: task.number, minutes: created.minutes, day: toDateKey(workDate) },
+    after: {
+      [task ? 'task' : 'ticket']: (task ?? ticket)?.number,
+      minutes: created.minutes,
+      day: toDateKey(workDate),
+    },
   });
 }
 

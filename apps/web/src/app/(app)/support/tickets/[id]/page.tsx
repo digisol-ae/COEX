@@ -20,8 +20,12 @@ import { StatusPill } from '@/components/ui/pill';
 import { SlaChip } from '@/components/ui/sla';
 import { LiveRefresh } from '@/components/ui/live-refresh';
 import { formatDateTime } from '@coex/shared/tasks/dates';
-import { formatMinutes } from '@coex/shared/time/week';
-import { getRunningTimer, loggedMinutesForTicket } from '@/modules/time/services/time.service';
+import { formatMinutes, toDateKey } from '@coex/shared/time/week';
+import {
+  getRunningTimer,
+  listTicketTimeByPerson,
+  loggedMinutesForTicket,
+} from '@/modules/time/services/time.service';
 import { TicketTimerButton } from '@/modules/time/components/ticket-timer-button';
 import { Conversation } from './conversation';
 import { ReplyBox } from './reply-box';
@@ -50,6 +54,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
     cannedReplies,
     runningTimer,
     loggedMinutes,
+    timeByPerson,
     people,
     myTitle,
     contractNotice,
@@ -60,6 +65,11 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
     cannedReplies: await listCannedReplies({ queueId: ticket.queueId }),
     runningTimer: await getRunningTimer(),
     loggedMinutes: await loggedMinutesForTicket(id),
+    // Other people's hours are for those granted timesheet.read.all; everyone else sees their own.
+    timeByPerson: await listTicketTimeByPerson(
+      id,
+      actor.permissions.includes('timesheet.read.all') ? {} : { onlyUserId: actor.id },
+    ),
     people: canManage ? await mentionableUsers() : [],
     myTitle: canManage ? (await getMyProfile()).title : null,
     contractNotice: await contractNoticeFor(ticket.organisationId),
@@ -167,6 +177,36 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
               </div>
             </CardSection>
           </Card>
+
+          {timeByPerson.length > 0 ? (
+            <Card>
+              <CardSection title="Time entries">
+                <ul className="space-y-3">
+                  {timeByPerson.map((person) => (
+                    <li key={person.userId}>
+                      <p className="flex items-center justify-between text-sm font-medium text-[var(--color-ink)]">
+                        <span>{person.name}</span>
+                        <span className="tabular-nums">{formatMinutes(person.minutes)}</span>
+                      </p>
+                      <ul className="mt-1 divide-y divide-[var(--color-line)] text-xs text-[var(--color-ink-muted)]">
+                        {person.entries.map((entry) => (
+                          <li key={entry.id} className="flex items-baseline gap-3 py-1">
+                            <span className="w-24 shrink-0">{toDateKey(entry.workDate)}</span>
+                            <span className="w-14 shrink-0 tabular-nums">
+                              {formatMinutes(entry.minutes)}
+                            </span>
+                            <span className="min-w-0 flex-1 truncate">
+                              {entry.running ? 'Running now' : (entry.note ?? '')}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+              </CardSection>
+            </Card>
+          ) : null}
 
           {canManage && !ticket.mergedIntoId ? (
             <CollaboratorsPanel

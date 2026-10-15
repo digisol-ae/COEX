@@ -2,6 +2,7 @@ import { asUser, requirePermission } from '@/lib/session';
 import { loadTimesheet } from '@/modules/time/services/timesheet.service';
 import { listUsers } from '@/modules/core/services/user.service';
 import { listTasks } from '@/modules/tasks/services/task.service';
+import { listTickets } from '@/modules/tickets/services/ticket.service';
 import { PageHeader } from '@/components/ui';
 import { Timesheet } from './timesheet';
 
@@ -26,11 +27,29 @@ export default async function TimePage({
   const subject = canSeeOthers && params.user ? params.user : actor.id;
   const week = params.week ? new Date(params.week) : new Date();
 
-  const { timesheet, users, tasks } = await asUser(actor, async () => ({
+  const { timesheet, users, tasks, assignedTasks, myTickets } = await asUser(actor, async () => ({
     timesheet: await loadTimesheet(week, subject),
     users: canSeeOthers ? await listUsers() : [],
     tasks: await listTasks({ assigneeId: seesEveryTask ? undefined : actor.id }),
+    // Open work assigned to me, so it can be listed with no hours before any timer is started.
+    assignedTasks: await listTasks({ assigneeId: actor.id }),
+    myTickets: actor.permissions.includes('ticket.read.own')
+      ? await listTickets({ assigneeId: actor.id, openOnly: true, limit: 0 })
+      : [],
   }));
+
+  // Tasks and tickets share one picker; the prefix says which a choice is.
+  const items = [
+    ...tasks.map((task) => ({ key: `task:${task.id}`, label: `${task.number} ${task.title}` })),
+    ...myTickets.map((ticket) => ({
+      key: `ticket:${ticket.id}`,
+      label: `${ticket.number} ${ticket.subject}`,
+    })),
+  ];
+  const assignedKeys = [
+    ...assignedTasks.map((task) => `task:${task.id}`),
+    ...myTickets.map((ticket) => `ticket:${ticket.id}`),
+  ];
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -52,6 +71,8 @@ export default async function TimePage({
           id: task.id,
           label: `${task.number} ${task.title}`,
         }))}
+        items={items}
+        assignedKeys={assignedKeys}
         users={users.map((user) => ({ id: user.id, name: user.name }))}
         canLock={actor.permissions.includes('tenant.manage')}
         canSeeOthers={canSeeOthers}

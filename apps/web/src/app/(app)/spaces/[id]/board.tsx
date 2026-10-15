@@ -110,7 +110,8 @@ export function Board({
   const [view, setView] = useState<SpaceView>(initialView);
   const [adding, setAdding] = useState(false);
   const [assigneeFilter, setAssigneeFilter] = useState<string | null>(null);
-  const [showClosed, setShowClosed] = useState(false);
+  // Completed work stays in its Done column so everyone can review it (John's team, 15 Oct 2026).
+  const [showClosed, setShowClosed] = useState(true);
   const [search, setSearch] = useState('');
   const [editError, setEditError] = useState<string | null>(null);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);

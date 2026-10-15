@@ -35,6 +35,8 @@ export function Toolbar({
       <button
         type="button"
         onClick={() => onShowClosed(!showClosed)}
+        title={showClosed ? 'Hide completed tasks' : 'Show completed tasks'}
+        aria-pressed={showClosed}
         className={clsx(
           'flex items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 py-1 text-[12px] font-medium transition-colors',
           showClosed
@@ -46,7 +48,7 @@ export function Toolbar({
           <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3" />
           <path d="m4 6 1.4 1.4L8 4.8" stroke="currentColor" strokeWidth="1.3" />
         </svg>
-        Closed
+        Done
       </button>
 
       <div

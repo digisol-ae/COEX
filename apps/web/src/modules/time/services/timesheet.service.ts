@@ -5,6 +5,7 @@ import { toObjectId } from '@/lib/ids';
 import { recordAudit } from '@/modules/core/services/audit.service';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { TaskModel } from '@coex/shared/tasks/models/task.model';
+import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
 import { SpaceModel } from '@coex/shared/tasks/models/space.model';
 import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
 import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
@@ -19,6 +20,10 @@ const entries = () => repository(TimeEntryModel);
 
 export interface TimesheetEntry {
   id: string;
+  /** A line is time on a task or on a ticket; ticket time used to show as an unknown task. */
+  kind: 'task' | 'ticket';
+  /** Set for ticket time, empty for task time. */
+  ticketId: string;
   taskId: string;
   taskNumber: string;
   taskTitle: string;
@@ -56,8 +61,13 @@ export async function loadTimesheet(week: Date, userId?: string): Promise<Timesh
     .find({ userId: owner, workDate: { $gte: weekStart, $lt: endOfWeek(week) } })
     .sort({ workDate: 1, createdAt: 1 });
 
-  const [tasks, spaces, organisations, user, lock, edits] = await Promise.all([
-    TaskModel.find({ _id: { $in: found.map((entry) => entry.taskId) } }).select('number title'),
+  const [tasks, tickets, spaces, organisations, user, lock, edits] = await Promise.all([
+    TaskModel.find({ _id: { $in: found.map((entry) => entry.taskId).filter(Boolean) } }).select(
+      'number title',
+    ),
+    TicketModel.find({ _id: { $in: found.map((entry) => entry.ticketId).filter(Boolean) } }).select(
+      'number subject',
+    ),
     SpaceModel.find({ _id: { $in: found.map((entry) => entry.spaceId) } }).select('name'),
     OrganisationModel.find({
       _id: { $in: found.map((entry) => entry.organisationId).filter(Boolean) },
@@ -77,6 +87,7 @@ export async function loadTimesheet(week: Date, userId?: string): Promise<Timesh
   const editedIds = new Set(edits.map((row) => String(row.entityId)));
 
   const taskById = new Map(tasks.map((task) => [String(task._id), task]));
+  const ticketById = new Map(tickets.map((ticket) => [String(ticket._id), ticket]));
   const spaceById = new Map(spaces.map((space) => [String(space._id), space.name]));
   const organisationById = new Map(
     organisations.map((organisation) => [String(organisation._id), organisation.name]),
@@ -84,10 +95,18 @@ export async function loadTimesheet(week: Date, userId?: string): Promise<Timesh
 
   const rows: TimesheetEntry[] = found.map((entry) => ({
     id: String(entry._id),
-    taskId: String(entry.taskId),
-    taskNumber: taskById.get(String(entry.taskId))?.number ?? '',
-    taskTitle: taskById.get(String(entry.taskId))?.title ?? 'Unknown task',
-    spaceName: spaceById.get(String(entry.spaceId)) ?? 'Unknown space',
+    kind: entry.ticketId ? 'ticket' : 'task',
+    ticketId: entry.ticketId ? String(entry.ticketId) : '',
+    taskId: entry.taskId ? String(entry.taskId) : '',
+    taskNumber: entry.ticketId
+      ? (ticketById.get(String(entry.ticketId))?.number ?? '')
+      : (taskById.get(String(entry.taskId))?.number ?? ''),
+    taskTitle: entry.ticketId
+      ? (ticketById.get(String(entry.ticketId))?.subject ?? 'Unknown ticket')
+      : (taskById.get(String(entry.taskId))?.title ?? 'Unknown task'),
+    spaceName: entry.ticketId
+      ? 'Support'
+      : (spaceById.get(String(entry.spaceId)) ?? 'Unknown space'),
     organisationName: entry.organisationId
       ? (organisationById.get(String(entry.organisationId)) ?? null)
       : null,
