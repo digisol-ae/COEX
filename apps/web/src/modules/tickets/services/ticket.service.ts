@@ -490,6 +490,8 @@ export interface TicketSummary {
   isOpen: boolean;
   /** The customer has written since the current person last opened it. */
   unread: boolean;
+  /** When the customer last wrote, the moment that makes a ticket unread for staff. */
+  customerActivityAt: Date | null;
   lastActivityAt: Date;
   createdAt: Date;
 }
@@ -616,6 +618,7 @@ async function decorate(found: Awaited<ReturnType<ReturnType<typeof tickets>['fi
     ),
     isOpen: !['resolved', 'closed'].includes(ticket.status),
     unread: unread.has(String(ticket._id)),
+    customerActivityAt: ticket.customerActivityAt ?? null,
     lastActivityAt: ticket.lastActivityAt ?? ticket.updatedAt,
     createdAt: ticket.createdAt,
   }));

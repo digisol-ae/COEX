@@ -92,6 +92,59 @@ export interface TaskFilter {
   createdById?: string;
 }
 
+/**
+ * Open tasks someone else put the signed-in person on since a moment, for browser notifications.
+ * Same Space and Folder visibility as the lists, so a notification never names work the person
+ * could not open. A person assigning themselves is not news.
+ */
+export async function listNewAssignmentsToMe(
+  since: Date,
+): Promise<{ id: string; number: string; title: string; assignedByName: string; at: Date }[]> {
+  await connectToDatabase();
+
+  const me = getContext().userId;
+  const found = await TaskModel.find({
+    $and: [
+      {
+        tenantId: getContext().tenantId,
+        deletedAt: null,
+        isClosed: false,
+        assignments: {
+          $elemMatch: { userId: me, assignedAt: { $gt: since }, assignedById: { $ne: me } },
+        },
+      },
+      await visibleFolderFilter(),
+      await visibleSpaceFilter('spaceId'),
+    ].filter((condition) => Object.keys(condition).length > 0),
+  })
+    .select('number title assignments')
+    .limit(20);
+
+  const rows = found.flatMap((task) =>
+    task.assignments
+      .filter(
+        (entry) =>
+          String(entry.userId) === String(me) &&
+          entry.assignedAt > since &&
+          String(entry.assignedById) !== String(me),
+      )
+      .map((entry) => ({ task, entry })),
+  );
+
+  const people = await UserModel.find({
+    _id: { $in: [...new Set(rows.map(({ entry }) => String(entry.assignedById)))] },
+  }).select('name');
+  const names = new Map(people.map((person) => [String(person._id), person.name]));
+
+  return rows.map(({ task, entry }) => ({
+    id: String(task._id),
+    number: task.number,
+    title: task.title,
+    assignedByName: names.get(String(entry.assignedById)) ?? 'Someone',
+    at: entry.assignedAt,
+  }));
+}
+
 export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]> {
   await connectToDatabase();
 

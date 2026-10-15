@@ -1,5 +1,17 @@
 # COEX — Shared AI Project State
 
+## Browser notifications — 15 Oct 2026 (Claude)
+
+- T4 built: opt in per person and per browser from the avatar menu ("Browser notifications"). While COEX
+  is open in any tab, a 30 second poll of `/api/notifications` shows a notification, only when the tab
+  is hidden, for a ticket the customer wrote on that I have not opened (mine, or unassigned for those who
+  see the desk) and for a task someone else assigned to me. Click opens the item. Two tabs show one
+  notification (same tag). No push service: a closed browser is not reached. @mentions and "ticket
+  assigned to me" are not included yet (nothing records them with a time); say if wanted.
+- Verified: typecheck and ESLint in a scratch copy. NOT run: the app, browsers' permission prompt, the
+  new database test (`new assignments for browser notifications`). Needs HTTPS (the live site has it) or
+  localhost.
+
 ## Team feedback batch 1 built — 15 Oct 2026 (Claude)
 
 - Built on the branch, NOT deployed (John: finish the other feedback first, review on his own system):

@@ -27,6 +27,7 @@ import {
   patchTask,
   countMyOpenTasks,
   taskOrigin,
+  listNewAssignmentsToMe,
 } from '@/modules/tasks/services/task.service';
 import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
 import { TaskModel } from '@coex/shared/tasks/models/task.model';
@@ -487,6 +488,28 @@ describe('the Assigned by me filter', () => {
     const found = await runWithContext(context, () => listTasks({ assignedById: String(userId) }));
 
     expect(found.map((task) => task.title)).toEqual(['Handed over']);
+  });
+});
+
+describe('new assignments for browser notifications', () => {
+  it('lists tasks others assigned to me since a moment, never ones I assigned myself', async () => {
+    const spaceId = await aSpace();
+    const before = new Date(Date.now() - 60_000);
+
+    await runWithContext({ ...context, userId: adminId }, () =>
+      createTask({ spaceId, title: 'From the admin', assigneeIds: [String(userId)] }),
+    );
+    await runWithContext(context, () =>
+      createTask({ spaceId, title: 'Self assigned', assigneeIds: [String(userId)] }),
+    );
+
+    const found = await runWithContext(context, () => listNewAssignmentsToMe(before));
+    const none = await runWithContext(context, () =>
+      listNewAssignmentsToMe(new Date(Date.now() + 60_000)),
+    );
+
+    expect(found.map((task) => task.title)).toEqual(['From the admin']);
+    expect(none).toEqual([]);
   });
 });
 
