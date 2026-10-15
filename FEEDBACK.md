@@ -314,6 +314,58 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
+### Team feedback, 15 Oct 2026 (John, from his team) — noted, not built
+
+Written in English from John's list. "Understanding" is mine; anything marked ? needs John's answer
+before building. Nothing here is deployed. John wants all of it built, then reviewed on his own
+system before production.
+
+T1. Tickets list: a filter to view the tickets assigned to a specific person (a person picker, like
+    the Tasks screen's assignee filter). Understanding: kept in the address bar, agents with
+    `ticket.read.all` can pick anyone; an agent without it only ever sees their own.
+T2. Marking a ticket Resolved must stop that person's running timer on it. Today the timer keeps
+    running and is stopped by hand. Understanding: stop the timer when the status becomes Resolved
+    (and Closed), whoever's timer it is on that ticket; logged time is kept.
+T3. Start and due times shift by one hour: a start of 9:00 is saved as 10:00 and a due time of 10:00
+    as 11:00. Understanding: a timezone or daylight saving mistake between the browser's local time,
+    UTC and the office timezone (Asia/Dubai); reproduce first, then fix once, in one place. See also
+    CLAUDE.md "calendar date keys must not come from slicing UTC timestamps".
+T4. Browser notifications (new, scope needed). ? Which events: new ticket, assigned to me, customer
+    replied, task assigned, @mention (the staff alert kinds already in Setup, Email)? Understanding:
+    web push with a service worker, opt in per person and per browser, same switches as email alerts.
+T5. Estimated time versus Planned hours. Understanding: remove the Planned hours field, which is
+    calculated from the number of days between start and end, and make Estimated time the one
+    primary field. This reverses "start and end with time driving planned hours" (17 Sep 2026) and
+    touches the board, the table, Gantt, the dashboard and reports. ? Should planned hours that
+    already exist be copied into Estimated time where that is empty?
+T6. A ticket portal landing page for customers (new, scope needed). ? What it contains: raise a
+    ticket, see my tickets and replies, sign in with the contact's password (decision 2)? Own
+    address or part of coex.digisol.ae?
+T7. Spaces: a task moved to Done disappears from the board; it should stay visible in the Done column
+    (all completed tasks remain in the Done status), not only on a Done tab. Understanding: boards
+    show every status column including the closed one; "Include done" keeps its meaning on the All
+    tasks list.
+T8. Tasks: a filter for tasks I created ("Created by me"), so a person can review them and send
+    reminders when nobody answered. Understanding: `createdById` is already stored; a reminder is a
+    nudge to the assignees. ? Is a Remind button wanted now (an email or notification to the
+    assignees), or only the filter first? Distinct from "Assigned by me" (built 13 Oct).
+T9. Subtask assignees: a task with two assignees offers only those two when adding a subtask, but the
+    team wants everyone, so a part of the work can go to someone else. This reverses part of
+    decision 14 (a subtask goes only to the task's own assignees). ? John to decide: any person who
+    can see the task's Space and Folder (respecting private Spaces and Folders), which keeps the
+    privacy rule and drops the narrowing. Proposed: yes.
+T10. XVERSE: one click on a WhatsApp message to create a task in COEX. ? This sits on Channels (M6),
+    suspended 4 Oct 2026 until the XVERSE team is free, and needs the Support and CRM numbers' inbound
+    messages. Understanding: possible once M6.3 onward resumes (a "Create task" action on a message);
+    not buildable before then. John to say whether Channels resumes.
+T11. Timesheet: a ticket or task does not appear until someone starts a timer on it. Understanding: the
+    weekly timesheet lists only items with entries; people want to pick any assigned task or ticket
+    and add time without starting a timer ("add row"), and assigned open work shown with zero hours.
+T12. Time entries on a task show the total of all users' time. Understanding: each person's entries
+    should be listed separately, with their name, date, minutes and reason; the task shows the
+    signed-in person's own total (10 Oct 2026 decision) and, for those who may, a per person
+    breakdown.
+
 0f. John, 13 Oct 2026: the Dark theme does not look good. His example is the "Assign agent" popup on
     the Tickets list in Dark (dropdown with a red outline, a bright white Save button that looks
     disabled, text and controls blending into the dark glass). First pass built 13 Oct 2026 (acceptance pending): Assign agent Save was ink on ink (white on
