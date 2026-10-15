@@ -25,6 +25,7 @@ import { ContactModel } from '@coex/shared/crm/models/contact.model';
 import { TaskModel } from '@coex/shared/tasks/models/task.model';
 import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
 import { TicketMessageModel } from '@coex/shared/tickets/models/ticket-message.model';
+import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
 import { unreadAmong } from './unread.service';
 import { ALLOWED_TRANSITIONS } from '../labels';
 import { customerEmailText, renderSignature } from '@coex/shared/tickets/email-text';
@@ -332,6 +333,34 @@ export async function addReply(input: ReplyInput): Promise<string> {
   return String(message._id);
 }
 
+/**
+ * A resolved ticket has no more work to time (John's team, 15 Oct 2026: the timer kept running after
+ * Resolved and had to be stopped by hand). Every running timer on the ticket stops, whoever started
+ * it, and keeps the minutes it had reached. The same maths as stopping a timer from the clock.
+ */
+async function stopTimersOnTicket(ticketId: Types.ObjectId, ticketNumber: string): Promise<void> {
+  const timeEntries = repository(TimeEntryModel);
+  const running = await timeEntries.find({ ticketId, running: true });
+  const now = new Date();
+
+  for (const entry of running) {
+    const startedAt = entry.startedAt ?? entry.createdAt;
+    const minutes = Math.max(1, Math.round((now.getTime() - startedAt.getTime()) / 60000));
+
+    await timeEntries.updateOne(
+      { _id: entry._id },
+      { $set: { running: false, endedAt: now, minutes } },
+    );
+
+    await recordAudit({
+      action: 'time.timer_stopped',
+      entityType: 'TimeEntry',
+      entityId: entry._id,
+      after: { minutes, reason: `${ticketNumber} was resolved` },
+    });
+  }
+}
+
 export async function changeStatus(ticketId: string, status: TicketStatus): Promise<void> {
   await connectToDatabase();
 
@@ -375,6 +404,10 @@ export async function changeStatus(ticketId: string, status: TicketStatus): Prom
     entityId: ticket._id,
     ...changedFields({ status: current }, { status }),
   });
+
+  if (status === 'resolved' || status === 'closed') {
+    await stopTimersOnTicket(ticket._id, ticket.number);
+  }
 
   // Closed without a Resolved step is still resolved work on the customer's timeline.
   if (

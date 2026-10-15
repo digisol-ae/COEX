@@ -5,7 +5,8 @@ import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
 import { Avatar } from '@/components/ui/avatar';
 import { PriorityFlag } from '@/components/ui/pill';
-import { toDateTimeInput } from '@coex/shared/tasks/dates';
+import { TASK_TIME_ZONE, toDateTimeInput } from '@coex/shared/tasks/dates';
+import { officeDate } from '@coex/shared/tasks/office-day';
 
 /**
  * Setting a date, a priority or an owner without opening the task.
@@ -214,11 +215,10 @@ export function PriorityPicker({
 
 /** Six in the evening on a given day: the end of a working day, which is what a deadline means. */
 function endOfDay(offsetDays: number): string {
-  const date = new Date();
-  date.setDate(date.getDate() + offsetDays);
-  date.setHours(18, 0, 0, 0);
+  // The office day, not the browser's: a person in another timezone gets the same deadline.
+  const day = officeDate(new Date(Date.now() + offsetDays * 86_400_000), TASK_TIME_ZONE);
 
-  return toDateTimeInput(date);
+  return `${day}T18:00`;
 }
 
 export function SchedulePicker({

@@ -29,6 +29,7 @@ import {
 } from '@coex/shared/tickets/business-hours';
 import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
 import { TicketMessageModel } from '@coex/shared/tickets/models/ticket-message.model';
+import { parseDateTimeInput } from '@coex/shared/tasks/dates';
 
 /**
  * Tasks.
@@ -66,8 +67,8 @@ async function plannedMinutesFor(startAt: Date | null, endAt: Date | null): Prom
 function toDate(value: string | null | undefined): Date | null {
   if (!value) return null;
 
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
+  // Typed times are office time (Asia/Dubai), not the server's own clock; see shared/tasks/dates.
+  return parseDateTimeInput(value);
 }
 
 export type Priority = 'urgent' | 'high' | 'normal' | 'low';
