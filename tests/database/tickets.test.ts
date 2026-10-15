@@ -52,6 +52,8 @@ import {
 } from '@/modules/tickets/services/queue.service';
 import { countUnreadTickets, markTicketRead } from '@/modules/tickets/services/unread.service';
 import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
+import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
+import { startTicketTimer } from '@/modules/time/services/time.service';
 import {
   countMyOpenTickets,
   loadDeskMetrics,
@@ -293,6 +295,22 @@ describe('the life of a ticket', () => {
 
     expect(firstTicket?.number).toBe('DGS-S-1');
     expect(secondTicket?.number).toBe('DGS-S-2');
+  });
+
+  it('stops every timer running on a ticket when it is resolved, and keeps the time reached', async () => {
+    const queueId = await aQueue();
+    const id = await aTicket(queueId);
+
+    await runWithContext(context, () => startTicketTimer(id));
+    const before = await TimeEntryModel.findOne({ ticketId: new Types.ObjectId(id) });
+    expect(before?.running).toBe(true);
+
+    await runWithContext(context, () => changeStatus(id, 'resolved'));
+
+    const after = await TimeEntryModel.findOne({ ticketId: new Types.ObjectId(id) });
+    expect(after?.running).toBe(false);
+    expect(after?.endedAt).toBeTruthy();
+    expect(after?.minutes).toBeGreaterThanOrEqual(1);
   });
 
   it('refuses to reopen a closed ticket, so past figures cannot change', async () => {
