@@ -314,7 +314,7 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
-### Team feedback, 15 Oct 2026 (John, from his team) — noted, not built
+### Team feedback, 15 Oct 2026 (John, from his team) — T1 to T5, T7, T8, T11, T12 built 15 Oct 2026 on the branch (acceptance pending, not deployed); T6, T9, T10 on hold by John
 
 Written in English from John's list. "Understanding" is mine; anything marked ? needs John's answer
 before building. Nothing here is deployed. John wants all of it built, then reviewed on his own
@@ -330,7 +330,7 @@ T3. Start and due times shift by one hour: a start of 9:00 is saved as 10:00 and
     as 11:00. Understanding: a timezone or daylight saving mistake between the browser's local time,
     UTC and the office timezone (Asia/Dubai); reproduce first, then fix once, in one place. See also
     CLAUDE.md "calendar date keys must not come from slicing UTC timestamps".
-T4. Browser notifications (new, scope needed). ? Which events: new ticket, assigned to me, customer
+T4. (Built: opt-in, in-browser, customer reply and task assigned; see ai/CURRENT_TASK.md.) Browser notifications (new, scope needed). ? Which events: new ticket, assigned to me, customer
     replied, task assigned, @mention (the staff alert kinds already in Setup, Email)? Understanding:
     web push with a service worker, opt in per person and per browser, same switches as email alerts.
 T5. Estimated time versus Planned hours. Understanding: remove the Planned hours field, which is
@@ -361,7 +361,7 @@ T10. XVERSE: one click on a WhatsApp message to create a task in COEX. ? This si
 T11. Timesheet: a ticket or task does not appear until someone starts a timer on it. Understanding: the
     weekly timesheet lists only items with entries; people want to pick any assigned task or ticket
     and add time without starting a timer ("add row"), and assigned open work shown with zero hours.
-T12. Time entries on a task show the total of all users' time. Understanding: each person's entries
+T12. (Task page already listed each person's entries since 9 Oct; ticket pages now do too.) Time entries on a task show the total of all users' time. Understanding: each person's entries
     should be listed separately, with their name, date, minutes and reason; the task shows the
     signed-in person's own total (10 Oct 2026 decision) and, for those who may, a per person
     breakdown.

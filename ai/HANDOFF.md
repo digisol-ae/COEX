@@ -1,6 +1,16 @@
 # COEX — AI Handoff
 
-## START HERE — state at 13 Oct 2026 (Claude)
+## START HERE — state at 15 Oct 2026 (Claude)
+
+- Team feedback T1 to T5, T7, T8, T11, T12 are built on `claude/gallant-faraday-r1u4g8` and NOT deployed
+  (John wants all feedback finished and reviewed on his own system first). Held by John: T6 ticket
+  portal, T9 subtask assignees, T10 XVERSE task. Details: FEEDBACK.md and ai/CURRENT_TASK.md.
+- No database or browser was available in the cloud sandbox: database tests are written but UNRUN.
+  First thing on the Mac: `git pull`, `npm install`, `npm test`, then run the app and walk each item.
+- Not done: the read-only QA Space access token (blocked by the sandbox safety check; John chose between
+  that and running scripts/export-space-tasks.ts on the server and pasting the output).
+
+## State at 13 Oct 2026 (Claude)
 
 - The sections below dated 3 Oct 2026 (Codex) are history. Their push and VPS pull steps are done or
   overtaken: Phase 1 of the architecture revamp is merged and live (web app in `apps/web`, workers in
