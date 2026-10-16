@@ -1,5 +1,17 @@
 # COEX live deployment
 
+## Deployed — 16 Oct 2026, 4d95d74 (Claude, run by John)
+
+- PR https://github.com/digisol-ae/COEX/pull/21 merged into main as `4d95d74`; John ran the usual
+  redeploy (ff-only pull, npm ci, build, restart of coex-app, coex-mail, coex-desk-close and
+  coex-channels with --update-env, pm2 save) and reported everything fine. A first attempt earlier
+  that day pulled only documentation because the PR was not yet merged; check the pull output lists the
+  code files.
+- Live now: team feedback T1 to T5, T7, T8, T11, T12, Assigned by me, browser notifications, Dark theme
+  fixes, the new menu and phone menu, What's new `2026-10-15`. Leads on the API stays OFF.
+- Open: confirm `scripts/copy-planned-to-estimate.ts` was run (dry run, then `APPLY=1`); `npm ci` on the
+  server reports 5 high severity packages, `npm audit --omit=dev` not yet checked.
+
 ## Release ready for production — 16 Oct 2026 (Claude)
 
 - Branch `claude/gallant-faraday-r1u4g8` (not yet merged to main): team feedback T1 to T5, T7, T8, T11,
