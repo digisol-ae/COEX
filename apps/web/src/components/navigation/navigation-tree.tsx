@@ -34,22 +34,36 @@ export function NavigationTree({
   const pathname = usePathname();
   const collapsed = useSyncExternalStore(subscribe, getCollapsedSnapshot, getServerSnapshot);
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  // The most specific link wins, so /time/all does not also light up /time (My timesheet).
+  const allHrefs = [
+    HOME.href,
+    DESK.href,
+    ...groups.flatMap((group) => group.items.map((i) => i.href)),
+  ];
+  const isActive = (href: string) => {
+    const matches = (candidate: string) =>
+      pathname === candidate || pathname.startsWith(`${candidate}/`);
+    return matches(href) && !allHrefs.some((other) => other.length > href.length && matches(other));
+  };
 
   return (
     <nav className="space-y-4">
-      <NavigationLink
-        href={HOME.href}
-        label={HOME.label}
-        active={isActive(HOME.href)}
-        onNavigate={onNavigate}
-      />
-      <NavigationLink
-        href={DESK.href}
-        label={DESK.label}
-        active={isActive(DESK.href)}
-        onNavigate={onNavigate}
-      />
+      <div className="space-y-0.5">
+        <NavigationLink
+          href={HOME.href}
+          label={HOME.label}
+          active={isActive(HOME.href)}
+          onNavigate={onNavigate}
+          heading
+        />
+        <NavigationLink
+          href={DESK.href}
+          label={DESK.label}
+          active={isActive(DESK.href)}
+          onNavigate={onNavigate}
+          heading
+        />
+      </div>
 
       {groups.map((group) => {
         // The group holding the current page stays open whatever was collapsed before, so nobody
@@ -115,12 +129,15 @@ function NavigationLink({
   active,
   onNavigate,
   count,
+  heading = false,
 }: {
   href: string;
   label: string;
   active: boolean;
   onNavigate?: () => void;
   count?: number;
+  /** A top level link (Dashboard, My desk) is set like the group headings, so they line up. */
+  heading?: boolean;
 }) {
   return (
     <Link
@@ -131,9 +148,12 @@ function NavigationLink({
         // The generous height is for thumbs: 44 pixels is the smallest target reliably hit on a
         // phone.
         'flex items-center justify-between rounded-[var(--radius-control)] px-2 py-2 text-[13px] transition-colors max-md:min-h-11 max-md:text-sm',
+        heading && 'navigation-heading uppercase',
         active
           ? 'navigation-active pl-3'
-          : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]',
+          : heading
+            ? 'hover:bg-[var(--color-surface-muted)]'
+            : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]',
       )}
     >
       {label}

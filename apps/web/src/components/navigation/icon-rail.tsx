@@ -40,7 +40,7 @@ const ITEMS: RailItem[] = [
     permission: 'ticket.read.own',
     group: 'support',
   },
-  { href: '/time', label: 'Time', icon: 'time', permission: 'task.read.own', group: 'tasks' },
+  { href: '/time', label: 'Time', icon: 'time', permission: 'task.read.own', group: 'time' },
   {
     href: '/customers',
     label: 'CRM',

@@ -42,7 +42,14 @@ export const GROUPS: NavigationGroup[] = [
       { href: '/personal', label: 'Personal', permission: 'task.read.own' },
       { href: '/tasks', label: 'All tasks', permission: 'task.read.own' },
       { href: '/spaces', label: 'Spaces', permission: 'task.read.all' },
-      { href: '/time', label: 'Timesheet', permission: 'task.read.own' },
+    ],
+  },
+  {
+    // Its own main heading (John's team, 16 Oct 2026), with the time screens beneath it.
+    id: 'time',
+    label: 'Timesheet',
+    items: [
+      { href: '/time', label: 'My timesheet', permission: 'task.read.own' },
       { href: '/time/all', label: 'All timesheets', permission: 'timesheet.read.all' },
       { href: '/time/report', label: 'Time report', permission: 'timesheet.read.all' },
       { href: '/time/activity', label: 'Team activity', permission: 'timesheet.read.all' },

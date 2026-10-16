@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -118,9 +119,20 @@ export function MobileNavigation({
 
                 <div className="sidebar-glow flex min-w-0 flex-1 flex-col overflow-y-auto border-r border-[var(--color-line)] pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
                   <div className="flex items-center justify-between gap-2 px-4 pb-2">
-                    <p className="truncate text-sm font-semibold text-[var(--color-ink)]">
-                      {tenantName}
-                    </p>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setOpen(false)}
+                      aria-label={`${tenantName} home`}
+                      title={tenantName}
+                    >
+                      <Image
+                        src="/brand/logo-long.png"
+                        alt={tenantName}
+                        width={148}
+                        height={50}
+                        className="h-9 w-auto"
+                      />
+                    </Link>
 
                     <button
                       type="button"

@@ -200,6 +200,9 @@ never sent to their browser.
   pastel tile, cloud white with sunset and rainbow tints, a soft halo, drifting slowly; still for
   reduced motion. The whole desktop sidebar behind the menu carries a paler, still version of the
   same mix (`sidebar-glow`), with deep tints in the Dark theme.
+- Menu (16 Oct 2026): the sidebar shows the DigiSol logo, not the workspace name; Dashboard and My desk are
+  set like the group headings; Timesheet is its own group (id `time`) with My timesheet, All timesheets,
+  Time report and Team activity under it; only the most specific link of the current page is active.
 - Menu headings are bold in full ink (`navigation-heading`); the current page carries a red bar
   and red tint (`navigation-active`), in the sidebar, the phone drawer and the Spaces tree.
 

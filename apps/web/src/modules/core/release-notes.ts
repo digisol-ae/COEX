@@ -37,6 +37,15 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         ],
       },
       {
+        heading: 'Menu',
+        items: [
+          'The menu now shows the DigiSol logo at the top instead of the workspace name.',
+          'Dashboard and My desk are set in bold capitals like the other main headings.',
+          'Timesheet is now a main heading of its own, with My timesheet, All timesheets, Time report and Team activity beneath it, instead of sitting under Tasks and planning. The Time icon on the left strip belongs to it too.',
+          'Only the page you are on is highlighted: My timesheet no longer lights up while you are on All timesheets.',
+        ],
+      },
+      {
         heading: 'On a phone',
         items: [
           'The phone menu now matches the desktop: the same dark icon strip beside the same panel, with bigger touch targets and the search that was missing on a phone.',
