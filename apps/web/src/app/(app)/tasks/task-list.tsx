@@ -479,7 +479,7 @@ export function TaskList({
                       </td>
 
                       <td className="w-20 px-2 py-2 align-middle text-[12px] text-[var(--color-ink-muted)] tabular-nums">
-                        {task.plannedMinutes ? formatMinutes(task.plannedMinutes) : ''}
+                        {task.estimateMinutes ? formatMinutes(task.estimateMinutes) : ''}
                       </td>
 
                       {!hideAssignees ? (

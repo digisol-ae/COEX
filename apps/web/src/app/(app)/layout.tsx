@@ -20,6 +20,7 @@ import { orderGroups, visibleGroups } from '@/components/navigation/navigation';
 import { getNavigationOrder } from '@/modules/core/services/user.service';
 import { ToastProvider } from '@/components/ui/toast';
 import { GlobalTooltip } from '@/components/ui/global-tooltip';
+import { BrowserNotifications } from '@/components/navigation/browser-notifications';
 
 /**
  * Shell for every signed in screen.
@@ -87,6 +88,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <MobileNavigation
                 groups={groups}
                 canManageTasks={user.permissions.includes('task.manage')}
+                permissions={user.permissions}
+                tenantName={user.tenantName}
+                counts={counts}
                 unreadTickets={counts['/support/tickets']}
                 renewalsDue={counts['/contracts']}
               />
@@ -120,6 +124,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <WhatsNew seen={user.releaseNotesSeen} />
 
             <GlobalTooltip />
+            <BrowserNotifications />
 
             {user.permissions.includes('task.read.own') ? (
               <FloatingTimer

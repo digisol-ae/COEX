@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { logoutAction } from '@/app/login/actions';
 import { Avatar } from '@/components/ui/avatar';
 import { openWhatsNew } from './whats-new';
+import { useNotificationSwitch } from './browser-notifications';
 
 /**
  * The person's own menu, at the top right: their avatar opens a menu holding the profile, the menu
@@ -24,6 +25,7 @@ export function UserMenu({
   newsUnseen?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const notifications = useNotificationSwitch();
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -104,6 +106,34 @@ export function UserMenu({
             <MenuLink href="/menu-order" onNavigate={() => setOpen(false)} icon={<ListIcon />}>
               Arrange my menu
             </MenuLink>
+            {notifications.state !== 'unsupported' ? (
+              <button
+                type="button"
+                role="menuitem"
+                disabled={notifications.state === 'blocked'}
+                title={
+                  notifications.state === 'blocked'
+                    ? 'Notifications are blocked for this site in your browser settings.'
+                    : 'Get a notification when a customer writes on your ticket or someone assigns you a task, while COEX is open in another tab.'
+                }
+                onClick={() =>
+                  notifications.state === 'on' ? notifications.turnOff() : notifications.turnOn()
+                }
+                className="flex w-full items-center gap-2.5 rounded-[var(--radius-control)] px-2.5 py-2 text-left text-sm text-[var(--color-ink)] transition-colors hover:bg-[var(--color-surface-muted)] disabled:opacity-60"
+              >
+                <span className="text-[var(--color-ink-subtle)]">
+                  <BellIcon />
+                </span>
+                <span className="flex-1">Browser notifications</span>
+                <span className="text-xs text-[var(--color-ink-subtle)]">
+                  {notifications.state === 'on'
+                    ? 'On'
+                    : notifications.state === 'blocked'
+                      ? 'Blocked'
+                      : 'Off'}
+                </span>
+              </button>
+            ) : null}
             <button
               type="button"
               role="menuitem"
@@ -194,6 +224,14 @@ function SignOutIcon() {
     <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
       <path d="M7 15.5H4a1.5 1.5 0 0 1-1.5-1.5V4A1.5 1.5 0 0 1 4 2.5h3" {...stroke} />
       <path d="M11.5 12 15 9l-3.5-3M15 9H7" {...stroke} />
+    </svg>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M4 11V7a4 4 0 0 1 8 0v4l1 1.5H3zM6.5 14a1.5 1.5 0 0 0 3 0" {...stroke} />
     </svg>
   );
 }

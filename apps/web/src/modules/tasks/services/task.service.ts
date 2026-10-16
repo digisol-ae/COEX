@@ -21,14 +21,9 @@ import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
 import { assignableMemberIds, canOpenFolder, visibleFolderFilter } from './folder.service';
 import { assignableSpaceMemberIds, canOpenSpace, visibleSpaceFilter } from './space.service';
 import { parseDocumentLink } from '@coex/shared/tasks/document-links';
-import { TenantModel } from '@coex/shared/core/models/tenant.model';
-import {
-  DEFAULT_CALENDAR,
-  workingMinutesBetween,
-  type WorkingCalendar,
-} from '@coex/shared/tickets/business-hours';
 import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
 import { TicketMessageModel } from '@coex/shared/tickets/models/ticket-message.model';
+import { parseDateTimeInput } from '@coex/shared/tasks/dates';
 
 /**
  * Tasks.
@@ -42,32 +37,9 @@ import { TicketMessageModel } from '@coex/shared/tickets/models/ticket-message.m
 const tasks = () => repository(TaskModel);
 const taskComments = () => repository(TaskCommentModel);
 
-/**
- * Planned hours come from the working calendar, not from elapsed time.
- *
- * A task planned from Monday morning to Wednesday evening is three working days of about eight
- * hours, not the fifty six hours a clock would report. Anything else makes planned hours useless
- * next to logged hours.
- */
-async function plannedMinutesFor(startAt: Date | null, endAt: Date | null): Promise<number | null> {
-  if (!startAt || !endAt || endAt <= startAt) return null;
-
-  const tenant = await TenantModel.findOne({ _id: getContext().tenantId });
-
-  const calendar: WorkingCalendar = {
-    workingDays: tenant?.workingDays?.length ? tenant.workingDays : DEFAULT_CALENDAR.workingDays,
-    dayStartMinutes: tenant?.dayStartMinutes ?? DEFAULT_CALENDAR.dayStartMinutes,
-    dayEndMinutes: tenant?.dayEndMinutes ?? DEFAULT_CALENDAR.dayEndMinutes,
-  };
-
-  return workingMinutesBetween(startAt, endAt, calendar);
-}
-
 function toDate(value: string | null | undefined): Date | null {
-  if (!value) return null;
-
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
+  // Typed times are office time (Asia/Dubai), not the server's own clock; see shared/tasks/dates.
+  return parseDateTimeInput(value);
 }
 
 export type Priority = 'urgent' | 'high' | 'normal' | 'low';
@@ -86,7 +58,6 @@ export interface TaskSummary {
   assigneeNames: string[];
   startAt: Date | null;
   endAt: Date | null;
-  plannedMinutes: number | null;
   estimateMinutes: number | null;
   sortOrder: number;
   subtaskCount: number;
@@ -115,6 +86,63 @@ export interface TaskFilter {
   includeClosed?: boolean;
   overdueOnly?: boolean;
   unassignedOnly?: boolean;
+  /** Tasks this person assigned to someone else; an assignment to themselves does not count. */
+  assignedById?: string;
+  /** Tasks this person created, whoever they are assigned to. */
+  createdById?: string;
+}
+
+/**
+ * Open tasks someone else put the signed-in person on since a moment, for browser notifications.
+ * Same Space and Folder visibility as the lists, so a notification never names work the person
+ * could not open. A person assigning themselves is not news.
+ */
+export async function listNewAssignmentsToMe(
+  since: Date,
+): Promise<{ id: string; number: string; title: string; assignedByName: string; at: Date }[]> {
+  await connectToDatabase();
+
+  const me = getContext().userId;
+  const found = await TaskModel.find({
+    $and: [
+      {
+        tenantId: getContext().tenantId,
+        deletedAt: null,
+        isClosed: false,
+        assignments: {
+          $elemMatch: { userId: me, assignedAt: { $gt: since }, assignedById: { $ne: me } },
+        },
+      },
+      await visibleFolderFilter(),
+      await visibleSpaceFilter('spaceId'),
+    ].filter((condition) => Object.keys(condition).length > 0),
+  })
+    .select('number title assignments')
+    .limit(20);
+
+  const rows = found.flatMap((task) =>
+    task.assignments
+      .filter(
+        (entry) =>
+          String(entry.userId) === String(me) &&
+          entry.assignedAt > since &&
+          String(entry.assignedById) !== String(me),
+      )
+      .map((entry) => ({ task, entry })),
+  );
+
+  const people = await UserModel.find({
+    _id: { $in: [...new Set(rows.map(({ entry }) => String(entry.assignedById)))] },
+  }).select('name');
+  const names = new Map(people.map((person) => [String(person._id), person.name]));
+
+  return rows.map(({ task, entry }) => ({
+    id: String(task._id),
+    number: task.number,
+    title: task.title,
+    assignedByName: names.get(String(entry.assignedById)) ?? 'Someone',
+    at: entry.assignedAt,
+  }));
 }
 
 export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]> {
@@ -134,6 +162,16 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   if (!filter.includeClosed) query.isClosed = false;
   if (filter.overdueOnly) query.endAt = { $lt: new Date() };
   if (filter.unassignedOnly) query.assigneeIds = { $size: 0 };
+  if (filter.createdById) query.createdById = toObjectId(filter.createdById);
+  if (filter.assignedById) {
+    // Only assignments recorded since 1 Oct 2026 carry who made them, so older ones cannot match.
+    query.assignments = {
+      $elemMatch: {
+        assignedById: toObjectId(filter.assignedById),
+        userId: { $ne: toObjectId(filter.assignedById) },
+      },
+    };
+  }
 
   // Private folders are filtered here rather than in a screen, so nothing that reads tasks can
   // forget to apply it. The conditions are joined with $and, never spread into one object: the
@@ -209,7 +247,6 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
     assigneeNames: task.assigneeIds.map((id) => names.get(String(id)) ?? 'Unknown'),
     startAt: task.startAt ?? null,
     endAt: task.endAt ?? null,
-    plannedMinutes: task.plannedMinutes ?? null,
     estimateMinutes: task.estimateMinutes ?? null,
     sortOrder: task.sortOrder ?? 0,
     subtaskCount: task.subtasks.length,
@@ -560,7 +597,6 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     primaryAssigneeId: assigneeIds[0] ?? null,
     startAt,
     endAt,
-    plannedMinutes: await plannedMinutesFor(startAt, endAt),
     estimateMinutes: input.estimateMinutes ?? null,
     sortOrder: Date.now(),
     organisationId: toOptionalObjectId(input.organisationId ?? space.organisationId),
@@ -728,7 +764,6 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
         primaryAssigneeId: assigneeIds[0] ?? null,
         startAt,
         endAt,
-        plannedMinutes: await plannedMinutesFor(startAt, endAt),
         estimateMinutes: input.estimateMinutes ?? null,
         tags: input.tags ?? [],
         folderId: toOptionalObjectId(input.folderId),
@@ -836,7 +871,6 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
 
     set.startAt = startAt;
     set.endAt = endAt;
-    set.plannedMinutes = await plannedMinutesFor(startAt, endAt);
   }
 
   await tasks().updateOne({ _id: before._id }, { $set: set });

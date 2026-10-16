@@ -36,6 +36,8 @@ export function TicketFilters({
   status,
   priority,
   search,
+  assignee,
+  people,
   queues,
   counts,
 }: {
@@ -44,13 +46,17 @@ export function TicketFilters({
   status: string;
   priority: string;
   search: string;
+  /** The person whose tickets are shown; empty means everyone. */
+  assignee: string;
+  /** Offered only to those who may see every ticket; an agent only ever sees their own. */
+  people: { id: string; name: string }[] | null;
   queues: { id: string; name: string; openTicketCount: number }[];
   counts: { opened: number; delayed: number; missed: number };
 }) {
   const router = useRouter();
 
   function apply(next: Record<string, string>) {
-    const value = { scope, queue, status, priority, search, ...next };
+    const value = { scope, queue, status, priority, search, assignee, ...next };
     const params = new URLSearchParams();
 
     for (const [key, entry] of Object.entries(value)) {
@@ -117,6 +123,22 @@ export function TicketFilters({
             </option>
           ))}
         </Select>
+
+        {people ? (
+          <Select
+            value={assignee}
+            onChange={(event) => apply({ assignee: event.currentTarget.value })}
+            className="max-w-52"
+            aria-label="Assigned to"
+          >
+            <option value="">Anyone</option>
+            {people.map((person) => (
+              <option key={person.id} value={person.id}>
+                {person.name}
+              </option>
+            ))}
+          </Select>
+        ) : null}
 
         <Select
           defaultValue={status}

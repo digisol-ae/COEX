@@ -11,6 +11,8 @@ import { entryHistoryAction, removeTimeAction, saveEntryAction } from './actions
 
 export interface Entry {
   id: string;
+  kind: 'task' | 'ticket';
+  ticketId: string;
   taskId: string;
   taskNumber: string;
   taskTitle: string;
@@ -104,7 +106,7 @@ export function EntryRow({
             {entry.taskNumber}
           </span>{' '}
           <span className="text-[var(--color-ink)]">{entry.taskTitle}</span>
-          <DeskTaskButton taskId={entry.taskId} />
+          {entry.kind === 'task' ? <DeskTaskButton taskId={entry.taskId} /> : null}
           {entry.note ? (
             <div className="text-xs text-[var(--color-ink-subtle)]">{entry.note}</div>
           ) : null}
@@ -201,7 +203,8 @@ export function EntryRow({
               <Input name="duration" required defaultValue={formatMinutes(entry.minutes)} />
             </Field>
 
-            <div className="sm:col-span-2">
+            {/* Ticket time stays on its ticket: moving it to a task would change what it means. */}
+            <div className={entry.kind === 'ticket' ? 'hidden' : 'sm:col-span-2'}>
               <Field label="Task">
                 <Select name="taskId" defaultValue={entry.taskId}>
                   {tasks.some((task) => task.id === entry.taskId) ? null : (

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import { asUser, requirePermission } from '@/lib/session';
+import { apiEnabledFor, apiRequest } from '@/lib/api-client';
 import {
   listLeadSources,
   listLeads,
@@ -34,6 +35,33 @@ const STATUS_TONE = {
   disqualified: 'alert',
 } as const;
 
+/**
+ * Behind the `leads` flag the lists come from the API; otherwise from the service as before. The
+ * API's dates arrive as text, so they are turned back into dates to give both paths one shape.
+ */
+interface ApiLeadList {
+  leads: (Omit<LeadSummary, 'createdAt'> & { createdAt: string })[];
+  sources: string[];
+}
+
+async function loadLeads(filter: LeadFilter = {}): Promise<LeadSummary[]> {
+  if (!apiEnabledFor('leads')) return listLeads(filter);
+
+  const query = new URLSearchParams();
+  if (filter.status) query.set('status', filter.status);
+  if (filter.source) query.set('source', filter.source);
+  if (filter.ownerId) query.set('ownerId', filter.ownerId);
+  if (filter.search) query.set('q', filter.search);
+
+  const { leads } = await apiRequest<ApiLeadList>('GET', `/leads${query.size ? `?${query}` : ''}`);
+  return leads.map((lead) => ({ ...lead, createdAt: new Date(lead.createdAt) }));
+}
+
+async function loadLeadSources(): Promise<string[]> {
+  if (!apiEnabledFor('leads')) return listLeadSources();
+  return (await apiRequest<ApiLeadList>('GET', '/leads')).sources;
+}
+
 export default async function LeadsPage({
   searchParams,
 }: {
@@ -57,9 +85,9 @@ export default async function LeadsPage({
   const canConvert = actor.permissions.includes('customer.manage');
   const [leads, everyLead, sources, fields, users, organisations] = await asUser(actor, () =>
     Promise.all([
-      listLeads(filter),
-      listLeads(),
-      listLeadSources(),
+      loadLeads(filter),
+      loadLeads(),
+      loadLeadSources(),
       listFieldDefinitions('lead'),
       listUsers(),
       canConvert ? listOrganisations() : Promise.resolve([]),

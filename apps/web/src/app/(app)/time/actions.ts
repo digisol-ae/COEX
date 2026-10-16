@@ -59,6 +59,11 @@ export async function stopTimerAction(): Promise<void> {
   revalidatePath('/', 'layout');
 }
 
+function itemFromChoice(choice: string): { taskId?: string; ticketId?: string } {
+  const [kind, id] = choice.split(':');
+  return kind === 'ticket' ? { ticketId: id } : { taskId: id };
+}
+
 export async function addTimeAction(
   _previous: TimeFormState,
   formData: FormData,
@@ -74,7 +79,8 @@ export async function addTimeAction(
   try {
     await asUser(actor, () =>
       addManualEntry({
-        taskId: text(formData, 'taskId'),
+        // The picker sends task:ID or ticket:ID; an older form sent a bare task id.
+        ...itemFromChoice(text(formData, 'item') || `task:${text(formData, 'taskId')}`),
         workDate: text(formData, 'workDate'),
         duration,
         note: text(formData, 'note'),
@@ -87,6 +93,7 @@ export async function addTimeAction(
 
   revalidatePath('/time');
   revalidatePath(`/tasks/${text(formData, 'taskId')}`);
+  revalidatePath('/support/tickets');
   return { saved: true };
 }
 

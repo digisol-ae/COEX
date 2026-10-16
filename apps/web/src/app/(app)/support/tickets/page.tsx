@@ -122,6 +122,12 @@ export default async function TicketsPage({
         status={params.status ?? ''}
         priority={params.priority ?? ''}
         search={params.search ?? ''}
+        assignee={seesEverything ? (params.assignee ?? '') : ''}
+        people={
+          seesEverything
+            ? users.filter((user) => user.status === 'active').map(({ id, name }) => ({ id, name }))
+            : null
+        }
         queues={queues.map((queue) => ({
           id: queue.id,
           name: queue.name,

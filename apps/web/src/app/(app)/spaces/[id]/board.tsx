@@ -110,7 +110,8 @@ export function Board({
   const [view, setView] = useState<SpaceView>(initialView);
   const [adding, setAdding] = useState(false);
   const [assigneeFilter, setAssigneeFilter] = useState<string | null>(null);
-  const [showClosed, setShowClosed] = useState(false);
+  // Completed work stays in its Done column so everyone can review it (John's team, 15 Oct 2026).
+  const [showClosed, setShowClosed] = useState(true);
   const [search, setSearch] = useState('');
   const [editError, setEditError] = useState<string | null>(null);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
@@ -664,7 +665,7 @@ function TaskCard({
       {task.folderName ||
       task.isOverdue ||
       task.subtaskCount > 0 ||
-      task.plannedMinutes ||
+      task.estimateMinutes ||
       task.documentCount > 0 ? (
         <div className="mt-2 flex flex-wrap items-center gap-1 pl-4">
           {task.isOverdue ? <Chip tone="alert">overdue</Chip> : null}
@@ -677,8 +678,8 @@ function TaskCard({
             </Chip>
           ) : null}
 
-          {task.plannedMinutes ? (
-            <Chip title="Planned working hours">{formatMinutes(task.plannedMinutes)}</Chip>
+          {task.estimateMinutes ? (
+            <Chip title="Estimated time">{formatMinutes(task.estimateMinutes)}</Chip>
           ) : null}
 
           <DocumentBadge links={task.documentLinks} />
@@ -819,7 +820,7 @@ function ListView({
                           Ends
                         </th>
                         <th className="w-24 border-b border-[var(--color-line)] px-2 py-1.5 text-left font-medium">
-                          Planned
+                          Estimate
                         </th>
                         <th className="w-24 border-b border-[var(--color-line)] px-2 py-1.5 text-left font-medium">
                           Priority
@@ -842,7 +843,7 @@ function ListView({
                                   .map((user) => user.name)
                                   .join(', '),
                                 task.endAt ? new Date(task.endAt).getTime() : null,
-                                task.plannedMinutes,
+                                task.estimateMinutes,
                                 task.priority,
                               ])}
                               draggable={canManage}
@@ -955,7 +956,7 @@ function ListView({
                               </td>
 
                               <td className="px-2 py-2 align-middle text-[12px] text-[var(--color-ink-muted)] tabular-nums">
-                                {task.plannedMinutes ? formatMinutes(task.plannedMinutes) : '—'}
+                                {task.estimateMinutes ? formatMinutes(task.estimateMinutes) : '—'}
                               </td>
 
                               <td className="px-2 py-2 align-middle">

@@ -104,6 +104,8 @@
   --color-person-4: #6b5b95;
   --color-person-5: #3f7d7a;
   --color-person-6: #9a5b6e;
+  /* Text on a person's colour: white on the deep Sunset and Light shades, near black on the lifted Dark ones. */
+  --color-person-ink: #ffffff;
 
   /* Status, muted so that a full board does not shout */
   --color-status-ok: #4f7a54;
@@ -190,6 +192,7 @@ html[data-theme='dark'] {
   --color-person-4: #9c8cc4;
   --color-person-5: #6fb0ac;
   --color-person-6: #c98ca0;
+  --color-person-ink: #141414;
   --shadow-pop: 0 2px 4px rgb(0 0 0 / 30%), 0 12px 32px -12px rgb(0 0 0 / 60%);
   --glass-edge: rgb(255 255 255 / 10%);
 }
@@ -236,23 +239,6 @@ body {
   box-shadow:
     0 1px 2px rgb(20 20 20 / 4%),
     0 8px 24px -16px rgb(20 20 20 / 18%);
-}
-
-/*
- * The phone menu drawer, in the logo's colours: brand black with red lettering, as John asked on
- * 25 Sep 2026. Only the tokens change, so the shared menu and space tree inside need no variant of
- * their own. Red on #141414 is about 4.9:1, which passes for text this size.
- */
-.navigation-dark {
-  --color-surface: var(--color-brand-black);
-  --color-surface-muted: #262626;
-  --color-ink: #ff5a6b;
-  --color-ink-muted: var(--color-brand-red);
-  --color-ink-subtle: var(--color-brand-red);
-  --color-line: #2c2c2c;
-  --color-line-strong: #3a3a3a;
-  background: var(--color-brand-black);
-  color: var(--color-brand-red);
 }
 
 /*
@@ -452,6 +438,10 @@ html[data-theme='dark'] .sidebar-glow {
     0 0 0 0.5px rgb(20 20 20 / 6%),
     0 30px 70px -20px rgb(120 90 140 / 28%);
   animation: popup-in 200ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+html[data-theme='dark'] .popup-backdrop {
+  background: rgb(0 0 0 / 40%);
 }
 
 html[data-theme='dark'] .popup-backdrop-light {

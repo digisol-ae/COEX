@@ -1,5 +1,87 @@
 # COEX — Current AI Task
 
+## Browser notifications — 15 Oct 2026 (Claude)
+
+- T4 built: opt in per person and per browser from the avatar menu ("Browser notifications"). While COEX
+  is open in any tab, a 30 second poll of `/api/notifications` shows a notification, only when the tab
+  is hidden, for a ticket the customer wrote on that I have not opened (mine, or unassigned for those who
+  see the desk) and for a task someone else assigned to me. Click opens the item. Two tabs show one
+  notification (same tag). No push service: a closed browser is not reached. @mentions and "ticket
+  assigned to me" are not included yet (nothing records them with a time); say if wanted.
+- Verified: typecheck and ESLint in a scratch copy. NOT run: the app, browsers' permission prompt, the
+  new database test (`new assignments for browser notifications`). Needs HTTPS (the live site has it) or
+  localhost.
+
+## Team feedback batch 1 built — 15 Oct 2026 (Claude)
+
+- Built on the branch, NOT deployed (John: finish the other feedback first, review on his own system):
+  T1 ticket "Assigned to" picker; T2 timers on a ticket stop when it is Resolved or Closed; T3 task times
+  are office time (Asia/Dubai) everywhere, one helper in packages/shared/src/tasks/dates.ts; T5 Planned
+  hours removed, Estimate is the one field (`scripts/copy-planned-to-estimate.ts`, run once with APPLY=1,
+  copies planned into empty estimates); T7 Done column stays visible on boards; T8 "Created by me"
+  (decision: no Remind button); T11 timesheet lists assigned open work with no time and accepts tickets;
+  T12 ticket time per person (the task page already did). What's new entry 2026-10-15.
+- Held by John: T6 portal, T9 subtask assignees, T10 XVERSE task. Still to build: T4 browser notifications.
+- T3 note: a Pakistan browser typing 9:00 now gets 9:00 Dubai time everywhere; it is a display and entry
+  convention, not the person's own clock. Task list grouping (Today, This week) still uses the browser's day.
+- Verified: typecheck, ESLint, Prettier and all unit tests (incl. new task-dates) in a scratch copy. NOT
+  run: database tests (tasks.test.ts changed) and the browser. John: `npm test` on the Mac first.
+
+## Assigned by me filter — 13 Oct 2026 (Claude)
+
+- All tasks has an "Assigned by me" chip (`?assignedByMe=1`): tasks where the signed-in person is the
+  `assignedById` of an assignment to someone other than themselves. It replaces "Mine" (they
+  contradict), is open to everyone including agents, and still passes the Space and Folder visibility
+  filters. Assignments before 1 Oct 2026 carry no assigner and cannot match. What's new entry added.
+- Verified: typecheck and ESLint in a scratch copy. NOT run: the new database test
+  (`the Assigned by me filter` in tests/database/tasks.test.ts); John, run it with `npm test`.
+
+## Dark theme review — 13 Oct 2026 (Claude)
+
+- Reviewed in code (no browser here) every colour in components: tokens in `globals.css`, literal
+  colours in tsx, raw form controls. Fixed: Assign agent Save used `bg-ink text-white`, which is white on
+  white in Dark (now `action` and `ink-inverse`, and the reason box uses the shared Textarea); initials
+  on person colours (new `--color-person-ink`, near black in Dark); `white/60` borders and hovers in
+  What's new and Raise ticket; popup backdrop darker in Dark. What's new entry 2026-10-13.
+- Left alone on purpose: the floating timer (own dark green design), toasts (fixed dark), tooltips.
+- Verified: typecheck and ESLint in a scratch copy. NOT seen in a browser: John, check Dark on
+  Tickets, Tasks, What's new, Raise ticket and avatars, and send screenshots of anything else.
+- Raw `<select>`, `<input>` and `<textarea>` in about 35 places use Tailwind's transparent default
+  rather than the shared controls; they read fine in Dark but differ from `Input`. Candidate clean-up.
+
+## Microsoft sign-in live — 13 Oct 2026 (Claude, with John)
+
+- Entra variables added to the server `.env`; Microsoft sign-in through the web route works (John
+  confirmed). Details and gotchas in deploy/DEPLOYMENT-STATUS.md. Remember the client secret's expiry.
+- Not done: `coex-api` process, Apache `/api/v2` route, the optional `auth` flag to point the login page
+  at the API. Leads work is paused at the flag stage.
+
+## Leads pages behind a flag — 13 Oct 2026 (Claude)
+
+- `apps/web/src/lib/api-client.ts`: `apiEnabledFor(module)` reads `COEX_API_MODULES` (comma list, for
+  example `leads`) and `apiRequest` calls the API from the server with the person's own session
+  cookie (`COEX_API_URL`, default `http://127.0.0.1:3002/api/v2`). Flag unset: nothing changes.
+- With `leads` set, the Leads page lists and every Leads action (save, start working, disqualify,
+  archive, convert) go through the API; a 409 shows the same "save anyway" lookalikes as before.
+- Verified: typecheck, ESLint, Prettier in a scratch copy. NOT run: the app, the API or any test.
+- John, to try it: run `npm test` first; start the API (`apps/api`, port 3002; no Apache rule is needed
+  because the web app calls it on loopback), add `COEX_API_MODULES=leads` to `.env.local`, restart
+  `coex-app`, then use Leads as John. Rollback: remove the line and restart `coex-app`.
+- Not done: Chromium walk-through with the flag on and off, agent pilot, moving the service file,
+  deleting the old server actions (checklist steps 4 to 6), then Contracts.
+
+## Leads on the API — 13 Oct 2026 (Claude)
+
+- Revamp Phase 2 started with Leads: `apps/api/src/routes/leads.ts` now also serves create (409 with
+  the lookalikes unless `confirmDuplicates`), duplicate check, update, start-working, disqualify,
+  archive and convert. Each calls the existing lead service unchanged, so permission and visibility
+  rules stay in one place. List now returns `customFields`.
+- Verified: typecheck, ESLint and Prettier clean in a scratch copy. NOT run: the new supertest cases in
+  `apps/api/tests/api.test.ts` (no MongoDB in the sandbox). John: run `npm test` on the Mac first.
+- Not done yet: the lead service file still lives in the web app, the Leads pages still use server
+  actions, and there is no module flag. Next: flag plus switching the pages, Chromium walk-through,
+  pilot with John (checklist in docs/ARCHITECTURE-REVAMP.md), then Contracts.
+
 ## Phase 1 live on the server — 13 Oct 2026 (Claude)
 
 - Web app in `apps/web`, workers in `apps/api`, API skeleton and auth routes merged and deployed. John

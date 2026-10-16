@@ -16,6 +16,80 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-15',
+    date: '15 October 2026',
+    title: 'Ticket filter, office time, Done column and more',
+    sections: [
+      {
+        heading: 'Tickets',
+        items: [
+          'The Tickets list has a new Assigned to picker, so people who may see every ticket can view the tickets of one person. It stays in the address like the other filters.',
+          'When a ticket is marked Resolved or Closed, any timer running on it stops by itself and keeps the time it reached.',
+        ],
+      },
+      {
+        heading: 'Tasks',
+        items: [
+          'Start and due times now stay exactly as you type them. A start of 9:00 used to come back as 10:00. All task times are office time (Dubai), the same on every screen.',
+          'Spaces: completed tasks stay in the Done column of the board, so everyone can review them without opening a Done tab. The Done button above the board hides them if you prefer.',
+          'The Tasks list has a new Created by me filter, to review the tasks you created and follow them up.',
+          'Planned hours are gone. Estimate is now the one field for how long a task should take, and it shows on the board, the list and the timeline.',
+        ],
+      },
+      {
+        heading: 'Menu',
+        items: [
+          'The menu now shows the DigiSol logo at the top instead of the workspace name.',
+          'Dashboard and My desk are set in bold capitals like the other main headings.',
+          'Timesheet is now a main heading of its own, with My timesheet, All timesheets, Time report and Team activity beneath it, instead of sitting under Tasks and planning. The Time icon on the left strip belongs to it too.',
+          'Only the page you are on is highlighted: My timesheet no longer lights up while you are on All timesheets.',
+        ],
+      },
+      {
+        heading: 'On a phone',
+        items: [
+          'The phone menu now matches the desktop: the same dark icon strip beside the same panel, with bigger touch targets and the search that was missing on a phone.',
+        ],
+      },
+      {
+        heading: 'Notifications',
+        items: [
+          'New: browser notifications. Open your profile menu (your avatar, top right) and choose Browser notifications to turn them on in this browser. While COEX is open in another tab you get a notification when a customer writes on one of your tickets, or when someone assigns you a task. Click it to open the item. They are off until you switch them on, and they do not reach a closed browser.',
+        ],
+      },
+      {
+        heading: 'Time',
+        items: [
+          'The timesheet lists your open tasks and tickets with no time this week, each with an Add time button, so they no longer wait for a timer to be started.',
+          'Time can now be added by hand to a ticket as well as a task, and ticket time shows its ticket number and subject.',
+          'A ticket shows its time entries person by person, like a task does.',
+        ],
+      },
+    ],
+  },
+  {
+    id: '2026-10-13',
+    date: '13 October 2026',
+    title: 'Assigned by me and Dark theme fixes',
+    sections: [
+      {
+        heading: 'Tasks',
+        items: [
+          'The Tasks list has a new Assigned by me filter. It shows the tasks you assigned to other people. Assignments made before 1 October 2026 were not recorded, so they do not appear.',
+        ],
+      },
+      {
+        heading: 'Dark theme',
+        items: [
+          'The Save button in the Assign agent window is now readable in Dark. It was white on white.',
+          'People’s initials in their coloured circles are now dark on the lighter Dark shades, so they are easier to read.',
+          'What’s new and the Raise ticket window no longer flash bright white when you point at their close button in Dark.',
+          'Windows now dim the page behind them a little more in Dark, so they stand out.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-11',
     date: '11 October 2026',
     title: 'Convert leads, the pipeline board and sales reminders',

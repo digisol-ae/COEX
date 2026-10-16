@@ -253,9 +253,9 @@ export function Gantt({ tasks }: { tasks: TaskSummary[] }) {
                           <p className="mt-1 text-[var(--color-ink-muted)]">
                             {formatDateTime(startAt)} to {formatDateTime(endAt)}
                           </p>
-                          {task.plannedMinutes ? (
+                          {task.estimateMinutes ? (
                             <p className="text-[var(--color-ink-muted)]">
-                              {formatMinutes(task.plannedMinutes)} planned
+                              {formatMinutes(task.estimateMinutes)} estimated
                             </p>
                           ) : null}
                           <p className="text-[var(--color-ink-muted)]">
@@ -280,7 +280,7 @@ export function Gantt({ tasks }: { tasks: TaskSummary[] }) {
                     <span className="text-[10px] text-[var(--color-ink-subtle)]">done</span>
                   ) : (
                     <span className="text-[10px] text-[var(--color-ink-subtle)]">
-                      {task.plannedMinutes ? formatMinutes(task.plannedMinutes) : ''}
+                      {task.estimateMinutes ? formatMinutes(task.estimateMinutes) : ''}
                     </span>
                   )}
                 </div>

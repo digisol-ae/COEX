@@ -1,5 +1,19 @@
 # COEX live deployment
 
+## Release ready for production — 16 Oct 2026 (Claude)
+
+- Branch `claude/gallant-faraday-r1u4g8` (not yet merged to main): team feedback T1 to T5, T7, T8, T11,
+  T12, Assigned by me, Dark theme fixes, browser notifications, phone menu, Leads on the API behind a
+  flag (OFF: `COEX_API_MODULES` unset, so no API process is needed). John ran `npm test` on his Mac
+  (all passing so far) and checked the app locally. Production build, typecheck, ESLint and unit tests
+  pass in a scratch copy.
+- Deploy as usual (fresh terminal, backup first): ff-only pull, `npm ci`, `npm run build`,
+  `pm2 restart coex-app coex-mail coex-desk-close coex-channels --update-env`, `pm2 save`.
+- After deploy, once: `npx tsx --env-file=.env scripts/copy-planned-to-estimate.ts` (dry run), then
+  `APPLY=1 npx tsx --env-file=.env scripts/copy-planned-to-estimate.ts`.
+- Check afterwards: sign in with Microsoft and with a password; a task start time of 9:00 stays 9:00;
+  resolve a test ticket with a timer running; the phone menu on a real phone.
+
 ## Release pending — 3 Oct 2026
 
 John authorized today’s commit/push and server pull. Feature commit `955ea3f` exists locally
@@ -179,3 +193,15 @@ Carried out by John, with `coex-app` unchanged in pm2: it runs `npm start -- -p 
 `coex-mail` reconnected to the mailbox. The first build failed once because the terminal still had
 `NODE_ENV=production` from the backup step (see above); a new terminal fixed it. The old
 `/srv/coex/app/.next` can be deleted after a day of stable use.
+
+## Microsoft sign-in switched on — 13 Oct 2026
+
+- Both redirect URIs are registered in the Azure app "COEX by DigiSol": `/api/auth/entra/callback` (web
+  app, in use) and `/api/v2/auth/entra/callback` (API, not yet used).
+- `/srv/coex/app/.env` now holds `AUTH_MICROSOFT_ENTRA_ID_ID`, `_SECRET`, `_ISSUER`
+  (`https://login.microsoftonline.com/<tenant id>/v2.0`) and `AUTH_URL`. The login page shows the
+  Microsoft button only when all four are set. John confirmed a Microsoft sign-in works.
+- Gotchas: the client secret is the **Value** column in Azure, not the Secret ID (36 characters with
+  dashes gives `?entra=failed`). Azure client secrets expire; renew before the date chosen when it was
+  created, or Microsoft sign-in stops. A person can sign in only if a COEX user has the same email.
+- The API (`coex-api`, port 3002) and its Apache route are still not started.

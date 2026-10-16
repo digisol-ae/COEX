@@ -95,6 +95,7 @@ const taskSchema = new Schema(
      * cannot disagree with a screen. Working minutes, not elapsed: a task planned from Monday
      * morning to Wednesday evening is three working days, not fifty six hours.
      */
+    /** Legacy: hours derived from the start and end. No longer written or shown (15 Oct 2026); Estimate is the one field. */
     plannedMinutes: { type: Number, default: null },
 
     /** The effort someone expects it to take, which is a different question from when it happens. */

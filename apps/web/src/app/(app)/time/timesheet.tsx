@@ -26,6 +26,8 @@ const initialState: TimeFormState = {};
 export function Timesheet({
   timesheet,
   tasks,
+  items,
+  assignedKeys,
   users,
   canLock,
   canSeeOthers,
@@ -42,6 +44,10 @@ export function Timesheet({
     billableMinutes: number;
   };
   tasks: { id: string; label: string }[];
+  /** Everything time can be added to: tasks and tickets, keyed task:ID or ticket:ID. */
+  items: { key: string; label: string }[];
+  /** The open work assigned to the signed-in person, whether or not any time is logged on it. */
+  assignedKeys: string[];
   users: { id: string; name: string }[];
   canLock: boolean;
   canSeeOthers: boolean;
@@ -51,6 +57,7 @@ export function Timesheet({
   const router = useRouter();
   const [state, formAction, pending] = useActionState(addTimeAction, initialState);
   const [adding, setAdding] = useState(false);
+  const [chosen, setChosen] = useState('');
 
   const weekStart = new Date(timesheet.weekStart);
 
@@ -63,6 +70,18 @@ export function Timesheet({
 
     router.push(`/time?${params.toString()}`);
   }
+
+  // Assigned work that has nothing logged this week still deserves a line to add time to
+  // (John's team, 15 Oct 2026: it only appeared once somebody started a timer).
+  const loggedKeys = new Set(
+    timesheet.entries.map((entry) =>
+      entry.kind === 'ticket' ? `ticket:${entry.ticketId}` : `task:${entry.taskId}`,
+    ),
+  );
+  const labelFor = new Map(items.map((item) => [item.key, item.label]));
+  const openWork = assignedKeys
+    .filter((key) => !loggedKeys.has(key) && labelFor.has(key))
+    .map((key) => ({ key, label: labelFor.get(key) ?? key }));
 
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekEnd.getDate() + 6);
@@ -143,7 +162,7 @@ export function Timesheet({
             <thead>
               <tr>
                 <Th>Day</Th>
-                <Th>Task</Th>
+                <Th>Task or ticket</Th>
                 <Th>Space</Th>
                 <Th>Time</Th>
                 <Th>Billable</Th>
@@ -172,17 +191,48 @@ export function Timesheet({
         )}
       </Card>
 
+      {!timesheet.locked && viewingSelf && openWork.length > 0 ? (
+        <Card>
+          <CardSection title="Your open work with no time this week">
+            <ul className="divide-y divide-[var(--color-line)]">
+              {openWork.map((item) => (
+                <li key={item.key} className="flex items-center justify-between gap-3 py-2">
+                  <span className="min-w-0 truncate text-sm text-[var(--color-ink)]">
+                    {item.label}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      setChosen(item.key);
+                      setAdding(true);
+                    }}
+                  >
+                    Add time
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </CardSection>
+        </Card>
+      ) : null}
+
       {!timesheet.locked && viewingSelf ? (
         <Card>
           <CardSection title="Add time">
             {adding ? (
               <form action={formAction} className="grid gap-3 sm:grid-cols-4">
                 <div className="sm:col-span-2">
-                  <Field label="Task">
-                    <Select name="taskId" required>
-                      {tasks.map((task) => (
-                        <option key={task.id} value={task.id}>
-                          {task.label}
+                  <Field label="Task or ticket">
+                    <Select
+                      name="item"
+                      required
+                      value={chosen || items[0]?.key || ''}
+                      onChange={(event) => setChosen(event.currentTarget.value)}
+                    >
+                      {items.map((item) => (
+                        <option key={item.key} value={item.key}>
+                          {item.label}
                         </option>
                       ))}
                     </Select>

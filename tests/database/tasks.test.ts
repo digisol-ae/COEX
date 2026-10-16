@@ -27,6 +27,7 @@ import {
   patchTask,
   countMyOpenTasks,
   taskOrigin,
+  listNewAssignmentsToMe,
 } from '@/modules/tasks/services/task.service';
 import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
 import { TaskModel } from '@coex/shared/tasks/models/task.model';
@@ -197,35 +198,43 @@ describe('tasks', () => {
   });
 });
 
-describe('planned hours', () => {
-  it('counts working hours between the start and the end, not elapsed time', async () => {
+describe('estimated time and the planned window', () => {
+  it('keeps the estimate as typed and does not derive hours from the number of days', async () => {
     const spaceId = await aSpace();
 
-    // Monday 09:00 to Wednesday 18:00 is three working days of nine hours, not fifty seven hours.
     const id = await runWithContext(context, () =>
       createTask({
         spaceId,
         title: 'Scheduled',
         startAt: '2026-09-21T09:00:00',
         endAt: '2026-09-23T18:00:00',
+        estimateMinutes: 120,
       }),
     );
 
     const task = await runWithContext(context, () => getTask(id));
 
-    expect(task?.plannedMinutes).toBe(27 * 60);
+    expect(task?.estimateMinutes).toBe(120);
+    expect(task?.plannedMinutes ?? null).toBeNull();
   });
 
-  it('records nothing when only one end of the window is known', async () => {
+  it('stores a typed start and end as office time, so 9:00 stays 9:00 for everyone', async () => {
     const spaceId = await aSpace();
 
     const id = await runWithContext(context, () =>
-      createTask({ spaceId, title: 'Half planned', startAt: '2026-09-21T09:00:00' }),
+      createTask({
+        spaceId,
+        title: 'Office time',
+        startAt: '2026-09-21T09:00',
+        endAt: '2026-09-21T10:00',
+      }),
     );
 
     const task = await runWithContext(context, () => getTask(id));
 
-    expect(task?.plannedMinutes).toBeNull();
+    // Asia/Dubai is four hours ahead of UTC.
+    expect(task?.startAt?.toISOString()).toBe('2026-09-21T05:00:00.000Z');
+    expect(task?.endAt?.toISOString()).toBe('2026-09-21T06:00:00.000Z');
   });
 });
 
@@ -327,7 +336,7 @@ describe('editing one task field from a row', () => {
     expect(task?.assigneeIds.map(String)).toEqual([String(userId)]);
   });
 
-  it('recomputes planned hours when only the end moves', async () => {
+  it('moves only the end and leaves the start and the estimate alone', async () => {
     const spaceId = await aSpace();
 
     const id = await runWithContext(context, () =>
@@ -336,6 +345,7 @@ describe('editing one task field from a row', () => {
         title: 'Plan the week',
         startAt: '2026-01-05T09:00:00',
         endAt: '2026-01-05T17:00:00',
+        estimateMinutes: 90,
       }),
     );
 
@@ -346,7 +356,8 @@ describe('editing one task field from a row', () => {
     const after = await runWithContext(context, () => getTask(id));
 
     expect(after?.startAt?.toISOString()).toBe(before?.startAt?.toISOString());
-    expect(after?.plannedMinutes).toBeGreaterThan(before?.plannedMinutes ?? 0);
+    expect(after?.endAt?.getTime()).toBeGreaterThan(before?.endAt?.getTime() ?? 0);
+    expect(after?.estimateMinutes).toBe(90);
   });
 
   it('refuses an end that lands before the start already on the task', async () => {
@@ -384,7 +395,6 @@ describe('editing one task field from a row', () => {
 
     expect(task?.startAt).toBeNull();
     expect(task?.endAt).toBeNull();
-    expect(task?.plannedMinutes).toBeNull();
   });
 
   it('reports subtasks in the list so a row can open without another query', async () => {
@@ -460,6 +470,46 @@ describe('the badge on the rail', () => {
     const count = await runWithContext(context, () => countMyOpenTasks(String(userId)));
 
     expect(count).toBe(1);
+  });
+});
+
+describe('the Assigned by me filter', () => {
+  it('lists the tasks I handed to other people, and not those I kept or others assigned', async () => {
+    const spaceId = await aSpace();
+
+    await runWithContext(context, async () => {
+      await createTask({ spaceId, title: 'Handed over', assigneeIds: [String(adminId)] });
+      await createTask({ spaceId, title: 'Kept for myself', assigneeIds: [String(userId)] });
+    });
+    await runWithContext({ ...context, userId: adminId }, () =>
+      createTask({ spaceId, title: 'Assigned by someone else', assigneeIds: [String(userId)] }),
+    );
+
+    const found = await runWithContext(context, () => listTasks({ assignedById: String(userId) }));
+
+    expect(found.map((task) => task.title)).toEqual(['Handed over']);
+  });
+});
+
+describe('new assignments for browser notifications', () => {
+  it('lists tasks others assigned to me since a moment, never ones I assigned myself', async () => {
+    const spaceId = await aSpace();
+    const before = new Date(Date.now() - 60_000);
+
+    await runWithContext({ ...context, userId: adminId }, () =>
+      createTask({ spaceId, title: 'From the admin', assigneeIds: [String(userId)] }),
+    );
+    await runWithContext(context, () =>
+      createTask({ spaceId, title: 'Self assigned', assigneeIds: [String(userId)] }),
+    );
+
+    const found = await runWithContext(context, () => listNewAssignmentsToMe(before));
+    const none = await runWithContext(context, () =>
+      listNewAssignmentsToMe(new Date(Date.now() + 60_000)),
+    );
+
+    expect(found.map((task) => task.title)).toEqual(['From the admin']);
+    expect(none).toEqual([]);
   });
 });
 

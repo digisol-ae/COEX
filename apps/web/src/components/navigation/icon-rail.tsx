@@ -40,7 +40,7 @@ const ITEMS: RailItem[] = [
     permission: 'ticket.read.own',
     group: 'support',
   },
-  { href: '/time', label: 'Time', icon: 'time', permission: 'task.read.own', group: 'tasks' },
+  { href: '/time', label: 'Time', icon: 'time', permission: 'task.read.own', group: 'time' },
   {
     href: '/customers',
     label: 'CRM',
@@ -51,15 +51,22 @@ const ITEMS: RailItem[] = [
   { href: '/setup', label: 'Setup', icon: 'settings', permission: 'tenant.manage', group: 'setup' },
 ];
 
-export function IconRail({
+/**
+ * The rail's links, shared by the desktop rail and the phone drawer so the two cannot drift. The
+ * caller supplies the surrounding column.
+ */
+export function RailLinks({
   permissions,
   counts,
   groupOrder = [],
+  onNavigate,
 }: {
   permissions: string[];
   counts?: Partial<Record<string, number>>;
   /** Group ids in the person's order; Home stays first whatever it says. */
   groupOrder?: string[];
+  /** The phone drawer closes itself when a link is followed. */
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
   const supportCount = useLiveUnreadCount(
@@ -78,18 +85,7 @@ export function IconRail({
   ).sort((a, b) => rank(a) - rank(b));
 
   return (
-    <nav
-      aria-label="Main"
-      className="hidden w-16 shrink-0 flex-col items-center gap-0.5 bg-[image:var(--gradient-rail)] py-3 md:flex"
-    >
-      <Link
-        href="/dashboard"
-        aria-label="COEX home"
-        className="mb-2 flex h-9 w-9 items-center justify-center rounded-[10px] bg-[image:var(--gradient-brand)] text-sm font-bold text-white"
-      >
-        C
-      </Link>
-
+    <>
       {visible.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         // The CRM icon carries the contracts that need renewing, since Contracts lives in that group.
@@ -106,6 +102,7 @@ export function IconRail({
                   ? '/contracts?filter=due'
                   : item.href
             }
+            onClick={onNavigate}
             title={
               item.href === '/tasks'
                 ? `${count ?? 0} open task${count === 1 ? '' : 's'} assigned to you — click to view`
@@ -115,7 +112,8 @@ export function IconRail({
             }
             aria-current={active ? 'page' : undefined}
             className={clsx(
-              'relative flex w-14 flex-col items-center gap-1 rounded-[10px] px-1 py-2 transition-colors',
+              // On a phone the icons are taller, so a thumb lands on one rather than its neighbour.
+              'relative flex w-14 flex-col items-center gap-1 rounded-[10px] px-1 py-2 transition-colors max-md:py-3',
               active
                 ? 'rail-glow'
                 : 'text-[var(--color-rail-ink-muted)] hover:bg-[var(--color-rail-raised)]/60 hover:text-[var(--color-rail-ink)]',
@@ -132,6 +130,33 @@ export function IconRail({
           </Link>
         );
       })}
+    </>
+  );
+}
+
+export function IconRail({
+  permissions,
+  counts,
+  groupOrder = [],
+}: {
+  permissions: string[];
+  counts?: Partial<Record<string, number>>;
+  groupOrder?: string[];
+}) {
+  return (
+    <nav
+      aria-label="Main"
+      className="hidden w-16 shrink-0 flex-col items-center gap-0.5 bg-[image:var(--gradient-rail)] py-3 md:flex"
+    >
+      <Link
+        href="/dashboard"
+        aria-label="COEX home"
+        className="mb-2 flex h-9 w-9 items-center justify-center rounded-[10px] bg-[image:var(--gradient-brand)] text-sm font-bold text-white"
+      >
+        C
+      </Link>
+
+      <RailLinks permissions={permissions} counts={counts} groupOrder={groupOrder} />
     </nav>
   );
 }
