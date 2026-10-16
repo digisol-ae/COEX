@@ -242,23 +242,6 @@ body {
 }
 
 /*
- * The phone menu drawer, in the logo's colours: brand black with red lettering, as John asked on
- * 25 Sep 2026. Only the tokens change, so the shared menu and space tree inside need no variant of
- * their own. Red on #141414 is about 4.9:1, which passes for text this size.
- */
-.navigation-dark {
-  --color-surface: var(--color-brand-black);
-  --color-surface-muted: #262626;
-  --color-ink: #ff5a6b;
-  --color-ink-muted: var(--color-brand-red);
-  --color-ink-subtle: var(--color-brand-red);
-  --color-line: #2c2c2c;
-  --color-line-strong: #3a3a3a;
-  background: var(--color-brand-black);
-  color: var(--color-brand-red);
-}
-
-/*
  * Popups in frosted glass, the macOS and iOS sheet look John asked for on 26 Sep 2026: the page
  * behind is only lightly dimmed and blurred, and the popup itself lets a little of it through.
  * The glass stays opaque enough that text on it reads like text on a card. People who have asked

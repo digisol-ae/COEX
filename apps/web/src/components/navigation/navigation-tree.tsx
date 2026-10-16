@@ -63,7 +63,7 @@ export function NavigationTree({
               type="button"
               onClick={() => toggleCollapsed(group.id)}
               aria-expanded={open}
-              className="navigation-heading flex w-full items-center justify-between rounded-[var(--radius-control)] px-2 py-1 uppercase transition-opacity hover:opacity-75"
+              className="navigation-heading flex w-full items-center justify-between rounded-[var(--radius-control)] px-2 py-1 uppercase transition-opacity hover:opacity-75 max-md:min-h-11"
             >
               {group.label}
               <Chevron open={open} />
@@ -101,7 +101,7 @@ export function NavigationTree({
       <Link
         href="/menu-order"
         onClick={onNavigate}
-        className="block px-2 text-[11px] text-[var(--color-ink-subtle)] underline-offset-4 hover:text-[var(--color-ink-muted)] hover:underline"
+        className="block px-2 py-2 text-[11px] text-[var(--color-ink-subtle)] underline-offset-4 hover:text-[var(--color-ink-muted)] hover:underline"
       >
         Arrange my menu
       </Link>
@@ -130,7 +130,7 @@ function NavigationLink({
       className={clsx(
         // The generous height is for thumbs: 44 pixels is the smallest target reliably hit on a
         // phone.
-        'flex items-center justify-between rounded-[var(--radius-control)] px-2 py-2 text-[13px] transition-colors',
+        'flex items-center justify-between rounded-[var(--radius-control)] px-2 py-2 text-[13px] transition-colors max-md:min-h-11 max-md:text-sm',
         active
           ? 'navigation-active pl-3'
           : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]',

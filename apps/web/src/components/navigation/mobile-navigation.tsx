@@ -1,28 +1,39 @@
 'use client';
 
-import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { NavigationGroup } from './navigation';
 import { NavigationTree } from './navigation-tree';
+import { RailLinks } from './icon-rail';
+import { QuickSearch } from './quick-search';
 import { SUPPORT_HREF, useLiveUnreadCount } from './unread-count';
 
 /**
  * Navigation on a phone.
  *
  * A drawer rather than a bottom bar, because the menu has four groups and will have six once
- * Support and Time arrive, which is more than a bottom bar carries honestly. It closes when a link
- * is followed, when the backdrop is tapped and when Escape is pressed, and the page behind it does
- * not scroll while it is open.
+ * Support and Time arrive, which is more than a bottom bar carries honestly. It is the desktop
+ * menu in a narrower frame (John, 16 Oct 2026): the same dark rail beside the same light panel, the
+ * same glow and the same menu, so nothing looks different on a phone, only sized for a thumb. It
+ * closes when a link is followed, when the backdrop is tapped and when Escape is pressed, and the
+ * page behind it does not scroll while it is open.
  */
 export function MobileNavigation({
   groups,
   canManageTasks,
+  permissions,
+  tenantName,
+  counts,
   unreadTickets,
   renewalsDue,
 }: {
   groups: NavigationGroup[];
   canManageTasks: boolean;
+  permissions: string[];
+  tenantName: string;
+  /** The rail's badges, keyed by href, as the desktop rail receives them. */
+  counts?: Partial<Record<string, number>>;
   /** Undefined for someone who cannot read tickets. */
   unreadTickets?: number;
   /** Contracts expiring or ended; undefined for someone who cannot read contracts. */
@@ -81,45 +92,78 @@ export function MobileNavigation({
                 type="button"
                 aria-label="Close menu"
                 onClick={() => setOpen(false)}
-                className="absolute inset-0 bg-[var(--color-brand-black)]/30"
+                className="popup-backdrop absolute inset-0"
               />
 
-              <div className="navigation-dark relative flex h-full w-72 max-w-[85vw] flex-col overflow-y-auto px-3 py-5">
-                <div className="mb-6 flex items-center justify-between pl-2">
-                  <Image
-                    src="/brand/logo-long.png"
-                    alt="DigiSol"
-                    width={148}
-                    height={50}
-                    className="h-[50px] w-auto"
-                  />
-
-                  <button
-                    type="button"
+              <div className="relative flex h-full w-[min(92vw,22rem)] shadow-[var(--shadow-pop)]">
+                <nav
+                  aria-label="Main"
+                  className="flex w-16 shrink-0 flex-col items-center gap-0.5 overflow-y-auto bg-[image:var(--gradient-rail)] pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+                >
+                  <Link
+                    href="/dashboard"
                     onClick={() => setOpen(false)}
-                    aria-label="Close menu"
-                    className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-ink-subtle)] hover:text-[var(--color-ink)]"
+                    aria-label="COEX home"
+                    className="mb-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[image:var(--gradient-brand)] text-sm font-bold text-white"
                   >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                      <path
-                        d="M4 4l8 8M12 4l-8 8"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </button>
-                </div>
+                    C
+                  </Link>
+                  <RailLinks
+                    permissions={permissions}
+                    counts={counts}
+                    groupOrder={groups.map((group) => group.id)}
+                    onNavigate={() => setOpen(false)}
+                  />
+                </nav>
 
-                <NavigationTree
-                  groups={groups}
-                  canManageTasks={canManageTasks}
-                  onNavigate={() => setOpen(false)}
-                  counts={{
-                    ...(unread ? { [SUPPORT_HREF]: unread } : {}),
-                    '/contracts': renewalsDue,
-                  }}
-                />
+                <div className="sidebar-glow flex min-w-0 flex-1 flex-col overflow-y-auto border-r border-[var(--color-line)] pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+                  <div className="flex items-center justify-between gap-2 px-4 pb-2">
+                    <p className="truncate text-sm font-semibold text-[var(--color-ink)]">
+                      {tenantName}
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => setOpen(false)}
+                      aria-label="Close menu"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-ink-subtle)] hover:text-[var(--color-ink)]"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M4 4l8 8M12 4l-8 8"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* The header's search is hidden on a phone, so it lives here instead. */}
+                  <div className="px-3 pb-3">
+                    <QuickSearch />
+                  </div>
+
+                  <div className="px-2">
+                    <NavigationTree
+                      groups={groups}
+                      canManageTasks={canManageTasks}
+                      onNavigate={() => setOpen(false)}
+                      counts={{
+                        ...counts,
+                        // The polled Support number, so it moves while the drawer is open.
+                        ...(unread ? { [SUPPORT_HREF]: unread } : {}),
+                        '/contracts': renewalsDue,
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
             </div>,
             document.body,

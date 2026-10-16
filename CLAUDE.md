@@ -165,7 +165,7 @@ never sent to their browser.
   (Save, Raise ticket, Add time) and consequential ones (Suspend) keep their words.
 - Popups use frosted glass: `popup-backdrop` on the overlay and `popup-glass` on the panel, both in
   globals.css. Forms that would otherwise open inside a table open as popups instead, so the page
-  never jumps. Exceptions: the image preview stays dark, the phone menu drawer stays brand black.
+  never jumps. Exceptions: the image preview stays dark. The phone menu drawer follows the desktop menu (16 Oct 2026, replacing the brand black drawer of 25 Sep): the same dark rail beside the same glowing panel, with 44 pixel targets and the screen's safe areas, and the search that the phone header lacks.
   Larger forms (Raise ticket so far) use the lighter variant, `popup-backdrop-light` and
   `popup-glass-gradient`: bright frosted glass behind, and a panel of glass tinted with the
   sidebar's pastels (28 Sep 2026).
@@ -341,6 +341,20 @@ by `npm install` on the Mac.
   blocked by SSH-key access; preserve the running Mac until deployment can be verified.
 - Keep communication short and commands-first; no screenshots. Read the newest ai/HANDOFF.md
   section before continuing. Follow actual pm2/Apache deployment status, not the original design.
+
+## Team feedback decisions — 15 and 16 Oct 2026 (John)
+- Task start and due times are office time, Asia/Dubai, entered, stored and shown the same on every
+  screen and machine (`packages/shared/src/tasks/dates.ts`); never parse or print them with the
+  host's or the browser's own clock.
+- Estimate is the one effort field on a task; Planned hours (derived from the days between start and
+  end) are gone from the screens and no longer written.
+- Boards keep completed tasks visible in their Done column (a Done button hides them).
+- Resolving or closing a ticket stops every timer running on it.
+- Tasks has "Assigned by me" and "Created by me" filters (no Remind button); both replace "Mine".
+- Browser notifications are opt-in per person and browser, in-browser only (customer reply on my
+  ticket, task assigned to me); no push service.
+- On hold by John: ticket portal for customers, subtask assignees beyond the task's own (would change
+  decision 14), one-click task from an XVERSE message (needs Channels, suspended).
 
 ## Phase 2 decisions — 4 Oct 2026 (John)
 - Order: Contracts / AMC, then full CRM, then Payroll. Billing is entirely in Zoho Books; COEX never

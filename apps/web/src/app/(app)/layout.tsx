@@ -88,6 +88,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <MobileNavigation
                 groups={groups}
                 canManageTasks={user.permissions.includes('task.manage')}
+                permissions={user.permissions}
+                tenantName={user.tenantName}
+                counts={counts}
                 unreadTickets={counts['/support/tickets']}
                 renewalsDue={counts['/contracts']}
               />

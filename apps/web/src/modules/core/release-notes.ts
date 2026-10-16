@@ -37,6 +37,12 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         ],
       },
       {
+        heading: 'On a phone',
+        items: [
+          'The phone menu now matches the desktop: the same dark icon strip beside the same panel, with bigger touch targets and the search that was missing on a phone.',
+        ],
+      },
+      {
         heading: 'Notifications',
         items: [
           'New: browser notifications. Open your profile menu (your avatar, top right) and choose Browser notifications to turn them on in this browser. While COEX is open in another tab you get a notification when a customer writes on one of your tickets, or when someone assigns you a task. Click it to open the item. They are off until you switch them on, and they do not reach a closed browser.',
