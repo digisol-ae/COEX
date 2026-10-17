@@ -6,6 +6,10 @@ import { channelLabel } from '@/modules/tickets/labels';
 import type { TicketMessageView } from '@/modules/tickets/services/ticket.service';
 import { formatBytes, PROCESSED_IMAGE_TYPES } from '@/modules/tickets/services/attachment.service';
 import { AttachmentItem } from './attachment-item';
+import { FoldedMessages } from './folded-messages';
+
+/** More messages than this and the ones between the first and the last are folded. */
+const FOLD_ABOVE = 3;
 
 /**
  * The conversation.
@@ -31,88 +35,98 @@ export function Conversation({
     );
   }
 
+  const render = (message: TicketMessageView) => {
+    const isInternal = message.visibility === 'internal';
+    const isSystem = message.channel === 'system';
+
+    if (isSystem) {
+      return (
+        <p key={message.id} className="px-3 text-center text-[11px] text-[var(--color-ink-subtle)]">
+          {message.body} · {formatDateTime(message.sentAt)}
+        </p>
+      );
+    }
+
+    return (
+      <Card
+        key={message.id}
+        className={clsx(
+          isInternal &&
+            'border-l-4 border-l-[var(--color-status-warn)] bg-[var(--color-status-warn-soft)]/40',
+        )}
+      >
+        <CardSection>
+          <div className="flex items-start gap-2.5">
+            <Avatar name={message.authorName} size="small" />
+
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-baseline gap-2">
+                <span className="text-sm font-medium text-[var(--color-ink)]">
+                  {message.authorName}
+                </span>
+
+                {isInternal ? (
+                  <span className="rounded-[var(--radius-control)] bg-[var(--color-status-warn-soft)] px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-[var(--color-status-warn)] uppercase">
+                    Internal note
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-[var(--color-ink-subtle)]">
+                    {message.direction === 'inbound' ? 'From the customer' : 'Sent to the customer'}
+                  </span>
+                )}
+
+                <span className="ml-auto text-[11px] text-[var(--color-ink-subtle)]">
+                  {channelLabel(message.channel, message.direction)} ·{' '}
+                  {formatDateTime(message.sentAt)}
+                </span>
+              </div>
+
+              <p className="mt-1.5 text-sm whitespace-pre-wrap text-[var(--color-ink-muted)] [overflow-wrap:anywhere]">
+                {message.body}
+              </p>
+
+              {message.attachments.length > 0 ? (
+                <ul className="mt-2 flex flex-wrap gap-1.5">
+                  {message.attachments.map((attachment) => (
+                    <li key={attachment.id}>
+                      <AttachmentItem
+                        ticketId={ticketId}
+                        attachment={{
+                          id: attachment.id,
+                          fileName: attachment.fileName,
+                          previewable: PROCESSED_IMAGE_TYPES.has(attachment.contentType),
+                          sizeLabel: attachment.originalBytes
+                            ? `${formatBytes(attachment.bytes)}, from ${formatBytes(attachment.originalBytes)}`
+                            : formatBytes(attachment.bytes),
+                        }}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          </div>
+        </CardSection>
+      </Card>
+    );
+  };
+
+  // A long thread keeps its first and its latest message in view and folds the ones between, with
+  // a button to open them (John's team, 18 Oct 2026: a page of messages made the ticket one long
+  // scroll). Short threads show everything.
+  const rendered = messages.map(render);
+
   return (
     <div className="space-y-3">
-      {messages.map((message) => {
-        const isInternal = message.visibility === 'internal';
-        const isSystem = message.channel === 'system';
-
-        if (isSystem) {
-          return (
-            <p
-              key={message.id}
-              className="px-3 text-center text-[11px] text-[var(--color-ink-subtle)]"
-            >
-              {message.body} · {formatDateTime(message.sentAt)}
-            </p>
-          );
-        }
-
-        return (
-          <Card
-            key={message.id}
-            className={clsx(
-              isInternal &&
-                'border-l-4 border-l-[var(--color-status-warn)] bg-[var(--color-status-warn-soft)]/40',
-            )}
-          >
-            <CardSection>
-              <div className="flex items-start gap-2.5">
-                <Avatar name={message.authorName} size="small" />
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-baseline gap-2">
-                    <span className="text-sm font-medium text-[var(--color-ink)]">
-                      {message.authorName}
-                    </span>
-
-                    {isInternal ? (
-                      <span className="rounded-[var(--radius-control)] bg-[var(--color-status-warn-soft)] px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-[var(--color-status-warn)] uppercase">
-                        Internal note
-                      </span>
-                    ) : (
-                      <span className="text-[11px] text-[var(--color-ink-subtle)]">
-                        {message.direction === 'inbound'
-                          ? 'From the customer'
-                          : 'Sent to the customer'}
-                      </span>
-                    )}
-
-                    <span className="ml-auto text-[11px] text-[var(--color-ink-subtle)]">
-                      {channelLabel(message.channel, message.direction)} ·{' '}
-                      {formatDateTime(message.sentAt)}
-                    </span>
-                  </div>
-
-                  <p className="mt-1.5 text-sm whitespace-pre-wrap text-[var(--color-ink-muted)]">
-                    {message.body}
-                  </p>
-
-                  {message.attachments.length > 0 ? (
-                    <ul className="mt-2 flex flex-wrap gap-1.5">
-                      {message.attachments.map((attachment) => (
-                        <li key={attachment.id}>
-                          <AttachmentItem
-                            ticketId={ticketId}
-                            attachment={{
-                              id: attachment.id,
-                              fileName: attachment.fileName,
-                              previewable: PROCESSED_IMAGE_TYPES.has(attachment.contentType),
-                              sizeLabel: attachment.originalBytes
-                                ? `${formatBytes(attachment.bytes)}, from ${formatBytes(attachment.originalBytes)}`
-                                : formatBytes(attachment.bytes),
-                            }}
-                          />
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </div>
-              </div>
-            </CardSection>
-          </Card>
-        );
-      })}
+      {messages.length > FOLD_ABOVE ? (
+        <>
+          {rendered[0]}
+          <FoldedMessages count={messages.length - 2}>{rendered.slice(1, -1)}</FoldedMessages>
+          {rendered[rendered.length - 1]}
+        </>
+      ) : (
+        rendered
+      )}
     </div>
   );
 }

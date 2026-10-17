@@ -1,5 +1,5 @@
 import { DeskTaskButton } from '@/components/tasks/desk-task-button';
-import { TaskOriginLines } from '@/components/tasks/task-origin';
+import { TaskOriginSummary } from '@/components/tasks/task-origin-summary';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
@@ -21,6 +21,8 @@ import {
   listTaskTimeByPerson,
   loggedMinutesForTask,
 } from '@/modules/time/services/time.service';
+import { TaskTimeSummary } from '@/modules/time/components/task-time-summary';
+import { TimeEntriesByPerson } from '@/modules/time/components/time-entries-by-person';
 import { formatMinutes, toDateKey } from '@coex/shared/time/week';
 import { toDateTimeInput } from '@coex/shared/tasks/dates';
 import { TimerButton } from '@/modules/time/components/timer-button';
@@ -141,80 +143,68 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
         />
       </div>
 
-      <TaskOriginLines
-        origin={origin}
-        viewerId={actor.id}
-        people={users.map(({ id, name }) => ({ id, name }))}
-        className="-mt-4 mb-6 space-y-0.5 text-sm text-[var(--color-ink-muted)]"
-      />
+      <div className="-mt-4 mb-4">
+        <TaskOriginSummary
+          origin={origin}
+          viewerId={actor.id}
+          people={users.map(({ id, name }) => ({ id, name }))}
+        />
+      </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
-        <div className="space-y-6">
+      <div className="space-y-4">
+        <div className="space-y-4">
           <Card>
-            <CardSection title="Time">
-              <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-                <div>
-                  <p className="text-xs tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                    Your time
-                  </p>
-                  <p className="text-lg font-medium text-[var(--color-ink)] tabular-nums">
-                    {formatMinutes(loggedMinutes)}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                    Estimate
-                  </p>
-                  <p className="text-lg font-medium text-[var(--color-ink)] tabular-nums">
-                    {task.estimateMinutes ? formatMinutes(task.estimateMinutes) : 'none'}
-                  </p>
-                </div>
-
-                {task.estimateMinutes && loggedMinutes > task.estimateMinutes ? (
-                  <Badge tone="warn">over estimate</Badge>
-                ) : null}
-              </div>
-
-              <h3 className="mt-5 flex items-baseline justify-between text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                <span>Time entries</span>
-                {actor.permissions.includes('timesheet.read.all') && timeByPerson.length > 0 ? (
-                  <span title="Everyone's time on this task added together">
-                    All people {formatMinutes(timeByPerson.reduce((sum, p) => sum + p.minutes, 0))}
-                  </span>
-                ) : null}
-              </h3>
-              {timeByPerson.length === 0 ? (
-                <p className="mt-1 text-sm text-[var(--color-ink-muted)]">
-                  No time has been logged on this task yet.
-                </p>
-              ) : (
-                <ul className="mt-2 space-y-3">
-                  {timeByPerson.map((person) => (
-                    <li key={person.userId}>
-                      <p className="flex items-center justify-between text-sm font-medium text-[var(--color-ink)]">
-                        <span>{person.name}</span>
-                        <span className="tabular-nums">{formatMinutes(person.minutes)}</span>
-                      </p>
-                      <ul className="mt-1 divide-y divide-[var(--color-line)] text-xs text-[var(--color-ink-muted)]">
-                        {person.entries.map((entry) => (
-                          <li key={entry.id} className="flex items-baseline gap-3 py-1">
-                            <span className="w-24 shrink-0">{toDateKey(entry.workDate)}</span>
-                            <span className="w-14 shrink-0 tabular-nums">
-                              {formatMinutes(entry.minutes)}
-                            </span>
-                            <span className="min-w-0 flex-1 truncate">
-                              {entry.running ? 'Running now' : (entry.note ?? '')}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-                  ))}
-                </ul>
-              )}
+            <CardSection title="Details">
+              <TaskForm
+                canManage={canManage}
+                users={ownerChoices}
+                task={{
+                  id,
+                  title: task.title,
+                  description: task.description ?? '',
+                  priority: task.priority,
+                  assigneeIds: task.assigneeIds.map((value) => String(value)),
+                  startAt: toDateTimeInput(task.startAt),
+                  endAt: toDateTimeInput(task.endAt),
+                  estimateHours: task.estimateMinutes ? String(task.estimateMinutes / 60) : '',
+                  tags: (task.tags ?? []).join(', '),
+                  folderId: task.folderId ? String(task.folderId) : '',
+                }}
+                folders={folders.map((folder) => ({
+                  id: folder.id,
+                  name: folder.name,
+                  isPrivate: folder.isPrivate,
+                }))}
+              />
             </CardSection>
           </Card>
+
+          <TaskTimeSummary
+            yourTime={formatMinutes(loggedMinutes)}
+            estimate={task.estimateMinutes ? formatMinutes(task.estimateMinutes) : null}
+            overEstimate={Boolean(task.estimateMinutes && loggedMinutes > task.estimateMinutes)}
+            allPeople={
+              actor.permissions.includes('timesheet.read.all') && timeByPerson.length > 0
+                ? formatMinutes(timeByPerson.reduce((sum, p) => sum + p.minutes, 0))
+                : null
+            }
+            hasEntries={timeByPerson.length > 0}
+          >
+            <TimeEntriesByPerson
+              people={timeByPerson.map((person) => ({
+                userId: person.userId,
+                name: person.name,
+                minutes: person.minutes,
+                entries: person.entries.map((entry) => ({
+                  id: entry.id,
+                  day: toDateKey(entry.workDate),
+                  minutes: entry.minutes,
+                  note: entry.note,
+                  running: entry.running,
+                })),
+              }))}
+            />
+          </TaskTimeSummary>
 
           <TaskComments
             taskId={id}
@@ -246,32 +236,6 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
             }))}
           />
         </div>
-
-        <Card>
-          <CardSection title="Details">
-            <TaskForm
-              canManage={canManage}
-              users={ownerChoices}
-              task={{
-                id,
-                title: task.title,
-                description: task.description ?? '',
-                priority: task.priority,
-                assigneeIds: task.assigneeIds.map((value) => String(value)),
-                startAt: toDateTimeInput(task.startAt),
-                endAt: toDateTimeInput(task.endAt),
-                estimateHours: task.estimateMinutes ? String(task.estimateMinutes / 60) : '',
-                tags: (task.tags ?? []).join(', '),
-                folderId: task.folderId ? String(task.folderId) : '',
-              }}
-              folders={folders.map((folder) => ({
-                id: folder.id,
-                name: folder.name,
-                isPrivate: folder.isPrivate,
-              }))}
-            />
-          </CardSection>
-        </Card>
       </div>
     </div>
   );

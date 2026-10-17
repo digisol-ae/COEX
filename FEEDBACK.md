@@ -314,6 +314,37 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
+### John, 18 Oct 2026 — compact everywhere (ticket and task screens built; rest of the app to follow)
+
+- Ticket: one card; Status, Owner, Priority, Queue as badges that are also the controls; clocks, timer, Add
+  time, time logged, Escalate and Related as badges and buttons in the second row; escalate, link and
+  merge as popups; Cc inside the reply box.
+- Task page: origin as one line with history, Time as badges, details in columns, small description.
+- Convention recorded in CLAUDE.md. Still to apply: customers, contracts, opportunities, leads, spaces
+  and settings screens. John to review the pattern on tickets and tasks first.
+
+### John, 18 Oct 2026 — ticket page layout (built on the branch, acceptance pending)
+
+- Ticket properties (Status, Owner, Priority, Queue), Engineering and Related tickets moved to a row
+  across the top so the conversation and the reply box get the full width. The timer and time entries
+  sit beside the CC collaborators panel.
+- A conversation of more than three messages shows the first and the latest with a fold button for the
+  messages between. Long unbroken text (addresses, mailto links) now wraps inside the message box.
+
+### John, 18 Oct 2026 — task side panel (built on the branch, acceptance pending)
+
+- Compact origin: one line ("Created by X, date · N assignments") with a history icon opening the full
+  list in a popup. Self-assignments are no longer listed (display only; stored data unchanged).
+- Assignees, dates, priority, folder and time in one wrapping row of icons (names in tooltips); tags below.
+- Description starts at two lines and grows on hover or focus.
+- Updates section in the panel: add an update at once, latest shown, history opens with an icon.
+
+### John, 17 Oct 2026 — time entries layout (built on the branch, acceptance pending)
+
+- The Time entries list on a task looked ugly with every entry shown. Now one consolidated line per
+  person (name, number of entries, total) with a history icon that expands that person's entries and
+  closes them again. Same on the ticket page. Shared component `TimeEntriesByPerson`.
+
 ### Team feedback, 17 Oct 2026 (John, from his team) — built on the branch, acceptance pending
 
 U1. Task work updates can be edited and deleted. Built: the author edits their own update (it then

@@ -13,7 +13,10 @@ export function TicketTimerButton({
   ticketId,
   running,
   startedAt = null,
+  compact = false,
 }: {
+  /** A smaller button, for the ticket's badge row. */
+  compact?: boolean;
   ticketId: string;
   running: boolean;
   startedAt?: string | null;
@@ -27,7 +30,11 @@ export function TicketTimerButton({
   if (running) {
     return (
       <form action={stopTimerAction}>
-        <Button type="submit" variant="danger">
+        <Button
+          type="submit"
+          variant="danger"
+          className={compact ? '!px-2.5 !py-1 text-[12px]' : undefined}
+        >
           <span className="tabular-nums" aria-label="Elapsed time">
             {startedAt ? elapsedClock(startedAt, now ?? Date.parse(startedAt)) : '00:00:00'}
           </span>
@@ -40,7 +47,11 @@ export function TicketTimerButton({
   return (
     <form action={startTicketTimerAction}>
       <input type="hidden" name="ticketId" value={ticketId} />
-      <Button type="submit" variant="secondary">
+      <Button
+        type="submit"
+        variant="secondary"
+        className={compact ? '!px-2.5 !py-1 text-[12px]' : undefined}
+      >
         Start timer
       </Button>
     </form>

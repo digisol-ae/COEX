@@ -372,6 +372,8 @@ export async function taskOrigin(task: {
     createdBy:
       creator && task.createdAt ? { name: creator, at: task.createdAt.toISOString() } : null,
     assignedBy: assignments.flatMap((entry) => {
+      // Putting yourself on your own task is not news (John's team, 18 Oct 2026), so it is not listed.
+      if (String(entry.assignedById) === String(entry.userId)) return [];
       const byName = entry.assignedById ? names.get(String(entry.assignedById)) : undefined;
       return byName
         ? [{ userId: String(entry.userId), byName, at: entry.assignedAt.toISOString() }]

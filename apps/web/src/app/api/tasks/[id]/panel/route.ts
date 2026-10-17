@@ -3,6 +3,8 @@ import {
   assignableUserIdsForSubtask,
   assignableUserIdsForTask,
   getTask,
+  listTaskComments,
+  mentionableForTask,
   sourceTicketFor,
   taskOrigin,
 } from '@/modules/tasks/services/task.service';
@@ -50,6 +52,15 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       assignableUserIds: await assignableUserIdsForTask(task),
       subtaskAssignableUserIds: await assignableUserIdsForSubtask(task),
       origin: await taskOrigin(task),
+      // The compact Updates section: the history to expand and who can be @mentioned.
+      comments: (await listTaskComments(id)).map((comment) => ({
+        id: comment.id,
+        body: comment.body,
+        authorName: comment.authorName,
+        createdAt: comment.createdAt.toISOString(),
+        editedAt: comment.editedAt ? comment.editedAt.toISOString() : null,
+      })),
+      mentionable: await mentionableForTask(id),
       viewerId: user.id,
       sourceTicket: await sourceTicketFor(task).then((ticket) =>
         ticket ? { id: ticket.id, number: ticket.number } : null,

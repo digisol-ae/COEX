@@ -599,6 +599,21 @@ describe('editing and deleting work updates', () => {
   });
 });
 
+describe('task origin', () => {
+  it('does not list a person who put themselves on their own task', async () => {
+    const spaceId = await aSpace();
+
+    const id = await runWithContext(context, () =>
+      createTask({ spaceId, title: 'Mine', assigneeIds: [String(userId), String(adminId)] }),
+    );
+    const task = await TaskModel.findById(id);
+    const origin = await runWithContext(context, () => taskOrigin(task!));
+
+    // Assigning myself is not news; assigning somebody else still is.
+    expect(origin.assignedBy.map((entry) => entry.userId)).toEqual([String(adminId)]);
+  });
+});
+
 describe('listing one space', () => {
   // Every list used to come back with every visible space's tasks: the visibility filter was
   // merged in under the same spaceId key and replaced the space asked for (John, 1 Oct 2026).

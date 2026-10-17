@@ -3,17 +3,19 @@
 import { DeskTaskButton } from '@/components/tasks/desk-task-button';
 
 import Link from 'next/link';
-import { useActionState, useCallback, useEffect, useState, useTransition } from 'react';
+import { useActionState, useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { clsx } from 'clsx';
 import { Button, Input, Notice } from '@/components/ui';
 import { IconButton, IconLink } from '@/components/ui/icon-button';
 import { StatusDot } from '@/components/ui/pill';
 import { formatMinutes } from '@coex/shared/time/week';
 import { formatDateTime } from '@coex/shared/tasks/dates';
+import { MentionTextarea, type MentionPerson } from '@/components/ui/mention-textarea';
 import type { TaskOrigin, TaskSummary } from '@/modules/tasks/services/task.service';
-import { TaskOriginLines } from './task-origin';
+import { TaskOriginSummary } from './task-origin-summary';
 import {
   addDocumentAction,
+  addTaskCommentAction,
   removeDocumentAction,
   type TaskFormState,
 } from '@/app/(app)/tasks/actions';
@@ -56,6 +58,15 @@ interface PanelDetail {
   sourceTicket: { id: string; number: string } | null;
   origin: TaskOrigin;
   viewerId: string;
+  /** The task's work updates, oldest first, for the compact Updates section. */
+  comments: {
+    id: string;
+    body: string;
+    authorName: string;
+    createdAt: string;
+    editedAt: string | null;
+  }[];
+  mentionable: MentionPerson[];
 }
 
 export interface PanelHandlers {
@@ -99,6 +110,12 @@ export function TaskPanel({
     addDocumentAction,
     {},
   );
+  const [commentState, commentFormAction, commentPending] = useActionState<TaskFormState, FormData>(
+    addTaskCommentAction,
+    {},
+  );
+  const commentForm = useRef<HTMLFormElement>(null);
+  const [showUpdates, setShowUpdates] = useState(false);
 
   const { canManage, users } = handlers;
   const columns = handlers.columnsFor(task);
@@ -153,6 +170,12 @@ export function TaskPanel({
   useEffect(() => {
     if (docState.saved) return loadDetail();
   }, [docState, loadDetail]);
+
+  useEffect(() => {
+    if (!commentState.saved) return;
+    commentForm.current?.reset();
+    return loadDetail();
+  }, [commentState, loadDetail]);
 
   function removeLink(linkId: string) {
     startTransition(async () => {
@@ -241,28 +264,35 @@ export function TaskPanel({
           />
 
           {detail ? (
-            <TaskOriginLines
+            <TaskOriginSummary
               origin={detail.origin}
               viewerId={detail.viewerId}
               people={task.assigneeIds.map((id, index) => ({
                 id,
                 name: task.assigneeNames[index] ?? '',
               }))}
-              className="space-y-0.5 px-2 text-xs text-[var(--color-ink-muted)]"
             />
           ) : null}
 
-          <dl className="space-y-2 text-[13px]">
-            <Row label="Assignees">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 text-[13px]">
+            <Meta label="Assignees">
               <AssigneePicker
                 users={ownerOptions}
                 selectedIds={task.assigneeIds}
                 disabled={!canManage}
                 onChange={(ids) => handlers.onAssignees(task, ids)}
               />
-            </Row>
+            </Meta>
 
-            <Row label="Dates">
+            <Meta
+              label={
+                task.startAt || task.endAt
+                  ? `Dates: ${task.startAt ? `${formatDateTime(task.startAt)} to ` : ''}${
+                      task.endAt ? formatDateTime(task.endAt) : 'no end'
+                    }`
+                  : 'Dates'
+              }
+            >
               <SchedulePicker
                 startAt={task.startAt}
                 endAt={task.endAt}
@@ -280,58 +310,68 @@ export function TaskPanel({
                     )}
                   >
                     <CalendarIcon />
-                    {task.startAt ? `${formatDateTime(task.startAt)} to ` : ''}
-                    {task.endAt ? formatDateTime(task.endAt) : 'Set dates'}
+                    {task.endAt
+                      ? `Due ${formatDateTime(task.endAt)}`
+                      : task.startAt
+                        ? `From ${formatDateTime(task.startAt)}`
+                        : 'Set dates'}
                   </span>
                 }
               />
-            </Row>
+            </Meta>
 
-            <Row label="Priority">
-              <span className="flex items-center gap-1.5">
-                <PriorityPicker
-                  priority={task.priority}
-                  disabled={!canManage}
-                  onChange={(priority) => handlers.onPriority(task, priority)}
-                />
-                <span className="text-[var(--color-ink-muted)] capitalize">{task.priority}</span>
-              </span>
-            </Row>
+            <Meta label={`Priority: ${task.priority}`}>
+              <PriorityPicker
+                priority={task.priority}
+                disabled={!canManage}
+                onChange={(priority) => handlers.onPriority(task, priority)}
+              />
+              <span className="text-[var(--color-ink-muted)] capitalize">{task.priority}</span>
+            </Meta>
 
             {task.folderName ? (
-              <Row label="Folder">
-                <span className="text-[var(--color-ink-muted)]">{task.folderName}</span>
-              </Row>
+              <Meta label={`Folder: ${task.folderName}`}>
+                <FolderGlyph />
+                <span className="max-w-32 truncate text-[var(--color-ink-muted)]">
+                  {task.folderName}
+                </span>
+              </Meta>
             ) : null}
 
-            <Row label="Hours">
+            <Meta
+              label={`Time: ${detail ? formatMinutes(detail.loggedMinutes) : '…'} logged by you${
+                task.estimateMinutes ? `, ${formatMinutes(task.estimateMinutes)} estimated` : ''
+              }`}
+            >
+              <ClockGlyph />
               <span className="text-[var(--color-ink-muted)] tabular-nums">
-                {detail ? formatMinutes(detail.loggedMinutes) : '…'} logged by you
-                {task.estimateMinutes ? ` · ${formatMinutes(task.estimateMinutes)} estimated` : ''}
+                {detail ? formatMinutes(detail.loggedMinutes) : '…'}
+                {task.estimateMinutes ? ` / ${formatMinutes(task.estimateMinutes)}` : ''}
               </span>
-            </Row>
+            </Meta>
+          </div>
 
-            <Row label="Tags">
-              {detail ? (
-                <input
-                  key={`tags-${task.id}`}
-                  defaultValue={detail.tags.join(', ')}
-                  readOnly={!canManage}
-                  placeholder={canManage ? 'Separated by commas' : '—'}
-                  onBlur={(event) => {
-                    const next = event.target.value
-                      .split(',')
-                      .map((tag) => tag.trim())
-                      .filter(Boolean);
-                    handlers.onTags(task, next);
-                  }}
-                  className="w-full rounded-[var(--radius-control)] border border-transparent bg-transparent px-1 py-0.5 text-[13px] text-[var(--color-ink-muted)] hover:border-[var(--color-line)] focus:border-[var(--color-line-strong)] focus:outline-none"
-                />
-              ) : (
-                <span className="text-[var(--color-ink-subtle)]">…</span>
-              )}
-            </Row>
-          </dl>
+          <div className="flex items-center gap-1.5 px-1 text-[13px]" title="Tags">
+            <TagGlyph />
+            {detail ? (
+              <input
+                key={`tags-${task.id}`}
+                defaultValue={detail.tags.join(', ')}
+                readOnly={!canManage}
+                placeholder={canManage ? 'Tags, separated by commas' : '—'}
+                onBlur={(event) => {
+                  const next = event.target.value
+                    .split(',')
+                    .map((tag) => tag.trim())
+                    .filter(Boolean);
+                  handlers.onTags(task, next);
+                }}
+                className="min-w-0 flex-1 rounded-[var(--radius-control)] border border-transparent bg-transparent px-1 py-0.5 text-[13px] text-[var(--color-ink-muted)] hover:border-[var(--color-line)] focus:border-[var(--color-line-strong)] focus:outline-none"
+              />
+            ) : (
+              <span className="text-[var(--color-ink-subtle)]">…</span>
+            )}
+          </div>
 
           <section>
             <h3 className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
@@ -343,18 +383,89 @@ export function TaskPanel({
                 key={`description-${task.id}`}
                 defaultValue={detail.description ?? ''}
                 readOnly={!canManage}
-                rows={5}
+                rows={2}
                 placeholder="What needs doing, and what done looks like."
                 onBlur={(event) => {
                   const next = event.target.value;
                   if (next !== (detail.description ?? '')) handlers.onDescribe(task, next);
                 }}
-                className="mt-1 w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2.5 py-2 text-[13px] text-[var(--color-ink-muted)] focus:border-[var(--color-line-strong)] focus:outline-none"
+                className="mt-1 h-14 w-full resize-none rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2.5 py-2 text-[13px] text-[var(--color-ink-muted)] transition-[height] duration-150 hover:h-36 focus:h-36 focus:border-[var(--color-line-strong)] focus:outline-none"
               />
             ) : (
               <p className="mt-1 text-[13px] text-[var(--color-ink-subtle)]">Loading</p>
             )}
           </section>
+
+          {detail ? (
+            <section>
+              <div className="flex items-center justify-between">
+                <h3 className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                  Updates {detail.comments.length > 0 ? `· ${detail.comments.length}` : ''}
+                </h3>
+                {detail.comments.length > 0 ? (
+                  <IconButton
+                    icon="history"
+                    label={showUpdates ? 'Hide the updates' : 'Show all updates'}
+                    onClick={() => setShowUpdates((value) => !value)}
+                  />
+                ) : null}
+              </div>
+
+              {canManage ? (
+                <form
+                  ref={commentForm}
+                  action={commentFormAction}
+                  className="mt-1 flex items-start gap-2"
+                >
+                  <input type="hidden" name="taskId" value={task.id} />
+                  <MentionTextarea
+                    people={detail.mentionable}
+                    name="body"
+                    required
+                    maxLength={4000}
+                    rows={1}
+                    placeholder="Add an update, @ to mention"
+                    wrapperClassName="min-w-0 flex-1"
+                    className="h-9 w-full resize-none rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2.5 py-1.5 text-[13px] text-[var(--color-ink)] transition-[height] duration-150 focus:h-24 focus:border-[var(--color-line-strong)] focus:outline-none"
+                  />
+                  <Button type="submit" variant="secondary" disabled={commentPending}>
+                    {commentPending ? 'Posting' : 'Post'}
+                  </Button>
+                </form>
+              ) : null}
+              {commentState.error ? <Notice tone="warn">{commentState.error}</Notice> : null}
+
+              {detail.comments.length === 0 ? (
+                <p className="mt-1 text-[13px] text-[var(--color-ink-subtle)]">No updates yet.</p>
+              ) : showUpdates ? (
+                <ul className="mt-2 max-h-72 space-y-2 overflow-y-auto">
+                  {detail.comments.map((comment) => (
+                    <li key={comment.id} className="text-[13px]">
+                      <span className="font-medium text-[var(--color-ink)]">
+                        {comment.authorName}
+                      </span>{' '}
+                      <span className="text-[11px] text-[var(--color-ink-subtle)]">
+                        {formatDateTime(comment.createdAt)}
+                        {comment.editedAt ? ' · edited' : ''}
+                      </span>
+                      <p className="whitespace-pre-wrap text-[var(--color-ink-muted)]">
+                        {comment.body}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowUpdates(true)}
+                  className="mt-1 block w-full truncate text-left text-[12px] text-[var(--color-ink-subtle)] hover:text-[var(--color-ink-muted)]"
+                >
+                  Latest: <b className="font-medium">{detail.comments.at(-1)?.authorName}</b>{' '}
+                  {detail.comments.at(-1)?.body}
+                </button>
+              )}
+            </section>
+          ) : null}
 
           <section>
             <h3 className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
@@ -497,11 +608,50 @@ export function TaskPanel({
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+/** One fact about the task: an icon or picker and a few words, its name in the tooltip. */
+function Meta({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-3">
-      <dt className="w-20 shrink-0 text-[var(--color-ink-subtle)]">{label}</dt>
-      <dd className="min-w-0 flex-1">{children}</dd>
+    <div title={label} className="flex items-center gap-1.5">
+      {children}
     </div>
+  );
+}
+
+const glyph = {
+  width: 14,
+  height: 14,
+  viewBox: '0 0 16 16',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.4,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+  'aria-hidden': true,
+  className: 'shrink-0 text-[var(--color-ink-subtle)]',
+};
+
+function FolderGlyph() {
+  return (
+    <svg {...glyph}>
+      <path d="M2 4.5A1.5 1.5 0 0 1 3.5 3h2.6l1.4 1.5h5A1.5 1.5 0 0 1 14 6v5.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5z" />
+    </svg>
+  );
+}
+
+function ClockGlyph() {
+  return (
+    <svg {...glyph}>
+      <circle cx="8" cy="8" r="5.5" />
+      <path d="M8 5v3.2l2 1.3" />
+    </svg>
+  );
+}
+
+function TagGlyph() {
+  return (
+    <svg {...glyph}>
+      <path d="M2.5 8.2V3.5h4.7l6 6-4.7 4.7z" />
+      <circle cx="5.2" cy="6" r=".8" />
+    </svg>
   );
 }

@@ -203,6 +203,12 @@ never sent to their browser.
 - Menu (16 Oct 2026): the sidebar shows the DigiSol logo, not the workspace name; Dashboard and My desk are
   set like the group headings; Timesheet is its own group (id `time`) with My timesheet, All timesheets,
   Time report and Team activity under it; only the most specific link of the current page is active.
+- Compact detail screens (18 Oct 2026, John): facts about a record are one row of icon badges, and a
+  badge that can be changed is its own control (a dropdown or a popup), not a labelled field in a card.
+  Related cards are merged (the ticket's status, clocks, timer, time, engineering and related tickets are
+  one card; the Cc list is inside the reply box). Forms open as popups. History (who created it, who
+  assigned it, time entries per person, updates) is one line with a history icon that expands it.
+  Long threads fold their middle. Built on the ticket and task screens; to be applied to the rest.
 - Menu headings are bold in full ink (`navigation-heading`); the current page carries a red bar
   and red tint (`navigation-active`), in the sidebar, the phone drawer and the Spaces tree.
 

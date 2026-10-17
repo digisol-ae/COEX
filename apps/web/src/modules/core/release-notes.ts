@@ -16,6 +16,72 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-18d',
+    date: '18 October 2026',
+    title: 'More compact tickets and tasks',
+    sections: [
+      {
+        heading: 'Tickets',
+        items: [
+          'The top of a ticket is now one compact card. Status, Owner, Priority and Queue are badges that you click to change. Below them are the clocks, the timer, Add time, the time logged, Escalate and Related tickets, also as small badges and buttons.',
+          'Escalating, linking and merging tickets open in a popup instead of unfolding on the page.',
+          'The Cc list now lives inside the reply box, as one quiet line with an edit icon, instead of a card of its own.',
+        ],
+      },
+      {
+        heading: 'Tasks',
+        items: [
+          "On a task, who created it and who assigned it is one quiet line with a history icon, and Time is a row of badges (your time, the estimate, everyone's total) that opens each person's entries.",
+          'The task details are laid out across the page in columns, and the description is a small box that grows when you point at it.',
+        ],
+      },
+    ],
+  },
+  {
+    id: '2026-10-18c',
+    date: '18 October 2026',
+    title: 'A roomier ticket page',
+    sections: [
+      {
+        heading: 'Tickets',
+        items: [
+          'On a ticket, Status, Owner, Priority and Queue, Engineering and Related tickets now sit in a row across the top, so the conversation below has the whole width of the page.',
+          'A long conversation shows its first and its latest message, with a button to open the ones in between and fold them again.',
+          'Long lines and web addresses in a message now wrap inside its box instead of running out of it.',
+        ],
+      },
+    ],
+  },
+  {
+    id: '2026-10-18b',
+    date: '18 October 2026',
+    title: 'A tidier task panel',
+    sections: [
+      {
+        heading: 'Task panel',
+        items: [
+          'The panel that opens beside a task is more compact. Who created it and who assigned it is one quiet line, with the full history one click away behind the history icon. A person who assigned themselves is no longer listed.',
+          'Assignees, due date, priority, folder and time sit in one row of icons, with their names in the tooltips.',
+          'The description box starts small and grows when you point at it or click into it.',
+          'New Updates section in the panel: write an update straight away, see the latest one, and open the history with the history icon.',
+        ],
+      },
+    ],
+  },
+  {
+    id: '2026-10-18',
+    date: '18 October 2026',
+    title: 'Tidier time entries',
+    sections: [
+      {
+        heading: 'Time',
+        items: [
+          "On a task or a ticket, Time entries now shows one line for each person with their total. Click the line, or the history icon beside it, to see that person's entries, and again to close them.",
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-17',
     date: '17 October 2026',
     title: 'Edit updates, move Personal tasks, add ticket time',
