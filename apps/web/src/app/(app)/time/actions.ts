@@ -68,7 +68,15 @@ export async function addTimeAction(
   _previous: TimeFormState,
   formData: FormData,
 ): Promise<TimeFormState> {
-  const actor = await requirePermission('task.read.own');
+  // Time goes on a task or on a ticket, and a support only person holds ticket.read.own without
+  // task.read.own, so either permission opens the form.
+  const actor = await requireUser();
+  const choice = text(formData, 'item');
+  if (
+    !actor.permissions.includes(choice.startsWith('ticket:') ? 'ticket.read.own' : 'task.read.own')
+  ) {
+    redirect('/dashboard?denied=task.read.own');
+  }
 
   const duration = parseDuration(text(formData, 'duration'));
 
@@ -94,6 +102,7 @@ export async function addTimeAction(
   revalidatePath('/time');
   revalidatePath(`/tasks/${text(formData, 'taskId')}`);
   revalidatePath('/support/tickets');
+  if (choice.startsWith('ticket:')) revalidatePath(`/support/tickets/${choice.slice(7)}`);
   return { saved: true };
 }
 

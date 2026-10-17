@@ -27,6 +27,7 @@ import {
   setSubtaskAssigneeAction,
 } from './actions';
 import { DeskTaskButton } from '@/components/tasks/desk-task-button';
+import { MoveToSpaceButton, type MoveTarget } from './move-to-space-button';
 
 /**
  * My tasks: one person's work, across every space, grouped by when it is due.
@@ -85,6 +86,7 @@ export function TaskList({
   runningTaskId,
   deskActionLabel = 'Desk',
   hideAssignees = false,
+  moveTargets,
 }: {
   tasks: TaskSummary[];
   users: { id: string; name: string }[];
@@ -94,6 +96,8 @@ export function TaskList({
   /** The same toggle is labelled clearly when this list is rendered inside My Desk. */
   deskActionLabel?: string;
   hideAssignees?: boolean;
+  /** On the Personal list only: the Spaces a task can be moved into. */
+  moveTargets?: MoveTarget[];
 }) {
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -297,6 +301,9 @@ export function TaskList({
                     {deskActionLabel === 'Desk' ? (
                       <DeskTaskButton taskId={task.id} assigneeIds={task.assigneeIds} />
                     ) : null}
+                    {moveTargets && canManage ? (
+                      <MoveToSpaceButton taskId={task.id} targets={moveTargets} />
+                    ) : null}
                     <SchedulePicker
                       startAt={task.startAt}
                       endAt={task.endAt}
@@ -420,6 +427,9 @@ export function TaskList({
                         <span className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--color-ink-subtle)]">
                           {deskActionLabel === 'Desk' ? (
                             <DeskTaskButton taskId={task.id} assigneeIds={task.assigneeIds} />
+                          ) : null}
+                          {moveTargets && canManage ? (
+                            <MoveToSpaceButton taskId={task.id} targets={moveTargets} />
                           ) : null}
                           <Link
                             href={`/spaces/${task.spaceId}`}

@@ -49,6 +49,9 @@ const ticketMessageSchema = new Schema(
     externalMessageId: { type: String, default: null, index: true, sparse: true },
 
     sentAt: { type: Date, default: Date.now, index: true },
+
+    /** Set when staff changed an internal note after posting it. Public replies are never edited. */
+    editedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

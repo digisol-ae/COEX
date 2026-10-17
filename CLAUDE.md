@@ -356,6 +356,10 @@ by `npm install` on the Mac.
 - Tasks has "Assigned by me" and "Created by me" filters (no Remind button); both replace "Mine".
 - Browser notifications are opt-in per person and browser, in-browser only (customer reply on my
   ticket, task assigned to me); no push service.
+- Work updates (17 Oct 2026): the author edits their own (shows "edited", old text in the audit record);
+  the author or an administrator deletes a task's own update (hidden, kept in the database); a ticket's
+  internal notes can be edited but never deleted. A Personal task moves to a Space and Folder in the
+  Space's first column. Time can be added by hand to a ticket as well as a task.
 - On hold by John: ticket portal for customers, subtask assignees beyond the task's own (would change
   decision 14), one-click task from an XVERSE message (needs Channels, suspended).
 

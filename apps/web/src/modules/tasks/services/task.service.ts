@@ -20,6 +20,7 @@ import { FolderModel } from '@coex/shared/tasks/models/folder.model';
 import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
 import { assignableMemberIds, canOpenFolder, visibleFolderFilter } from './folder.service';
 import { assignableSpaceMemberIds, canOpenSpace, visibleSpaceFilter } from './space.service';
+import { actorIsAdministrator } from './access.service';
 import { parseDocumentLink } from '@coex/shared/tasks/document-links';
 import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
 import { TicketMessageModel } from '@coex/shared/tickets/models/ticket-message.model';
@@ -300,6 +301,11 @@ export interface TaskCommentView {
   body: string;
   authorName: string;
   createdAt: Date;
+  editedAt: Date | null;
+  /** The author may change the text of their own update. */
+  canEdit: boolean;
+  /** The author, or an administrator, may delete a task's own update. Ticket notes are never deleted. */
+  canDelete: boolean;
 }
 
 /**
@@ -391,19 +397,130 @@ export async function listTaskComments(taskId: string): Promise<TaskCommentView[
       body: note.body,
       authorName: note.authorName,
       createdAt: note.sentAt ?? note.createdAt,
+      editedAt: note.editedAt ?? null,
+      canEdit: String(note.authorUserId) === String(getContext().userId),
+      // A ticket's notes are its record: they can be corrected here, never removed.
+      canDelete: false,
     }));
   }
 
+  const administrator = await actorIsAdministrator();
   const found = await taskComments()
-    .find({ taskId: toObjectId(taskId) })
+    .find({ taskId: toObjectId(taskId), deletedAt: null })
     .sort({ createdAt: 1 });
 
-  return found.map((comment) => ({
-    id: String(comment._id),
-    body: comment.body,
-    authorName: comment.authorName,
-    createdAt: comment.createdAt,
-  }));
+  return found.map((comment) => {
+    const own = String(comment.authorUserId) === String(getContext().userId);
+
+    return {
+      id: String(comment._id),
+      body: comment.body,
+      authorName: comment.authorName,
+      createdAt: comment.createdAt,
+      editedAt: comment.editedAt ?? null,
+      canEdit: own,
+      canDelete: own || administrator,
+    };
+  });
+}
+
+/**
+ * Changes the text of a work update (John's team, 17 Oct 2026). Only its author may, and the
+ * update shows "edited" afterwards. The old text is kept in the audit record. Mentions are not
+ * emailed again, so correcting a typo never pings anybody twice. On a task raised from a ticket the
+ * update is the ticket's internal note, so the same edit shows on both.
+ */
+export async function editTaskUpdate(
+  taskId: string,
+  commentId: string,
+  body: string,
+): Promise<void> {
+  const text = body.trim();
+  if (!text) throw new Error('An update cannot be empty. Delete it instead.');
+  if (text.length > 4_000) throw new Error('A comment can be up to 4,000 characters.');
+
+  const task = await getTask(taskId);
+  if (!task) throw new Error('Task not found.');
+
+  const context = getContext();
+  const sourceTicketId = await sourceTicketIdFor(task);
+  const now = new Date();
+
+  if (sourceTicketId) {
+    const note = await TicketMessageModel.findOne({
+      _id: toObjectId(commentId),
+      tenantId: context.tenantId,
+      ticketId: sourceTicketId,
+      visibility: 'internal',
+    });
+    if (!note) throw new Error('Update not found.');
+    if (String(note.authorUserId) !== String(context.userId)) {
+      throw new Error('Only the person who wrote an update can change it.');
+    }
+
+    await TicketMessageModel.updateOne({ _id: note._id }, { $set: { body: text, editedAt: now } });
+    await recordAudit({
+      action: 'task.update_edited',
+      entityType: 'Task',
+      entityId: task._id,
+      before: { body: note.body },
+      after: { body: text, ticketNote: String(note._id) },
+    });
+    return;
+  }
+
+  const comment = await taskComments().findOne({
+    _id: toObjectId(commentId),
+    taskId: task._id,
+    deletedAt: null,
+  });
+  if (!comment) throw new Error('Update not found.');
+  if (String(comment.authorUserId) !== String(context.userId)) {
+    throw new Error('Only the person who wrote an update can change it.');
+  }
+
+  await taskComments().updateOne({ _id: comment._id }, { $set: { body: text, editedAt: now } });
+  await recordAudit({
+    action: 'task.update_edited',
+    entityType: 'Task',
+    entityId: task._id,
+    before: { body: comment.body },
+    after: { body: text },
+  });
+}
+
+/**
+ * Removes a work update from view. Its author or an administrator may; the text stays in the
+ * database and the audit record. A task raised from a ticket keeps its updates, because they are the
+ * ticket's internal notes and a ticket's record is never erased.
+ */
+export async function deleteTaskUpdate(taskId: string, commentId: string): Promise<void> {
+  const task = await getTask(taskId);
+  if (!task) throw new Error('Task not found.');
+  if (await sourceTicketIdFor(task)) {
+    throw new Error('These updates are the ticket’s internal notes and cannot be deleted.');
+  }
+
+  const context = getContext();
+  const comment = await taskComments().findOne({
+    _id: toObjectId(commentId),
+    taskId: task._id,
+    deletedAt: null,
+  });
+  if (!comment) throw new Error('Update not found.');
+
+  const own = String(comment.authorUserId) === String(context.userId);
+  if (!own && !(await actorIsAdministrator())) {
+    throw new Error('Only the person who wrote an update, or an administrator, can delete it.');
+  }
+
+  await taskComments().updateOne({ _id: comment._id }, { $set: { deletedAt: new Date() } });
+  await recordAudit({
+    action: 'task.update_deleted',
+    entityType: 'Task',
+    entityId: task._id,
+    before: { body: comment.body, author: comment.authorName },
+  });
 }
 
 /** Who may be @mentioned on a task: its private members if it has any, otherwise all staff. */
@@ -635,6 +752,93 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
   }
 
   return String(created._id);
+}
+
+/**
+ * Moves a task kept in Personal into a Space, and a Folder if one is chosen (John's team, 17 Oct
+ * 2026). It always lands in the Space's first column, whatever that is called, because a task that
+ * has just joined shared work has not been started there. Assignees must be allowed in the target
+ * Space and Folder, the same rule creating a task there would apply. Time already logged follows
+ * the task, so reports by Space stay true. Only the owner of the Personal list may do this, and
+ * only for a task that is in it: tasks already in a Space move by drag and drop as before.
+ */
+export async function moveTaskToSpace(
+  id: string,
+  input: { spaceId: string; folderId?: string | null },
+): Promise<void> {
+  await connectToDatabase();
+
+  const context = getContext();
+  const task = await tasks().findById(id);
+  if (!task || task.deletedAt) throw new Error('Task not found.');
+
+  const from = await SpaceModel.findOne({ _id: task.spaceId, tenantId: context.tenantId });
+  if (!from?.isPersonal) throw new Error('Only a task kept in Personal can be moved to a Space.');
+  if (String(from.ownerId) !== String(context.userId)) {
+    throw new Error('Only the owner of this Personal list can move its tasks.');
+  }
+
+  const target = await SpaceModel.findOne({
+    _id: toObjectId(input.spaceId),
+    tenantId: context.tenantId,
+    deletedAt: null,
+  });
+  if (!target || target.isPersonal || target.status === 'archived') {
+    throw new Error('Choose a Space that is open.');
+  }
+  if (!(await canOpenSpace(String(target._id)))) {
+    throw new Error('You are not a member of that private Space.');
+  }
+
+  const folderId = input.folderId || null;
+  if (folderId) {
+    const folder = await FolderModel.findOne({
+      _id: toObjectId(folderId),
+      tenantId: context.tenantId,
+      spaceId: target._id,
+      deletedAt: null,
+    });
+    if (!folder || folder.status === 'archived') {
+      throw new Error('That folder is not in the Space you chose.');
+    }
+  }
+
+  await assertAssignable(folderId, task.assigneeIds.map(String), String(target._id));
+
+  const firstColumn = [...target.statuses].sort(
+    (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+  )[0];
+  if (!firstColumn) throw new Error('That Space has no columns yet.');
+
+  await tasks().updateOne(
+    { _id: task._id },
+    {
+      $set: {
+        spaceId: target._id,
+        folderId: toOptionalObjectId(folderId),
+        status: firstColumn.name,
+        isClosed: firstColumn.isClosed ?? false,
+        closedAt: firstColumn.isClosed ? new Date() : null,
+        organisationId: task.organisationId ?? target.organisationId ?? null,
+        sortOrder: Date.now(),
+        lastActivityAt: new Date(),
+      },
+    },
+  );
+
+  // Logged time carries the Space it was recorded against, which reports group on.
+  await TimeEntryModel.updateMany(
+    { tenantId: context.tenantId, taskId: task._id },
+    { $set: { spaceId: target._id } },
+  );
+
+  await recordAudit({
+    action: 'task.moved_to_space',
+    entityType: 'Task',
+    entityId: task._id,
+    before: { space: from.name },
+    after: { space: target.name, folder: folderId, status: firstColumn.name },
+  });
 }
 
 export async function moveTask(id: string, status: string): Promise<void> {

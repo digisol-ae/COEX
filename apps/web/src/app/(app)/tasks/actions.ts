@@ -10,7 +10,10 @@ import {
   addSubtask,
   archiveTask,
   createTask,
+  deleteTaskUpdate,
+  editTaskUpdate,
   moveTask,
+  moveTaskToSpace,
   moveTaskToPosition,
   patchTask,
   removeDocumentLink,
@@ -689,5 +692,60 @@ export async function restoreSpaceAction(id: string): Promise<{ error?: string }
     return { error: error instanceof Error ? error.message : 'Could not restore the space.' };
   }
   revalidatePath('/', 'layout');
+  return {};
+}
+
+/** Moves a task from Personal into a Space, and a Folder if one is chosen, in its first column. */
+export async function moveTaskToSpaceAction(
+  taskId: string,
+  spaceId: string,
+  folderId: string | null,
+): Promise<{ error?: string }> {
+  const actor = await requirePermission('task.manage');
+
+  try {
+    await asUser(actor, () => moveTaskToSpace(taskId, { spaceId, folderId }));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not move the task.' };
+  }
+
+  revalidatePath('/personal');
+  revalidatePath('/tasks');
+  revalidatePath(`/spaces/${spaceId}`);
+  return {};
+}
+
+/** The author changes the text of their own work update; it then shows "edited". */
+export async function editTaskUpdateAction(input: {
+  taskId: string;
+  commentId: string;
+  body: string;
+}): Promise<{ error?: string }> {
+  const actor = await requirePermission('task.manage');
+
+  try {
+    await asUser(actor, () => editTaskUpdate(input.taskId, input.commentId, input.body));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not save the change.' };
+  }
+
+  revalidatePath(`/tasks/${input.taskId}`);
+  return {};
+}
+
+/** The author, or an administrator, removes a task's own work update from view. */
+export async function deleteTaskUpdateAction(input: {
+  taskId: string;
+  commentId: string;
+}): Promise<{ error?: string }> {
+  const actor = await requirePermission('task.manage');
+
+  try {
+    await asUser(actor, () => deleteTaskUpdate(input.taskId, input.commentId));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not delete the update.' };
+  }
+
+  revalidatePath(`/tasks/${input.taskId}`);
   return {};
 }

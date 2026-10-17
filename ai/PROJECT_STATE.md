@@ -1,5 +1,11 @@
 # COEX — Shared AI Project State
 
+## Release deployed — 16 Oct 2026 (Claude)
+
+- PR #21 merged (`4d95d74`) and deployed by John; he reports all fine. Details and open items in
+  deploy/DEPLOYMENT-STATUS.md. Next: the planned-to-estimate script if not yet run, then T6, T9, T10 when
+  John decides, QA Space feedback, and the Leads pilot on the API.
+
 ## Browser notifications — 15 Oct 2026 (Claude)
 
 - T4 built: opt in per person and per browser from the avatar menu ("Browser notifications"). While COEX

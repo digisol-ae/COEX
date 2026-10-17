@@ -314,6 +314,22 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
+### Team feedback, 17 Oct 2026 (John, from his team) — built on the branch, acceptance pending
+
+U1. Task work updates can be edited and deleted. Built: the author edits their own update (it then
+    shows "edited"; the old text is kept in the audit record; mentions are not emailed again). The
+    author or an administrator deletes a task's own update (hidden, kept in the database and the audit
+    record, with a confirm step). On a task raised from a ticket the update is the ticket's internal
+    note: it can be edited but never deleted, because a ticket's record is not erased. ? John to
+    confirm; deleting ticket notes would be a separate decision. Public replies are never editable.
+U2. A task created in Personal can be moved to a Space and a Folder, always into the Space's first
+    column. Built: a move icon on each Personal row; assignees must be allowed in a private Space or
+    Folder (same rule as creating there); logged time follows the task; audited. Only the owner moves
+    their Personal tasks; tasks already in a Space move by drag and drop as before.
+U3. Add time by hand on a ticket, for an agent who forgot the timer. Built: an "Add time" button beside
+    Start timer on the ticket (day, time as 1.5, 1:30 or 90m, note, billable); the same rules as the
+    timesheet (a locked week refuses it); it shows in the ticket's time entries and on the timesheet.
+
 ### Team feedback, 15 Oct 2026 (John, from his team) — T1 to T5, T7, T8, T11, T12 built 15 Oct 2026 on the branch (acceptance pending, not deployed); T6, T9, T10 on hold by John
 
 Written in English from John's list. "Understanding" is mine; anything marked ? needs John's answer
