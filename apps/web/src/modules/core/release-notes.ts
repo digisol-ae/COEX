@@ -16,6 +16,28 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-18d',
+    date: '18 October 2026',
+    title: 'More compact tickets and tasks',
+    sections: [
+      {
+        heading: 'Tickets',
+        items: [
+          'The top of a ticket is now one compact card. Status, Owner, Priority and Queue are badges that you click to change. Below them are the clocks, the timer, Add time, the time logged, Escalate and Related tickets, also as small badges and buttons.',
+          'Escalating, linking and merging tickets open in a popup instead of unfolding on the page.',
+          'The Cc list now lives inside the reply box, as one quiet line with an edit icon, instead of a card of its own.',
+        ],
+      },
+      {
+        heading: 'Tasks',
+        items: [
+          "On a task, who created it and who assigned it is one quiet line with a history icon, and Time is a row of badges (your time, the estimate, everyone's total) that opens each person's entries.",
+          'The task details are laid out across the page in columns, and the description is a small box that grows when you point at it.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-18c',
     date: '18 October 2026',
     title: 'A roomier ticket page',

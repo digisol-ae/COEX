@@ -314,6 +314,15 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
+### John, 18 Oct 2026 — compact everywhere (ticket and task screens built; rest of the app to follow)
+
+- Ticket: one card; Status, Owner, Priority, Queue as badges that are also the controls; clocks, timer, Add
+  time, time logged, Escalate and Related as badges and buttons in the second row; escalate, link and
+  merge as popups; Cc inside the reply box.
+- Task page: origin as one line with history, Time as badges, details in columns, small description.
+- Convention recorded in CLAUDE.md. Still to apply: customers, contracts, opportunities, leads, spaces
+  and settings screens. John to review the pattern on tickets and tasks first.
+
 ### John, 18 Oct 2026 — ticket page layout (built on the branch, acceptance pending)
 
 - Ticket properties (Status, Owner, Priority, Queue), Engineering and Related tickets moved to a row

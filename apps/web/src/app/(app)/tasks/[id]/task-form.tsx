@@ -99,99 +99,109 @@ export function TaskForm({
         <Field label="Description">
           <textarea
             name="description"
-            rows={4}
+            rows={2}
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            className="w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] outline-none"
+            className="h-14 w-full resize-none rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] transition-[height] duration-150 outline-none hover:h-36 focus:h-36"
           />
         </Field>
 
-        <Field label="Assigned to" hint="Hold command to choose more than one">
-          <select
-            name="assigneeIds"
-            multiple
-            value={assigneeIds}
-            onChange={(event) =>
-              setAssigneeIds(Array.from(event.target.selectedOptions, (option) => option.value))
-            }
-            size={Math.min(users.length, 5)}
-            className="w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] outline-none"
-          >
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-
-        <Field label="Priority">
-          <Select
-            name="priority"
-            value={priority}
-            onChange={(event) => setPriority(event.target.value)}
-          >
-            <option value="urgent">Urgent</option>
-            <option value="high">High</option>
-            <option value="normal">Normal</option>
-            <option value="low">Low</option>
-          </Select>
-        </Field>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Starts">
-            <Input
-              name="startAt"
-              type="datetime-local"
-              value={startAt}
-              onChange={(event) => setStartAt(event.target.value)}
-            />
-          </Field>
-
-          <Field label="Ends" hint="Also the deadline">
-            <Input
-              name="endAt"
-              type="datetime-local"
-              value={endAt}
-              onChange={(event) => setEndAt(event.target.value)}
-            />
-          </Field>
-        </div>
-
-        <Field
-          label="Estimate"
-          hint="Hours of effort, which is a different question from when it happens."
-        >
-          <Input
-            name="estimateHours"
-            type="number"
-            step="0.5"
-            min="0"
-            value={estimateHours}
-            onChange={(event) => setEstimateHours(event.target.value)}
-          />
-        </Field>
-
-        {folders.length > 0 ? (
-          <Field label="Folder" hint="Which folder inside the space this belongs to">
-            <Select
-              name="folderId"
-              value={folderId}
-              onChange={(event) => setFolderId(event.target.value)}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Field label="Assigned to">
+            <select
+              name="assigneeIds"
+              multiple
+              value={assigneeIds}
+              onChange={(event) =>
+                setAssigneeIds(Array.from(event.target.selectedOptions, (option) => option.value))
+              }
+              size={Math.min(users.length, 4)}
+              title="Hold command to choose more than one"
+              className="w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] outline-none"
             >
-              <option value="">No folder</option>
-              {folders.map((folder) => (
-                <option key={folder.id} value={folder.id}>
-                  {folder.isPrivate ? `${folder.name} (private)` : folder.name}
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
                 </option>
               ))}
-            </Select>
+            </select>
           </Field>
-        ) : null}
 
-        <Field label="Tags" hint="Separated by commas">
-          <Input name="tags" value={tags} onChange={(event) => setTags(event.target.value)} />
-        </Field>
+          <div className="space-y-3">
+            <Field label="Priority">
+              <Select
+                name="priority"
+                value={priority}
+                onChange={(event) => setPriority(event.target.value)}
+              >
+                <option value="urgent">Urgent</option>
+                <option value="high">High</option>
+                <option value="normal">Normal</option>
+                <option value="low">Low</option>
+              </Select>
+            </Field>
+
+            {folders.length > 0 ? (
+              <Field label="Folder">
+                <Select
+                  name="folderId"
+                  value={folderId}
+                  onChange={(event) => setFolderId(event.target.value)}
+                >
+                  <option value="">No folder</option>
+                  {folders.map((folder) => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.isPrivate ? `${folder.name} (private)` : folder.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            ) : null}
+          </div>
+
+          <div className="space-y-3">
+            <Field label="Starts">
+              <Input
+                name="startAt"
+                type="datetime-local"
+                value={startAt}
+                onChange={(event) => setStartAt(event.target.value)}
+              />
+            </Field>
+
+            <Field label="Ends (the deadline)">
+              <Input
+                name="endAt"
+                type="datetime-local"
+                value={endAt}
+                onChange={(event) => setEndAt(event.target.value)}
+              />
+            </Field>
+          </div>
+
+          <div className="space-y-3">
+            <Field label="Estimate (hours)">
+              <Input
+                name="estimateHours"
+                type="number"
+                step="0.5"
+                min="0"
+                value={estimateHours}
+                onChange={(event) => setEstimateHours(event.target.value)}
+                title="Hours of effort, which is a different question from when it happens."
+              />
+            </Field>
+
+            <Field label="Tags">
+              <Input
+                name="tags"
+                value={tags}
+                onChange={(event) => setTags(event.target.value)}
+                placeholder="Separated by commas"
+              />
+            </Field>
+          </div>
+        </div>
 
         <div className="flex items-center gap-3">
           <Button type="submit" disabled={pending}>
