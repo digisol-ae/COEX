@@ -16,6 +16,21 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-18e',
+    date: '18 October 2026',
+    title: 'Compact customers, contracts and opportunities',
+    sections: [
+      {
+        heading: 'Customers, contracts and opportunities',
+        items: [
+          "A customer's industry, email, phone, website, address and contract warning are one row of badges, with an edit icon that opens the details form in a popup.",
+          "A contract's amount, Zoho reference, document and support hours are one row of badges.",
+          "An opportunity's customer, chance, values, close date, quote, next step and products are one row of badges, and its history is folded behind one line you open when you need it.",
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-18d',
     date: '18 October 2026',
     title: 'More compact tickets and tasks',

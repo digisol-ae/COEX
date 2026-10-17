@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
 import { getOpportunity } from '@/modules/crm/services/opportunity.service';
@@ -7,6 +6,7 @@ import { fromMinorUnits, listProducts } from '@/modules/crm/services/product.ser
 import { historyFor } from '@/modules/core/services/audit.service';
 import { todayKey } from '@coex/shared/crm/contract-status';
 import { lacksNextStep, nextStepOverdue } from '@coex/shared/crm/opportunity-rules';
+import { FactBadge, FactGlyph, FactRow } from '@/components/ui/fact-badge';
 import { Badge, Card, CardSection, Notice, PageHeader } from '@/components/ui';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { ContractPanel } from '@/app/(app)/contracts/contract-panel';
@@ -98,64 +98,53 @@ export default async function OpportunityPage({
         ) : null}
 
         <Card>
-          <CardSection title="Deal">
-            <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
-              <div>
-                <dt className="text-[var(--color-ink-subtle)]">Customer</dt>
-                <dd>
-                  <Link
-                    href={`/customers/${opportunity.organisationId}`}
-                    className="hover:underline"
-                  >
-                    {opportunity.organisationName}
-                  </Link>
-                  {opportunity.contactName ? ` · ${opportunity.contactName}` : ''}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[var(--color-ink-subtle)]">Chance of winning</dt>
-                <dd>{opportunity.probability}%</dd>
-              </div>
-              <div>
-                <dt className="text-[var(--color-ink-subtle)]">One-off value</dt>
-                <dd>
-                  {opportunity.currency} {fromMinorUnits(opportunity.oneOffMinorUnits)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[var(--color-ink-subtle)]">Recurring value per year</dt>
-                <dd>
-                  {opportunity.currency} {fromMinorUnits(opportunity.recurringMinorUnits)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[var(--color-ink-subtle)]">Expected close</dt>
-                <dd>{opportunity.expectedCloseDate ?? 'Not set'}</dd>
-              </div>
-              <div>
-                <dt className="text-[var(--color-ink-subtle)]">Zoho Books quote</dt>
-                <dd>{opportunity.quoteReference ?? 'Not set'}</dd>
-              </div>
-              <div>
-                <dt className="text-[var(--color-ink-subtle)]">Next step</dt>
-                <dd>
-                  {opportunity.nextStep ?? 'None'}
-                  {opportunity.nextStepDate ? ` (${opportunity.nextStepDate})` : ''}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[var(--color-ink-subtle)]">Products</dt>
-                <dd>{productNames.length ? productNames.join(', ') : 'None'}</dd>
-              </div>
+          <CardSection>
+            <FactRow>
+              <FactBadge
+                icon="building"
+                label="Customer"
+                href={`/customers/${opportunity.organisationId}`}
+              >
+                {opportunity.organisationName}
+                {opportunity.contactName ? ` · ${opportunity.contactName}` : ''}
+              </FactBadge>
+              <FactBadge icon="percent" label="Chance of winning">
+                {opportunity.probability}%
+              </FactBadge>
+              <FactBadge icon="money" label="One-off value">
+                {opportunity.currency} {fromMinorUnits(opportunity.oneOffMinorUnits)} one-off
+              </FactBadge>
+              <FactBadge icon="money" label="Recurring value per year">
+                {opportunity.currency} {fromMinorUnits(opportunity.recurringMinorUnits)} / year
+              </FactBadge>
+              <FactBadge icon="calendar" label="Expected close">
+                {opportunity.expectedCloseDate ?? 'No close date'}
+              </FactBadge>
+              <FactBadge icon="receipt" label="Zoho Books quote">
+                {opportunity.quoteReference ?? 'No quote'}
+              </FactBadge>
+              <FactBadge
+                icon="step"
+                label="Next step"
+                tone={nextStepOverdue(opportunity, todayKey()) ? 'alert' : undefined}
+              >
+                {opportunity.nextStep ?? 'No next step'}
+                {opportunity.nextStepDate ? ` (${opportunity.nextStepDate})` : ''}
+              </FactBadge>
+              <FactBadge
+                icon="box"
+                label={productNames.length ? `Products: ${productNames.join(', ')}` : 'Products'}
+              >
+                {productNames.length ? productNames.join(', ') : 'No products'}
+              </FactBadge>
               {opportunity.lostReason ? (
-                <div>
-                  <dt className="text-[var(--color-ink-subtle)]">Lost because</dt>
-                  <dd>{opportunity.lostReason}</dd>
-                </div>
+                <FactBadge icon="alert" label="Lost because" tone="warn">
+                  {opportunity.lostReason}
+                </FactBadge>
               ) : null}
-            </dl>
+            </FactRow>
             {opportunity.notes ? (
-              <p className="mt-3 text-sm text-[var(--color-ink-muted)]">{opportunity.notes}</p>
+              <p className="mt-2 text-sm text-[var(--color-ink-muted)]">{opportunity.notes}</p>
             ) : null}
           </CardSection>
         </Card>
@@ -196,8 +185,18 @@ export default async function OpportunityPage({
           </Card>
         ) : null}
 
-        <Card>
-          <CardSection title="History">
+        <details className="group rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)]">
+          <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">
+            <FactGlyph name="clock" />
+            <span className="font-medium">History</span>
+            <span className="text-xs text-[var(--color-ink-subtle)]">
+              {history.length} change{history.length === 1 ? '' : 's'}
+            </span>
+            <span aria-hidden="true" className="ml-auto text-xs group-open:rotate-180">
+              ▾
+            </span>
+          </summary>
+          <div className="border-t border-[var(--color-line)] px-4 py-3">
             {history.length === 0 ? (
               <p className="text-sm text-[var(--color-ink-muted)]">Nothing recorded yet.</p>
             ) : (
@@ -225,8 +224,8 @@ export default async function OpportunityPage({
                 ))}
               </ol>
             )}
-          </CardSection>
-        </Card>
+          </div>
+        </details>
       </div>
     </div>
   );

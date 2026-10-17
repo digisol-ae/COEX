@@ -8,6 +8,7 @@ import { listTimeline } from '@/modules/crm/services/activity.service';
 import { listFieldDefinitions } from '@/modules/crm/services/field-definition.service';
 import { listOpportunities } from '@/modules/crm/services/opportunity.service';
 import { fromMinorUnits } from '@/modules/crm/services/product.service';
+import { CustomerSummary } from './customer-summary';
 import { Badge, Card, CardSection, PageHeader } from '@/components/ui';
 import { DetailsForm } from './details-form';
 import { ContactsPanel } from './contacts-panel';
@@ -68,24 +69,36 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
 
         <div className="space-y-6">
           <Card>
-            <CardSection title="Details">
-              <DetailsForm
+            <CardSection>
+              <CustomerSummary
                 editable={editable}
-                customFields={customFieldDefinitions}
-                customFieldValues={customFieldValues}
                 organisation={{
-                  id,
-                  name: organisation.name,
-                  kind: organisation.kind,
                   industry: organisation.industry ?? '',
                   email: organisation.email ?? '',
                   phone: organisation.phone ?? '',
                   website: organisation.website ?? '',
                   address: organisation.address ?? '',
-                  notes: organisation.notes ?? '',
                   expiryWarningDays: organisation.expiryWarningDays ?? 30,
                 }}
-              />
+              >
+                <DetailsForm
+                  editable={editable}
+                  customFields={customFieldDefinitions}
+                  customFieldValues={customFieldValues}
+                  organisation={{
+                    id,
+                    name: organisation.name,
+                    kind: organisation.kind,
+                    industry: organisation.industry ?? '',
+                    email: organisation.email ?? '',
+                    phone: organisation.phone ?? '',
+                    website: organisation.website ?? '',
+                    address: organisation.address ?? '',
+                    notes: organisation.notes ?? '',
+                    expiryWarningDays: organisation.expiryWarningDays ?? 30,
+                  }}
+                />
+              </CustomerSummary>
             </CardSection>
           </Card>
 

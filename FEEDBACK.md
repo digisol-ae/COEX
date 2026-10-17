@@ -320,8 +320,10 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
   time, time logged, Escalate and Related as badges and buttons in the second row; escalate, link and
   merge as popups; Cc inside the reply box.
 - Task page: origin as one line with history, Time as badges, details in columns, small description.
-- Convention recorded in CLAUDE.md. Still to apply: customers, contracts, opportunities, leads, spaces
-  and settings screens. John to review the pattern on tickets and tasks first.
+- Convention recorded in CLAUDE.md. Also applied (18 Oct): customer page (badges row, details form in a popup),
+  contract page (terms and support hours as badges), opportunity page (deal as badges, history folded).
+  Shared `FactBadge`, `FactRow`, `FactGlyph` in components/ui/fact-badge.tsx. Still to apply: the Leads
+  list and panel, Spaces, and the settings screens.
 
 ### John, 18 Oct 2026 — ticket page layout (built on the branch, acceptance pending)
 

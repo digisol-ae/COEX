@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
 import { getContract } from '@/modules/crm/services/contract.service';
@@ -6,6 +5,7 @@ import { billingSchedule, periodContaining, todayKey } from '@coex/shared/crm/co
 import { fromMinorUnits } from '@/modules/crm/services/product.service';
 import { loggedTicketMinutesForOrganisation } from '@/modules/time/services/time.service';
 import { formatMinutes } from '@coex/shared/time/week';
+import { FactBadge, FactRow } from '@/components/ui/fact-badge';
 import { Badge, Card, CardSection, Notice, PageHeader, Table, Td, Th } from '@/components/ui';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { setPeriodInvoicedAction } from '../actions';
@@ -73,56 +73,48 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
 
       <div className="space-y-4">
         <Card>
-          <CardSection title="Terms">
-            <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
-              <div>
-                <dt className="text-[var(--color-ink-subtle)]">Amount per billing period</dt>
-                <dd>
-                  {contract.currency} {fromMinorUnits(contract.valueMinorUnits)}
-                </dd>
+          <CardSection>
+            <FactRow>
+              <FactBadge icon="money" label="Amount per billing period">
+                {contract.currency} {fromMinorUnits(contract.valueMinorUnits)}
+              </FactBadge>
+              <FactBadge icon="receipt" label="Zoho Books reference">
+                {contract.zohoReference ?? 'No Zoho reference'}
+              </FactBadge>
+              {contract.documentUrl ? (
+                <FactBadge icon="file" label="Contract document" href={contract.documentUrl}>
+                  Open in Microsoft 365
+                </FactBadge>
+              ) : (
+                <FactBadge icon="file" label="Contract document">
+                  No document linked
+                </FactBadge>
+              )}
+              {usedMinutes !== null ? (
+                <FactBadge
+                  icon="clock"
+                  label={`Support hours this billing period${
+                    current ? ` (${current.startDate} to ${current.endDate})` : ''
+                  }`}
+                  tone={usedMinutes > includedMinutes ? 'warn' : undefined}
+                >
+                  {formatMinutes(usedMinutes)} of {formatMinutes(includedMinutes)} support hours
+                </FactBadge>
+              ) : null}
+            </FactRow>
+            {contract.notes ? (
+              <p className="mt-2 text-sm text-[var(--color-ink-muted)]">{contract.notes}</p>
+            ) : null}
+            {usedMinutes !== null && usedMinutes > includedMinutes ? (
+              <div className="mt-2">
+                <Notice tone="warn">
+                  The included support hours have been used up. Work continues; this is a warning
+                  only.
+                </Notice>
               </div>
-              <div>
-                <dt className="text-[var(--color-ink-subtle)]">Zoho Books reference</dt>
-                <dd>{contract.zohoReference ?? '—'}</dd>
-              </div>
-              <div>
-                <dt className="text-[var(--color-ink-subtle)]">Contract document</dt>
-                <dd>
-                  {contract.documentUrl ? (
-                    <Link href={contract.documentUrl} className="underline" target="_blank">
-                      Open in Microsoft 365
-                    </Link>
-                  ) : (
-                    '—'
-                  )}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[var(--color-ink-subtle)]">Notes</dt>
-                <dd>{contract.notes ?? '—'}</dd>
-              </div>
-            </dl>
+            ) : null}
           </CardSection>
         </Card>
-
-        {usedMinutes !== null ? (
-          <Card>
-            <CardSection title="Support hours this billing period">
-              <p className="text-sm">
-                {formatMinutes(usedMinutes)} used of {formatMinutes(includedMinutes)} included
-                {current ? ` (${current.startDate} to ${current.endDate})` : ''}.
-              </p>
-              {usedMinutes > includedMinutes ? (
-                <div className="mt-2">
-                  <Notice tone="warn">
-                    The included support hours have been used up. Work continues; this is a warning
-                    only.
-                  </Notice>
-                </div>
-              ) : null}
-            </CardSection>
-          </Card>
-        ) : null}
 
         <Card>
           <CardSection title="Billing schedule">
