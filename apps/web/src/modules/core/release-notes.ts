@@ -16,6 +16,26 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-17',
+    date: '17 October 2026',
+    title: 'Edit updates, move Personal tasks, add ticket time',
+    sections: [
+      {
+        heading: 'Tasks',
+        items: [
+          'Work updates on a task can now be edited by the person who wrote them (they show "edited"), and deleted by their author or an administrator. Updates on a task raised from a ticket are the ticket\'s internal notes: they can be edited, but not deleted.',
+          'A task in Personal can be moved to a Space, and a Folder if you choose one, with the move icon on its row. It goes into the first column of that Space.',
+        ],
+      },
+      {
+        heading: 'Time',
+        items: [
+          'On a ticket, the new Add time button lets you add time by hand when you forgot to start the timer: the day, how long (1.5, 1:30 or 90m) and a note.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-15',
     date: '15 October 2026',
     title: 'Ticket filter, office time, Done column and more',

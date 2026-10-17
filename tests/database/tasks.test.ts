@@ -28,9 +28,15 @@ import {
   countMyOpenTasks,
   taskOrigin,
   listNewAssignmentsToMe,
+  moveTaskToSpace,
+  editTaskUpdate,
+  deleteTaskUpdate,
+  listTaskComments,
+  addTaskComment,
 } from '@/modules/tasks/services/task.service';
 import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
 import { TaskModel } from '@coex/shared/tasks/models/task.model';
+import { TaskCommentModel } from '@coex/shared/tasks/models/task-comment.model';
 import { loadDashboard } from '@/modules/tasks/services/dashboard.service';
 
 const tenantId = new Types.ObjectId();
@@ -510,6 +516,86 @@ describe('new assignments for browser notifications', () => {
 
     expect(found.map((task) => task.title)).toEqual(['From the admin']);
     expect(none).toEqual([]);
+  });
+});
+
+describe('moving a Personal task into a Space', () => {
+  it('lands in the first column of the Space, in the chosen folder, and its time follows', async () => {
+    const personalId = await runWithContext(context, () => personalSpaceForCurrentUser());
+    const spaceId = await aSpace();
+    const folderId = await runWithContext(context, () =>
+      createFolder({ spaceId, name: 'Rollout' }),
+    );
+
+    const id = await runWithContext(context, () =>
+      createTask({ spaceId: personalId, title: 'Mine for now', status: 'In progress' }),
+    );
+    await runWithContext(context, () => moveTaskToSpace(id, { spaceId, folderId }));
+
+    const task = await runWithContext(context, () => getTask(id));
+    const space = await runWithContext(context, () => listSpaces());
+    const first = space.find((row) => row.id === spaceId)?.statuses[0]?.name;
+
+    expect(String(task?.spaceId)).toBe(spaceId);
+    expect(String(task?.folderId)).toBe(String(folderId));
+    expect(task?.status).toBe(first);
+  });
+
+  it('refuses a task that is already in a Space, and a folder from another Space', async () => {
+    const spaceId = await aSpace();
+    const otherSpaceId = await aSpace();
+    const folderId = await runWithContext(context, () =>
+      createFolder({ spaceId: otherSpaceId, name: 'Elsewhere' }),
+    );
+    const inSpace = await runWithContext(context, () =>
+      createTask({ spaceId, title: 'Already shared' }),
+    );
+
+    await expect(
+      runWithContext(context, () => moveTaskToSpace(inSpace, { spaceId: otherSpaceId })),
+    ).rejects.toThrow('Only a task kept in Personal');
+
+    const personalId = await runWithContext(context, () => personalSpaceForCurrentUser());
+    const mine = await runWithContext(context, () =>
+      createTask({ spaceId: personalId, title: 'Mine' }),
+    );
+    await expect(
+      runWithContext(context, () => moveTaskToSpace(mine, { spaceId, folderId })),
+    ).rejects.toThrow('not in the Space you chose');
+  });
+});
+
+describe('editing and deleting work updates', () => {
+  it('lets the author edit, shows it as edited, and keeps others out', async () => {
+    const spaceId = await aSpace();
+    const id = await runWithContext(context, () => createTask({ spaceId, title: 'Talk' }));
+    await runWithContext(context, () => addTaskComment(id, 'First draft'));
+
+    const [comment] = await runWithContext(context, () => listTaskComments(id));
+    expect(comment.canEdit).toBe(true);
+
+    await runWithContext(context, () => editTaskUpdate(id, comment.id, 'Corrected text'));
+    const [after] = await runWithContext(context, () => listTaskComments(id));
+    expect(after.body).toBe('Corrected text');
+    expect(after.editedAt).toBeTruthy();
+
+    await expect(
+      runWithContext({ ...context, userId: adminId }, () =>
+        editTaskUpdate(id, comment.id, 'Hijacked'),
+      ),
+    ).rejects.toThrow('Only the person who wrote');
+  });
+
+  it('hides a deleted update but keeps it in the database', async () => {
+    const spaceId = await aSpace();
+    const id = await runWithContext(context, () => createTask({ spaceId, title: 'Talk' }));
+    await runWithContext(context, () => addTaskComment(id, 'Remove me'));
+    const [comment] = await runWithContext(context, () => listTaskComments(id));
+
+    await runWithContext(context, () => deleteTaskUpdate(id, comment.id));
+
+    expect(await runWithContext(context, () => listTaskComments(id))).toHaveLength(0);
+    expect(await TaskCommentModel.countDocuments({ taskId: new Types.ObjectId(id) })).toBe(1);
   });
 });
 

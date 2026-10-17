@@ -13,6 +13,10 @@ const taskCommentSchema = new Schema(
     body: { type: String, required: true, trim: true },
     authorUserId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     authorName: { type: String, required: true },
+    /** Set when the author changed the text, so readers know it is not the first version. */
+    editedAt: { type: Date, default: null },
+    /** Deleted updates stay in the database and in the audit record; they just stop showing. */
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

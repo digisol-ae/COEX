@@ -1,12 +1,18 @@
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import { useActionState, useEffect, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/avatar';
-import { Button, Card, CardSection, Notice } from '@/components/ui';
+import { Button, Card, CardSection, Notice, Textarea } from '@/components/ui';
+import { IconButton } from '@/components/ui/icon-button';
 import { MentionTextarea, type MentionPerson } from '@/components/ui/mention-textarea';
 import { formatDateTime } from '@coex/shared/tasks/dates';
-import { addTaskCommentAction, type TaskFormState } from '../actions';
+import {
+  addTaskCommentAction,
+  deleteTaskUpdateAction,
+  editTaskUpdateAction,
+  type TaskFormState,
+} from '../actions';
 
 const initialState: TaskFormState = {};
 
@@ -23,10 +29,41 @@ export function TaskComments({
   people: MentionPerson[];
   /** The ticket this task came from, whose internal notes are this conversation. */
   ticket: { id: string; number: string } | null;
-  comments: { id: string; body: string; authorName: string; createdAt: Date }[];
+  comments: {
+    id: string;
+    body: string;
+    authorName: string;
+    createdAt: Date;
+    editedAt: Date | null;
+    canEdit: boolean;
+    canDelete: boolean;
+  }[];
 }) {
   const [state, formAction, pending] = useActionState(addTaskCommentAction, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState('');
+  const [rowError, setRowError] = useState<string | null>(null);
+  const [working, startWork] = useTransition();
+
+  function saveEdit(commentId: string) {
+    setRowError(null);
+    startWork(async () => {
+      const result = await editTaskUpdateAction({ taskId, commentId, body: draft });
+      if (result.error) setRowError(result.error);
+      else setEditingId(null);
+    });
+  }
+
+  function remove(commentId: string) {
+    setRowError(null);
+    startWork(async () => {
+      const result = await deleteTaskUpdateAction({ taskId, commentId });
+      if (result.error) setRowError(result.error);
+      setConfirmingId(null);
+    });
+  }
 
   useEffect(() => {
     if (state.saved) formRef.current?.reset();
@@ -53,6 +90,7 @@ export function TaskComments({
             )}{' '}
             Type @ to mention a colleague; they get an email.
           </p>
+          {rowError ? <Notice tone="warn">{rowError}</Notice> : null}
           {comments.length > 0 ? (
             <div className="space-y-3">
               {comments.map((comment) => (
@@ -65,11 +103,86 @@ export function TaskComments({
                       </span>
                       <span className="text-xs text-[var(--color-ink-subtle)]">
                         {formatDateTime(comment.createdAt)}
+                        {comment.editedAt ? ' · edited' : ''}
                       </span>
+                      {comment.canEdit && editingId !== comment.id ? (
+                        <IconButton
+                          icon="edit"
+                          label="Edit this update"
+                          onClick={() => {
+                            setRowError(null);
+                            setConfirmingId(null);
+                            setDraft(comment.body);
+                            setEditingId(comment.id);
+                          }}
+                        />
+                      ) : null}
+                      {comment.canDelete && confirmingId !== comment.id ? (
+                        <IconButton
+                          icon="remove"
+                          label="Delete this update"
+                          tone="danger"
+                          onClick={() => {
+                            setRowError(null);
+                            setEditingId(null);
+                            setConfirmingId(comment.id);
+                          }}
+                        />
+                      ) : null}
                     </div>
-                    <p className="mt-1 whitespace-pre-wrap text-[var(--color-ink-muted)]">
-                      {comment.body}
-                    </p>
+
+                    {editingId === comment.id ? (
+                      <div className="mt-1 space-y-2">
+                        <Textarea
+                          value={draft}
+                          onChange={(event) => setDraft(event.currentTarget.value)}
+                          rows={3}
+                          maxLength={4000}
+                          autoFocus
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            disabled={working}
+                            onClick={() => saveEdit(comment.id)}
+                          >
+                            {working ? 'Saving…' : 'Save'}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => setEditingId(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-1 whitespace-pre-wrap text-[var(--color-ink-muted)]">
+                        {comment.body}
+                      </p>
+                    )}
+
+                    {confirmingId === comment.id ? (
+                      <div className="mt-2 flex items-center gap-2 text-xs text-[var(--color-ink-muted)]">
+                        Delete this update?
+                        <Button
+                          type="button"
+                          variant="danger"
+                          disabled={working}
+                          onClick={() => remove(comment.id)}
+                        >
+                          {working ? 'Deleting…' : 'Delete'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => setConfirmingId(null)}
+                        >
+                          Keep
+                        </Button>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ))}

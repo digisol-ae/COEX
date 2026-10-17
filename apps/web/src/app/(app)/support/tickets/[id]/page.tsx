@@ -27,6 +27,7 @@ import {
   loggedMinutesForTicket,
 } from '@/modules/time/services/time.service';
 import { TicketTimerButton } from '@/modules/time/components/ticket-timer-button';
+import { TicketAddTime } from '@/modules/time/components/ticket-add-time';
 import { Conversation } from './conversation';
 import { ReplyBox } from './reply-box';
 import { Properties } from './properties';
@@ -174,6 +175,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
                   running={timerRunning}
                   startedAt={timerRunning ? runningTimer.startedAt.toISOString() : null}
                 />
+                <TicketAddTime ticketId={ticket.id} />
               </div>
             </CardSection>
           </Card>
