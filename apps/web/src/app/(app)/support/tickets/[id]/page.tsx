@@ -148,91 +148,9 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
         </Card>
       ) : null}
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="space-y-4">
-          <Card>
-            <CardSection>
-              <div className="flex flex-wrap items-center gap-3 text-[12px] text-[var(--color-ink-muted)]">
-                <SlaChip
-                  label="First reply"
-                  state={ticket.firstResponseState}
-                  dueAt={ticket.firstResponseDueAt}
-                />
-                <SlaChip
-                  label="Resolution"
-                  state={ticket.resolutionState}
-                  dueAt={ticket.resolutionDueAt}
-                />
-                <span>{CHANNEL_LABELS[ticket.channel] ?? ticket.channel}</span>
-                <span>Raised {formatDateTime(ticket.createdAt)}</span>
-                {loggedMinutes > 0 ? (
-                  <span>{formatMinutes(loggedMinutes)} logged by you</span>
-                ) : null}
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <TicketTimerButton
-                  ticketId={ticket.id}
-                  running={timerRunning}
-                  startedAt={timerRunning ? runningTimer.startedAt.toISOString() : null}
-                />
-                <TicketAddTime ticketId={ticket.id} />
-              </div>
-            </CardSection>
-          </Card>
-
-          {timeByPerson.length > 0 ? (
-            <Card>
-              <CardSection title="Time entries">
-                <TimeEntriesByPerson
-                  people={timeByPerson.map((person) => ({
-                    userId: person.userId,
-                    name: person.name,
-                    minutes: person.minutes,
-                    entries: person.entries.map((entry) => ({
-                      id: entry.id,
-                      day: toDateKey(entry.workDate),
-                      minutes: entry.minutes,
-                      note: entry.note,
-                      running: entry.running,
-                    })),
-                  }))}
-                />
-              </CardSection>
-            </Card>
-          ) : null}
-
-          {canManage && !ticket.mergedIntoId ? (
-            <CollaboratorsPanel
-              ticketId={ticket.id}
-              emails={ticket.ccEmails}
-              options={collaboratorOptions}
-            />
-          ) : null}
-          <Conversation ticketId={ticket.id} messages={ticket.messages} />
-
-          {canManage && !ticket.mergedIntoId ? (
-            <ReplyBox
-              ticketId={ticket.id}
-              emailTo={replyEmail}
-              senders={senders}
-              people={people}
-              cannedReplies={cannedReplies}
-              context={{
-                contactName: ticket.contactName,
-                organisationName: ticket.organisationName,
-                agentName: actor.name,
-                ticketNumber: ticket.number,
-                ticketSubject: ticket.subject,
-                // Signed by the server when the queue signs by itself, so the placeholder is blank.
-                signature: ticket.queueAutoSign ? '' : signature,
-              }}
-              autoSignature={ticket.queueAutoSign ? signature : ''}
-            />
-          ) : null}
-        </div>
-
+      <div className="mt-4 space-y-4">
         <Properties
+          row
           ticket={{
             id: ticket.id,
             status: ticket.status,
@@ -252,6 +170,91 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           spaces={spaces.map((space) => ({ id: space.id, name: space.name }))}
           canManage={canManage}
         />
+
+        <div className="grid items-start gap-4 lg:grid-cols-2">
+          <div className="space-y-4">
+            <Card>
+              <CardSection>
+                <div className="flex flex-wrap items-center gap-3 text-[12px] text-[var(--color-ink-muted)]">
+                  <SlaChip
+                    label="First reply"
+                    state={ticket.firstResponseState}
+                    dueAt={ticket.firstResponseDueAt}
+                  />
+                  <SlaChip
+                    label="Resolution"
+                    state={ticket.resolutionState}
+                    dueAt={ticket.resolutionDueAt}
+                  />
+                  <span>{CHANNEL_LABELS[ticket.channel] ?? ticket.channel}</span>
+                  <span>Raised {formatDateTime(ticket.createdAt)}</span>
+                  {loggedMinutes > 0 ? (
+                    <span>{formatMinutes(loggedMinutes)} logged by you</span>
+                  ) : null}
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <TicketTimerButton
+                    ticketId={ticket.id}
+                    running={timerRunning}
+                    startedAt={timerRunning ? runningTimer.startedAt.toISOString() : null}
+                  />
+                  <TicketAddTime ticketId={ticket.id} />
+                </div>
+              </CardSection>
+            </Card>
+
+            {timeByPerson.length > 0 ? (
+              <Card>
+                <CardSection title="Time entries">
+                  <TimeEntriesByPerson
+                    people={timeByPerson.map((person) => ({
+                      userId: person.userId,
+                      name: person.name,
+                      minutes: person.minutes,
+                      entries: person.entries.map((entry) => ({
+                        id: entry.id,
+                        day: toDateKey(entry.workDate),
+                        minutes: entry.minutes,
+                        note: entry.note,
+                        running: entry.running,
+                      })),
+                    }))}
+                  />
+                </CardSection>
+              </Card>
+            ) : null}
+          </div>
+          {canManage && !ticket.mergedIntoId ? (
+            <CollaboratorsPanel
+              ticketId={ticket.id}
+              emails={ticket.ccEmails}
+              options={collaboratorOptions}
+            />
+          ) : null}
+        </div>
+
+        <Conversation ticketId={ticket.id} messages={ticket.messages} />
+
+        {canManage && !ticket.mergedIntoId ? (
+          <ReplyBox
+            ticketId={ticket.id}
+            emailTo={replyEmail}
+            senders={senders}
+            people={people}
+            cannedReplies={cannedReplies}
+            context={{
+              contactName: ticket.contactName,
+              organisationName: ticket.organisationName,
+              agentName: actor.name,
+              ticketNumber: ticket.number,
+              ticketSubject: ticket.subject,
+              // Signed by the server when the queue signs by itself, so the placeholder is blank.
+              signature: ticket.queueAutoSign ? '' : signature,
+            }}
+            autoSignature={ticket.queueAutoSign ? signature : ''}
+          />
+        ) : null}
       </div>
     </div>
   );

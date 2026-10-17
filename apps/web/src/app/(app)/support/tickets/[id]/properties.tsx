@@ -51,7 +51,10 @@ export function Properties({
   users,
   spaces,
   canManage,
+  row = false,
 }: {
+  /** Laid out across the page, three cards wide, rather than stacked in a narrow column. */
+  row?: boolean;
   ticket: TicketProperties;
   queues: { id: string; name: string }[];
   users: { id: string; name: string }[];
@@ -71,12 +74,16 @@ export function Properties({
   }
 
   return (
-    <div className="space-y-4">
-      {error ? <Notice tone="alert">{error}</Notice> : null}
+    <div className={row ? 'grid items-start gap-4 lg:grid-cols-3' : 'space-y-4'}>
+      {error ? (
+        <div className={row ? 'lg:col-span-3' : undefined}>
+          <Notice tone="alert">{error}</Notice>
+        </div>
+      ) : null}
 
       <Card>
         <CardSection title="Ticket">
-          <div className="space-y-3">
+          <div className={row ? 'grid gap-3 sm:grid-cols-2' : 'space-y-3'}>
             <Field label="Status">
               <Select
                 value={ticket.status}

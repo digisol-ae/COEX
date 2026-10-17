@@ -16,6 +16,21 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-18c',
+    date: '18 October 2026',
+    title: 'A roomier ticket page',
+    sections: [
+      {
+        heading: 'Tickets',
+        items: [
+          'On a ticket, Status, Owner, Priority and Queue, Engineering and Related tickets now sit in a row across the top, so the conversation below has the whole width of the page.',
+          'A long conversation shows its first and its latest message, with a button to open the ones in between and fold them again.',
+          'Long lines and web addresses in a message now wrap inside its box instead of running out of it.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-18b',
     date: '18 October 2026',
     title: 'A tidier task panel',

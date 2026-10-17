@@ -314,6 +314,14 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
+### John, 18 Oct 2026 — ticket page layout (built on the branch, acceptance pending)
+
+- Ticket properties (Status, Owner, Priority, Queue), Engineering and Related tickets moved to a row
+  across the top so the conversation and the reply box get the full width. The timer and time entries
+  sit beside the CC collaborators panel.
+- A conversation of more than three messages shows the first and the latest with a fold button for the
+  messages between. Long unbroken text (addresses, mailto links) now wraps inside the message box.
+
 ### John, 18 Oct 2026 — task side panel (built on the branch, acceptance pending)
 
 - Compact origin: one line ("Created by X, date · N assignments") with a history icon opening the full
