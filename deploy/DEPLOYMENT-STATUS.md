@@ -151,6 +151,15 @@ Follow this file for the live server; DEPLOY.md is the original design only.
   `COEX_APP_URL=https://coex.digisol.ae`.
 - Mailbox and SMTP details are entered in COEX, Setup, Email, not in .env.
 
+## One command deploy (from 17 Oct 2026)
+
+    cd /srv/coex/app && bash deploy/release.sh
+
+Fetches main, stops if nothing is new, fast-forward pulls, `npm ci`, builds, restarts the four pm2
+processes with --update-env, saves, then checks the login page answers. If the build or the check
+fails it goes back to the previous commit and restarts, and says so. Run it outside office hours.
+It does not take a backup (the 2am cron does); run `deploy/backup.sh` first before anything risky.
+
 ## Redeploy after a git push to main
     cd /srv/coex/app && git pull --ff-only && npm ci && npm run build
     pm2 restart coex-app coex-mail coex-desk-close --update-env && pm2 save
