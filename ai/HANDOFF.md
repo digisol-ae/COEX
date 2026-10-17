@@ -1,6 +1,30 @@
 # COEX — AI Handoff
 
-## START HERE — state at 15 Oct 2026 (Claude)
+## START HERE — handover to ChatGPT, 18 Oct 2026 (Claude)
+
+- Branch `claude/gallant-faraday-r1u4g8`, PR #24 (https://github.com/digisol-ae/COEX/pull/24) open and NOT
+  merged; later commits ride along. Deployed to production so far: up to PR #23 (16 Oct, `release.sh` tested).
+  John reviews on his Mac (`git pull`, `npm run dev`, port 3100); he says "open the PR" and "merge it", then
+  deploys himself on the server with `cd /srv/coex/app && bash deploy/release.sh` outside office hours.
+- Built since PR #23, NOT in production, NEVER seen in a browser by me: one line per person in time entries
+  (history icon); compact task side panel (icon row, origin line, Updates section); ticket page as one compact
+  card of badges (Status/Owner/Priority/Queue, SLA, timer, logged time, Engineering, Related), forms as popups,
+  Cc inside the reply box, folded middle messages; compact task page; compact customer, contract and
+  opportunity screens with `FactBadge`. Convention recorded in CLAUDE.md ("Compact detail screens").
+- TRIAL, awaiting John's verdict: ticket conversation as WhatsApp-style chat bubbles
+  (`support/tickets/[id]/conversation.tsx`, new `bubble-text.tsx`): customer left, staff right green, internal
+  notes right, dashed and warm with an "Internal note" tag, day labels in office time, "Read more" over 700
+  characters. No What's new entry yet; add one if John accepts. If he rejects it, revert commit 6c5f572.
+- Verified: prettier, tsc, eslint in a scratch copy, unit tests earlier. NOT run: any database test I wrote
+  (tasks, tickets) and the UI. John must run `npm test` on the Mac before deploying.
+- Open: T6 portal, T9 subtask assignees, T10 XVERSE task (on hold by John); compact pattern still to apply to
+  Leads list/panel, Spaces and settings screens (wait for John's feedback); `scripts/copy-planned-to-estimate.ts`
+  (dry run, then APPLY=1) unconfirmed; record the 16-17 Oct deploys in deploy/DEPLOYMENT-STATUS.md; QA Space
+  export; Leads-on-API pilot paused (flag `COEX_API_MODULES=leads`, OFF in prod).
+- Rules to keep: English only; commands first, short; install dependencies only on the Mac, never in the repo from
+  Linux; no PR until asked; no merge until "merge it".
+
+## Earlier state — 15 Oct 2026 (Claude)
 
 - Team feedback T1 to T5, T7, T8, T11, T12 are built on `claude/gallant-faraday-r1u4g8` and NOT deployed
   (John wants all feedback finished and reviewed on his own system first). Held by John: T6 ticket
