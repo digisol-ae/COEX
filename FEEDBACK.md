@@ -314,6 +314,14 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
+### John, 18 Oct 2026 — task side panel (built on the branch, acceptance pending)
+
+- Compact origin: one line ("Created by X, date · N assignments") with a history icon opening the full
+  list in a popup. Self-assignments are no longer listed (display only; stored data unchanged).
+- Assignees, dates, priority, folder and time in one wrapping row of icons (names in tooltips); tags below.
+- Description starts at two lines and grows on hover or focus.
+- Updates section in the panel: add an update at once, latest shown, history opens with an icon.
+
 ### John, 17 Oct 2026 — time entries layout (built on the branch, acceptance pending)
 
 - The Time entries list on a task looked ugly with every entry shown. Now one consolidated line per

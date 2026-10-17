@@ -16,6 +16,22 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-18b',
+    date: '18 October 2026',
+    title: 'A tidier task panel',
+    sections: [
+      {
+        heading: 'Task panel',
+        items: [
+          'The panel that opens beside a task is more compact. Who created it and who assigned it is one quiet line, with the full history one click away behind the history icon. A person who assigned themselves is no longer listed.',
+          'Assignees, due date, priority, folder and time sit in one row of icons, with their names in the tooltips.',
+          'The description box starts small and grows when you point at it or click into it.',
+          'New Updates section in the panel: write an update straight away, see the latest one, and open the history with the history icon.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-18',
     date: '18 October 2026',
     title: 'Tidier time entries',
