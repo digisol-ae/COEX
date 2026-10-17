@@ -314,6 +314,12 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
+### John, 17 Oct 2026 — time entries layout (built on the branch, acceptance pending)
+
+- The Time entries list on a task looked ugly with every entry shown. Now one consolidated line per
+  person (name, number of entries, total) with a history icon that expands that person's entries and
+  closes them again. Same on the ticket page. Shared component `TimeEntriesByPerson`.
+
 ### Team feedback, 17 Oct 2026 (John, from his team) — built on the branch, acceptance pending
 
 U1. Task work updates can be edited and deleted. Built: the author edits their own update (it then

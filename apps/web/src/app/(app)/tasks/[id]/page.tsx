@@ -21,6 +21,7 @@ import {
   listTaskTimeByPerson,
   loggedMinutesForTask,
 } from '@/modules/time/services/time.service';
+import { TimeEntriesByPerson } from '@/modules/time/components/time-entries-by-person';
 import { formatMinutes, toDateKey } from '@coex/shared/time/week';
 import { toDateTimeInput } from '@coex/shared/tasks/dates';
 import { TimerButton } from '@/modules/time/components/timer-button';
@@ -189,29 +190,20 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
                   No time has been logged on this task yet.
                 </p>
               ) : (
-                <ul className="mt-2 space-y-3">
-                  {timeByPerson.map((person) => (
-                    <li key={person.userId}>
-                      <p className="flex items-center justify-between text-sm font-medium text-[var(--color-ink)]">
-                        <span>{person.name}</span>
-                        <span className="tabular-nums">{formatMinutes(person.minutes)}</span>
-                      </p>
-                      <ul className="mt-1 divide-y divide-[var(--color-line)] text-xs text-[var(--color-ink-muted)]">
-                        {person.entries.map((entry) => (
-                          <li key={entry.id} className="flex items-baseline gap-3 py-1">
-                            <span className="w-24 shrink-0">{toDateKey(entry.workDate)}</span>
-                            <span className="w-14 shrink-0 tabular-nums">
-                              {formatMinutes(entry.minutes)}
-                            </span>
-                            <span className="min-w-0 flex-1 truncate">
-                              {entry.running ? 'Running now' : (entry.note ?? '')}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-                  ))}
-                </ul>
+                <TimeEntriesByPerson
+                  people={timeByPerson.map((person) => ({
+                    userId: person.userId,
+                    name: person.name,
+                    minutes: person.minutes,
+                    entries: person.entries.map((entry) => ({
+                      id: entry.id,
+                      day: toDateKey(entry.workDate),
+                      minutes: entry.minutes,
+                      note: entry.note,
+                      running: entry.running,
+                    })),
+                  }))}
+                />
               )}
             </CardSection>
           </Card>

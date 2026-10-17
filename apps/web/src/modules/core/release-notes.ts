@@ -16,6 +16,19 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-18',
+    date: '18 October 2026',
+    title: 'Tidier time entries',
+    sections: [
+      {
+        heading: 'Time',
+        items: [
+          "On a task or a ticket, Time entries now shows one line for each person with their total. Click the line, or the history icon beside it, to see that person's entries, and again to close them.",
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-17',
     date: '17 October 2026',
     title: 'Edit updates, move Personal tasks, add ticket time',
