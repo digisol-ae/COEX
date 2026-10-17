@@ -424,8 +424,9 @@ export function TaskPanel({
                     required
                     maxLength={4000}
                     rows={1}
-                    placeholder="Add an update. Type @ to mention someone."
-                    className="min-h-9 flex-1 resize-y rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2.5 py-1.5 text-[13px] text-[var(--color-ink)] focus:border-[var(--color-line-strong)] focus:outline-none"
+                    placeholder="Add an update, @ to mention"
+                    wrapperClassName="min-w-0 flex-1"
+                    className="h-9 w-full resize-none rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2.5 py-1.5 text-[13px] text-[var(--color-ink)] transition-[height] duration-150 focus:h-24 focus:border-[var(--color-line-strong)] focus:outline-none"
                   />
                   <Button type="submit" variant="secondary" disabled={commentPending}>
                     {commentPending ? 'Posting' : 'Post'}
