@@ -550,3 +550,9 @@ T12. (Task page already listed each person's entries since 9 Oct; ticket pages n
    user overrides, audit log, tenant settings, user administration and tenant creation.
 12. Product name COEX, repository digisol-ae/COEX, terminology Portfolio, Project, Task, Step, team
    size ten, port 3100, Node 22 LTS.
+
+## Ticket conversation as a chat — trial (John, 18 Oct 2026)
+- "All the conversation in ticket should be something like WhatsApp style." Built as a trial for John
+  to judge before it goes further: customer messages left, staff replies right (green), internal
+  notes right but dashed and warm with an "Internal note" tag, day labels in office time, time on
+  each bubble, long messages cut with "Read more". Not yet in What's new until John accepts it.
