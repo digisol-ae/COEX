@@ -1,6 +1,5 @@
 import { customerReplySenders } from '@/modules/core/services/email.service';
 import { listCollaboratorOptions } from '@/modules/tickets/services/collaborator.service';
-import { CollaboratorsPanel } from './collaborators-panel';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
@@ -22,16 +21,12 @@ import { LiveRefresh } from '@/components/ui/live-refresh';
 import { formatDateTime } from '@coex/shared/tasks/dates';
 import { TimeEntriesByPerson } from '@/modules/time/components/time-entries-by-person';
 import { formatMinutes, toDateKey } from '@coex/shared/time/week';
-import {
-  getRunningTimer,
-  listTicketTimeByPerson,
-  loggedMinutesForTicket,
-} from '@/modules/time/services/time.service';
+import { getRunningTimer, listTicketTimeByPerson } from '@/modules/time/services/time.service';
 import { TicketTimerButton } from '@/modules/time/components/ticket-timer-button';
 import { TicketAddTime } from '@/modules/time/components/ticket-add-time';
 import { Conversation } from './conversation';
 import { ReplyBox } from './reply-box';
-import { Properties } from './properties';
+import { TicketBar } from './properties';
 import { MarkTicketRead } from './mark-read';
 
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
@@ -55,7 +50,6 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
     spaces,
     cannedReplies,
     runningTimer,
-    loggedMinutes,
     timeByPerson,
     people,
     myTitle,
@@ -66,7 +60,6 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
     spaces: actor.permissions.includes('task.manage') ? await listSpaces() : [],
     cannedReplies: await listCannedReplies({ queueId: ticket.queueId }),
     runningTimer: await getRunningTimer(),
-    loggedMinutes: await loggedMinutesForTicket(id),
     // Other people's hours are for those granted timesheet.read.all; everyone else sees their own.
     timeByPerson: await listTicketTimeByPerson(
       id,
@@ -149,8 +142,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
       ) : null}
 
       <div className="mt-4 space-y-4">
-        <Properties
-          row
+        <TicketBar
           ticket={{
             id: ticket.id,
             status: ticket.status,
@@ -169,75 +161,66 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           users={users.map((user) => ({ id: user.id, name: user.name }))}
           spaces={spaces.map((space) => ({ id: space.id, name: space.name }))}
           canManage={canManage}
-        />
-
-        <div className="grid items-start gap-4 lg:grid-cols-2">
-          <div className="space-y-4">
-            <Card>
-              <CardSection>
-                <div className="flex flex-wrap items-center gap-3 text-[12px] text-[var(--color-ink-muted)]">
-                  <SlaChip
-                    label="First reply"
-                    state={ticket.firstResponseState}
-                    dueAt={ticket.firstResponseDueAt}
-                  />
-                  <SlaChip
-                    label="Resolution"
-                    state={ticket.resolutionState}
-                    dueAt={ticket.resolutionDueAt}
-                  />
-                  <span>{CHANNEL_LABELS[ticket.channel] ?? ticket.channel}</span>
-                  <span>Raised {formatDateTime(ticket.createdAt)}</span>
-                  {loggedMinutes > 0 ? (
-                    <span>{formatMinutes(loggedMinutes)} logged by you</span>
-                  ) : null}
-                </div>
-
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <TicketTimerButton
-                    ticketId={ticket.id}
-                    running={timerRunning}
-                    startedAt={timerRunning ? runningTimer.startedAt.toISOString() : null}
-                  />
-                  <TicketAddTime ticketId={ticket.id} />
-                </div>
-              </CardSection>
-            </Card>
-
-            {timeByPerson.length > 0 ? (
-              <Card>
-                <CardSection title="Time entries">
-                  <TimeEntriesByPerson
-                    people={timeByPerson.map((person) => ({
-                      userId: person.userId,
-                      name: person.name,
-                      minutes: person.minutes,
-                      entries: person.entries.map((entry) => ({
-                        id: entry.id,
-                        day: toDateKey(entry.workDate),
-                        minutes: entry.minutes,
-                        note: entry.note,
-                        running: entry.running,
-                      })),
-                    }))}
-                  />
-                </CardSection>
-              </Card>
-            ) : null}
-          </div>
-          {canManage && !ticket.mergedIntoId ? (
-            <CollaboratorsPanel
-              ticketId={ticket.id}
-              emails={ticket.ccEmails}
-              options={collaboratorOptions}
+          sla={
+            <>
+              <SlaChip
+                label="First reply"
+                state={ticket.firstResponseState}
+                dueAt={ticket.firstResponseDueAt}
+              />
+              <SlaChip
+                label="Resolution"
+                state={ticket.resolutionState}
+                dueAt={ticket.resolutionDueAt}
+              />
+            </>
+          }
+          facts={
+            <>
+              <span>{CHANNEL_LABELS[ticket.channel] ?? ticket.channel}</span>
+              <span>Raised {formatDateTime(ticket.createdAt)}</span>
+            </>
+          }
+          timer={
+            <>
+              <TicketTimerButton
+                compact
+                ticketId={ticket.id}
+                running={timerRunning}
+                startedAt={timerRunning ? runningTimer.startedAt.toISOString() : null}
+              />
+              <TicketAddTime compact ticketId={ticket.id} />
+            </>
+          }
+          loggedLabel={
+            timeByPerson.length > 0
+              ? `${formatMinutes(timeByPerson.reduce((sum, person) => sum + person.minutes, 0))} logged`
+              : null
+          }
+          timeEntries={
+            <TimeEntriesByPerson
+              people={timeByPerson.map((person) => ({
+                userId: person.userId,
+                name: person.name,
+                minutes: person.minutes,
+                entries: person.entries.map((entry) => ({
+                  id: entry.id,
+                  day: toDateKey(entry.workDate),
+                  minutes: entry.minutes,
+                  note: entry.note,
+                  running: entry.running,
+                })),
+              }))}
             />
-          ) : null}
-        </div>
+          }
+        />
 
         <Conversation ticketId={ticket.id} messages={ticket.messages} />
 
         {canManage && !ticket.mergedIntoId ? (
           <ReplyBox
+            ccEmails={ticket.ccEmails}
+            collaboratorOptions={collaboratorOptions}
             ticketId={ticket.id}
             emailTo={replyEmail}
             senders={senders}

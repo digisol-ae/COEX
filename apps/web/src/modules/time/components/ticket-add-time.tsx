@@ -12,7 +12,13 @@ const initialState: TimeFormState = {};
  * 17 Oct 2026). The same action and rules as the timesheet's Add time: a locked week refuses it,
  * and the entry shows in the ticket's time entries and on the person's timesheet.
  */
-export function TicketAddTime({ ticketId }: { ticketId: string }) {
+export function TicketAddTime({
+  ticketId,
+  compact = false,
+}: {
+  ticketId: string;
+  compact?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(
     async (previous: TimeFormState, formData: FormData) => {
@@ -25,7 +31,12 @@ export function TicketAddTime({ ticketId }: { ticketId: string }) {
 
   return (
     <>
-      <Button type="button" variant="secondary" onClick={() => setOpen(true)}>
+      <Button
+        type="button"
+        variant="secondary"
+        className={compact ? '!px-2.5 !py-1 text-[12px]' : undefined}
+        onClick={() => setOpen(true)}
+      >
         Add time
       </Button>
 
