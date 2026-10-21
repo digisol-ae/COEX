@@ -21,6 +21,8 @@ import { loggedMinutesForTask, getRunningTimer } from '@/modules/time/services/t
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getSignedInUser();
 
+  if (user?.role === 'client_contact')
+    return Response.json({ error: 'Not allowed.' }, { status: 403 });
   if (!user) return Response.json({ error: 'Sign in first.' }, { status: 401 });
   if (!user.permissions.includes('task.read.own')) {
     return Response.json({ error: 'Not allowed.' }, { status: 403 });
@@ -54,6 +56,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       origin: await taskOrigin(task),
       // The compact Updates section: the history to expand and who can be @mentioned.
       comments: (await listTaskComments(id)).map((comment) => ({
+        isSystem: comment.isSystem ?? false,
+        attachments: comment.attachments,
         id: comment.id,
         body: comment.body,
         authorName: comment.authorName,

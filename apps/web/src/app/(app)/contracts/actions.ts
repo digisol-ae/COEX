@@ -80,7 +80,34 @@ export async function saveContractAction(
         productIds.push(await createProduct({ name: newName, code: newCode, kind: 'support' }));
       }
 
+      let serviceLines: ContractInput['serviceLines'];
+      try {
+        serviceLines = JSON.parse(text(formData, 'serviceLines') || '[]');
+      } catch {
+        throw new Error('Could not read the product rates. Please reopen the form.');
+      }
+      if (
+        !Array.isArray(serviceLines) ||
+        serviceLines.some(
+          (line) =>
+            !line ||
+            typeof line.productId !== 'string' ||
+            typeof line.unitPrice !== 'string' ||
+            (line.description != null && typeof line.description !== 'string'),
+        )
+      )
+        throw new Error('Invalid product rates.');
       const input: ContractInput = {
+        pricingMethod: (text(formData, 'pricingMethod') ||
+          'fixed') as ContractInput['pricingMethod'],
+        licenceValue: text(formData, 'licenceValue'),
+        annualSupportPercent: text(formData, 'annualSupportPercent')
+          ? Number(text(formData, 'annualSupportPercent'))
+          : null,
+        setupFee: text(formData, 'setupFee'),
+        trainingFee: text(formData, 'trainingFee'),
+        hardwareTerms: text(formData, 'hardwareTerms'),
+        serviceLines,
         organisationId: text(formData, 'organisationId'),
         title: text(formData, 'title'),
         type: oneOf<ContractType>(CONTRACT_TYPES, text(formData, 'type'), 'amc'),
@@ -113,6 +140,8 @@ export async function saveContractAction(
   }
 
   revalidatePath('/contracts');
+  revalidatePath(`/customers/${text(formData, 'organisationId')}`);
+  if (id) revalidatePath(`/contracts/${id}`);
   return { saved: true };
 }
 
@@ -166,11 +195,14 @@ export async function sendContractEmailAction(
   id: string,
   subject: string,
   body: string,
+  options?: { to: string[]; cc: string[]; sender: string },
 ): Promise<{ message?: string; error?: string }> {
   const actor = await requirePermission('contract.manage');
 
   try {
-    const { queued, skipped } = await asUser(actor, () => sendContractEmail(id, { subject, body }));
+    const { queued, skipped } = await asUser(actor, () =>
+      sendContractEmail(id, { subject, body, ...options }),
+    );
     revalidatePath('/contracts');
 
     return {

@@ -1,4 +1,5 @@
 'use client';
+import { SettingsDrawer } from '@/components/ui/settings-drawer';
 import { StatusEditor } from '@/components/tasks/status-editor';
 
 import { useActionState, useState } from 'react';
@@ -63,24 +64,8 @@ export function SpaceSettings({
       </button>
     );
   return (
-    <div
-      className="popup-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Space settings"
-    >
-      <form action={action} className="w-full max-w-xl popup-glass p-5 text-left">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-[var(--color-ink)]">Space settings</h2>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
-            aria-label="Close settings"
-          >
-            ✕
-          </button>
-        </div>
+    <SettingsDrawer title="Space settings" open={open} onClose={() => setOpen(false)}>
+      <form action={action} className="w-full space-y-3 text-left">
         <input type="hidden" name="id" value={space.id} />
         <Field label="Space name">
           <Input name="name" defaultValue={space.name} required />
@@ -131,6 +116,6 @@ export function SpaceSettings({
         </div>
         <ArchiveSpace spaceId={space.id} spaceName={space.name} />
       </form>
-    </div>
+    </SettingsDrawer>
   );
 }

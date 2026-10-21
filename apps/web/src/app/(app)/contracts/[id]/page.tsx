@@ -1,5 +1,7 @@
+import { LiveRefresh } from '@/components/ui/live-refresh';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
+import { listProducts } from '@/modules/crm/services/product.service';
 import { getContract } from '@/modules/crm/services/contract.service';
 import { billingSchedule, periodContaining, todayKey } from '@coex/shared/crm/contract-status';
 import { fromMinorUnits } from '@/modules/crm/services/product.service';
@@ -38,6 +40,8 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
   const contract = await asUser(actor, () => getContract(id));
   if (!contract) notFound();
 
+  const products = await asUser(actor, () => listProducts(true));
+  const productNames = new Map(products.map((product) => [product.id, product.name]));
   const schedule = billingSchedule(contract.startDate, contract.endDate, contract.billingFrequency);
   const current = periodContaining(schedule, todayKey());
 
@@ -63,16 +67,20 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
 
       <div className="mt-2">
         <PageHeader
+          descriptionInline
           title={contract.title}
           description={`${contract.organisationName} · ${contract.startDate} to ${contract.endDate}`}
           action={
-            <Badge tone={STATUS_TONE[contract.status]}>{STATUS_LABEL[contract.status]}</Badge>
+            <div className="flex items-center gap-3">
+              <LiveRefresh />
+              <Badge tone={STATUS_TONE[contract.status]}>{STATUS_LABEL[contract.status]}</Badge>
+            </div>
           }
         />
       </div>
 
-      <div className="space-y-4">
-        <Card>
+      <div className="space-y-3">
+        <Card className="!bg-transparent !shadow-none">
           <CardSection>
             <FactRow>
               <FactBadge icon="money" label="Amount per billing period">
@@ -116,6 +124,74 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
           </CardSection>
         </Card>
 
+        <Card>
+          <CardSection
+            title={
+              contract.type === 'subscription' ? 'Subscription terms' : 'Contractual service terms'
+            }
+          >
+            <p className="text-sm">
+              Agreement: {contract.startDate} to {contract.endDate} · Billing cycle:{' '}
+              {contract.billingFrequency}
+            </p>
+            {contract.pricingMethod === 'licence_percentage' ? (
+              <p className="mt-2 text-sm">
+                Perpetual licence value: {contract.currency}{' '}
+                {fromMinorUnits(contract.licenceValueMinorUnits)} · Annual support:{' '}
+                {contract.annualSupportPercent}% · Annual charge: {contract.currency}{' '}
+                {fromMinorUnits(
+                  Math.round(
+                    ((contract.licenceValueMinorUnits ?? 0) *
+                      (contract.annualSupportPercent ?? 0)) /
+                      100,
+                  ),
+                )}
+              </p>
+            ) : null}
+            {contract.serviceLines?.length ? (
+              <Table>
+                <thead>
+                  <tr>
+                    <Th>Product / module</Th>
+                    <Th>Quantity</Th>
+                    <Th>Unit rate</Th>
+                    <Th>Per billing period</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {contract.serviceLines.map((line, index) => (
+                    <tr key={index}>
+                      <Td>
+                        {productNames.get(line.productId) ?? 'Archived product'}
+                        {line.description ? (
+                          <div className="text-xs text-[var(--color-ink-muted)]">
+                            {line.description}
+                          </div>
+                        ) : null}
+                      </Td>
+                      <Td>{line.quantity}</Td>
+                      <Td>
+                        {contract.currency} {fromMinorUnits(line.unitPriceMinorUnits)}
+                      </Td>
+                      <Td>
+                        {contract.currency}{' '}
+                        {fromMinorUnits(line.quantity * line.unitPriceMinorUnits)}
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            ) : null}
+            <div className="mt-3 text-sm">
+              One-time upfront: Setup {contract.currency}{' '}
+              {fromMinorUnits(contract.setupFeeMinorUnits ?? 0)} · Training {contract.currency}{' '}
+              {fromMinorUnits(contract.trainingFeeMinorUnits ?? 0)}
+            </div>
+            {contract.hardwareTerms ? (
+              <p className="mt-2 text-sm">Hardware terms: {contract.hardwareTerms}</p>
+            ) : null}
+          </CardSection>
+        </Card>
         <Card>
           <CardSection title="Billing schedule">
             <p className="mb-2 text-xs text-[var(--color-ink-subtle)]">

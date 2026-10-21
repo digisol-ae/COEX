@@ -32,19 +32,21 @@ const REASON_LABEL = {
 } as const;
 
 export function LeadPanel({
+  defaultOpen = false,
   sources,
   owners,
   currentUserId,
   fields,
   lead,
 }: {
+  defaultOpen?: boolean;
   sources: string[];
   owners: { id: string; name: string }[];
   currentUserId: string;
   fields: FieldDefinitionSummary[];
   lead?: LeadFormValues;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const { showToast } = useToast();
   const [state, formAction, pending] = useActionState(
     async (previous: LeadFormState, formData: FormData) => {

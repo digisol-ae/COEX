@@ -1,5 +1,39 @@
 # COEX live deployment
 
+## Release resumed — 21 October 2026
+
+John explicitly confirmed full access and requested completion after reviewing the proposed mixed COEX bundle. Proceed with the proposed COEX application/docs/tests/assets, excluding separate projects/done-coex-integration files. This supersedes the earlier scope-approval pause. Preserve the existing remote handoff commit, verify GitHub CI, then deploy and verify the server.
+
+## Release preparation — 21 October 2026
+
+John requested Markdown updates, commit, GitHub upload and app-server pull. Full workspace typecheck/lint, 37 unit files / 227 tests, production Webpack build (64 pages), formatting and diff checks passed. Scoped task-image browser QA passed; older full-QA findings and small-image 0 KB display remain documented. No full DB suite rerun.
+
+GitHub PR #24 is open. Remote feature branch contains one earlier handoff commit to preserve. Server preflight verified clean main at 9703f432fd8053c0fff6ac7dd138867b8fbaf9af, exactly one of each four COEX PM2 services online, and SSH works with ~/.ssh/contabo.pem as digisol.
+
+Automatic approval review rejected the proposed broad mixed-worktree commit as insufficiently scoped (portal, CRM, project and docs changes beyond the reviewed agent candidate). No files staged, no commit/push/merge or deployment. Exact proposed COEX bundle and excluded separate dOne project files: ai/COMMIT-SCOPE-2026-10-21.md. Await explicit scope approval before the broad commit.
+
+## Local continuation snapshot —21 Oct2026
+
+See [compact context](../ai/CONTEXT-2026-10-21.md) for local changes through21 October. Documentation consolidation did not deploy or refresh remote/server state. Do not infer any production revision from local build results; verify current remote SHA/workers/HTTPS before an explicitly authorised release.
+
+
+## Local addition — 19 Oct 2026
+
+CRM contact edits, existing-ticket customer/contact linking, 15-second/manual refresh and contract sender/To/CC controls are local only. No push, merge or VPS deployment. Validation and pending browser acceptance: [release handoff](../ai/RELEASE-2026-10-19.md).
+
+## Customer portal local release addition — 18 Oct 2026
+
+- T6 is now implemented locally: `/portal`, own tickets only, linked client accounts, public replies and safe attachments. See docs/CUSTOMER-PORTAL.md and newest ai/HANDOFF.md section for QA evidence.
+- Uses existing MongoDB user/contact links; no migration. Requires an active default support queue and explicit admin account provisioning through Customer → Contacts. No real accounts provisioned in this run.
+- Not committed/pushed/merged/deployed. Verify deployment/worker state and complete release acceptance before publishing the code. Existing local tutorial remains a draft, not auto-published by this change.
+
+## Local handover clarification — 18 Oct 2026 (Codex)
+
+- New UI/tutorial work is LOCAL and UNCOMMITTED; not deployed and not yet included in PR #24. PR #24 is open at `b0db354`; main remains `9703f43` (PR #23), verified against GitHub.
+- Claude's 18 Oct handover reports production through PR #23 and release.sh tested. The older entry below confirms PR #21 from John's report; VPS HEAD and PM2 were not independently checked in this chat. Do not present either note as a fresh live-server verification.
+- Full release verification is still required before any deployment. John deploys himself with `cd /srv/coex/app` then `bash deploy/release.sh` when authorized. No server commands were run by Codex.
+- Inventory and remaining QA: `ai/RELEASE-2026-10-18.md`. Tutorial draft creation in the local application is not publication to users; current Create ticket tutorial remains a draft.
+
 ## Deployed — 16 Oct 2026, 4d95d74 (Claude, run by John)
 
 - PR https://github.com/digisol-ae/COEX/pull/21 merged into main as `4d95d74`; John ran the usual
@@ -124,7 +158,7 @@ Follow this file for the live server; DEPLOY.md is the original design only.
   pm2 resurrects on reboot (pm2 startup + pm2 save done).
 - Apache vhost: /etc/apache2/sites-available/coex.conf -> ProxyPass to localhost:3001.
 - Env: /srv/coex/app/.env
-    MONGODB_URI=mongodb://coex_app:***@127.0.0.1:27017/coex?authSource=admin
+    MONGODB_URI=mongodb://<user>:<password>@<host>/coex
     STORAGE_DIR=/srv/coex/shared/storage
     NODE_ENV=production
 - Uploads: /srv/coex/shared/storage (owned by digisol).

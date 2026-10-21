@@ -1,3 +1,5 @@
+import { TicketCustomer } from './ticket-customer';
+import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { customerReplySenders } from '@/modules/core/services/email.service';
 import { listCollaboratorOptions } from '@/modules/tickets/services/collaborator.service';
 import { notFound } from 'next/navigation';
@@ -11,11 +13,11 @@ import { mentionableUsers } from '@/modules/core/services/mention.service';
 import { getMyProfile } from '@/modules/core/services/user.service';
 import { renderSignature } from '@coex/shared/tickets/email-text';
 import { listSpaces } from '@/modules/tasks/services/space.service';
-import { STATUS_LABELS, CHANNEL_LABELS } from '@/modules/tickets/labels';
+import { CHANNEL_LABELS } from '@/modules/tickets/labels';
 import { Card, CardSection, Notice, PageHeader } from '@/components/ui';
 import { contractNoticeFor } from '@/modules/crm/services/contract.service';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
-import { StatusPill } from '@/components/ui/pill';
+import { TicketHistory } from './ticket-history';
 import { SlaChip } from '@/components/ui/sla';
 import { LiveRefresh } from '@/components/ui/live-refresh';
 import { formatDateTime } from '@coex/shared/tasks/dates';
@@ -29,7 +31,14 @@ import { ReplyBox } from './reply-box';
 import { TicketBar } from './properties';
 import { MarkTicketRead } from './mark-read';
 
-export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function TicketPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ messageOrder?: string }>;
+}) {
+  const order = (await searchParams).messageOrder === 'desc' ? 'desc' : 'asc';
   const actor = await requirePermission('ticket.read.own');
   const { id } = await params;
 
@@ -40,6 +49,8 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   if (!seesEverything && ticket.assigneeId !== actor.id) notFound();
 
   const canManage = actor.permissions.includes('ticket.manage');
+  const canEditCustomer = canManage && actor.permissions.includes('customer.read');
+  const customers = canEditCustomer ? await asUser(actor, () => listOrganisations()) : [];
   const collaboratorOptions = canManage ? await asUser(actor, () => listCollaboratorOptions()) : [];
   const senders = canManage ? await asUser(actor, () => customerReplySenders()) : [];
   const replyEmail = canManage ? await asUser(actor, () => customerReplyAddress(id)) : null;
@@ -89,19 +100,61 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
         ]}
       />
 
-      <div className="mt-2">
+      <div className="mt-2 [&>div]:mb-2">
         <PageHeader
           title={ticket.subject}
           description={
-            ticket.organisationName
-              ? `${ticket.organisationName}${ticket.contactName ? ` · ${ticket.contactName}` : ''}`
-              : ticket.requester
-                ? `Not linked to a customer yet · ${ticket.requester}`
-                : 'No customer on this ticket yet.'
+            <>
+              <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                <span>
+                  Created by:{' '}
+                  {ticket.requesterEmail ??
+                    ticket.messages.find(
+                      (message) => message.direction === 'inbound' && message.channel !== 'system',
+                    )?.authorName ??
+                    ticket.requester ??
+                    ticket.contactName ??
+                    'Unknown'}
+                </span>
+                <span>
+                  {CHANNEL_LABELS[ticket.channel] ?? ticket.channel} ·{' '}
+                  {formatDateTime(ticket.createdAt)}
+                </span>
+              </span>
+              <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                <span>
+                  {ticket.organisationName
+                    ? `${ticket.organisationName}${ticket.contactName ? ` · ${ticket.contactName}` : ''}`
+                    : 'No customer on this ticket yet'}
+                </span>
+                {canEditCustomer ? (
+                  <TicketCustomer
+                    id={id}
+                    organisationId={ticket.organisationId}
+                    contactId={ticket.contactId}
+                    customers={customers
+                      .filter((c) => c.status === 'active')
+                      .map((c) => ({ id: c.id, name: c.name }))}
+                  />
+                ) : null}
+                <SlaChip
+                  label="First reply"
+                  state={ticket.firstResponseState}
+                  dueAt={ticket.firstResponseDueAt}
+                />
+                <SlaChip
+                  label="Resolution"
+                  state={ticket.resolutionState}
+                  dueAt={ticket.resolutionDueAt}
+                />
+                <TicketHistory
+                  messages={ticket.messages.filter((message) => message.channel === 'system')}
+                />
+              </span>
+            </>
           }
           action={
             <div className="flex flex-col items-end gap-1">
-              <StatusPill status={STATUS_LABELS[ticket.status]} isClosed={!ticket.isOpen} />
               <span className="font-mono text-[11px] text-[var(--color-ink-subtle)]">
                 {ticket.number}
               </span>
@@ -141,7 +194,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
         </Card>
       ) : null}
 
-      <div className="mt-4 space-y-4">
+      <div className="mt-2 space-y-3">
         <TicketBar
           ticket={{
             id: ticket.id,
@@ -161,26 +214,6 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           users={users.map((user) => ({ id: user.id, name: user.name }))}
           spaces={spaces.map((space) => ({ id: space.id, name: space.name }))}
           canManage={canManage}
-          sla={
-            <>
-              <SlaChip
-                label="First reply"
-                state={ticket.firstResponseState}
-                dueAt={ticket.firstResponseDueAt}
-              />
-              <SlaChip
-                label="Resolution"
-                state={ticket.resolutionState}
-                dueAt={ticket.resolutionDueAt}
-              />
-            </>
-          }
-          facts={
-            <>
-              <span>{CHANNEL_LABELS[ticket.channel] ?? ticket.channel}</span>
-              <span>Raised {formatDateTime(ticket.createdAt)}</span>
-            </>
-          }
           timer={
             <>
               <TicketTimerButton
@@ -199,6 +232,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           }
           timeEntries={
             <TimeEntriesByPerson
+              alwaysExpanded
               people={timeByPerson.map((person) => ({
                 userId: person.userId,
                 name: person.name,
@@ -214,8 +248,6 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             />
           }
         />
-
-        <Conversation ticketId={ticket.id} messages={ticket.messages} />
 
         {canManage && !ticket.mergedIntoId ? (
           <ReplyBox
@@ -238,6 +270,12 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             autoSignature={ticket.queueAutoSign ? signature : ''}
           />
         ) : null}
+
+        <Conversation
+          order={order}
+          ticketId={ticket.id}
+          messages={ticket.messages.filter((message) => message.channel !== 'system')}
+        />
       </div>
     </div>
   );

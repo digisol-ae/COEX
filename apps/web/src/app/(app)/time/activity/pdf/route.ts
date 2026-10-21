@@ -6,6 +6,8 @@ import { buildReportFor } from '@/modules/time/services/activity-share.service';
 /** The Team activity page as a PDF download, with the filters carried in the address. */
 export async function GET(request: Request) {
   const user = await getSignedInUser();
+  if (user?.role === 'client_contact')
+    return Response.json({ error: 'Not allowed.' }, { status: 403 });
   if (!user) return new Response('Sign in first.', { status: 401 });
   if (!user.permissions.includes('timesheet.read.all')) {
     return new Response("You may not see everyone's activity.", { status: 403 });

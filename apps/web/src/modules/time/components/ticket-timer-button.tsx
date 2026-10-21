@@ -1,4 +1,5 @@
 'use client';
+import { UI_LABELS } from '@/components/ui/labels';
 
 import { useEffect, useState } from 'react';
 import { elapsedClock } from '@coex/shared/time/elapsed-clock';
@@ -38,7 +39,7 @@ export function TicketTimerButton({
           <span className="tabular-nums" aria-label="Elapsed time">
             {startedAt ? elapsedClock(startedAt, now ?? Date.parse(startedAt)) : '00:00:00'}
           </span>
-          <span className="ml-2">■ Stop timer</span>
+          <span className="ml-2">■ {UI_LABELS.stopTimer}</span>
         </Button>
       </form>
     );
@@ -52,7 +53,7 @@ export function TicketTimerButton({
         variant="secondary"
         className={compact ? '!px-2.5 !py-1 text-[12px]' : undefined}
       >
-        Start timer
+        {UI_LABELS.startTimer}
       </Button>
     </form>
   );

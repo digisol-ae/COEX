@@ -1,4 +1,12 @@
+## AI continuation
+
+Fresh-session handoff: [ai/START-HERE.md](ai/START-HERE.md), [compact context](ai/CONTEXT-2026-10-21.md). Current implementation is local; release state is separate.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## dOne support integration project — 18 Oct 2026
+
+Dedicated planning and AI continuity: [dOne ↔ COEX project](projects/done-coex-integration/README.md). Separate web application; Bilal frontend, Uzair backend, beginner deployment teammate. Waiting for dOne local setup/access; documentation base only, no integration implemented or deployment authorised.
 
 ## Getting Started
 

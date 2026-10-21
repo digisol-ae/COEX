@@ -1,5 +1,6 @@
 'use server';
 
+import { type ServiceModel } from '@coex/shared/crm/service-terms';
 import { revalidatePath } from 'next/cache';
 import { asUser, requirePermission } from '@/lib/session';
 import {
@@ -39,6 +40,8 @@ export async function saveProductAction(
   const id = text(formData, 'id');
 
   const input = {
+    serviceModels: formData.getAll('serviceModels').map(String) as ServiceModel[],
+    parentProductId: text(formData, 'parentProductId'),
     name: text(formData, 'name'),
     code: text(formData, 'code'),
     kind: toKind(text(formData, 'kind')),

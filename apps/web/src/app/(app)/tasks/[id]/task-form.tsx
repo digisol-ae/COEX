@@ -1,4 +1,5 @@
 'use client';
+import { UI_LABELS } from '@/components/ui/labels';
 
 import { useActionState, useState } from 'react';
 import { Button, Field, Input, Notice, Select } from '@/components/ui';
@@ -107,7 +108,7 @@ export function TaskForm({
         </Field>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Field label="Assigned to">
+          <Field label={UI_LABELS.assignedTo}>
             <select
               name="assigneeIds"
               multiple
@@ -205,7 +206,7 @@ export function TaskForm({
 
         <div className="flex items-center gap-3">
           <Button type="submit" disabled={pending}>
-            {pending ? 'Saving' : 'Save'}
+            {pending ? UI_LABELS.saving : UI_LABELS.save}
           </Button>
           {state.saved ? <Notice tone="ok">Saved.</Notice> : null}
           {state.error ? <Notice tone="alert">{state.error}</Notice> : null}

@@ -307,7 +307,12 @@ export function Board({
           },
         });
 
-        await setSubtaskDoneAction({ taskId: task.id, subtaskId, done, spaceId });
+        try {
+          const result = await setSubtaskDoneAction({ taskId: task.id, subtaskId, done, spaceId });
+          if (result.error) setEditError(result.error);
+        } catch {
+          setEditError('Could not update this subtask. Please try again.');
+        }
       });
     },
     onSubtaskAssignee: (task, subtaskId, assigneeId) => {

@@ -7,6 +7,7 @@ import { OptionMultiPicker } from '@/components/tasks/option-picker';
 
 /** Filters live in the address bar, so any view can be bookmarked or sent to a colleague. */
 export function TaskFilters({
+  personalWork,
   mine,
   overdue,
   unassigned,
@@ -19,6 +20,7 @@ export function TaskFilters({
   selectedSpaceIds,
   selectedAssigneeIds,
 }: {
+  personalWork: 'active' | 'done' | 'all';
   mine: boolean;
   overdue: boolean;
   unassigned: boolean;
@@ -37,6 +39,7 @@ export function TaskFilters({
   function go(next: { flags?: typeof current; spaceIds?: string[]; assigneeIds?: string[] }) {
     const flags = next.flags ?? current;
     const params = new URLSearchParams();
+    params.set('personalWork', personalWork);
 
     for (const [name, value] of Object.entries(flags)) {
       if (value) params.set(name, '1');
@@ -71,7 +74,23 @@ export function TaskFilters({
   ];
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="coex-filters flex flex-wrap items-center gap-1.5" aria-label="Task filters">
+      {mine ? (
+        <select
+          aria-label="My subtask visibility"
+          value={personalWork}
+          className="rounded-[var(--radius-control)] border border-[var(--color-line)] bg-transparent px-2 py-1 text-xs"
+          onChange={(event) => {
+            const params = new URLSearchParams(window.location.search);
+            params.set('personalWork', event.target.value);
+            router.push(`/tasks?${params}`);
+          }}
+        >
+          <option value="active">Active</option>
+          <option value="done">My subtask done</option>
+          <option value="all">All my work</option>
+        </select>
+      ) : null}
       <OptionMultiPicker
         label="Filter by space"
         allLabel="All spaces"

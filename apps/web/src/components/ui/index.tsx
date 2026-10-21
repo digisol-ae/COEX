@@ -15,24 +15,50 @@ export function PageHeader({
   action,
   icon,
   titleExtra,
+  descriptionInline = false,
 }: {
   title: string;
   description?: ReactNode;
+  descriptionInline?: boolean;
   action?: ReactNode;
   icon?: ReactNode;
   titleExtra?: ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+    <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
       <div className="flex items-start gap-3">
         {icon ? <span className="mt-1">{icon}</span> : null}
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-[var(--color-ink)]">{title}</h1>
+            {description && typeof description === 'string' && !descriptionInline ? (
+              <button
+                type="button"
+                aria-label={`About ${title}`}
+                data-tooltip={description}
+                className="has-tooltip inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-sunken)] focus-visible:outline-2 focus-visible:outline-offset-2"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 11v6M12 7v1" />
+                </svg>
+                <span className="sr-only">{description}</span>
+              </button>
+            ) : null}
             {titleExtra}
           </div>
-          {description ? (
-            <p className="mt-1 max-w-2xl text-sm text-[var(--color-ink-muted)]">{description}</p>
+          {description && (descriptionInline || typeof description !== 'string') ? (
+            <div className="mt-1 max-w-2xl text-sm text-[var(--color-ink-muted)]">
+              {description}
+            </div>
           ) : null}
         </div>
       </div>
@@ -129,7 +155,7 @@ export function Field({
 }
 
 const CONTROL_CLASSES =
-  'w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] outline-none';
+  'w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-2.5 py-1.5 text-sm text-[var(--color-ink)] outline-none';
 
 export function Input({ className, ...props }: ComponentProps<'input'>) {
   return <input {...props} className={clsx(CONTROL_CLASSES, className)} />;

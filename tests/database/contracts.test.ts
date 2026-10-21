@@ -393,6 +393,62 @@ describe('emailing contract contacts', () => {
     );
   });
 
+  it('offers team/customer addresses, defaults manager CC and validates sender/recipient edits', async () => {
+    await sendingOn();
+    const { id } = await contractWithContacts(['one@example.com']);
+    await UserModel.create({
+      tenantId: contextOne.tenantId,
+      name: 'Ali',
+      email: 'ali@digisol.ae',
+      role: 'tenant_admin',
+    });
+    const draft = await inOne(() => prepareContractEmail(id));
+    expect(draft.defaultCc).toEqual(['ali@digisol.ae']);
+    expect(draft.senders[0]?.role).toBe('standard');
+    expect(draft.addressOptions.some((a) => a.email === 'one@example.com')).toBe(true);
+    await expect(
+      inOne(() =>
+        sendContractEmail(id, { subject: 'QA', body: 'QA', to: ['invalid'], sender: 'standard' }),
+      ),
+    ).rejects.toThrow('Invalid');
+    await expect(
+      inOne(() =>
+        sendContractEmail(id, {
+          subject: 'QA',
+          body: 'QA',
+          to: ['qa@example.test'],
+          sender: 'spoof',
+        }),
+      ),
+    ).rejects.toThrow('configured');
+    expect(await EmailOutboxModel.countDocuments()).toBe(0);
+    await inOne(() =>
+      sendContractEmail(id, {
+        subject: 'QA',
+        body: 'QA',
+        to: ['qa@example.test', 'qa@example.test'],
+        cc: ['ali@digisol.ae', 'qa@example.test'],
+        sender: 'standard',
+      }),
+    );
+    const outbox = await EmailOutboxModel.find();
+    expect(outbox).toHaveLength(1);
+    expect(outbox[0]).toMatchObject({
+      to: 'qa@example.test',
+      cc: ['ali@digisol.ae'],
+      sender: 'standard',
+    });
+    await inOne(() =>
+      sendContractEmail(id, {
+        subject: 'No CC',
+        body: 'QA',
+        to: ['qa2@example.test'],
+        cc: [],
+        sender: 'standard',
+      }),
+    );
+    expect((await EmailOutboxModel.findOne({ to: 'qa2@example.test' }))?.cc).toEqual([]);
+  });
   it('offers the template that fits and refuses contacts from another customer', async () => {
     await sendingOn();
     const { id } = await contractWithContacts(['one@example.com']);

@@ -17,7 +17,13 @@ export interface PersonTime {
  * every name was ugly). Each line shows the person and their total; the history icon opens that
  * person's entries, newest first, and closes them again. Shared by the task and the ticket page.
  */
-export function TimeEntriesByPerson({ people }: { people: PersonTime[] }) {
+export function TimeEntriesByPerson({
+  people,
+  alwaysExpanded = false,
+}: {
+  people: PersonTime[];
+  alwaysExpanded?: boolean;
+}) {
   const [open, setOpen] = useState<string[]>([]);
 
   function toggle(userId: string) {
@@ -29,15 +35,20 @@ export function TimeEntriesByPerson({ people }: { people: PersonTime[] }) {
   return (
     <ul className="divide-y divide-[var(--color-line)]">
       {people.map((person) => {
-        const expanded = open.includes(person.userId);
+        const expanded = alwaysExpanded || open.includes(person.userId);
+        const Header = alwaysExpanded ? 'div' : 'button';
 
         return (
           <li key={person.userId} className="py-2">
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => toggle(person.userId)}
-                aria-expanded={expanded}
+              <Header
+                {...(!alwaysExpanded
+                  ? {
+                      type: 'button' as const,
+                      onClick: () => toggle(person.userId),
+                      'aria-expanded': expanded,
+                    }
+                  : {})}
                 className="flex min-w-0 flex-1 items-baseline gap-2 text-left"
               >
                 <span className="truncate text-sm font-medium text-[var(--color-ink)]">
@@ -49,14 +60,18 @@ export function TimeEntriesByPerson({ people }: { people: PersonTime[] }) {
                 <span className="ml-auto shrink-0 text-sm font-medium text-[var(--color-ink)] tabular-nums">
                   {formatMinutes(person.minutes)}
                 </span>
-              </button>
+              </Header>
 
-              <IconButton
-                icon="history"
-                label={expanded ? `Hide ${person.name}'s entries` : `Show ${person.name}'s entries`}
-                onClick={() => toggle(person.userId)}
-                className={clsx(expanded && 'text-[var(--color-ink)]')}
-              />
+              {!alwaysExpanded ? (
+                <IconButton
+                  icon="history"
+                  label={
+                    expanded ? `Hide ${person.name}'s entries` : `Show ${person.name}'s entries`
+                  }
+                  onClick={() => toggle(person.userId)}
+                  className={clsx(expanded && 'text-[var(--color-ink)]')}
+                />
+              ) : null}
             </div>
 
             {expanded ? (

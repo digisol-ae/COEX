@@ -1,3 +1,4 @@
+import { DetailPopup } from '@/components/ui/detail-popup';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
 import { getOpportunity } from '@/modules/crm/services/opportunity.service';
@@ -6,7 +7,7 @@ import { fromMinorUnits, listProducts } from '@/modules/crm/services/product.ser
 import { historyFor } from '@/modules/core/services/audit.service';
 import { todayKey } from '@coex/shared/crm/contract-status';
 import { lacksNextStep, nextStepOverdue } from '@coex/shared/crm/opportunity-rules';
-import { FactBadge, FactGlyph, FactRow } from '@/components/ui/fact-badge';
+import { FactBadge, FactRow } from '@/components/ui/fact-badge';
 import { Badge, Card, CardSection, Notice, PageHeader } from '@/components/ui';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { ContractPanel } from '@/app/(app)/contracts/contract-panel';
@@ -63,8 +64,9 @@ export default async function OpportunityPage({
 
       <div className="mt-2">
         <PageHeader
+          descriptionInline
           title={opportunity.title}
-          description={`${opportunity.organisationName} · owner ${opportunity.ownerName}`}
+          description={`${opportunity.organisationName} · ${opportunity.serviceModel === 'subscription' ? 'Subscription' : 'Contractual'} · owner ${opportunity.ownerName}`}
           action={
             <div className="flex items-center gap-2">
               <Badge tone={STATUS_TONE[opportunity.status]}>{opportunity.stageName}</Badge>
@@ -89,7 +91,7 @@ export default async function OpportunityPage({
         />
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {lacksNextStep(opportunity) ? (
           <Notice tone="warn">This opportunity has no next step. Add one from the list.</Notice>
         ) : null}
@@ -97,7 +99,7 @@ export default async function OpportunityPage({
           <Notice tone="alert">The next step was due on {opportunity.nextStepDate}.</Notice>
         ) : null}
 
-        <Card>
+        <Card className="!bg-transparent !shadow-none">
           <CardSection>
             <FactRow>
               <FactBadge
@@ -166,7 +168,12 @@ export default async function OpportunityPage({
                 prefill={{
                   organisationId: opportunity.organisationId,
                   title: opportunity.title,
-                  type: opportunity.recurringMinorUnits > 0 ? 'amc' : 'project',
+                  type:
+                    opportunity.serviceModel === 'subscription'
+                      ? 'subscription'
+                      : opportunity.recurringMinorUnits > 0
+                        ? 'amc'
+                        : 'project',
                   startDate: startToday,
                   endDate: suggestedEndDate(startToday),
                   billingFrequency: 'yearly',
@@ -185,47 +192,40 @@ export default async function OpportunityPage({
           </Card>
         ) : null}
 
-        <details className="group rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)]">
-          <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]">
-            <FactGlyph name="clock" />
-            <span className="font-medium">History</span>
-            <span className="text-xs text-[var(--color-ink-subtle)]">
-              {history.length} change{history.length === 1 ? '' : 's'}
-            </span>
-            <span aria-hidden="true" className="ml-auto text-xs group-open:rotate-180">
-              ▾
-            </span>
-          </summary>
-          <div className="border-t border-[var(--color-line)] px-4 py-3">
-            {history.length === 0 ? (
-              <p className="text-sm text-[var(--color-ink-muted)]">Nothing recorded yet.</p>
-            ) : (
-              <ol className="space-y-2 text-sm">
-                {[...history].reverse().map((row) => (
-                  <li key={row.id}>
-                    <span className="font-medium">
-                      {row.action.replace('opportunity.', '').replace('_', ' ')}
-                    </span>{' '}
-                    <span className="text-[var(--color-ink-subtle)]">
-                      by {row.actorName} on {row.at.toISOString().slice(0, 10)}
-                    </span>
-                    {row.changes.length ? (
-                      <ul className="ml-4 list-disc text-[var(--color-ink-muted)]">
-                        {row.changes.map((change) => (
-                          <li key={change.field}>
-                            {change.field}:{' '}
-                            {change.from === undefined ? '' : `${String(change.from)} → `}
-                            {String(change.to)}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-        </details>
+        <div className="flex items-center gap-2 text-xs text-[var(--color-ink-muted)]">
+          <span>{history.length} history entries</span>
+          <DetailPopup title="Opportunity history">
+            <div className="border-t border-[var(--color-line)] px-4 py-3">
+              {history.length === 0 ? (
+                <p className="text-sm text-[var(--color-ink-muted)]">Nothing recorded yet.</p>
+              ) : (
+                <ol className="space-y-2 text-sm">
+                  {[...history].reverse().map((row) => (
+                    <li key={row.id}>
+                      <span className="font-medium">
+                        {row.action.replace('opportunity.', '').replace('_', ' ')}
+                      </span>{' '}
+                      <span className="text-[var(--color-ink-subtle)]">
+                        by {row.actorName} on {row.at.toISOString().slice(0, 10)}
+                      </span>
+                      {row.changes.length ? (
+                        <ul className="ml-4 list-disc text-[var(--color-ink-muted)]">
+                          {row.changes.map((change) => (
+                            <li key={change.field}>
+                              {change.field}:{' '}
+                              {change.from === undefined ? '' : `${String(change.from)} → `}
+                              {String(change.to)}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          </DetailPopup>
+        </div>
       </div>
     </div>
   );

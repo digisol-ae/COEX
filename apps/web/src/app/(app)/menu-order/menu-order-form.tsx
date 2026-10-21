@@ -69,7 +69,7 @@ export function MenuOrderForm({ groups, standard }: { groups: Group[]; standard:
             )
           }
         >
-          {saving ? 'Saving…' : 'Save my order'}
+          {saving ? 'Saving' : 'Save'}
         </Button>
         <Button
           type="button"

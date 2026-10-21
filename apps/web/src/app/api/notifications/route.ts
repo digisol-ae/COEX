@@ -16,6 +16,8 @@ const MAX_EVENTS = 20;
 
 export async function GET(request: Request) {
   const user = await getSignedInUser();
+  if (user?.role === 'client_contact')
+    return Response.json({ error: 'Not allowed.' }, { status: 403 });
   if (!user) return Response.json({ error: 'Sign in first.' }, { status: 401 });
 
   const asked = new URL(request.url).searchParams.get('since');

@@ -642,6 +642,7 @@ export interface TicketMessageView {
 }
 
 export interface TicketDetail extends TicketSummary {
+  requesterEmail: string | null;
   ccEmails: string[];
   contactId: string | null;
   productId: string | null;
@@ -683,8 +684,19 @@ export async function getTicketDetail(id: string): Promise<TicketDetail | null> 
       : null,
   ]);
 
+  const historyUsers = await UserModel.find({
+    tenantId: getContext().tenantId,
+    _id: {
+      $in: messages
+        .filter((message) => message.channel === 'system' && message.authorUserId)
+        .map((message) => message.authorUserId),
+    },
+  }).select('name');
+  const historyNames = new Map(historyUsers.map((user) => [String(user._id), user.name]));
+
   return {
     ...summary,
+    requesterEmail: ticket.requesterEmail ?? null,
     ccEmails: ticket.ccEmails ?? [],
     contactId: ticket.contactId ? String(ticket.contactId) : null,
     productId: ticket.productId ? String(ticket.productId) : null,
@@ -708,7 +720,11 @@ export async function getTicketDetail(id: string): Promise<TicketDetail | null> 
       visibility: message.visibility as 'public' | 'internal',
       direction: message.direction as 'inbound' | 'outbound',
       body: message.body,
-      authorName: message.authorName,
+      authorName:
+        message.channel === 'system' && message.authorName === 'COEX'
+          ? (historyNames.get(String(message.authorUserId)) ??
+            (message.authorUserId ? 'User no longer available' : 'COEX (automatic)'))
+          : message.authorName,
       channel: message.channel,
       sentAt: message.sentAt ?? message.createdAt,
       attachments: (message.attachments ?? []).map((attachment) => ({
@@ -1024,6 +1040,10 @@ export async function searchTickets(term: string, excludeId?: string): Promise<T
 
 /** A line in the conversation that nobody typed: a merge, an escalation, a status change. */
 async function systemMessage(ticketId: Types.ObjectId, body: string): Promise<void> {
+  const author = await UserModel.findOne({
+    _id: getContext().userId,
+    tenantId: getContext().tenantId,
+  }).select('name');
   await TicketMessageModel.create({
     tenantId: getContext().tenantId,
     ticketId,
@@ -1031,7 +1051,7 @@ async function systemMessage(ticketId: Types.ObjectId, body: string): Promise<vo
     direction: 'outbound',
     body,
     authorUserId: getContext().userId,
-    authorName: 'COEX',
+    authorName: author?.name ?? 'COEX',
     channel: 'system',
   });
 }
@@ -1183,4 +1203,50 @@ async function alertTicketAssignee(
       `${appBaseUrl()}/support/tickets/${ticket._id}`,
     ],
   );
+}
+
+export async function setTicketCustomer(
+  ticketId: string,
+  organisationId: string,
+  contactId: string,
+): Promise<void> {
+  await connectToDatabase();
+  const ticket = await tickets().findById(ticketId);
+  if (!ticket) throw new Error('Ticket not found.');
+  if (ticket.mergedIntoId) throw new Error('A merged ticket cannot be reassigned to a customer.');
+  let organisation = null,
+    contact = null;
+  if (organisationId) {
+    organisation = await repository(OrganisationModel).findOne({
+      _id: toObjectId(organisationId),
+      status: 'active',
+    });
+    if (!organisation) throw new Error('Choose an active customer.');
+  }
+  if (contactId) {
+    if (!organisation) throw new Error('Choose the customer first.');
+    contact = await repository(ContactModel).findOne({
+      _id: toObjectId(contactId),
+      organisationId: organisation._id,
+      status: 'active',
+    });
+    if (!contact) throw new Error('Contact must belong to the selected customer.');
+  }
+  const before = { organisationId: ticket.organisationId, contactId: ticket.contactId };
+  const after = { organisationId: organisation?._id ?? null, contactId: contact?._id ?? null };
+  await tickets().updateOne(
+    { _id: ticket._id },
+    { $set: { ...after, lastActivityAt: new Date() } },
+  );
+  await systemMessage(
+    ticket._id,
+    `Customer/contact changed to ${organisation?.name ?? 'No customer'}${contact ? ` · ${contact.name}` : ''}.`,
+  );
+  await recordAudit({
+    action: 'ticket.customer_changed',
+    entityType: 'Ticket',
+    entityId: ticket._id,
+    before,
+    after,
+  });
 }

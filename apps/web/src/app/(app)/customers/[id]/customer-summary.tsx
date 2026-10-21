@@ -72,11 +72,7 @@ export function CustomerSummary({
         </div>
 
         {editable ? (
-          <IconButton
-            icon="edit"
-            label="Edit the customer's details"
-            onClick={() => setOpen(true)}
-          />
+          <IconButton icon="edit" label="Edit customer" onClick={() => setOpen(true)} />
         ) : null}
       </div>
 

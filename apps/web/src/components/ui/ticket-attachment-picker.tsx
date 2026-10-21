@@ -1,4 +1,5 @@
 'use client';
+import { UI_LABELS } from '@/components/ui/labels';
 
 import { useEffect, useRef, useState } from 'react';
 import { Notice } from '@/components/ui';
@@ -8,7 +9,15 @@ const MAX_FILE_BYTES = 3 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 10 * 1024 * 1024;
 
 /** Keep the accumulated selection on a separate input so each new picker batch can be cleared. */
-export function TicketAttachmentPicker({ disabled = false }: { disabled?: boolean }) {
+export function TicketAttachmentPicker({
+  disabled = false,
+  imagesOnly = false,
+  label,
+}: {
+  disabled?: boolean;
+  imagesOnly?: boolean;
+  label?: string;
+}) {
   const [files, setFiles] = useState<File[]>([]);
   const [dragging, setDragging] = useState(false);
   const picker = useRef<HTMLInputElement>(null);
@@ -21,10 +30,26 @@ export function TicketAttachmentPicker({ disabled = false }: { disabled?: boolea
     setFiles(next);
   }
 
-  function addFiles(incoming: FileList | null) {
+  function addFiles(incoming: FileList | File[] | null) {
     if (!incoming || disabled) return;
     updateFiles([...files, ...Array.from(incoming)]);
   }
+
+  useEffect(() => {
+    const form = submission.current?.form;
+    function paste(event: ClipboardEvent) {
+      if (disabled) return;
+      const images = Array.from(event.clipboardData?.items ?? [])
+        .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+        .map((item) => item.getAsFile())
+        .filter((file): file is File => file !== null);
+      if (!images.length) return;
+      event.preventDefault();
+      addFiles(images);
+    }
+    form?.addEventListener('paste', paste);
+    return () => form?.removeEventListener('paste', paste);
+  });
 
   useEffect(() => {
     const form = submission.current?.form;
@@ -45,6 +70,7 @@ export function TicketAttachmentPicker({ disabled = false }: { disabled?: boolea
     <div className="space-y-2">
       <input ref={submission} type="file" name="files" multiple hidden disabled={disabled} />
       <input
+        accept={imagesOnly ? 'image/png,image/jpeg,image/webp' : undefined}
         ref={picker}
         type="file"
         multiple
@@ -71,9 +97,14 @@ export function TicketAttachmentPicker({ disabled = false }: { disabled?: boolea
         }}
         className={`w-full rounded-[var(--radius-control)] border-2 border-dashed px-3 py-4 text-center text-sm text-[var(--color-ink-muted)] disabled:opacity-50 ${dragging ? 'border-[var(--color-ink)] bg-[var(--color-surface-muted)]' : 'border-[var(--color-line)] bg-[var(--color-surface)]'}`}
       >
-        <span className="block font-medium">Drop files here or click to attach</span>
+        <span className="block font-medium">
+          {label ??
+            (imagesOnly
+              ? 'Paste an image, drop screenshots here, or click to attach'
+              : 'Drop files here, paste an image, or click to attach')}
+        </span>
         <span className="mt-1 block text-[11px] text-[var(--color-ink-subtle)]">
-          Add files one by one or together · 3 MB per file · 10 MB total
+          Paste images with Ctrl+V / ⌘V · 3 MB per file · 10 MB total
         </span>
       </button>
       {files.length > 0 ? (
@@ -83,21 +114,20 @@ export function TicketAttachmentPicker({ disabled = false }: { disabled?: boolea
               key={index}
               className="flex items-center gap-2 rounded-[var(--radius-control)] border border-[var(--color-line)] px-2 py-1.5 text-xs text-[var(--color-ink-muted)]"
             >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                className="h-7 w-7 shrink-0"
-              >
-                <path d="M6 3h8l4 4v14H6zM14 3v5h4" />
-                {file.type.startsWith('image/') ? (
-                  <path d="m8 17 3-4 2 2 2-3 2 5M9 10h.01" />
-                ) : (
-                  <path d="M9 12h6M9 16h6" />
-                )}
-              </svg>
+              {file.type.startsWith('image/') ? (
+                <ImagePreview key={`${file.name}-${file.lastModified}-${file.size}`} file={file} />
+              ) : (
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  className="h-7 w-7 shrink-0"
+                >
+                  <path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6" />
+                </svg>
+              )}
               <span className="min-w-0 flex-1">
                 <span className="block truncate" title={file.name}>
                   {file.name}
@@ -128,5 +158,52 @@ export function TicketAttachmentPicker({ disabled = false }: { disabled?: boolea
         </Notice>
       ) : null}
     </div>
+  );
+}
+
+/** Local object URLs never upload the image; release them when a file is removed or replaced. */
+function ImagePreview({ file }: { file: File }) {
+  const image = useRef<HTMLImageElement>(null);
+  const fullImage = useRef<HTMLImageElement>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    if (image.current) image.current.src = url;
+    if (fullImage.current) fullImage.current.src = url;
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={`Preview ${file.name}`}
+        title="Preview image before sending"
+        onClick={() => dialog.current?.showModal()}
+        className="shrink-0 rounded border border-[var(--color-line)] bg-[var(--color-surface-muted)] p-1 focus-visible:outline-2"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- Local clipboard/file preview. */}
+        <img ref={image} alt={`Preview of ${file.name}`} className="h-20 w-28 object-contain" />
+      </button>
+      <dialog
+        ref={dialog}
+        aria-label={`Image preview: ${file.name}`}
+        className="popup-glass m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-4xl overflow-auto p-4 text-[var(--color-ink)]"
+      >
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <p className="truncate text-sm font-medium">{file.name} · Preview before sending</p>
+          <IconButton
+            icon="close"
+            label={UI_LABELS.close}
+            onClick={() => dialog.current?.close()}
+          />
+        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element -- Local clipboard/file preview. */}
+        <img
+          ref={fullImage}
+          alt={file.name}
+          className="mx-auto max-h-[75vh] max-w-full object-contain"
+        />
+      </dialog>
+    </>
   );
 }

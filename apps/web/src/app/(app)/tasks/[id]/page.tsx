@@ -1,3 +1,7 @@
+import { TaskAddTime } from '@/modules/time/components/ticket-add-time';
+import { FactBadge } from '@/components/ui/fact-badge';
+import { DetailPopup } from '@/components/ui/detail-popup';
+import { Avatar } from '@/components/ui/avatar';
 import { DeskTaskButton } from '@/components/tasks/desk-task-button';
 import { TaskOriginSummary } from '@/components/tasks/task-origin-summary';
 import Link from 'next/link';
@@ -15,7 +19,7 @@ import {
 import { getSpace } from '@/modules/tasks/services/space.service';
 import { listFolders } from '@/modules/tasks/services/folder.service';
 import { listUsers } from '@/modules/core/services/user.service';
-import { Badge, Card, CardSection, PageHeader } from '@/components/ui';
+import { Badge, PageHeader } from '@/components/ui';
 import {
   getRunningTimer,
   listTaskTimeByPerson,
@@ -28,9 +32,10 @@ import { toDateTimeInput } from '@coex/shared/tasks/dates';
 import { TimerButton } from '@/modules/time/components/timer-button';
 import { TaskForm } from './task-form';
 import { SubtaskList } from './subtask-list';
-import { DocumentLinks } from './document-links';
+import { TaskFilesDrawer } from './task-files-drawer';
 import { TaskComments } from './task-comments';
 import { TaskStatus } from './task-status';
+import { MySubtaskDone } from './my-subtask-done';
 
 export default async function TaskPage({ params }: { params: Promise<{ id: string }> }) {
   const actor = await requirePermission('task.read.own');
@@ -91,7 +96,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
     .map((user) => ({ id: user.id, name: user.name }));
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-6xl">
       <Link
         href={`/spaces/${String(task.spaceId)}`}
         className="text-sm text-[var(--color-ink-muted)] underline-offset-4 hover:underline"
@@ -99,9 +104,25 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
         Back to {space?.name ?? 'space'}
       </Link>
 
-      <div className="mt-3">
+      <div className="mt-2 [&>div]:mb-2">
         <PageHeader
           title={task.title}
+          action={
+            <div className="ml-auto shrink-0">
+              <TaskFilesDrawer
+                taskId={id}
+                canManage={canManage}
+                links={task.documentLinks.map((link) => ({
+                  id: String(link._id),
+                  url: link.url,
+                  title: link.title,
+                }))}
+                attachments={comments.flatMap((comment) =>
+                  comment.attachments.map((file) => ({ ...file, authorName: comment.authorName })),
+                )}
+              />
+            </div>
+          }
           description={
             <>
               {task.number} · {space?.name ?? ''}
@@ -119,10 +140,35 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
               ) : null}
             </>
           }
-          action={
-            <div className="flex flex-wrap items-center gap-2">
+        />
+      </div>
+
+      <div className="mb-2">
+        <TaskOriginSummary
+          origin={origin}
+          viewerId={actor.id}
+          people={users.map(({ id, name }) => ({ id, name }))}
+        />
+      </div>
+
+      <div className="space-y-3">
+        <div className="space-y-3">
+          <section className="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-transparent px-3 py-2">
+            <div className="coex-filters flex flex-wrap items-center gap-2">
               <DeskTaskButton taskId={id} assigneeIds={assignedIds} />
-              <TimerButton taskId={id} running={timer?.kind === 'task' && timer?.itemId === id} />
+              {assignedIds.includes(actor.id) ? (
+                <MySubtaskDone
+                  taskId={id}
+                  done={(task.mySubtaskDoneByIds ?? []).some((value) => String(value) === actor.id)}
+                />
+              ) : null}
+              <TimerButton
+                compact
+                taskId={id}
+                running={timer?.kind === 'task' && timer?.itemId === id}
+              />
+              <TaskAddTime compact taskId={id} />
+
               {canManage && space ? (
                 <TaskStatus
                   taskId={id}
@@ -139,58 +185,133 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
                 <Badge tone={task.priority === 'urgent' ? 'alert' : 'warn'}>{task.priority}</Badge>
               ) : null}
             </div>
-          }
-        />
-      </div>
-
-      <div className="-mt-4 mb-4">
-        <TaskOriginSummary
-          origin={origin}
-          viewerId={actor.id}
-          people={users.map(({ id, name }) => ({ id, name }))}
-        />
-      </div>
-
-      <div className="space-y-4">
-        <div className="space-y-4">
-          <Card>
-            <CardSection title="Details">
-              <TaskForm
-                canManage={canManage}
-                users={ownerChoices}
-                task={{
-                  id,
-                  title: task.title,
-                  description: task.description ?? '',
-                  priority: task.priority,
-                  assigneeIds: task.assigneeIds.map((value) => String(value)),
-                  startAt: toDateTimeInput(task.startAt),
-                  endAt: toDateTimeInput(task.endAt),
-                  estimateHours: task.estimateMinutes ? String(task.estimateMinutes / 60) : '',
-                  tags: (task.tags ?? []).join(', '),
-                  folderId: task.folderId ? String(task.folderId) : '',
-                }}
-                folders={folders.map((folder) => ({
-                  id: folder.id,
-                  name: folder.name,
-                  isPrivate: folder.isPrivate,
-                }))}
-              />
-            </CardSection>
-          </Card>
+            <div className="my-2 border-t border-[var(--color-line)]" />
+            <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--color-ink-muted)]">
+              <span className="font-medium">Assigned to:</span>
+              {assignedIds.length ? (
+                ownerChoices
+                  .filter((user) => assignedIds.includes(user.id))
+                  .map((user) => (
+                    <span
+                      key={user.id}
+                      className="inline-flex items-center gap-1 rounded-full border border-[var(--color-line)] px-2 py-0.5"
+                    >
+                      <Avatar name={user.name} size="small" />
+                      {user.name}
+                      {(task.mySubtaskDoneByIds ?? []).some(
+                        (value) => String(value) === user.id,
+                      ) ? (
+                        <span className="text-[10px] text-[var(--color-status-ok)]">
+                          ✓ My subtask done
+                        </span>
+                      ) : null}
+                    </span>
+                  ))
+              ) : (
+                <span>Unassigned</span>
+              )}
+              <FactBadge icon="alert" label="Priority">
+                {task.priority}
+              </FactBadge>
+              <span>
+                Starts: {task.startAt ? toDateTimeInput(task.startAt).replace('T', ' ') : 'No date'}
+              </span>
+              <span>
+                Due: {task.endAt ? toDateTimeInput(task.endAt).replace('T', ' ') : 'No date'}
+              </span>
+              {task.folderId ? (
+                <span>{folders.find((folder) => folder.id === String(task.folderId))?.name}</span>
+              ) : null}
+              {task.tags?.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center rounded-full border border-[var(--color-line)] px-2 py-0.5 text-xs"
+                  aria-label={`Tag: ${tag}`}
+                >
+                  #{tag}
+                </span>
+              ))}
+              {canManage ? (
+                <DetailPopup title="Edit task" icon="edit">
+                  <TaskForm
+                    canManage={canManage}
+                    users={ownerChoices}
+                    task={{
+                      id,
+                      title: task.title,
+                      description: task.description ?? '',
+                      priority: task.priority,
+                      assigneeIds: task.assigneeIds.map((value) => String(value)),
+                      startAt: toDateTimeInput(task.startAt),
+                      endAt: toDateTimeInput(task.endAt),
+                      estimateHours: task.estimateMinutes ? String(task.estimateMinutes / 60) : '',
+                      tags: (task.tags ?? []).join(', '),
+                      folderId: task.folderId ? String(task.folderId) : '',
+                    }}
+                    folders={folders.map((folder) => ({
+                      id: folder.id,
+                      name: folder.name,
+                      isPrivate: folder.isPrivate,
+                    }))}
+                  />
+                </DetailPopup>
+              ) : null}
+            </div>
+            {task.description ? (
+              <p className="mt-2 border-t border-[var(--color-line)] pt-2 text-sm whitespace-pre-wrap text-[var(--color-ink)] [overflow-wrap:anywhere]">
+                {task.description}
+              </p>
+            ) : null}
+          </section>
 
           <TaskTimeSummary
             yourTime={formatMinutes(loggedMinutes)}
+            agents={
+              actor.permissions.includes('timesheet.read.all')
+                ? [
+                    ...new Map([
+                      ...users
+                        .filter((user) => assignedIds.includes(user.id))
+                        .map(
+                          (user) =>
+                            [
+                              user.id,
+                              {
+                                id: user.id,
+                                name: user.name,
+                                time: formatMinutes(
+                                  timeByPerson.find((person) => person.userId === user.id)
+                                    ?.minutes ?? 0,
+                                ),
+                              },
+                            ] as const,
+                        ),
+                      ...timeByPerson.map(
+                        (person) =>
+                          [
+                            person.userId,
+                            {
+                              id: person.userId,
+                              name: person.name,
+                              time: formatMinutes(person.minutes),
+                            },
+                          ] as const,
+                      ),
+                    ]).values(),
+                  ]
+                : []
+            }
             estimate={task.estimateMinutes ? formatMinutes(task.estimateMinutes) : null}
             overEstimate={Boolean(task.estimateMinutes && loggedMinutes > task.estimateMinutes)}
             allPeople={
-              actor.permissions.includes('timesheet.read.all') && timeByPerson.length > 0
+              actor.permissions.includes('timesheet.read.all')
                 ? formatMinutes(timeByPerson.reduce((sum, p) => sum + p.minutes, 0))
                 : null
             }
             hasEntries={timeByPerson.length > 0}
           >
             <TimeEntriesByPerson
+              alwaysExpanded
               people={timeByPerson.map((person) => ({
                 userId: person.userId,
                 name: person.name,
@@ -223,16 +344,6 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
               title: subtask.title,
               done: subtask.done ?? false,
               assigneeId: subtask.assigneeId ? String(subtask.assigneeId) : null,
-            }))}
-          />
-
-          <DocumentLinks
-            taskId={id}
-            canManage={canManage}
-            links={task.documentLinks.map((link) => ({
-              id: String(link._id),
-              url: link.url,
-              title: link.title,
             }))}
           />
         </div>

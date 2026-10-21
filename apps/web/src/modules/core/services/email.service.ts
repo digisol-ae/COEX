@@ -1025,3 +1025,18 @@ export async function standardSenderLabel(): Promise<string> {
   if (!outbound?.fromAddress) return 'The standard sender (not set up yet)';
   return header(outbound.fromName, outbound.fromAddress);
 }
+
+/** Only configured sending identities can be selected; arbitrary From spoofing is not allowed. */
+export async function contractEmailSenders(): Promise<CustomerReplySender[]> {
+  const configured = await customerReplySenders();
+  const settings = await settingsFor(getContext().tenantId);
+  if (!settings?.outbound?.enabled) return [];
+  const sender = settings.senders?.contracts;
+  if (sender?.fromAddress)
+    configured.unshift({
+      role: 'contracts',
+      address: sender.fromAddress,
+      name: sender.fromName || 'Contracts',
+    });
+  return configured;
+}

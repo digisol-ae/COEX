@@ -1,24 +1,25 @@
 'use client';
+import { TaskFilesDrawer } from '@/app/(app)/tasks/[id]/task-files-drawer';
+import { TicketAttachmentPicker } from '@/components/ui/ticket-attachment-picker';
+import { AttachmentItem } from '@/app/(app)/support/tickets/[id]/attachment-item';
+import { UI_LABELS } from '@/components/ui/labels';
+
+import { BubbleText } from '@/app/(app)/support/tickets/[id]/bubble-text';
 
 import { DeskTaskButton } from '@/components/tasks/desk-task-button';
 
 import Link from 'next/link';
 import { useActionState, useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { clsx } from 'clsx';
-import { Button, Input, Notice } from '@/components/ui';
-import { IconButton, IconLink } from '@/components/ui/icon-button';
+import { Button, Notice } from '@/components/ui';
+import { IconLink } from '@/components/ui/icon-button';
 import { StatusDot } from '@/components/ui/pill';
 import { formatMinutes } from '@coex/shared/time/week';
 import { formatDateTime } from '@coex/shared/tasks/dates';
 import { MentionTextarea, type MentionPerson } from '@/components/ui/mention-textarea';
 import type { TaskOrigin, TaskSummary } from '@/modules/tasks/services/task.service';
 import { TaskOriginSummary } from './task-origin-summary';
-import {
-  addDocumentAction,
-  addTaskCommentAction,
-  removeDocumentAction,
-  type TaskFormState,
-} from '@/app/(app)/tasks/actions';
+import { addTaskCommentAction, type TaskFormState } from '@/app/(app)/tasks/actions';
 import {
   AssigneePicker,
   CalendarIcon,
@@ -60,6 +61,8 @@ interface PanelDetail {
   viewerId: string;
   /** The task's work updates, oldest first, for the compact Updates section. */
   comments: {
+    attachments?: { id: string; fileName: string; contentType: string; bytes: number }[];
+    isSystem?: boolean;
     id: string;
     body: string;
     authorName: string;
@@ -106,16 +109,12 @@ export function TaskPanel({
   const [subtaskTitle, setSubtaskTitle] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
-  const [docState, docFormAction, docPending] = useActionState<TaskFormState, FormData>(
-    addDocumentAction,
-    {},
-  );
+  const [visibleUpdates, setVisibleUpdates] = useState(3);
   const [commentState, commentFormAction, commentPending] = useActionState<TaskFormState, FormData>(
     addTaskCommentAction,
     {},
   );
   const commentForm = useRef<HTMLFormElement>(null);
-  const [showUpdates, setShowUpdates] = useState(false);
 
   const { canManage, users } = handlers;
   const columns = handlers.columnsFor(task);
@@ -168,24 +167,10 @@ export function TaskPanel({
   }, [onClose]);
 
   useEffect(() => {
-    if (docState.saved) return loadDetail();
-  }, [docState, loadDetail]);
-
-  useEffect(() => {
     if (!commentState.saved) return;
     commentForm.current?.reset();
     return loadDetail();
   }, [commentState, loadDetail]);
-
-  function removeLink(linkId: string) {
-    startTransition(async () => {
-      const form = new FormData();
-      form.set('taskId', task.id);
-      form.set('linkId', linkId);
-      await removeDocumentAction(form);
-      loadDetail();
-    });
-  }
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end">
@@ -234,7 +219,7 @@ export function TaskPanel({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={UI_LABELS.close}
             className="flex h-7 w-7 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-ink-subtle)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
@@ -249,6 +234,21 @@ export function TaskPanel({
         </header>
 
         <div className="space-y-4 px-4 py-4">
+          {detail ? (
+            <div className="flex justify-end">
+              <TaskFilesDrawer
+                taskId={task.id}
+                canManage={canManage}
+                links={detail.documentLinks}
+                attachments={detail.comments.flatMap((comment) =>
+                  (comment.attachments ?? []).map((file) => ({
+                    ...file,
+                    authorName: comment.authorName,
+                  })),
+                )}
+              />
+            </div>
+          ) : null}
           {error ? <Notice tone="alert">{error}</Notice> : null}
 
           <textarea
@@ -275,7 +275,7 @@ export function TaskPanel({
           ) : null}
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 text-[13px]">
-            <Meta label="Assignees">
+            <Meta label={UI_LABELS.assignedTo}>
               <AssigneePicker
                 users={ownerOptions}
                 selectedIds={task.assigneeIds}
@@ -402,32 +402,31 @@ export function TaskPanel({
                 <h3 className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
                   Updates {detail.comments.length > 0 ? `· ${detail.comments.length}` : ''}
                 </h3>
-                {detail.comments.length > 0 ? (
-                  <IconButton
-                    icon="history"
-                    label={showUpdates ? 'Hide the updates' : 'Show all updates'}
-                    onClick={() => setShowUpdates((value) => !value)}
-                  />
-                ) : null}
               </div>
 
               {canManage ? (
                 <form
                   ref={commentForm}
                   action={commentFormAction}
-                  className="mt-1 flex items-start gap-2"
+                  className="mt-1 flex flex-wrap items-start gap-2"
                 >
                   <input type="hidden" name="taskId" value={task.id} />
                   <MentionTextarea
                     people={detail.mentionable}
                     name="body"
-                    required
                     maxLength={4000}
                     rows={1}
                     placeholder="Add an update, @ to mention"
                     wrapperClassName="min-w-0 flex-1"
                     className="h-9 w-full resize-none rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2.5 py-1.5 text-[13px] text-[var(--color-ink)] transition-[height] duration-150 focus:h-24 focus:border-[var(--color-line-strong)] focus:outline-none"
                   />
+                  <div className="w-full">
+                    <TicketAttachmentPicker
+                      label="Upload attachment or paste an image"
+                      imagesOnly
+                      disabled={commentPending}
+                    />
+                  </div>
                   <Button type="submit" variant="secondary" disabled={commentPending}>
                     {commentPending ? 'Posting' : 'Post'}
                   </Button>
@@ -437,32 +436,67 @@ export function TaskPanel({
 
               {detail.comments.length === 0 ? (
                 <p className="mt-1 text-[13px] text-[var(--color-ink-subtle)]">No updates yet.</p>
-              ) : showUpdates ? (
-                <ul className="mt-2 max-h-72 space-y-2 overflow-y-auto">
-                  {detail.comments.map((comment) => (
-                    <li key={comment.id} className="text-[13px]">
-                      <span className="font-medium text-[var(--color-ink)]">
-                        {comment.authorName}
-                      </span>{' '}
-                      <span className="text-[11px] text-[var(--color-ink-subtle)]">
-                        {formatDateTime(comment.createdAt)}
-                        {comment.editedAt ? ' · edited' : ''}
-                      </span>
-                      <p className="whitespace-pre-wrap text-[var(--color-ink-muted)]">
-                        {comment.body}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowUpdates(true)}
-                  className="mt-1 block w-full truncate text-left text-[12px] text-[var(--color-ink-subtle)] hover:text-[var(--color-ink-muted)]"
-                >
-                  Latest: <b className="font-medium">{detail.comments.at(-1)?.authorName}</b>{' '}
-                  {detail.comments.at(-1)?.body}
-                </button>
+                <div className="mt-3 space-y-3">
+                  {[...detail.comments]
+                    .sort(
+                      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+                    )
+                    .slice(0, visibleUpdates)
+                    .map((comment) => (
+                      <article key={comment.id} className="chat-bubble chat-note-orange px-3 py-2">
+                        <div className="flex flex-wrap items-baseline gap-x-2 text-xs">
+                          <b className="text-[var(--chat-orange-name)]">{comment.authorName}</b>
+                          <span className="text-[10px] uppercase text-[var(--chat-orange-name)]">
+                            {comment.isSystem ? 'Activity' : 'Internal note'}
+                          </span>
+                          <span className="text-[var(--color-ink-subtle)]">
+                            {formatDateTime(comment.createdAt)}
+                            {comment.editedAt ? ' · edited' : ''}
+                          </span>
+                        </div>
+                        <div className="mt-1">
+                          <BubbleText text={comment.body} />
+                          {comment.attachments?.length ? (
+                            <ul className="mt-2 flex flex-wrap gap-2">
+                              {comment.attachments.map((image) => (
+                                <li key={image.id}>
+                                  <AttachmentItem
+                                    ticketId={task.id}
+                                    attachmentBase="/api/tasks"
+                                    attachment={{
+                                      id: image.id,
+                                      fileName: image.fileName,
+                                      sizeLabel: `${Math.round(image.bytes / 1024)} KB`,
+                                      previewable: [
+                                        'image/png',
+                                        'image/jpeg',
+                                        'image/webp',
+                                      ].includes(image.contentType),
+                                    }}
+                                  />
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                        </div>
+                      </article>
+                    ))}
+                  {visibleUpdates < detail.comments.length ? (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setVisibleUpdates((count) => count + 5)}
+                    >
+                      Show more ({detail.comments.length - visibleUpdates})
+                    </Button>
+                  ) : null}
+                  {visibleUpdates > 3 && detail.comments.length > 3 ? (
+                    <Button type="button" variant="secondary" onClick={() => setVisibleUpdates(3)}>
+                      Show less
+                    </Button>
+                  ) : null}
+                </div>
               )}
             </section>
           ) : null}
@@ -550,58 +584,6 @@ export function TaskPanel({
               </form>
             ) : null}
           </section>
-
-          {detail ? (
-            <section>
-              <h3 className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                Documents
-              </h3>
-
-              {detail.documentLinks.length > 0 ? (
-                <ul className="mt-1 space-y-1">
-                  {detail.documentLinks.map((link) => (
-                    <li key={link.id} className="flex items-center justify-between gap-2">
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="min-w-0 flex-1 truncate text-[13px] text-[var(--color-ink)] underline-offset-4 hover:underline"
-                      >
-                        {link.title}
-                      </a>
-
-                      {canManage ? (
-                        <IconButton
-                          icon="remove"
-                          label="Remove this link"
-                          tone="danger"
-                          onClick={() => removeLink(link.id)}
-                        />
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-1 text-[13px] text-[var(--color-ink-subtle)]">None linked.</p>
-              )}
-
-              {canManage ? (
-                <form action={docFormAction} className="mt-2 flex gap-2">
-                  <input type="hidden" name="taskId" value={task.id} />
-                  <Input
-                    name="url"
-                    placeholder="https://digisol.sharepoint.com/..."
-                    className="flex-1 text-[13px]"
-                  />
-                  <Button type="submit" variant="secondary" disabled={docPending}>
-                    {docPending ? 'Adding' : 'Add'}
-                  </Button>
-                </form>
-              ) : null}
-
-              {docState.error ? <Notice tone="alert">{docState.error}</Notice> : null}
-            </section>
-          ) : null}
         </div>
       </aside>
     </div>

@@ -19,7 +19,7 @@ export function CustomerFilters({ search, kind }: { search: string; kind: string
 
   return (
     <form
-      className="flex flex-wrap gap-3"
+      className="coex-filters grid w-fit max-w-full grid-cols-[minmax(0,11rem)_7rem] gap-1.5"
       onSubmit={(event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -30,13 +30,15 @@ export function CustomerFilters({ search, kind }: { search: string; kind: string
         name="search"
         defaultValue={search}
         placeholder="Search by name"
-        className="max-w-xs"
+        aria-label="Search customers by name"
+        className="!w-full min-w-0"
       />
 
       <Select
         defaultValue={kind}
         onChange={(event) => apply({ kind: event.currentTarget.value })}
-        className="max-w-40"
+        aria-label="Customer type"
+        className="!w-full min-w-0"
       >
         <option value="">All types</option>
         <option value="client">Clients</option>

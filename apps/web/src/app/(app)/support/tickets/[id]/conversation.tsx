@@ -7,6 +7,7 @@ import type { TicketMessageView } from '@/modules/tickets/services/ticket.servic
 import { formatBytes, PROCESSED_IMAGE_TYPES } from '@/modules/tickets/services/attachment.service';
 import { AttachmentItem } from './attachment-item';
 import { FoldedMessages } from './folded-messages';
+import { MessageOrder } from './message-order';
 
 /** More messages than this and the ones between the first and the last are folded. */
 const FOLD_ABOVE = 3;
@@ -23,11 +24,17 @@ const FOLD_ABOVE = 3;
  */
 export function Conversation({
   ticketId,
-  messages,
+  messages: inputMessages,
+  order = 'asc',
 }: {
   ticketId: string;
   messages: TicketMessageView[];
+  order?: 'asc' | 'desc';
 }) {
+  const messages = [...inputMessages].sort(
+    (a, b) =>
+      (new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()) * (order === 'desc' ? -1 : 1),
+  );
   if (messages.length === 0) {
     return (
       <Card>
@@ -78,7 +85,7 @@ export function Conversation({
     }
 
     // A chat, like WhatsApp (John, 18 Oct 2026): the customer on the left, staff on the right. An
-    // internal note is on the staff side but dashed and warm, with its own label, so it can never
+    // internal note is on the staff side but dotted and orange, with its own label, so it can never
     // be mistaken for something the customer reads.
     return (
       <div key={message.id} className="space-y-2">
@@ -86,14 +93,10 @@ export function Conversation({
         <div className={clsx('flex', fromCustomer ? 'justify-start' : 'justify-end')}>
           <div
             className={clsx(
-              'max-w-[88%] min-w-0 px-3 py-2 shadow-sm sm:max-w-[78%]',
-              fromCustomer &&
-                'rounded-2xl rounded-tl-sm border border-[var(--color-line)] bg-[var(--color-surface)]',
-              !fromCustomer &&
-                !isInternal &&
-                'rounded-2xl rounded-tr-sm bg-[var(--color-status-ok-soft)]',
-              isInternal &&
-                'rounded-2xl rounded-tr-sm border border-dashed border-[var(--color-status-warn)] bg-[var(--color-status-warn-soft)]',
+              'chat-bubble w-full min-w-0 px-4 py-3 shadow-sm sm:max-w-[90%]',
+              fromCustomer && 'chat-tail-left border chat-neon-purple',
+              !fromCustomer && !isInternal && 'chat-tail-right border chat-neon-green',
+              isInternal && 'chat-tail-right chat-note-orange',
             )}
           >
             <div className="flex flex-wrap items-baseline gap-x-2">
@@ -101,16 +104,16 @@ export function Conversation({
                 className={clsx(
                   'text-xs font-semibold',
                   fromCustomer
-                    ? 'text-[var(--color-status-info)]'
+                    ? 'text-[var(--chat-purple-name)]'
                     : isInternal
-                      ? 'text-[var(--color-status-warn)]'
-                      : 'text-[var(--color-status-ok)]',
+                      ? 'text-[var(--chat-orange-name)]'
+                      : 'text-[var(--chat-green-name)]',
                 )}
               >
                 {message.authorName}
               </span>
               {isInternal ? (
-                <span className="rounded-[var(--radius-control)] bg-[var(--color-surface)]/70 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-[var(--color-status-warn)] uppercase">
+                <span className="rounded-[var(--radius-control)] bg-[var(--color-surface)]/70 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-[var(--chat-orange-name)] uppercase">
                   Internal note
                 </span>
               ) : null}
@@ -156,7 +159,14 @@ export function Conversation({
   const rendered = messages.map((message, index) => render(message, index));
 
   return (
-    <div className="space-y-2 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface-sunken)] p-3 sm:p-4">
+    <div
+      aria-label="Ticket conversation"
+      className="space-y-3 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface-sunken)] p-3 sm:p-4"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-xs font-semibold text-[var(--color-ink-muted)]">Conversation</h2>
+        <MessageOrder order={order} />
+      </div>
       {messages.length > FOLD_ABOVE ? (
         <>
           {rendered[0]}

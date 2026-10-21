@@ -65,7 +65,13 @@ async function loadLeadSources(): Promise<string[]> {
 export default async function LeadsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; source?: string; owner?: string; q?: string }>;
+  searchParams: Promise<{
+    create?: string;
+    status?: string;
+    source?: string;
+    owner?: string;
+    q?: string;
+  }>;
 }) {
   const params = await searchParams;
   const actor = await requirePermission('lead.read');
@@ -117,12 +123,22 @@ export default async function LeadsPage({
         }
         action={
           editable ? (
-            <LeadPanel sources={sources} owners={owners} currentUserId={actor.id} fields={fields} />
+            <LeadPanel
+              key={params.create}
+              defaultOpen={Boolean(params.create)}
+              sources={sources}
+              owners={owners}
+              currentUserId={actor.id}
+              fields={fields}
+            />
           ) : undefined
         }
       />
 
-      <div className="mb-4 flex flex-wrap items-center gap-2" aria-label="Lead filters">
+      <div
+        className="coex-filters mb-3 flex flex-wrap items-center gap-1.5"
+        aria-label="Lead filters"
+      >
         {([undefined, ...LEAD_STATUSES] as (LeadSummary['status'] | undefined)[]).map((option) => {
           const selected = status === option;
 
@@ -143,7 +159,7 @@ export default async function LeadsPage({
           );
         })}
 
-        <form action="/leads" className="ml-auto flex flex-wrap gap-2">
+        <form action="/leads" className="coex-filters ml-auto flex flex-wrap gap-1.5">
           {status ? <input type="hidden" name="status" value={status} /> : null}
           <select
             name="source"

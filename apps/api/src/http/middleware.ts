@@ -64,7 +64,7 @@ export const authenticate: RequestHandler = async (req, _res, next) => {
 /** Refuses a person who lacks the permission. Services still check for themselves as well. */
 export function requirePermission(permission: Permission): RequestHandler {
   return (req, _res, next) => {
-    if (!req.auth?.permissions.includes(permission)) {
+    if (req.auth?.role === 'client_contact' || !req.auth?.permissions.includes(permission)) {
       next(new HttpError(403, 'forbidden', 'You may not do that.'));
       return;
     }

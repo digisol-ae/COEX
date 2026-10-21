@@ -1,12 +1,13 @@
 'use client';
 
+import { ServiceTermsFields, type TermsValues } from './service-terms-fields';
 import { useActionState, useEffect, useState } from 'react';
 import { Button, Field, Input, Notice, Select } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
 import { useToast } from '@/components/ui/toast';
 import { saveContractAction, type ContractFormState } from './actions';
 
-export interface ContractFormValues {
+export interface ContractFormValues extends TermsValues {
   id: string;
   organisationId: string;
   title: string;
@@ -53,6 +54,7 @@ export function ContractPanel({
   // Editing shows the stored contract; a new one may start from a prefill. Either way the form
   // reads its defaults from the seed.
   const seed: Partial<ContractFormValues> | undefined = contract ?? prefill;
+  const [serviceType, setServiceType] = useState(seed?.type ?? 'amc');
   const [open, setOpen] = useState(defaultOpen);
   const [endDate, setEndDate] = useState(seed?.endDate ?? '');
   const [organisationId, setOrganisationId] = useState(seed?.organisationId ?? '');
@@ -142,8 +144,9 @@ export function ContractPanel({
                 key={`type-${text('type')}`}
                 name="type"
                 defaultValue={text('type', seed?.type ?? 'amc')}
+                onChange={(event) => setServiceType(event.target.value)}
               >
-                <option value="amc">Annual maintenance (AMC)</option>
+                <option value="amc">Contractual · IT / perpetual licence support</option>
                 <option value="project">Project</option>
                 <option value="subscription">Subscription</option>
               </Select>
@@ -166,7 +169,10 @@ export function ContractPanel({
                 }}
               />
             </Field>
-            <Field label="Ends" hint="A year after the start unless you change it">
+            <Field
+              label="Agreement ends"
+              hint="Commitment duration is separate from the billing cycle"
+            >
               <Input
                 type="date"
                 name="endDate"
@@ -175,7 +181,7 @@ export function ContractPanel({
                 onChange={(event) => setEndDate(event.target.value)}
               />
             </Field>
-            <Field label="Billed">
+            <Field label="Billing cycle">
               <Select
                 key={`billingFrequency-${text('billingFrequency')}`}
                 name="billingFrequency"
@@ -207,6 +213,19 @@ export function ContractPanel({
             </Field>
           </div>
 
+          <ServiceTermsFields
+            seed={{
+              ...seed,
+              pricingMethod: text('pricingMethod', seed?.pricingMethod ?? 'fixed'),
+              licenceValue: text('licenceValue', seed?.licenceValue),
+              annualSupportPercent: text('annualSupportPercent', seed?.annualSupportPercent),
+              setupFee: text('setupFee', seed?.setupFee),
+              trainingFee: text('trainingFee', seed?.trainingFee),
+              hardwareTerms: text('hardwareTerms', seed?.hardwareTerms),
+            }}
+            products={products}
+            subscription={serviceType === 'subscription'}
+          />
           <fieldset>
             <legend className="mb-1 text-sm font-medium">Covered products</legend>
             <div className="grid max-h-36 gap-1 overflow-y-auto sm:grid-cols-2">

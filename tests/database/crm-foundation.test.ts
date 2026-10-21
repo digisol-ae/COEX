@@ -1,9 +1,10 @@
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
 import { createOrganisation, listOrganisations } from '@/modules/crm/services/organisation.service';
-import { createContact, listContacts } from '@/modules/crm/services/contact.service';
+import { createContact, listContacts, updateContact } from '@/modules/crm/services/contact.service';
 import { listTimeline, recordActivity } from '@/modules/crm/services/activity.service';
 import { createProduct } from '@/modules/crm/services/product.service';
 
@@ -56,6 +57,53 @@ describe('customer records', () => {
     expect(found[0]?.name).toBe('A+B Medical (Ltd)');
   });
 
+  it('edits contacts with primary/mobile updates and blocks tenant or portal email changes', async () => {
+    const org = await runWithContext(contextOne, () =>
+      createOrganisation({ name: 'QA Edit', kind: 'client' }),
+    );
+    const first = await runWithContext(contextOne, () =>
+      createContact({
+        organisationId: org,
+        name: 'First',
+        email: 'first@example.test',
+        isPrimary: true,
+      }),
+    );
+    const second = await runWithContext(contextOne, () =>
+      createContact({ organisationId: org, name: 'Second', email: 'second@example.test' }),
+    );
+    await runWithContext(contextOne, () =>
+      updateContact(second, {
+        organisationId: org,
+        name: 'Updated',
+        email: 'second@example.test',
+        mobile: '0501234567',
+        isPrimary: true,
+      }),
+    );
+    const contacts = await runWithContext(contextOne, () => listContacts(org));
+    expect(contacts.find((c) => c.id === second)).toMatchObject({
+      name: 'Updated',
+      mobile: '+971501234567',
+      isPrimary: true,
+    });
+    expect(contacts.find((c) => c.id === first)?.isPrimary).toBe(false);
+    await expect(
+      runWithContext(contextTwo, () =>
+        updateContact(second, { organisationId: org, name: 'Intruder' }),
+      ),
+    ).rejects.toThrow('not found');
+    await ContactModel.updateOne({ _id: second }, { $set: { userId: new Types.ObjectId() } });
+    await expect(
+      runWithContext(contextOne, () =>
+        updateContact(second, {
+          organisationId: org,
+          name: 'Updated',
+          email: 'different@example.test',
+        }),
+      ),
+    ).rejects.toThrow('portal login');
+  });
   it('stores contact mobiles in E.164 and counts them on the customer', async () => {
     const id = await runWithContext(contextOne, () =>
       createOrganisation({ name: 'Dental Studio', kind: 'client' }),

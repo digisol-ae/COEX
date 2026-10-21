@@ -1,3 +1,4 @@
+import { LiveRefresh } from '@/components/ui/live-refresh';
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import { asUser, requirePermission } from '@/lib/session';
@@ -83,9 +84,10 @@ const FILTERS: {
 export default async function ContractsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; customer?: string; model?: string }>;
 }) {
-  const filter = parseContractFilter((await searchParams).filter);
+  const query = await searchParams;
+  const filter = parseContractFilter(query.filter);
   const actor = await requirePermission('contract.read');
   const editable = actor.permissions.includes('contract.manage');
 
@@ -93,32 +95,82 @@ export default async function ContractsPage({
     Promise.all([listContracts(), listOrganisations(), listProducts()]),
   );
 
-  const contracts = allContracts.filter((contract) => matchesContractFilter(contract, filter));
+  const contracts = allContracts.filter(
+    (contract) =>
+      matchesContractFilter(contract, filter) &&
+      (!query.customer || contract.organisationId === query.customer) &&
+      (!query.model ||
+        (query.model === 'subscription'
+          ? contract.type === 'subscription'
+          : contract.type !== 'subscription')),
+  );
   const countFor = (option: ContractFilter) =>
-    allContracts.filter((contract) => matchesContractFilter(contract, option)).length;
+    allContracts.filter(
+      (contract) =>
+        matchesContractFilter(contract, option) &&
+        (!query.customer || contract.organisationId === query.customer) &&
+        (!query.model ||
+          (query.model === 'subscription'
+            ? contract.type === 'subscription'
+            : contract.type !== 'subscription')),
+    ).length;
   const customers = organisations.map(({ id, name }) => ({ id, name }));
   const productChoices = products.map(({ id, name, code }) => ({ id, name, code }));
 
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        title="Contracts"
-        description="Annual maintenance agreements and other contracts. Invoicing and payment stay in Zoho Books; this page tracks the terms, the billing rhythm and what is about to expire."
+        title="Contracts & subscriptions"
+        description="Contractual IT and perpetual licence support, software and hardware subscriptions. Track agreement terms, upfront charges, billing cycles and renewals."
         action={
-          editable ? (
-            <ContractPanel organisations={customers} products={productChoices} />
-          ) : undefined
+          <div className="flex items-center gap-3">
+            <LiveRefresh />
+            {editable ? (
+              <ContractPanel
+                organisations={customers}
+                products={productChoices}
+                prefill={
+                  query.customer && customers.some((customer) => customer.id === query.customer)
+                    ? { organisationId: query.customer }
+                    : undefined
+                }
+              />
+            ) : null}
+          </div>
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-2" aria-label="Contract expiry filters">
+      <div className="mb-3 flex flex-wrap gap-3 text-sm" aria-label="Service model filters">
+        {[
+          ['', 'All services'],
+          ['contractual', 'Contractual'],
+          ['subscription', 'Subscriptions'],
+        ].map(([model, label]) => (
+          <Link
+            key={model}
+            className={
+              query.model === model || (!query.model && !model)
+                ? 'font-semibold underline'
+                : 'hover:underline'
+            }
+            href={`/contracts?${new URLSearchParams({ ...(query.customer ? { customer: query.customer } : {}), ...(model ? { model } : {}), filter })}`}
+          >
+            {label}
+          </Link>
+        ))}
+        {query.customer ? <Link href="/contracts">All customers</Link> : null}
+      </div>
+      <div
+        className="coex-filters mb-3 flex flex-wrap gap-1.5"
+        aria-label="Contract expiry filters"
+      >
         {FILTERS.map((option) => {
           const selected = filter === option.id;
 
           return (
             <Link
               key={option.id}
-              href={option.id === 'all' ? '/contracts' : `/contracts?filter=${option.id}`}
+              href={`/contracts?${new URLSearchParams({ filter: option.id, ...(query.customer ? { customer: query.customer } : {}), ...(query.model ? { model: query.model } : {}) })}`}
               title={option.hint}
               aria-current={selected ? 'true' : undefined}
               className={clsx(
@@ -140,7 +192,7 @@ export default async function ContractsPage({
           <EmptyState
             message={
               filter === 'all'
-                ? 'No contracts yet. Add the first annual maintenance agreement.'
+                ? 'No services yet. Add a contractual agreement or subscription.'
                 : 'No contracts match this filter.'
             }
           />
@@ -171,6 +223,9 @@ export default async function ContractsPage({
                   ])}
                 >
                   <Td>
+                    <div className="mb-1 text-xs text-[var(--color-ink-muted)]">
+                      {contract.type === 'subscription' ? 'Subscription' : 'Contractual'}
+                    </div>
                     <Link
                       href={`/contracts/${contract.id}`}
                       className="font-medium text-[var(--color-ink)] hover:underline"
@@ -215,6 +270,16 @@ export default async function ContractsPage({
                             endDate: contract.endDate,
                             billingFrequency: contract.billingFrequency,
                             value: fromMinorUnits(contract.valueMinorUnits),
+                            pricingMethod: contract.pricingMethod,
+                            licenceValue: fromMinorUnits(contract.licenceValueMinorUnits),
+                            annualSupportPercent: contract.annualSupportPercent?.toString() ?? '',
+                            setupFee: fromMinorUnits(contract.setupFeeMinorUnits),
+                            trainingFee: fromMinorUnits(contract.trainingFeeMinorUnits),
+                            hardwareTerms: contract.hardwareTerms ?? '',
+                            serviceLines: contract.serviceLines?.map((line) => ({
+                              ...line,
+                              unitPrice: fromMinorUnits(line.unitPriceMinorUnits),
+                            })),
                             currency: contract.currency,
                             productIds: contract.productIds,
                             contactIds: contract.contactIds,

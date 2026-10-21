@@ -1,11 +1,13 @@
 'use client';
+import { UI_LABELS } from '@/components/ui/labels';
+
 import { DeskTaskButton } from '@/components/tasks/desk-task-button';
 
 import Link from 'next/link';
-import { useActionState, useState, useTransition, type ReactNode } from 'react';
+import { useActionState, useRef, useState, useTransition, type ReactNode } from 'react';
 import { clsx } from 'clsx';
 import { Button, Field, Input, Notice, Select } from '@/components/ui';
-import { Card, CardSection } from '@/components/ui';
+import { CardSection } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
 import { IconButton } from '@/components/ui/icon-button';
 import { TicketPicker } from './ticket-picker';
@@ -58,8 +60,6 @@ export function TicketBar({
   users,
   spaces,
   canManage,
-  sla,
-  facts,
   timer,
   loggedLabel,
   timeEntries,
@@ -69,10 +69,6 @@ export function TicketBar({
   users: { id: string; name: string }[];
   spaces: { id: string; name: string }[];
   canManage: boolean;
-  /** The two service level clocks, drawn by the page. */
-  sla: ReactNode;
-  /** Channel and when the ticket was raised, as plain text. */
-  facts: ReactNode;
   /** Start and stop, and Add time. */
   timer: ReactNode;
   /** "2m logged by you", or null when nothing is logged. */
@@ -81,7 +77,7 @@ export function TicketBar({
   timeEntries: ReactNode;
 }) {
   const [error, setError] = useState<string | null>(null);
-  const [showTime, setShowTime] = useState(false);
+  const timeDialog = useRef<HTMLDialogElement>(null);
   const [, startTransition] = useTransition();
 
   function run(work: () => Promise<SupportFormState>) {
@@ -97,7 +93,7 @@ export function TicketBar({
   const owner = users.find((user) => user.id === ticket.assigneeId);
 
   return (
-    <Card>
+    <div className="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-transparent">
       <CardSection>
         {error ? (
           <div className="mb-2">
@@ -108,7 +104,7 @@ export function TicketBar({
         <div className="flex flex-wrap items-center gap-2">
           <BadgeSelect
             label="Status"
-            icon={<StatusGlyph />}
+            icon={ticket.status === 'escalated' ? <EngineeringGlyph /> : <StatusGlyph />}
             value={ticket.status}
             disabled={locked}
             onChange={(value) =>
@@ -127,8 +123,16 @@ export function TicketBar({
           </BadgeSelect>
 
           <BadgeSelect
-            label="Owner"
-            icon={owner ? <Avatar name={owner.name} size="small" /> : <PersonGlyph />}
+            label={`${UI_LABELS.assignedTo}: ${owner?.name ?? 'Unassigned'}`}
+            icon={
+              owner ? (
+                <span className="[&>span]:h-5 [&>span]:w-5 [&>span]:text-[9px]">
+                  <Avatar name={owner.name} size="small" />
+                </span>
+              ) : (
+                <PersonGlyph />
+              )
+            }
             value={ticket.assigneeId ?? ''}
             disabled={locked}
             onChange={(value) => run(() => assignAction({ id: ticket.id, userId: value || null }))}
@@ -143,9 +147,10 @@ export function TicketBar({
 
           <BadgeSelect
             label={
-              ticket.firstRespondedAt
+              `${ticket.priority} priority. ` +
+              (ticket.firstRespondedAt
                 ? 'Priority. The first reply clock has already stopped, so only the resolution target moves.'
-                : 'Priority. Changing it recalculates both targets from when the ticket arrived.'
+                : 'Priority. Changing it recalculates both targets from when the ticket arrived.')
             }
             icon={<FlagGlyph priority={ticket.priority} />}
             value={ticket.priority}
@@ -173,43 +178,55 @@ export function TicketBar({
               </option>
             ))}
           </BadgeSelect>
-
-          <div className="ml-auto flex flex-wrap items-center gap-3 text-[12px] text-[var(--color-ink-muted)]">
-            {sla}
-          </div>
         </div>
 
         <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[var(--color-line)] pt-2.5 text-[12px] text-[var(--color-ink-muted)]">
-          {facts}
+          <div className="flex flex-wrap items-center gap-2">
+            {timer}
 
-          {timer}
-
-          {loggedLabel ? (
-            <Badge
-              icon={<ClockGlyph />}
-              label="Time logged on this ticket. Open to see each person's entries."
-              onClick={() => setShowTime((value) => !value)}
-              pressed={showTime}
-            >
-              {loggedLabel}
-            </Badge>
-          ) : null}
-
-          <EngineeringBadge ticket={ticket} spaces={spaces} users={users} canManage={canManage} />
-
-          <RelatedBadge ticket={ticket} canManage={canManage} onError={setError} />
+            {loggedLabel ? (
+              <span className={pill}>
+                {loggedLabel}
+                <IconButton
+                  icon="history"
+                  label={UI_LABELS.timeHistory}
+                  onClick={() => timeDialog.current?.showModal()}
+                />
+              </span>
+            ) : null}
+          </div>
+          <div className="flex items-center border-l border-[var(--color-line)] pl-3">
+            <EngineeringBadge ticket={ticket} spaces={spaces} users={users} canManage={canManage} />
+          </div>
+          <div className="flex items-center border-l border-[var(--color-line)] pl-3">
+            <RelatedBadge ticket={ticket} canManage={canManage} onError={setError} />
+          </div>
         </div>
 
-        {showTime ? (
-          <div className="mt-2 border-t border-[var(--color-line)] pt-2">{timeEntries}</div>
-        ) : null}
+        <dialog
+          ref={timeDialog}
+          aria-labelledby="logged-time-title"
+          className="popup-glass m-auto max-h-[80vh] w-[calc(100%-2rem)] max-w-2xl overflow-auto p-4 text-[var(--color-ink)]"
+        >
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 id="logged-time-title" className="font-semibold">
+              {UI_LABELS.timeHistory}
+            </h2>
+            <IconButton
+              icon="close"
+              label={UI_LABELS.close}
+              onClick={() => timeDialog.current?.close()}
+            />
+          </div>
+          {timeEntries}
+        </dialog>
       </CardSection>
-    </Card>
+    </div>
   );
 }
 
 const pill =
-  'inline-flex items-center gap-1.5 rounded-full border border-[var(--color-line)] bg-[var(--color-surface-muted)] px-2.5 py-1 text-[13px] text-[var(--color-ink)]';
+  'inline-flex items-center gap-1 rounded-full border border-[var(--color-line)] bg-[var(--color-surface-muted)] px-2 py-0.5 text-[12px] text-[var(--color-ink)]';
 
 /** A value that is also its own control: an icon, then the current choice as a dropdown. */
 function BadgeSelect({
@@ -219,7 +236,9 @@ function BadgeSelect({
   disabled,
   onChange,
   children,
+  iconOnly = false,
 }: {
+  iconOnly?: boolean;
   label: string;
   icon: ReactNode;
   value: string;
@@ -230,7 +249,11 @@ function BadgeSelect({
   return (
     <label
       title={label}
-      className={clsx(pill, !disabled && 'cursor-pointer hover:border-[var(--color-line-strong)]')}
+      className={clsx(
+        pill,
+        iconOnly && 'relative',
+        !disabled && 'cursor-pointer hover:border-[var(--color-line-strong)]',
+      )}
     >
       {icon}
       <select
@@ -238,7 +261,12 @@ function BadgeSelect({
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
-        className="max-w-40 cursor-[inherit] truncate bg-transparent outline-none [field-sizing:content] disabled:opacity-100"
+        className={clsx(
+          'cursor-[inherit] bg-transparent outline-none disabled:opacity-100',
+          iconOnly
+            ? 'absolute inset-0 h-full w-full opacity-0'
+            : 'max-w-40 truncate [field-sizing:content]',
+        )}
       >
         {children}
       </select>
@@ -335,15 +363,6 @@ function QueueGlyph() {
   );
 }
 
-function ClockGlyph() {
-  return (
-    <svg {...glyph}>
-      <circle cx="8" cy="8" r="5.5" />
-      <path d="M8 5v3.2l2 1.3" />
-    </svg>
-  );
-}
-
 function EngineeringGlyph() {
   return (
     <svg {...glyph}>
@@ -374,7 +393,7 @@ function Popup({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <button
         type="button"
-        aria-label="Close"
+        aria-label={UI_LABELS.close}
         onClick={onClose}
         className="popup-backdrop absolute inset-0"
       />
@@ -468,7 +487,7 @@ function EngineeringBadge({
 
             <div className="flex justify-end gap-2">
               <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-                Cancel
+                {UI_LABELS.cancel}
               </Button>
               <Button type="submit" disabled={pending}>
                 {pending ? 'Escalating' : 'Create task'}

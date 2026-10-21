@@ -28,6 +28,7 @@ export async function signInWithPassword(input: {
   password: string;
   ipAddress?: string | null;
   userAgent?: string | null;
+  rememberMe?: boolean;
 }): Promise<SignInResult> {
   await connectToDatabase();
 
@@ -68,6 +69,7 @@ export async function signInWithPassword(input: {
     tenantId: user.tenantId,
     ipAddress: input.ipAddress,
     userAgent: input.userAgent,
+    rememberMe: input.rememberMe,
   });
 
   await UserModel.updateOne({ _id: user._id }, { $set: { lastSignedInAt: new Date() } });

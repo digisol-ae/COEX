@@ -16,102 +16,35 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
-    id: '2026-10-18e',
-    date: '18 October 2026',
-    title: 'Compact customers, contracts and opportunities',
+    id: '2026-10-21-agent-summary',
+    date: '21 October 2026',
+    title: 'Agent updates: tasks, tickets and your workspace',
     sections: [
       {
-        heading: 'Customers, contracts and opportunities',
+        heading: 'Tasks and subtasks',
         items: [
-          "A customer's industry, email, phone, website, address and contract warning are one row of badges, with an edit icon that opens the details form in a popup.",
-          "A contract's amount, Zoho reference, document and support hours are one row of badges.",
-          "An opportunity's customer, chance, values, close date, quote, next step and products are one row of badges, and its history is folded behind one line you open when you need it.",
-        ],
-      },
-    ],
-  },
-  {
-    id: '2026-10-18d',
-    date: '18 October 2026',
-    title: 'More compact tickets and tasks',
-    sections: [
-      {
-        heading: 'Tickets',
-        items: [
-          'The top of a ticket is now one compact card. Status, Owner, Priority and Queue are badges that you click to change. Below them are the clocks, the timer, Add time, the time logged, Escalate and Related tickets, also as small badges and buttons.',
-          'Escalating, linking and merging tickets open in a popup instead of unfolding on the page.',
-          'The Cc list now lives inside the reply box, as one quiet line with an edit icon, instead of a card of its own.',
+          'Finished your assigned subtasks? Choose My subtask done to clear the shared task from your active work and My Desk. Find it under Mine → My subtask done or All my work, and choose Resume my work when needed. New or reopened subtasks bring it back automatically; the main task stays open for your teammates.',
+          'Subtask assignments now queue an email with the subtask name and main task link, when assignment emails are enabled. Re-selecting the same person sends no duplicate alert.',
+          'Paste, drop or attach screenshots to updates, with thumbnails before posting and image previews afterward. Available on the full task page and half drawer; image-only updates are supported. Limit: 3MB per image, 10MB per update.',
+          'The half drawer shows updates newest first, with Show more for older threads. Documents have been removed from the drawer. The main task page has message ordering and the update box above the conversation.',
+          'Edit your own updates; edited notes are labelled. Task updates shared with a support ticket stay internal and are never shown to the customer.',
         ],
       },
       {
-        heading: 'Tasks',
+        heading: 'Support tickets',
         items: [
-          "On a task, who created it and who assigned it is one quiet line with a history icon, and Time is a row of badges (your time, the estimate, everyone's total) that opens each person's entries.",
-          'The task details are laid out across the page in columns, and the description is a small box that grows when you point at it.',
-        ],
-      },
-    ],
-  },
-  {
-    id: '2026-10-18c',
-    date: '18 October 2026',
-    title: 'A roomier ticket page',
-    sections: [
-      {
-        heading: 'Tickets',
-        items: [
-          'On a ticket, Status, Owner, Priority and Queue, Engineering and Related tickets now sit in a row across the top, so the conversation below has the whole width of the page.',
-          'A long conversation shows its first and its latest message, with a button to open the ones in between and fold them again.',
-          'Long lines and web addresses in a message now wrap inside its box instead of running out of it.',
-        ],
-      },
-    ],
-  },
-  {
-    id: '2026-10-18b',
-    date: '18 October 2026',
-    title: 'A tidier task panel',
-    sections: [
-      {
-        heading: 'Task panel',
-        items: [
-          'The panel that opens beside a task is more compact. Who created it and who assigned it is one quiet line, with the full history one click away behind the history icon. A person who assigned themselves is no longer listed.',
-          'Assignees, due date, priority, folder and time sit in one row of icons, with their names in the tooltips.',
-          'The description box starts small and grows when you point at it or click into it.',
-          'New Updates section in the panel: write an update straight away, see the latest one, and open the history with the history icon.',
-        ],
-      },
-    ],
-  },
-  {
-    id: '2026-10-18',
-    date: '18 October 2026',
-    title: 'Tidier time entries',
-    sections: [
-      {
-        heading: 'Time',
-        items: [
-          "On a task or a ticket, Time entries now shows one line for each person with their total. Click the line, or the history icon beside it, to see that person's entries, and again to close them.",
-        ],
-      },
-    ],
-  },
-  {
-    id: '2026-10-17',
-    date: '17 October 2026',
-    title: 'Edit updates, move Personal tasks, add ticket time',
-    sections: [
-      {
-        heading: 'Tasks',
-        items: [
-          'Work updates on a task can now be edited by the person who wrote them (they show "edited"), and deleted by their author or an administrator. Updates on a task raised from a ticket are the ticket\'s internal notes: they can be edited, but not deleted.',
-          'A task in Personal can be moved to a Space, and a Folder if you choose one, with the move icon on its row. It goes into the first column of that Space.',
+          'The complete reply box now sits above the conversation. Choose Ascending or Descending message order; use Show more for older messages and Read more for long text.',
+          'Transparent message bubbles use purple glow for customers, green for agent replies and red for internal notes. Internal notes remain private.',
+          'Paste screenshots into replies and preview attachments before sending. Ticket details, history and common actions are more compact; the sender and raised time stay below the subject.',
+          'Where your permissions allow, edit contacts and change the customer/contact linked to an existing ticket. Pages with the update indicator refresh while you are not typing; click it to refresh immediately.',
         ],
       },
       {
-        heading: 'Time',
+        heading: 'Time and navigation',
         items: [
-          'On a ticket, the new Add time button lets you add time by hand when you forgot to start the timer: the day, how long (1.5, 1:30 or 90m) and a note.',
+          'Add time manually on a task or ticket when you forgot the timer. Time entries are grouped by person, with dates, notes and totals; visibility follows your existing permissions.',
+          'Use the + beside the timer for permitted Task, Ticket or Lead creation. Collapse the sidebar when you need more room.',
+          'Navigation has refreshed icons. The active main section has a rainbow background; the selected submenu has a transparent background and rainbow outline.',
         ],
       },
     ],

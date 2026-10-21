@@ -1,4 +1,6 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import sharp from 'sharp';
+import * as taskEmail from '@/modules/core/services/email.service';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
 import { runWithContext } from '@/lib/tenant-context';
@@ -19,6 +21,9 @@ import {
   addDocumentLink,
   archiveTask,
   addSubtask,
+  setSubtaskAssignee,
+  setMySubtaskDone,
+  toggleSubtask,
   createTask,
   getTask,
   listTasks,
@@ -32,6 +37,7 @@ import {
   editTaskUpdate,
   deleteTaskUpdate,
   listTaskComments,
+  taskUpdateImage,
   addTaskComment,
 } from '@/modules/tasks/services/task.service';
 import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
@@ -965,5 +971,168 @@ it('counts exactly the visible open assigned task list for the Tasks badge', asy
       (await listTasks({ assigneeId: String(userId) })).length,
     );
     expect(await countMyOpenTasks(String(userId))).toBe(1);
+  });
+});
+
+it('alerts only the new subtask assignee after a changed assignment', async () => {
+  const alert = vi.spyOn(taskEmail, 'alertStaff').mockResolvedValue(undefined);
+  try {
+    await runWithContext(context, async () => {
+      const spaceId = await aSpace();
+      const taskId = await createTask({
+        title: 'Subtask notification QA',
+        spaceId,
+        assigneeIds: [String(userId), String(strangerId)],
+      });
+      await addSubtask(taskId, 'Review the result');
+      const task = await getTask(taskId);
+      const subtaskId = String(task!.subtasks[0]._id);
+      alert.mockClear();
+      await setSubtaskAssignee(taskId, subtaskId, String(strangerId));
+      expect(alert).toHaveBeenCalledTimes(1);
+      expect(alert).toHaveBeenCalledWith(
+        'task_assigned',
+        String(strangerId),
+        expect.stringContaining('Subtask assigned to you: Review the result'),
+        expect.arrayContaining([
+          'Subtask: Review the result',
+          expect.stringContaining(`/tasks/${taskId}`),
+        ]),
+      );
+      expect(String((await getTask(taskId))!.subtasks[0].assigneeId)).toBe(String(strangerId));
+      await setSubtaskAssignee(taskId, subtaskId, String(strangerId));
+      await setSubtaskAssignee(taskId, subtaskId, null);
+      expect(alert).toHaveBeenCalledTimes(1);
+      await expect(setSubtaskAssignee(taskId, subtaskId, String(adminId))).rejects.toThrow();
+      expect(alert).toHaveBeenCalledTimes(1);
+    });
+  } finally {
+    alert.mockRestore();
+  }
+});
+
+it('keeps My subtask done personal, reversible and reactivates reopened or newly assigned work', async () => {
+  await runWithContext(context, async () => {
+    const spaceId = await aSpace();
+    const taskId = await createTask({
+      title: 'Personal completion QA',
+      spaceId,
+      assigneeIds: [String(userId), String(strangerId)],
+    });
+    await addSubtask(taskId, 'My piece');
+    await addSubtask(taskId, 'Other piece');
+    const task = (await getTask(taskId))!;
+    const own = String(task.subtasks[0]._id);
+    const other = String(task.subtasks[1]._id);
+    await setSubtaskAssignee(taskId, own, String(userId));
+    await setSubtaskAssignee(taskId, other, String(strangerId));
+    await expect(setMySubtaskDone(taskId, true)).rejects.toThrow(
+      'Complete your assigned subtasks first',
+    );
+    await toggleSubtask(taskId, own, true);
+    await setMySubtaskDone(taskId, true);
+    expect((await listTasks({ assigneeId: String(userId) })).map((t) => t.id)).not.toContain(
+      taskId,
+    );
+    expect(
+      (await listTasks({ assigneeId: String(userId), personalWork: 'done' })).map((t) => t.id),
+    ).toContain(taskId);
+    expect(
+      (await listTasks({ assigneeId: String(userId), personalWork: 'all' })).map((t) => t.id),
+    ).toContain(taskId);
+    expect((await getTask(taskId))!.isClosed).toBe(false);
+    await runWithContext({ ...context, userId: strangerId }, async () => {
+      expect((await listTasks({ assigneeId: String(strangerId) })).map((t) => t.id)).toContain(
+        taskId,
+      );
+    });
+    await runWithContext({ ...context, userId: adminId }, async () => {
+      await expect(setMySubtaskDone(taskId, true)).rejects.toThrow('Only an assignee');
+    });
+    await setMySubtaskDone(taskId, false);
+    expect((await listTasks({ assigneeId: String(userId) })).map((t) => t.id)).toContain(taskId);
+    await setMySubtaskDone(taskId, true);
+    await toggleSubtask(taskId, own, false);
+    expect((await listTasks({ assigneeId: String(userId) })).map((t) => t.id)).toContain(taskId);
+    await toggleSubtask(taskId, own, true);
+    await setMySubtaskDone(taskId, true);
+    await setSubtaskAssignee(taskId, other, String(userId));
+    expect((await listTasks({ assigneeId: String(userId) })).map((t) => t.id)).toContain(taskId);
+  });
+});
+
+it('updates legacy subtasks when personal completion state is missing', async () => {
+  await runWithContext(context, async () => {
+    const spaceId = await aSpace();
+    const id = await createTask({
+      title: 'Legacy subtask QA',
+      spaceId,
+      assigneeIds: [String(userId)],
+    });
+    await addSubtask(id, 'Legacy step');
+    const task = (await getTask(id))!;
+    const subtaskId = String(task.subtasks[0]._id);
+    await setSubtaskAssignee(id, subtaskId, String(userId));
+    await toggleSubtask(id, subtaskId, true);
+    const legacy = (await getTask(id))!;
+    legacy.mySubtaskDoneByIds = undefined as unknown as typeof legacy.mySubtaskDoneByIds;
+    const find = vi.spyOn(TaskModel, 'findOne').mockResolvedValueOnce(legacy);
+    try {
+      await expect(toggleSubtask(id, subtaskId, false)).resolves.toBeUndefined();
+    } finally {
+      find.mockRestore();
+    }
+    expect((await getTask(id))!.subtasks[0].done).toBe(false);
+    const legacyAssignment = (await getTask(id))!;
+    legacyAssignment.subtasks[0].assigneeId = null;
+    legacyAssignment.mySubtaskDoneByIds =
+      undefined as unknown as typeof legacyAssignment.mySubtaskDoneByIds;
+    const assignFind = vi.spyOn(TaskModel, 'findOne').mockResolvedValueOnce(legacyAssignment);
+    try {
+      await expect(setSubtaskAssignee(id, subtaskId, String(userId))).resolves.toBeUndefined();
+    } finally {
+      assignFind.mockRestore();
+    }
+  });
+});
+
+it('stores pasted task images privately and keeps linked ticket images internal', async () => {
+  const { TicketMessageModel } = await import('@coex/shared/tickets/models/ticket-message.model');
+  const png = await sharp({ create: { width: 4, height: 4, channels: 4, background: '#ff0000' } })
+    .png()
+    .toBuffer();
+  const image = { fileName: 'pasted.png', contentType: 'image/png', body: png };
+  await runWithContext(context, async () => {
+    const spaceId = await aSpace();
+    const id = await createTask({
+      title: 'Image update QA',
+      spaceId,
+      assigneeIds: [String(userId)],
+    });
+    await addTaskComment(id, '', [], [image]);
+    const comments = await listTaskComments(id);
+    expect(comments[0].body).toBe('Image update');
+    expect(comments[0].attachments).toHaveLength(1);
+    const attachmentId = comments[0].attachments[0].id;
+    expect((await taskUpdateImage(id, attachmentId))!.body).toEqual(png);
+    const foreignTask = await createTask({ title: 'Other task', spaceId });
+    expect(await taskUpdateImage(foreignTask, attachmentId)).toBeNull();
+    await runWithContext(otherContext, async () => {
+      expect(await taskUpdateImage(id, attachmentId)).toBeNull();
+    });
+    await expect(
+      addTaskComment(id, '', [], [{ ...image, body: Buffer.from('not an image') }]),
+    ).rejects.toThrow('could not be read');
+    await expect(
+      addTaskComment(id, '', [], [{ ...image, contentType: 'image/svg+xml' }]),
+    ).rejects.toThrow('PNG, JPEG or WebP');
+    const sourceTicketId = new Types.ObjectId();
+    await TaskModel.updateOne({ _id: id }, { $set: { sourceTicketId } });
+    await addTaskComment(id, 'Private screenshot', [], [image]);
+    const note = await TicketMessageModel.findOne({ ticketId: sourceTicketId });
+    expect(note!.visibility).toBe('internal');
+    expect(note!.attachments).toHaveLength(1);
+    expect((await listTaskComments(id))[0].attachments).toHaveLength(1);
+    expect((await taskUpdateImage(id, String(note!.attachments[0]._id)))!.body).toEqual(png);
   });
 });

@@ -21,7 +21,9 @@ export default async function TasksPage({
   searchParams,
 }: {
   searchParams: Promise<{
+    create?: string;
     mine?: string;
+    personalWork?: string;
     overdue?: string;
     unassigned?: string;
     assignedByMe?: string;
@@ -53,6 +55,13 @@ export default async function TasksPage({
 
   const { tasks, spaces, users, folders, runningTimer } = await asUser(actor, async () => ({
     tasks: await listTasks({
+      personalWork: mine
+        ? params.personalWork === 'done'
+          ? 'done'
+          : params.personalWork === 'all'
+            ? 'all'
+            : 'active'
+        : 'all',
       assigneeId: mine ? actor.id : undefined,
       assigneeIds,
       spaceIds,
@@ -90,6 +99,8 @@ export default async function TasksPage({
         action={
           actor.permissions.includes('task.manage') ? (
             <NewTaskPopup
+              key={params.create}
+              defaultOpen={Boolean(params.create)}
               spaces={spaces.map((space) => ({ id: space.id, name: space.name }))}
               folders={folders.map((folder) => ({
                 id: folder.id,
@@ -103,6 +114,9 @@ export default async function TasksPage({
       />
 
       <TaskFilters
+        personalWork={
+          params.personalWork === 'done' ? 'done' : params.personalWork === 'all' ? 'all' : 'active'
+        }
         mine={mine}
         overdue={params.overdue === '1'}
         unassigned={params.unassigned === '1'}

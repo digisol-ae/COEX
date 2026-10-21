@@ -29,9 +29,12 @@ export async function createSession(input: {
   tenantId: Types.ObjectId;
   ipAddress?: string | null;
   userAgent?: string | null;
+  rememberMe?: boolean;
 }): Promise<NewSession> {
   const token = randomBytes(32).toString('base64url');
-  const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(
+    Date.now() + (input.rememberMe ? 60 : SESSION_DAYS) * 24 * 60 * 60 * 1000,
+  );
 
   await SessionModel.create({
     token: hashToken(token),

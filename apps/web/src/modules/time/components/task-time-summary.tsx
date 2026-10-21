@@ -1,6 +1,8 @@
 'use client';
+import { UI_LABELS } from '@/components/ui/labels';
 
-import { useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
+import { DetailPopup } from '@/components/ui/detail-popup';
 import { Badge } from '@/components/ui';
 
 /**
@@ -10,6 +12,7 @@ import { Badge } from '@/components/ui';
  */
 export function TaskTimeSummary({
   yourTime,
+  agents,
   estimate,
   overEstimate,
   allPeople,
@@ -17,6 +20,7 @@ export function TaskTimeSummary({
   children,
 }: {
   yourTime: string;
+  agents: { id: string; name: string; time: string }[];
   estimate: string | null;
   overEstimate: boolean;
   /** The total of everyone's time, for those who may see it. */
@@ -24,17 +28,23 @@ export function TaskTimeSummary({
   hasEntries: boolean;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
   const chip =
-    'inline-flex items-center gap-1.5 rounded-full border border-[var(--color-line)] bg-[var(--color-surface-muted)] px-2.5 py-1 text-[13px] text-[var(--color-ink)]';
+    'inline-flex items-center gap-1 rounded-full border border-[var(--color-line)] bg-[var(--color-surface-muted)] px-2 py-0.5 text-xs text-[var(--color-ink)]';
 
   return (
-    <div className="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-surface)] px-4 py-3">
+    <div className="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-transparent px-3 py-2">
       <div className="flex flex-wrap items-center gap-2">
         <span className={chip} title="Time you logged on this task">
           <span className="text-[var(--color-ink-subtle)]">Your time</span>
           <span className="font-medium tabular-nums">{yourTime}</span>
         </span>
+
+        {agents.map((agent) => (
+          <span key={agent.id} className={chip} title={`Time logged by ${agent.name}`}>
+            <span className="text-[var(--color-ink-subtle)]">{agent.name}</span>
+            <span className="font-medium tabular-nums">{agent.time}</span>
+          </span>
+        ))}
 
         <span className={chip} title="Hours of effort the task should take">
           <span className="text-[var(--color-ink-subtle)]">Estimate</span>
@@ -44,29 +54,23 @@ export function TaskTimeSummary({
         {overEstimate ? <Badge tone="warn">over estimate</Badge> : null}
 
         {hasEntries ? (
-          <button
-            type="button"
-            aria-pressed={open}
-            onClick={() => setOpen((value) => !value)}
-            title="Show each person's time entries"
-            className={`${chip} ml-auto hover:border-[var(--color-line-strong)]`}
-          >
-            <span className="text-[var(--color-ink-subtle)]">
-              {allPeople ? 'All people' : 'Entries'}
-            </span>
-            {allPeople ? <span className="font-medium tabular-nums">{allPeople}</span> : null}
-            <span aria-hidden="true">{open ? '▴' : '▾'}</span>
-          </button>
-        ) : (
-          <span className="ml-auto text-[12px] text-[var(--color-ink-subtle)]">
-            No time logged yet
+          <span className={chip}>
+            {UI_LABELS.timeHistory}
+            <DetailPopup title={UI_LABELS.timeHistory}>{children}</DetailPopup>
           </span>
+        ) : (
+          <span className="text-[12px] text-[var(--color-ink-subtle)]">No time logged yet</span>
         )}
+        {allPeople !== null ? (
+          <span
+            className="ml-auto inline-flex items-center gap-2 rounded-full border border-[var(--color-status-info)] bg-[var(--color-status-info-soft)] px-3 py-1 text-sm font-semibold text-[var(--color-status-info)]"
+            title="Total time logged by all agents on this task"
+          >
+            <span>Total time</span>
+            <span className="font-bold tabular-nums">{allPeople}</span>
+          </span>
+        ) : null}
       </div>
-
-      {open ? (
-        <div className="mt-2 border-t border-[var(--color-line)] pt-2">{children}</div>
-      ) : null}
     </div>
   );
 }

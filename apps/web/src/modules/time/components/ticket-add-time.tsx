@@ -1,4 +1,5 @@
 'use client';
+import { UI_LABELS } from '@/components/ui/labels';
 
 import { useActionState, useState } from 'react';
 import { Button, Field, Input, Notice } from '@/components/ui';
@@ -19,6 +20,22 @@ export function TicketAddTime({
   ticketId: string;
   compact?: boolean;
 }) {
+  return <ItemAddTime itemId={ticketId} kind="ticket" compact={compact} />;
+}
+
+export function TaskAddTime({ taskId, compact = false }: { taskId: string; compact?: boolean }) {
+  return <ItemAddTime itemId={taskId} kind="task" compact={compact} />;
+}
+
+function ItemAddTime({
+  itemId,
+  kind,
+  compact,
+}: {
+  itemId: string;
+  kind: 'ticket' | 'task';
+  compact: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(
     async (previous: TimeFormState, formData: FormData) => {
@@ -37,21 +54,22 @@ export function TicketAddTime({
         className={compact ? '!px-2.5 !py-1 text-[12px]' : undefined}
         onClick={() => setOpen(true)}
       >
-        Add time
+        {UI_LABELS.addTime}
       </Button>
 
       {open ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
             type="button"
-            aria-label="Close"
+            aria-label={UI_LABELS.close}
             onClick={() => setOpen(false)}
             className="popup-backdrop absolute inset-0"
           />
 
           <form action={formAction} className="popup-glass relative w-full max-w-sm space-y-3 p-4">
-            <h2 className="font-medium text-[var(--color-ink)]">Add time to this ticket</h2>
-            <input type="hidden" name="item" value={`ticket:${ticketId}`} />
+            <h2 className="font-medium text-[var(--color-ink)]">Add time to this {kind}</h2>
+            {kind === 'task' ? <input type="hidden" name="taskId" value={itemId} /> : null}
+            <input type="hidden" name="item" value={`${kind}:${itemId}`} />
 
             <Field label="Day">
               <Input name="workDate" type="date" required defaultValue={toDateKey(new Date())} />
@@ -74,10 +92,10 @@ export function TicketAddTime({
 
             <div className="flex justify-end gap-2">
               <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-                Cancel
+                {UI_LABELS.cancel}
               </Button>
               <Button type="submit" disabled={pending}>
-                {pending ? 'Adding' : 'Add time'}
+                {pending ? UI_LABELS.adding : UI_LABELS.addTime}
               </Button>
             </div>
           </form>

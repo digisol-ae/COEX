@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { asUser, requireUser } from '@/lib/session';
+import { asUser, requireStaffUser as requireUser } from '@/lib/session';
 import { loadDashboard } from '@/modules/tasks/services/dashboard.service';
 import { loadDeskSnapshot } from '@/modules/tickets/services/metrics.service';
 import { untilDue } from '@/modules/tickets/labels';

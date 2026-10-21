@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState, useTransition } from 'react';
+import { useActionState, useEffect, useState, useTransition, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { Button, Field, Input, Notice, Select } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
@@ -12,6 +12,7 @@ import { CollaboratorPicker } from './collaborator-picker';
 import type { CollaboratorOption } from '@coex/shared/tickets/collaborators';
 
 const initialState: SupportFormState = {};
+const subscribeMount = () => () => {};
 
 interface Contact {
   id: string;
@@ -29,15 +30,22 @@ interface Contact {
  * and on behalf of the customer is the default, because it is the common case.
  */
 export function NewTicketPanel({
+  defaultOpen = false,
   queues,
   organisations,
   collaboratorOptions,
 }: {
+  defaultOpen?: boolean;
   collaboratorOptions: CollaboratorOption[];
   queues: { id: string; name: string }[];
   organisations: { id: string; name: string }[];
 }) {
-  const [open, setOpen] = useState(false);
+  const mounted = useSyncExternalStore(
+    subscribeMount,
+    () => true,
+    () => false,
+  );
+  const [open, setOpen] = useState(defaultOpen);
   const [creatingCustomer, setCreatingCustomer] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
@@ -97,7 +105,7 @@ export function NewTicketPanel({
   }, [open]);
 
   const button = <Button onClick={() => setOpen(true)}>Raise ticket</Button>;
-  if (!open) return button;
+  if (!open || !mounted) return button;
 
   // A popup over the list rather than a card inside it, so the page never jumps (John, 28 Sep).
   return (

@@ -67,7 +67,7 @@ export function TicketFilters({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="coex-filters space-y-1.5" aria-label="Ticket filters">
       <div className="flex flex-wrap gap-2" aria-label="Ticket analytics">
         {SCOPES.map((option) => {
           const selected =
@@ -131,7 +131,7 @@ export function TicketFilters({
             className="max-w-52"
             aria-label="Assigned to"
           >
-            <option value="">Anyone</option>
+            <option value="">All agents</option>
             {people.map((person) => (
               <option key={person.id} value={person.id}>
                 {person.name}

@@ -32,6 +32,7 @@ const opportunitySchema = new Schema(
 
     ownerId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 
+    serviceModel: { type: String, enum: ['contractual', 'subscription'], default: 'contractual' },
     oneOffMinorUnits: { type: Number, default: 0, min: 0 },
     /** Per year, so an AMC billed monthly is still entered as its yearly value. */
     recurringMinorUnits: { type: Number, default: 0, min: 0 },

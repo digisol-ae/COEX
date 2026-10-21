@@ -97,7 +97,7 @@ export function FactGlyph({ name }: { name: FactIcon }) {
 }
 
 const pill =
-  'inline-flex max-w-full items-center gap-1.5 rounded-full border border-[var(--color-line)] bg-[var(--color-surface-muted)] px-2.5 py-1 text-[13px] text-[var(--color-ink)]';
+  'inline-flex max-w-full items-center gap-1 rounded-full border border-[var(--color-line)] bg-[var(--color-surface-muted)] px-2 py-0.5 text-xs text-[var(--color-ink)]';
 
 export function FactBadge({
   icon,

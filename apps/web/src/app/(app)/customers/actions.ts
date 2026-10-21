@@ -9,7 +9,11 @@ import {
   updateOrganisation,
   type OrganisationKind,
 } from '@/modules/crm/services/organisation.service';
-import { createContact, archiveContact } from '@/modules/crm/services/contact.service';
+import {
+  createContact,
+  archiveContact,
+  updateContact,
+} from '@/modules/crm/services/contact.service';
 import { createLocation, archiveLocation } from '@/modules/crm/services/location.service';
 import { recordActivity, type ActivityKind } from '@/modules/crm/services/activity.service';
 import {
@@ -206,6 +210,48 @@ export async function logActivityAction(
     return { error: error instanceof Error ? error.message : 'Could not add the entry.' };
   }
 
+  revalidatePath(`/customers/${organisationId}`);
+  return { saved: true };
+}
+
+export async function provisionPortalAction(
+  _previous: { error?: string; password?: string },
+  form: FormData,
+): Promise<{ error?: string; password?: string }> {
+  const actor = await requirePermission('user.manage');
+  try {
+    const { provisionPortalAccount } = await import('@/modules/portal/service');
+    const result = await asUser(actor, () =>
+      provisionPortalAccount(String(form.get('contactId') ?? '')),
+    );
+    revalidatePath('/customers');
+    return result;
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not create portal account.' };
+  }
+}
+
+export async function updateContactAction(
+  _previous: CrmFormState,
+  formData: FormData,
+): Promise<CrmFormState> {
+  const actor = await requirePermission('customer.manage');
+  const organisationId = text(formData, 'organisationId');
+  try {
+    await asUser(actor, () =>
+      updateContact(text(formData, 'id'), {
+        organisationId,
+        name: text(formData, 'name'),
+        title: text(formData, 'title'),
+        email: text(formData, 'email'),
+        mobile: text(formData, 'mobile'),
+        country: text(formData, 'mobileCountry') || 'AE',
+        isPrimary: formData.get('isPrimary') === 'on',
+      }),
+    );
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not save contact.' };
+  }
   revalidatePath(`/customers/${organisationId}`);
   return { saved: true };
 }

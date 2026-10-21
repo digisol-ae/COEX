@@ -1,4 +1,6 @@
 'use client';
+import { UI_LABELS } from '@/components/ui/labels';
+
 import { DeskTaskButton } from '@/components/tasks/desk-task-button';
 
 import { useEffect, useState, useTransition, type ReactNode } from 'react';
@@ -243,10 +245,10 @@ export function EntryRow({
 
               <div className="mt-2 flex justify-end gap-2">
                 <Button type="button" variant="secondary" onClick={() => close(setEditing)}>
-                  Cancel
+                  {UI_LABELS.cancel}
                 </Button>
                 <Button type="submit" disabled={saving}>
-                  {saving ? 'Saving' : 'Save change'}
+                  {saving ? UI_LABELS.saving : UI_LABELS.save}
                 </Button>
               </div>
 
@@ -284,7 +286,7 @@ export function EntryRow({
             {error ? <Notice tone="alert">{error}</Notice> : null}
             <div className="flex justify-end gap-2">
               <Button type="button" variant="secondary" onClick={() => close(setRemoving)}>
-                Cancel
+                {UI_LABELS.cancel}
               </Button>
               <Button type="submit" disabled={saving}>
                 {saving ? 'Removing' : 'Remove'}
@@ -374,7 +376,7 @@ function Popup({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={UI_LABELS.close}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-ink-subtle)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
           >
             ✕

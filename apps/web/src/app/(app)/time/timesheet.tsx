@@ -1,4 +1,5 @@
 'use client';
+import { UI_LABELS } from '@/components/ui/labels';
 
 import { useActionState, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -208,7 +209,7 @@ export function Timesheet({
                       setAdding(true);
                     }}
                   >
-                    Add time
+                    {UI_LABELS.addTime}
                   </Button>
                 </li>
               ))}
@@ -267,7 +268,7 @@ export function Timesheet({
                   {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
                   <div className="mt-2 flex gap-2">
                     <Button type="submit" disabled={pending}>
-                      {pending ? 'Adding' : 'Add time'}
+                      {pending ? UI_LABELS.adding : UI_LABELS.addTime}
                     </Button>
                     <Button type="button" variant="secondary" onClick={() => setAdding(false)}>
                       Close

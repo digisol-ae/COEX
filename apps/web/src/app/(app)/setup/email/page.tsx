@@ -1,3 +1,4 @@
+import { SettingsDrawer } from '@/components/ui/settings-drawer';
 import { asUser, requirePermission } from '@/lib/session';
 import { PageHeader } from '@/components/ui';
 import { getEmailSettings } from '@/modules/core/services/email.service';
@@ -19,15 +20,20 @@ export default async function EmailSettingsPage() {
         title="Email"
         description="The support mailbox COEX reads, the account it sends from, what customers receive and which alerts staff get."
       />
-      <EmailSettingsForm
-        settings={settings}
-        queues={queues.map((queue) => ({
-          id: queue.id,
-          name: queue.name,
-          signature: queue.signature,
-          autoSign: queue.autoSign,
-        }))}
-      />
+      <SettingsDrawer
+        title="Email settings"
+        summary="Mailbox, sending identities, templates and staff alerts"
+      >
+        <EmailSettingsForm
+          settings={settings}
+          queues={queues.map((queue) => ({
+            id: queue.id,
+            name: queue.name,
+            signature: queue.signature,
+            autoSign: queue.autoSign,
+          }))}
+        />
+      </SettingsDrawer>
     </div>
   );
 }

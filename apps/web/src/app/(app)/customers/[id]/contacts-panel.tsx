@@ -1,11 +1,18 @@
 'use client';
 
+import { DetailPopup } from '@/components/ui/detail-popup';
+import { PortalAccess } from './portal-access';
 import { useActionState, useState } from 'react';
 import { Button, Card, CardSection, EmptyState, Field, Input, Notice } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
 import type { ContactSummary } from '@/modules/crm/services/contact.service';
 import { MobileInput } from '@/modules/crm/components/mobile-input';
-import { addContactAction, archiveContactAction, type CrmFormState } from '../actions';
+import {
+  addContactAction,
+  archiveContactAction,
+  updateContactAction,
+  type CrmFormState,
+} from '../actions';
 
 const initialState: CrmFormState = {};
 
@@ -13,10 +20,12 @@ export function ContactsPanel({
   organisationId,
   contacts,
   canWrite,
+  canManagePortal = false,
 }: {
   organisationId: string;
   contacts: ContactSummary[];
   canWrite: boolean;
+  canManagePortal?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(addContactAction, initialState);
@@ -43,22 +52,30 @@ export function ContactsPanel({
                   {contact.email ? (
                     <p className="text-xs text-[var(--color-ink-muted)]">{contact.email}</p>
                   ) : null}
+                  {canManagePortal && contact.email ? (
+                    <PortalAccess contactId={contact.id} linked={contact.portalLinked ?? false} />
+                  ) : null}
                   {contact.mobile ? (
                     <p className="text-xs text-[var(--color-ink-muted)]">{contact.mobile}</p>
                   ) : null}
                 </div>
 
                 {canWrite ? (
-                  <form action={archiveContactAction}>
-                    <input type="hidden" name="id" value={contact.id} />
-                    <input type="hidden" name="organisationId" value={organisationId} />
-                    <IconButton
-                      type="submit"
-                      icon="remove"
-                      label="Remove this contact"
-                      tone="danger"
-                    />
-                  </form>
+                  <div className="flex items-center gap-1">
+                    <DetailPopup title="Edit contact" icon="edit">
+                      <ContactEdit contact={contact} organisationId={organisationId} />
+                    </DetailPopup>
+                    <form action={archiveContactAction}>
+                      <input type="hidden" name="id" value={contact.id} />
+                      <input type="hidden" name="organisationId" value={organisationId} />
+                      <IconButton
+                        type="submit"
+                        icon="remove"
+                        label="Remove this contact"
+                        tone="danger"
+                      />
+                    </form>
+                  </div>
                 ) : null}
               </li>
             ))}
@@ -116,5 +133,54 @@ export function ContactsPanel({
         ) : null}
       </CardSection>
     </Card>
+  );
+}
+
+function ContactEdit({
+  contact,
+  organisationId,
+}: {
+  contact: ContactSummary;
+  organisationId: string;
+}) {
+  const [state, action, pending] = useActionState(updateContactAction, {});
+  return (
+    <form action={action} className="space-y-3">
+      <input type="hidden" name="id" value={contact.id} />
+      <input type="hidden" name="organisationId" value={organisationId} />
+      <Field label="Name">
+        <Input name="name" required maxLength={120} defaultValue={contact.name} />
+      </Field>
+      <Field label="Job title">
+        <Input name="title" defaultValue={contact.title ?? ''} />
+      </Field>
+      <Field
+        label="Email"
+        hint={
+          contact.portalLinked
+            ? 'Portal login email is managed through account administration.'
+            : undefined
+        }
+      >
+        <Input
+          name="email"
+          type="email"
+          readOnly={contact.portalLinked}
+          defaultValue={contact.email ?? ''}
+        />
+      </Field>
+      <Field label="Mobile">
+        <MobileInput defaultValue={contact.mobile ?? ''} />
+      </Field>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="isPrimary" defaultChecked={contact.isPrimary} />
+        Primary contact for ticket replies
+      </label>
+      {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
+      {state.saved ? <Notice tone="ok">Saved.</Notice> : null}
+      <Button type="submit" disabled={pending}>
+        {pending ? 'Saving' : 'Save'}
+      </Button>
+    </form>
   );
 }

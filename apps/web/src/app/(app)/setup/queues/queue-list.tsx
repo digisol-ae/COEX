@@ -105,11 +105,7 @@ export function QueueList({
                 </div>
 
                 <div className="flex gap-2">
-                  <IconButton
-                    icon="edit"
-                    label="Edit this queue"
-                    onClick={() => setEditing(queue.id)}
-                  />
+                  <IconButton icon="edit" label="Edit queue" onClick={() => setEditing(queue.id)} />
 
                   <form action={queue.isArchived ? restoreQueueAction : archiveQueueAction}>
                     <input type="hidden" name="id" value={queue.id} />

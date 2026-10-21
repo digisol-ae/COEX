@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { asUser, requireUser } from '@/lib/session';
+import { asUser, requireStaffUser as requireUser } from '@/lib/session';
 import { updateMyProfile } from '@/modules/core/services/user.service';
 import { requestPasswordReset } from '@/modules/core/services/password-reset.service';
 

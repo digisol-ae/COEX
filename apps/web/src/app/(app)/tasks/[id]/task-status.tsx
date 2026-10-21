@@ -60,7 +60,7 @@ export function TaskStatus({
       disabled={pending}
       onChange={(event) => change(event.target.value)}
       className={clsx(
-        'h-8 cursor-pointer rounded-full border px-3 text-xs font-medium disabled:opacity-60',
+        'h-7 cursor-pointer rounded-full border px-2 text-xs font-medium disabled:opacity-60',
         closed
           ? 'border-[var(--color-status-ok)] bg-[var(--color-status-ok-soft)] text-[var(--color-status-ok)]'
           : toneForStatus(value) === 'todo'

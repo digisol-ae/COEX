@@ -447,7 +447,7 @@ export function EmailSettingsForm({
 
       <div className="flex justify-end">
         <Button type="submit" disabled={pending}>
-          {pending ? 'Saving…' : 'Save email settings'}
+          {pending ? 'Saving' : 'Save email settings'}
         </Button>
       </div>
     </form>

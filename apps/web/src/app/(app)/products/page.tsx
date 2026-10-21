@@ -24,7 +24,7 @@ export default async function ProductsPage() {
       <PageHeader
         title="Products"
         description="What DigiSol sells and supports. Contracts, tickets and any later invoicing all price from this list rather than keeping their own, so a rename happens once."
-        action={editable ? <ProductPanel /> : undefined}
+        action={editable ? <ProductPanel products={products} /> : undefined}
       />
 
       <Card>
@@ -39,6 +39,7 @@ export default async function ProductsPage() {
                 <Th>Type</Th>
                 <Th>List price</Th>
                 <Th>Billing</Th>
+                <Th>Service models</Th>
                 <Th>{''}</Th>
               </tr>
             </thead>
@@ -79,6 +80,17 @@ export default async function ProductsPage() {
                     {PERIOD_LABEL[product.billingPeriod]}
                   </Td>
                   <Td>
+                    {product.serviceModels
+                      ?.map((model) => (model === 'contractual' ? 'Contractual' : 'Subscription'))
+                      .join(' · ')}
+                    {product.parentProductId ? (
+                      <div className="text-xs text-[var(--color-ink-muted)]">
+                        {products.find((p) => p.id === product.parentProductId)?.name}
+                      </div>
+                    ) : null}
+                  </Td>
+                  <Td>
+                    {editable ? <ProductPanel product={product} products={products} /> : null}
                     {editable ? <StatusToggle id={product.id} status={product.status} /> : null}
                   </Td>
                 </tr>

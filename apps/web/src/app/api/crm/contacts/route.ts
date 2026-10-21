@@ -5,6 +5,8 @@ import { listContacts } from '@/modules/crm/services/contact.service';
 export async function GET(request: Request) {
   const user = await getSignedInUser();
 
+  if (user?.role === 'client_contact')
+    return Response.json({ error: 'Not allowed.' }, { status: 403 });
   if (!user) return Response.json({ error: 'Sign in first.' }, { status: 401 });
   if (!user.permissions.includes('customer.read')) {
     return Response.json({ error: 'Not allowed.' }, { status: 403 });

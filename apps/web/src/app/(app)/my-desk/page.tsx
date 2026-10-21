@@ -1,3 +1,4 @@
+import { DeskIcon } from '@/components/ui/desk-icon';
 import { officeDate } from '@coex/shared/tasks/office-day';
 import { asUser, requirePermission } from '@/lib/session';
 import { listTasks } from '@/modules/tasks/services/task.service';
@@ -60,6 +61,11 @@ export default async function MyDeskPage({
     <div className="mx-auto max-w-5xl">
       <PageHeader
         title="My desk"
+        action={
+          <span className="ml-auto inline-flex -scale-x-110 text-[var(--color-ink)]">
+            <DeskIcon size={36} />
+          </span>
+        }
         description="Choose the work you commit to today. Only these tasks are measured when you finish your day."
       />
       <MyDeskTabs

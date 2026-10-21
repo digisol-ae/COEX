@@ -37,6 +37,7 @@ export default async function TicketsPage({
   searchParams,
 }: {
   searchParams: Promise<{
+    create?: string;
     queue?: string;
     status?: string;
     assignee?: string;
@@ -99,6 +100,8 @@ export default async function TicketsPage({
         action={
           canManage && queues.length > 0 ? (
             <NewTicketPanel
+              key={params.create}
+              defaultOpen={Boolean(params.create)}
               collaboratorOptions={collaboratorOptions}
               queues={queues.map((queue) => ({ id: queue.id, name: queue.name }))}
               organisations={organisations.map((organisation) => ({
