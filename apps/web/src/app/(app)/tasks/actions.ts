@@ -1,10 +1,17 @@
 'use server';
+import {
+  MAX_FILE_BYTES,
+  MAX_MESSAGE_ATTACHMENT_BYTES,
+  PROCESSED_IMAGE_TYPES,
+  type IncomingFile,
+} from '@/modules/tickets/services/attachment.service';
 import { validateSpaceStatuses } from '@coex/shared/tasks/statuses';
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
 import {
+  setMySubtaskDone,
   addDocumentLink,
   addTaskComment,
   addSubtask,
@@ -37,6 +44,20 @@ import {
   reorderFolders,
   updateFolder,
 } from '@/modules/tasks/services/folder.service';
+
+function subtaskError(error: unknown, fallback: string): string {
+  const expected = [
+    'Task not found.',
+    'Subtask not found.',
+    'A subtask can only go to someone already assigned to its task.',
+    'That person is not a member of this private Space or Folder.',
+    'Complete your assigned subtasks first.',
+    'Only an assignee can change their own subtask completion.',
+  ];
+  if (error instanceof Error && expected.includes(error.message)) return error.message;
+  console.error('Subtask update failed:', error);
+  return fallback;
+}
 
 export interface TaskFormState {
   error?: string;
@@ -352,9 +373,38 @@ export async function addTaskCommentAction(
   const id = text(formData, 'taskId');
 
   try {
-    await asUser(actor, () => addTaskComment(id, text(formData, 'body'), mentionIdsFrom(formData)));
+    const entries = formData
+      .getAll('files')
+      .filter((entry): entry is File => typeof entry !== 'string' && entry.size > 0);
+    if (entries.some((file) => file.size > MAX_FILE_BYTES))
+      return { error: 'Each image must be 3MB or smaller.' };
+    if (entries.reduce((sum, file) => sum + file.size, 0) > MAX_MESSAGE_ATTACHMENT_BYTES)
+      return { error: 'Images total more than 10MB.' };
+    if (entries.some((file) => !PROCESSED_IMAGE_TYPES.has(file.type)))
+      return { error: 'Use PNG, JPEG or WebP images for task updates.' };
+    const images: IncomingFile[] = await Promise.all(
+      entries.map(async (file) => ({
+        fileName: file.name,
+        contentType: file.type,
+        body: Buffer.from(await file.arrayBuffer()),
+      })),
+    );
+    await asUser(actor, () =>
+      addTaskComment(id, text(formData, 'body'), mentionIdsFrom(formData), images),
+    );
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Could not post the comment.' };
+    const expected = [
+      'Write a comment before posting it.',
+      'A comment can be up to 4,000 characters.',
+      'Task not found.',
+      'One image could not be read. Please choose a valid PNG, JPEG or WebP image.',
+      'Use PNG, JPEG or WebP images for task updates.',
+      'Each image must be 3MB or smaller.',
+      'Images total more than 10MB. Send a cloud link instead.',
+    ];
+    if (error instanceof Error && expected.includes(error.message)) return { error: error.message };
+    console.error('Task update failed:', error);
+    return { error: 'Could not post your update. Please try again.' };
   }
 
   revalidatePath(`/tasks/${id}`);
@@ -451,7 +501,7 @@ export async function addSubtaskInlineAction(input: {
   try {
     await asUser(actor, () => addSubtask(input.taskId, title));
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Could not add the subtask.' };
+    return { error: subtaskError(error, 'Could not add this subtask. Please try again.') };
   }
 
   revalidatePath(`/spaces/${input.spaceId}`);
@@ -465,13 +515,17 @@ export async function setSubtaskDoneAction(input: {
   subtaskId: string;
   done: boolean;
   spaceId: string;
-}): Promise<void> {
+}): Promise<{ error?: string }> {
   const actor = await requirePermission('task.manage');
-
-  await asUser(actor, () => toggleSubtask(input.taskId, input.subtaskId, input.done));
+  try {
+    await asUser(actor, () => toggleSubtask(input.taskId, input.subtaskId, input.done));
+  } catch (error) {
+    return { error: subtaskError(error, 'Could not update this subtask. Please try again.') };
+  }
 
   revalidatePath(`/spaces/${input.spaceId}`);
   revalidatePath(`/tasks/${input.taskId}`);
+  return {};
 }
 
 /** Give a subtask to a member (or clear it) from the board panel or the task page. */
@@ -486,7 +540,7 @@ export async function setSubtaskAssigneeAction(input: {
   try {
     await asUser(actor, () => setSubtaskAssignee(input.taskId, input.subtaskId, input.assigneeId));
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Could not assign the subtask.' };
+    return { error: subtaskError(error, 'Could not assign this subtask. Please try again.') };
   }
 
   if (input.spaceId) revalidatePath(`/spaces/${input.spaceId}`);
@@ -494,27 +548,32 @@ export async function setSubtaskAssigneeAction(input: {
   return {};
 }
 
-export async function addSubtaskAction(formData: FormData): Promise<void> {
+export async function addSubtaskAction(formData: FormData): Promise<{ error?: string }> {
   const actor = await requirePermission('task.manage');
   const id = text(formData, 'taskId');
   const title = text(formData, 'title');
-
-  if (title) {
+  if (!title.trim()) return { error: 'Enter a title for the subtask.' };
+  try {
     await asUser(actor, () => addSubtask(id, title));
+  } catch (error) {
+    return { error: subtaskError(error, 'Could not add this subtask. Please try again.') };
   }
-
   revalidatePath(`/tasks/${id}`);
+  return {};
 }
 
-export async function toggleSubtaskAction(formData: FormData): Promise<void> {
+export async function toggleSubtaskAction(formData: FormData): Promise<{ error?: string }> {
   const actor = await requirePermission('task.manage');
   const id = text(formData, 'taskId');
-
-  await asUser(actor, () =>
-    toggleSubtask(id, text(formData, 'subtaskId'), text(formData, 'done') !== 'true'),
-  );
-
-  revalidatePath(`/tasks/${id}`);
+  try {
+    await asUser(actor, () =>
+      toggleSubtask(id, text(formData, 'subtaskId'), text(formData, 'done') !== 'true'),
+    );
+  } catch (error) {
+    return { error: subtaskError(error, 'Could not update this subtask. Please try again.') };
+  }
+  revalidatePath('/', 'layout');
+  return {};
 }
 
 export async function addDocumentAction(
@@ -747,5 +806,19 @@ export async function deleteTaskUpdateAction(input: {
   }
 
   revalidatePath(`/tasks/${input.taskId}`);
+  return {};
+}
+
+export async function setMySubtaskDoneAction(
+  taskId: string,
+  done: boolean,
+): Promise<{ error?: string }> {
+  const actor = await requirePermission('task.read.own');
+  try {
+    await asUser(actor, () => setMySubtaskDone(taskId, done));
+  } catch (error) {
+    return { error: subtaskError(error, 'Could not update your work. Please try again.') };
+  }
+  revalidatePath('/', 'layout');
   return {};
 }

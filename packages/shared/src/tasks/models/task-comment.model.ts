@@ -1,3 +1,4 @@
+import { attachmentSchema } from '../../tickets/models/ticket-message.model';
 import { Schema, model, models, type InferSchemaType, type Model } from 'mongoose';
 
 /**
@@ -10,6 +11,7 @@ const taskCommentSchema = new Schema(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     taskId: { type: Schema.Types.ObjectId, ref: 'Task', required: true, index: true },
+    attachments: { type: [attachmentSchema], default: [] },
     body: { type: String, required: true, trim: true },
     authorUserId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     authorName: { type: String, required: true },
@@ -24,6 +26,11 @@ const taskCommentSchema = new Schema(
 taskCommentSchema.index({ tenantId: 1, taskId: 1, createdAt: 1 });
 
 export type TaskComment = InferSchemaType<typeof taskCommentSchema>;
+
+if (models.TaskComment && !models.TaskComment.schema.path('attachments')) {
+  models.TaskComment.schema.add({ attachments: { type: [attachmentSchema], default: [] } });
+  models.TaskComment.recompileSchema();
+}
 
 export const TaskCommentModel: Model<TaskComment> =
   (models.TaskComment as Model<TaskComment>) ??

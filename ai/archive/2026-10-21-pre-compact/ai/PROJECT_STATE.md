@@ -1,0 +1,1291 @@
+# COEX — Shared AI Project State
+
+## Tabbed Setup popup — 21 Oct 2026 (Codex, local)
+
+Setup navigation now opens a native popup over the current page with permission-filtered Queues/Tutorials/Email/Pipeline/WhatsApp/Saved replies/Tenant settings/Custom fields/Tenants tabs. Intercepted routes preserve work context; direct/reload URLs use the same workspace. Sidebar Setup children replaced by one entry; settings forms render inline within tabs. Preview-only tutorial player prevents native-modal inertness and duplicate playback. Typecheck/lint/build and browser open/tab/close/direct/mobile/preview checks passed; no settings saves or publication. [Implementation and QA](../docs/SETUP-WORKSPACE.md). No push/deploy.
+
+
+- Customer list follow-up (21 Oct): search/type filters now use a compact responsive two-column grid (desktop176px/112px), replacing full-width controls. Long company-history description moved to heading info tooltip; browser verified dimensions and keyboard tooltip text. Focused ESLint and diff checks passed.
+
+## Shared compact UI — 21 Oct 2026 (Codex, local)
+
+Support-based shared spacing/controls and compact filter strips applied; header + quick-create reuses protected Task/Ticket/Lead forms; collapsible desktop sidebar persists per browser. Shared native settings drawers now cover Workspace/Email/Pipeline, Product add/edit, Space/Folder settings. Mobile header/filter wrapping and touch targets retained. Browser checked all quick-create form openings, sidebar persistence, Product/Pipeline drawers and320/390px layouts; no business/settings saves. Ticket default-open portal hydration issue found/fixed. Typecheck/lint/Webpack build pass; individual screen/device acceptance boundaries: [UI standard and QA](../docs/UI-STANDARDS.md). No push/deploy; earlier QA findings remain open.
+
+
+## Contractual and subscription CRM — 21 Oct 2026 (Codex, local)
+
+Implemented product availability by service model and parent-linked modules; opportunity model selection and won-deal prefill; agreement fixed/annual licence-percentage pricing, product/module quantities and cycle rates, separate upfront setup/training and hardware ownership/return terms. Customer Services shows both models together; agreement list has model/customer filters. Existing date-based commitment/renewal and Zoho billing stay in place. Renewal copies recurring terms/contacts but clears upfront charges. Existing rows default compatibly; no shared customer data migration.
+
+Validation: typecheck/lint and Webpack build pass; 26 existing contract/CRM tests pass, 5 new service tests pass, focused opportunity save/update 1 pass /16 skipped. Browser restored after reload: form modes, live2×300=600 total, catalogue model/parent controls and customer Services→prefilled customer verified. No real draft saved; populated browser persistence/renewal still pending. Product edit button corrected to Save product (focused lint passed). Previous QA findings remain open. No push/deploy. Details and operating guide: [CRM service models](../docs/CRM-SERVICE-MODELS.md).
+
+
+## QA restart — 20 Oct 2026 (Codex, QA only)
+
+Browser acceptance on isolated coex_test_ui1020 passed customer own-ticket privacy, create/reply with upload and pasted-image previews, public/internal separation, relink persistence + revoked old-contact access, contact drawer edits, populated timeline expand/collapse, 7m manual time and contract sender/recipient queue metadata. Two product UI findings remain: stale customer/contact selects after successful relink; portal customers offered as staff ticket assignees. Typecheck/lint/diff checks pass. Full regression: **49 files passed / 2 failed; 468 tests passed / 4 failed**. Failures comprise two stale expectations (origin401 vs404, default non-billable0 vs60) and two team-activity empty-row assertions explained by local-midnight write versus +04:00 query boundaries on Asia/Karachi. Three product findings total; no fixes made. Normal Webpack production build passes, 54 routes; normal Turbopack rebuild blocked by local worker-port permissions. Detailed evidence and final counts: [20 October QA report](../docs/qa/QA-2026-10-20.md). No feature edits/push/deploy. Existing implementation status below is preserved.
+
+
+- 19 Oct 2026 customer header refinement: kind badge moved beside customer name; Customer details is last action aligned right. Browser structure verified; focused ESLint passed.
+
+## Customer drawer and compact timeline — 19 Oct 2026 (Codex, local)
+
+- Moved Opportunities, Contacts and Sites into right-side Customer details drawer with counts; main page keeps compact summary and full-width activity timeline. Existing edit/add/portal-access controls remain inside drawer. Native modal handles focus and Escape, backdrop closes outside, mobile uses full available width.
+- Timeline defaults to first and last entry in existing newest-first order; Show more reveals all entries between, Show less collapses. Customer page loads full activity history rather than old 50-entry cap so endpoints represent real first/last. Empty/one/two-entry cases render normally.
+- TypeScript/focused ESLint/diff checks passed. Browser inspected drawer contents/layout, empty timeline and Escape close. Current customer has zero timeline entries; populated expand/collapse not exercised in browser. No data mutation or deployment in this change.
+
+## Browser acceptance follow-up — 19 Oct 2026 (Codex)
+
+- Browser access restored after John reloaded. Customer UI: created labelled QA TEST contact under DigiSol LLC, edited job title, saved, reloaded and confirmed persistence; then soft-archived it. Contact list returned to zero.
+- Existing ticket customer/contact popup loaded current identity and enabled Save after fetching contacts. Did not change the real ticket’s customer/access; reassignment save/privacy remains covered by database tests.
+- Created one labelled QA TEST draft contract (C-1, 1 AED purely synthetic, never activated), checked editable To/CC, removable Ali default CC, team suggestions and first-recipient preview, closed without sending, then archived draft. Active contract list returned to zero. No mailbox/email or billing action occurred.
+- Local sender list is empty because outbound sending/configuration is off; added explicit notice directing to Setup → Email. Did not enable email or change sending credentials. Live mailbox sending remains unverified.
+
+## CRM/support/email feedback — 19 Oct 2026 (Codex, local)
+
+- Contact editing added; existing ticket customer/contact relinking with validation, portal-scope change and actor/history; 15-second plus manual refresh; contract From/To/CC editing with active team/customer suggestions and removable Ali default CC. Configured senders managed in Setup → Email.
+- Final production build passed (54 routes). Database QA **38/38** across three isolated suites; final targeted refinements **2/2**. Workspace typecheck/focused ESLint/diff checks pass. No real emails, push/merge/deploy. Browser visual/save acceptance pending URL-policy failed-page state; John asked to reload.
+- Full detail and interrupted prior portal QA boundaries: [19 October release notes](RELEASE-2026-10-19.md). dOne work remains waiting for local setup/access.
+
+## dOne support integration project — 18 Oct 2026
+
+Dedicated planning and AI continuity: [dOne ↔ COEX project](../projects/done-coex-integration/README.md). Separate web application; Bilal frontend, Uzair backend, beginner deployment teammate. Waiting for dOne local setup/access; documentation base only, no integration implemented or deployment authorised.
+
+## Notification persistence — 18 Oct 2026 (Codex, local)
+
+- John confirmed desktop test popup arrived after enabling OS notifications. Automatic background reply delivery remains separately unverified.
+- Requested notifications stay until customer dismisses: set requireInteraction on shared live and test desktop notifications (staff/customer). Browser/OS may override; macOS alert style should be Alerts for persistent display. No repeated-alert loop or unread-state change.
+
+## Browser notification testing — 18 Oct 2026 (Codex, local)
+
+- Customer browser notification switch verified On. Added explicit permission/error feedback and a Test notification action to shared account menu; test uses a distinct tag each time. Constructor accepted requests but this does NOT confirm OS display. John reported no popup even after disabling Focus; final distinct-tag test sent, desktop delivery still unconfirmed. Only in-app browser automation available. Check host app OS notification permission or repeat in Chrome/Edge.
+- Created one labelled [Notification test] public reply on existing customer ticket 6ab4f6e18f176d75b7411462 without sending email; audited and verified scoped portal event feed returned exactly the test event. No other ticket/message mutations. Browser settings, actual background polling-to-OS delivery and notification click-through not yet proven.
+- TypeScript/focused ESLint passed; HTTP boundary tests 3/3. No push/deploy.
+
+## Customer header/account menu — 18 Oct 2026 (Codex, local)
+
+- Customer header reuses staff avatar/account menu with Edit profile, Reset password, Browser notifications, disabled Tutorials (Coming soon), Sign out. Added protected customer-only profile page/action for own name/job title; staff profile actions remain restricted.
+- Browser notifications poll separate authenticated customer endpoint for public outbound non-system replies on contact's own tickets, using existing portal identity checks. Generic notification text avoids message-content disclosure; opt-in/cursor stored per customer/browser. No closed-browser push. Customer tutorial publishing/player not enabled; menu placeholder only.
+- Browser checked shared menu and profile navigation. TypeScript/focused ESLint passed; portal database regressions **11/11** including own-reply/privacy/revocation test in isolated coex_test_portal_1018. Real OS notification delivery and profile save not exercised. No push/deploy.
+
+## Neon conversation colours — 18 Oct 2026 (Codex, local)
+
+- John clarified **agent/support green, customer light yellow**. Applied shared theme-aware neon fill/border/glow to public messages in both staff conversation and customer portal. Internal note styling stays distinct.
+- Visually reviewed customer conversation in Dark, Light and Sunset; restored preview account to original Sunset. Sender contrast ratios exceed 6.8:1 across palette. TypeScript, focused ESLint and diff check passed; staff uses shared classes but separate staff browser visual acceptance not repeated. No deployment.
+
+## Customer conversation bubbles — 18 Oct 2026 (Codex, local)
+
+- Customer ticket conversation now uses refined WhatsApp-style bubbles: own messages right/soft green, support left/surface, sender names, centred day separators and compact bottom timestamps. Reuses agent BubbleText read-more handling and existing protected attachment thumbnails/previews. No message or visibility/access changes.
+- Browser checked actual customer ticket alignment and attachments; old Tahoe previews remain unavailable as before. TypeScript and focused ESLint passed. No deployment.
+
+## Login Customer / Agent toggle — 18 Oct 2026 (Codex, local)
+
+- Prominent Customer / Agent toggle above login heading; Customer default shows Create / View Your Support Ticket and support explanation, Agent shows Sign in to COEX and workspace explanation. Toggle preserves the shared form and does not grant/change role or access. Microsoft entry appears in Agent view. CAPTCHA and 60-day remember remain.
+- Browser checked both toggle states and left Customer selected. TypeScript/focused ESLint passed. No deployment.
+
+## CAPTCHA local configuration verified — 18 Oct 2026 (Codex)
+
+- John replaced local Turnstile placeholders with actual keys and confirmed localhost added in Cloudflare. Checked presence/non-placeholder values without exposing credentials; restored localhost to local hostname allowlist after edit and restarted only local Next dev process.
+- Browser login widget now visibly shows Cloudflare **Success!** alongside Create Support Ticket and 60-day remember checkbox. Automatic browser verification required no challenge interaction. Server-side live token acceptance/form submission still not exercised in this check; production environment/build/deployment remains pending. Secrets remain only in ignored local environment.
+
+## Portal login refinements — 18 Oct 2026 (Codex, local)
+
+- Login and guest portal heading now prominently says Create Support Ticket. Password login has opt-in Remember me on this PC for 60 days; selected cookie and database session expire together after 60 days, unchecked login uses a browser-session cookie with existing 30-day server cap. Password reset/signout revocation remains. Microsoft SSO unchanged.
+- Browser verified heading/checkbox. Turnstile reported 400020 (invalid sitekey); environment inspection found a site-key placeholder, without exposing keys. John asked to replace actual site/secret values in local environment. CAPTCHA acceptance remains pending correction/restart and human verification.
+
+## Customer CAPTCHA — 18 Oct 2026 (Codex, local)
+
+- Requested CAPTCHA implemented with Cloudflare Turnstile for shared password login and customer ticket/reply actions, server verification before mutations, action/hostname matching, timeout and single-use widget refresh. Partial configuration fails closed; both keys absent leaves integration inactive. Staff password login shares the same widget; Microsoft SSO unchanged.
+- Verified: CAPTCHA unit tests **7/7**, workspace TypeScript and focused ESLint passed. Live widget/challenge verification awaits keys.
+- **Activation pending:** John has no Cloudflare account yet. Account/widget keys, hostname configuration, rebuild/restart and real challenge acceptance remain required; no production activation or deployment claimed. Setup in `docs/CUSTOMER-PORTAL.md`. No secrets saved in documentation.
+
+## Customer portal T6 — 18 Oct 2026 (Codex, local)
+
+- John explicitly resumed T6 and confirmed **own tickets only**, not all company tickets. Built same-site `/portal`, customer password sign-in routing, own ticket search/filter/pagination, Raise ticket, public conversation/reply, safe image/file attachments and pre-send previews. Default queue and authenticated contact/company are server-selected. Internal notes/attachments, engineering and staff time are excluded.
+- Administrative account provisioning is on Customer → Contacts (`user.manage`), using existing Contact.userId/User.organisationId. Fresh client accounts only; no staff account conversion, no automatic invite email. Suspension/contact archival revokes access. Staff pages/actions and both API surfaces reject client-contact sessions even with permission overrides.
+- Verified: production build and workspace typecheck; portal DB suite **10/10** and tutorial DB regressions **3/3** in separate coex_test databases. Portal HTTP boundary unit tests **2/2**. Browser synthetic QA verified login, own list, create with image, attachment preview, customer reply and refresh persistence, foreign direct URL 404, staff dashboard redirect, public reply visibility and hidden internal note. No real customer account or ticket created. Final full unit run: **31 files / 195 tests passed**; focused ESLint, formatting and diff checks passed.
+- Isolated UI QA at 127.0.0.1:3101 used `coex_test_pui_1018`, separate cookies and storage. Stopped after verification, temporary launcher removed; localhost:3100 remains running. No push/merge/deploy. Mailbox delivery and real-device/theme acceptance remain unverified.
+- Implementation, setup and security notes: `docs/CUSTOMER-PORTAL.md`. T9 subtask-assignee changes and T10 XVERSE remain on hold. Leads API pilot remains paused.
+
+## Current handover — 18 Oct 2026 (Codex)
+
+- **Branch / PR:** `claude/gallant-faraday-r1u4g8`; local committed HEAD `6c5f572`. Refreshed GitHub: branch/PR head `b0db354` (Claude's documentation-only handover), PR [#24](https://github.com/digisol-ae/COEX/pull/24) **OPEN**, main `9703f43` (PR #23). Claude's new handover is recorded in `ai/RELEASE-2026-10-18.md`; no pull/merge/reset was performed over local work.
+- **Codex changes remain local and uncommitted.** They are not in PR #24 until separately committed/pushed. No merge, deployment or tutorial publication performed. Claude reports production through PR #23; the deployment file previously confirmed only PR #21, and VPS SHA/PM2 have NOT been independently rechecked.
+- **Built after Claude:** refined Ticket header/control layout, history popups with actor/date, image paste plus thumbnail/full preview; Task details/edit/history popups, clear Assigned to, manual Add time, per-agent times and highlighted Total time at row end; compact Customer/Contract/Opportunity detail styling; shared wording and visible module identity; floating tutorial system with upload and supported video links.
+- **Product conventions:** COEX remains the current name (Worktello is the same product; rename is future). Transparent compact control sections, small icon + name badges, matching labels/tooltips/buttons for equivalent actions, module identity on each page, one-click history with actor/date and time entries already expanded. `CLAUDE.md` holds standing rules; `FEEDBACK.md` holds John's product requests and final refinements.
+- **Tutorials:** `/setup/tutorials` requires `tenant.manage`. Upload MP4/WebM or add YouTube/Vimeo/direct HTTPS MP4/WebM link; preview draft, publish to current tenant, stop, republish. Drag/minimize/expand/close/replay player; no autoplay. One display per user/publication, 30s poll. Current draft: **Create a ticket in 20 seconds**, exactly 20s, silent illustrated demo (not a recording). Both MP4 artifacts remain under `docs/tutorials/`. Do not publish merely to test.
+- **Verified in this chat:** full workspace typecheck and focused ESLint/format/diff checks; 25 tutorial unit tests + 3 isolated database tests passed (`coex_test_tutorials_1017`). Browser checked Ticket/Task history, clipboard image preview, module label, Task edit and manual-time form, floating video play/drag/expand/minimize/restore, and exact 20s create-ticket playback. No ticket, time entry or customer message was created by these checks; tutorial drafts were saved through the local UI.
+- **Still required:** full current regression suite and production build/CI; actual manual-time save/reopen; multi-user publish/seen/stop browser journey on isolated QA; live YouTube/Vimeo playback; CRM detail/theme/mobile visual acceptance. Claude's prior task/ticket database regressions are not proven by the tutorial-only database suite. Older Tahoe attachments failed to load locally; no stored attachment changed.
+- **Held / external:** T6 customer portal is now built locally (see newest section); T9 subtask assignees and T10 XVERSE remain on hold. Leads API pilot remains paused/off in production per Claude; planned-to-estimate migration unconfirmed; QA Space export and deploy evidence updates remain open. Broader Leads/Spaces/Settings compact-layout review has not been completed.
+- **Next:** John reviews local UI at `http://localhost:3100`; resolve acceptance issues, run required release checks, then await his explicit commit/push/PR/merge/deploy instructions. Preserve unrelated `docs/handover/` and generated `apps/web/AGENTS.md` / `apps/web/CLAUDE.md` files; inspect before staging. No new PR or merge without John's instruction.
+- **Detailed inventory / incoming Claude note:** `ai/RELEASE-2026-10-18.md`.
+
+## Release deployed — 16 Oct 2026 (Claude)
+
+- PR #21 merged (`4d95d74`) and deployed by John; he reports all fine. Details and open items in
+  deploy/DEPLOYMENT-STATUS.md. Next: the planned-to-estimate script if not yet run, then T6, T9, T10 when
+  John decides, QA Space feedback, and the Leads pilot on the API.
+
+## Browser notifications — 15 Oct 2026 (Claude)
+
+- T4 built: opt in per person and per browser from the avatar menu ("Browser notifications"). While COEX
+  is open in any tab, a 30 second poll of `/api/notifications` shows a notification, only when the tab
+  is hidden, for a ticket the customer wrote on that I have not opened (mine, or unassigned for those who
+  see the desk) and for a task someone else assigned to me. Click opens the item. Two tabs show one
+  notification (same tag). No push service: a closed browser is not reached. @mentions and "ticket
+  assigned to me" are not included yet (nothing records them with a time); say if wanted.
+- Verified: typecheck and ESLint in a scratch copy. NOT run: the app, browsers' permission prompt, the
+  new database test (`new assignments for browser notifications`). Needs HTTPS (the live site has it) or
+  localhost.
+
+## Team feedback batch 1 built — 15 Oct 2026 (Claude)
+
+- Built on the branch, NOT deployed (John: finish the other feedback first, review on his own system):
+  T1 ticket "Assigned to" picker; T2 timers on a ticket stop when it is Resolved or Closed; T3 task times
+  are office time (Asia/Dubai) everywhere, one helper in packages/shared/src/tasks/dates.ts; T5 Planned
+  hours removed, Estimate is the one field (`scripts/copy-planned-to-estimate.ts`, run once with APPLY=1,
+  copies planned into empty estimates); T7 Done column stays visible on boards; T8 "Created by me"
+  (decision: no Remind button); T11 timesheet lists assigned open work with no time and accepts tickets;
+  T12 ticket time per person (the task page already did). What's new entry 2026-10-15.
+- Held by John: T6 portal, T9 subtask assignees, T10 XVERSE task. Still to build: T4 browser notifications.
+- T3 note: a Pakistan browser typing 9:00 now gets 9:00 Dubai time everywhere; it is a display and entry
+  convention, not the person's own clock. Task list grouping (Today, This week) still uses the browser's day.
+- Verified: typecheck, ESLint, Prettier and all unit tests (incl. new task-dates) in a scratch copy. NOT
+  run: database tests (tasks.test.ts changed) and the browser. John: `npm test` on the Mac first.
+
+## Assigned by me filter — 13 Oct 2026 (Claude)
+
+- All tasks has an "Assigned by me" chip (`?assignedByMe=1`): tasks where the signed-in person is the
+  `assignedById` of an assignment to someone other than themselves. It replaces "Mine" (they
+  contradict), is open to everyone including agents, and still passes the Space and Folder visibility
+  filters. Assignments before 1 Oct 2026 carry no assigner and cannot match. What's new entry added.
+- Verified: typecheck and ESLint in a scratch copy. NOT run: the new database test
+  (`the Assigned by me filter` in tests/database/tasks.test.ts); John, run it with `npm test`.
+
+## Dark theme review — 13 Oct 2026 (Claude)
+
+- Reviewed in code (no browser here) every colour in components: tokens in `globals.css`, literal
+  colours in tsx, raw form controls. Fixed: Assign agent Save used `bg-ink text-white`, which is white on
+  white in Dark (now `action` and `ink-inverse`, and the reason box uses the shared Textarea); initials
+  on person colours (new `--color-person-ink`, near black in Dark); `white/60` borders and hovers in
+  What's new and Raise ticket; popup backdrop darker in Dark. What's new entry 2026-10-13.
+- Left alone on purpose: the floating timer (own dark green design), toasts (fixed dark), tooltips.
+- Verified: typecheck and ESLint in a scratch copy. NOT seen in a browser: John, check Dark on
+  Tickets, Tasks, What's new, Raise ticket and avatars, and send screenshots of anything else.
+- Raw `<select>`, `<input>` and `<textarea>` in about 35 places use Tailwind's transparent default
+  rather than the shared controls; they read fine in Dark but differ from `Input`. Candidate clean-up.
+
+## Microsoft sign-in live — 13 Oct 2026 (Claude, with John)
+
+- Entra variables added to the server `.env`; Microsoft sign-in through the web route works (John
+  confirmed). Details and gotchas in deploy/DEPLOYMENT-STATUS.md. Remember the client secret's expiry.
+- Not done: `coex-api` process, Apache `/api/v2` route, the optional `auth` flag to point the login page
+  at the API. Leads work is paused at the flag stage.
+
+## Leads pages behind a flag — 13 Oct 2026 (Claude)
+
+- `apps/web/src/lib/api-client.ts`: `apiEnabledFor(module)` reads `COEX_API_MODULES` (comma list, for
+  example `leads`) and `apiRequest` calls the API from the server with the person's own session
+  cookie (`COEX_API_URL`, default `http://127.0.0.1:3002/api/v2`). Flag unset: nothing changes.
+- With `leads` set, the Leads page lists and every Leads action (save, start working, disqualify,
+  archive, convert) go through the API; a 409 shows the same "save anyway" lookalikes as before.
+- Verified: typecheck, ESLint, Prettier in a scratch copy. NOT run: the app, the API or any test.
+- John, to try it: run `npm test` first; start the API (`apps/api`, port 3002; no Apache rule is needed
+  because the web app calls it on loopback), add `COEX_API_MODULES=leads` to `.env.local`, restart
+  `coex-app`, then use Leads as John. Rollback: remove the line and restart `coex-app`.
+- Not done: Chromium walk-through with the flag on and off, agent pilot, moving the service file,
+  deleting the old server actions (checklist steps 4 to 6), then Contracts.
+
+## Leads on the API — 13 Oct 2026 (Claude)
+
+- Revamp Phase 2 started with Leads: `apps/api/src/routes/leads.ts` now also serves create (409 with
+  the lookalikes unless `confirmDuplicates`), duplicate check, update, start-working, disqualify,
+  archive and convert. Each calls the existing lead service unchanged, so permission and visibility
+  rules stay in one place. List now returns `customFields`.
+- Verified: typecheck, ESLint and Prettier clean in a scratch copy. NOT run: the new supertest cases in
+  `apps/api/tests/api.test.ts` (no MongoDB in the sandbox). John: run `npm test` on the Mac first.
+- Not done yet: the lead service file still lives in the web app, the Leads pages still use server
+  actions, and there is no module flag. Next: flag plus switching the pages, Chromium walk-through,
+  pilot with John (checklist in docs/ARCHITECTURE-REVAMP.md), then Contracts.
+
+## Phase 1 live on the server — 13 Oct 2026 (Claude)
+
+- Web app in `apps/web`, workers in `apps/api`, API skeleton and auth routes merged and deployed. John
+  ran the cutover step by step: backup, pull, `npm ci`, `npm run build`, `pm2 restart coex-app`, then the
+  three workers. All four pm2 processes online; coex-mail reconnected; site checked signed in.
+- Gotcha recorded in deploy/DEPLOYMENT-STATUS.md: a terminal that loaded `.env` has `NODE_ENV=production`
+  and makes `npm ci` skip the build tools. Do the backup in a subshell and deploy in a fresh terminal.
+- Not done: start the API on port 3002 and add the Apache rule; Entra redirect URI in Azure (John).
+  `/time/report` needs a check on real MongoDB. Next: Phase 2, Leads and Contracts first.
+
+## Web app moved to apps/web — 12 Oct 2026 (Claude)
+
+- Next.js app now in `apps/web` (history kept); `@/` means `apps/web/src` everywhere; `.env` stays at
+  the root and `apps/web/bin/run-next.mjs` loads it; root `npm run dev|build|start` still work and
+  forward arguments. CLAUDE.md "Where things live" updated.
+- Verified in a scratch copy: typecheck, eslint, prettier, 163 unit tests, build, start, root env read
+  at runtime, workers boot, Chromium over 23 screens on FerretDB (22 ok; `/time/report` fails only
+  because FerretDB lacks `$cond`). NOT run: real MongoDB, pm2.
+- John: the server needs a ONE-TIME cutover, outside office hours, with `pm2 describe coex-app` first.
+  Exact steps and rollback: deploy/DEPLOYMENT-STATUS.md, "Cutover to apps/web". Do not run the normal
+  redeploy and walk away: a `coex-app` started with a bare `next start` has nothing to serve afterwards.
+
+## Mail worker moved to apps/api — 12 Oct 2026 (Claude)
+
+- `scripts/email-worker.ts` is now `apps/api/src/workers/mail.ts`; pm2 name `coex-mail` and
+  `npm run email:worker` unchanged; CLAUDE.md decision 12 path updated. All three workers are now in
+  `apps/api`. Not run against a real mailbox.
+- John: after merge, `git pull --ff-only`, `npm ci`, `pm2 restart coex-mail --update-env && pm2 save`,
+  then `pm2 logs coex-mail --lines 30 --nostream`.
+- Next: John's go for the API process and Apache route, then `apps/web`.
+
+## Production audit fixed — 12 Oct 2026 (Claude)
+
+- Server `npm audit --omit=dev` showed `sharp` <0.35.5 and `source-map-js` <=1.2.1 (both high).
+  Lockfile and the sharp floor updated; production audit now 0. Deploy needs `npm ci`, `npm run build`
+  and a `coex-app` restart.
+
+## Channels worker moved to apps/api — 12 Oct 2026 (Claude)
+
+- `scripts/channel-worker.ts` is now `apps/api/src/workers/channels.ts`; pm2 name `coex-channels` and
+  `npm run channels:worker` unchanged. Not run against a real provider.
+- John: after merge, `git pull --ff-only`, `npm ci`, `pm2 restart coex-channels --update-env && pm2 save`.
+- Next: `coex-mail`.
+
+## Desk-close worker moved to apps/api — 12 Oct 2026 (Claude)
+
+- Rebased onto the other session's Phase 1a/1c API branch (`claude/blissful-heisenberg-wb4e9a`);
+  my own parallel skeleton was dropped. Only the worker move remains: `apps/api/src/workers/desk-close.ts`,
+  same pm2 name and `npm run desk:worker`. Not run against a real MongoDB close.
+- John: after merge, `git pull --ff-only`, `npm ci`, `pm2 restart coex-desk-close --update-env && pm2 save`.
+
+## Architecture revamp Phase 1c built — 12 Oct 2026 (Claude)
+
+- John: "go ahead with 1c before 1b". `/api/v2/auth/*`: login, logout, forgot password, reset
+  password (check and set), Microsoft Entra start and callback; rate limits on sign in and reset;
+  same services and cookie as the web app. Cross checked on the running servers: an API session works
+  on the web app and an API logout ends it there. The web login page is not switched.
+- **Needs John:** add redirect URI `https://coex.digisol.ae/api/v2/auth/entra/callback` in the Azure
+  app registration before using Entra through the API. Details: apps/api/README.md.
+- Verified in a scratch copy: typecheck, eslint zero warnings, 163 unit, 23 API tests, build, live curl
+  checks. NOT run: real MongoDB, the final Microsoft token exchange. Nothing deployed.
+- John on the Mac: `git pull`, `npm install` (nothing new to install), `npm run typecheck`,
+  `npm run build`. The server needs no change for this step.
+- Next: 1b workers (email, desk-close, channels) into the API, then 1d `apps/web`.
+
+## Architecture revamp Phase 1a built — 12 Oct 2026 (Claude)
+
+- `apps/api` (Express 5): health, `/me`, read only `/leads`, `defineRoute` declarations, OpenAPI at
+  `/api/v2/openapi.json`, one error shape, same-origin rule for writes. Reads the web app's
+  `coex_session` cookie through the new framework-free `auth-context.service` (web `session.ts`
+  now uses it too). Services imported unchanged; nothing duplicated. Details: docs/ARCHITECTURE-REVAMP.md,
+  "Phase 1a as built", and apps/api/README.md.
+- Verified in a scratch copy: typecheck (3 packages), eslint zero warnings, 163 unit, 10 API tests
+  (emulator, session TTL index disabled there), production build, API started under tsx, web
+  login cookie accepted by the API. NOT run: real MongoDB; nothing deployed.
+- The API is invisible: Apache lines are commented out in deploy/apache-coex.conf and `coex-api` is
+  not started. John on the Mac: `git pull`, `npm install`, `npm run typecheck`, `npm run build`.
+  Deploy as usual with `npm ci` (this adds express).
+- Next: 1b workers into the API, 1c sign in and Entra routes, 1d `apps/web` move.
+
+## Architecture revamp Phase 0 built — 12 Oct 2026 (Claude)
+
+- npm workspaces plus `packages/shared` (`@coex/shared`): all 33 models and 21 pure files moved
+  there, 131 files re-imported by codemod, no behaviour change. The web app stays at the repository
+  root (deviation recorded in docs/ARCHITECTURE-REVAMP.md, "Phase 0 as built"). CI checks the new
+  package. package-lock.json regenerated.
+- Verified in a scratch copy: typecheck (both packages), eslint zero warnings, prettier, 146 unit,
+  59 database tests on FerretDB, production build, email worker boots under tsx. NOT run: the full
+  database suite on real MongoDB.
+- John on the Mac: `git pull`, then `npm install` (once, to link the workspace; a plain `npm ci`
+  also works), `npm run typecheck`, `npm run test:unit`, `npm run build`. Deploy as usual with
+  `npm ci`; nothing else changes.
+- Next: Phase 1, `apps/api` skeleton beside the app (docs/ARCHITECTURE-REVAMP.md).
+
+## P2.2c and P2.2d built — 11 Oct 2026 (Claude)
+
+- John said go ahead. P2.2c: lead conversion (customer, contact, optional opportunity, lead kept
+  as converted), pipeline board (drag between open stages, dialog for Won, Lost and reopening), win
+  to contract prefill, customer page Opportunities panel. P2.2d: hourly opportunity reminders in the
+  `coex-mail` worker (next step day, stale after N days, Setup, Pipeline), two new Setup, Email
+  toggles, `next_step_set` timeline entries, dashboard card "My opportunities".
+- Files: crm/services/lead.service.ts (convertLead), opportunity.service.ts (lastActivityAt,
+  loadOpportunitySnapshot), opportunity-reminder.service.ts, pipeline.service.ts (stale days),
+  contact.service.ts (createContact returns the id), crm/opportunity-rules.ts (isStale),
+  scripts/email-worker.ts, email.service.ts and email models/settings (two alert kinds),
+  app/(app)/leads/convert-button.tsx, opportunities/board.tsx and move-button.tsx (MoveDialog),
+  opportunities/[id]/page.tsx, contracts/contract-panel.tsx (prefill), customers/[id]/page.tsx,
+  dashboard/page.tsx, setup/pipeline/*, release note 2026-10-11.
+- Verified in a scratch copy: tsc, eslint zero warnings, prettier, 146 unit tests, 27 database
+  tests (leads and opportunities, including conversion, reminders and the snapshot) on FerretDB,
+  production build, Chromium walk-through (convert with opportunity, customer panel and timeline,
+  board drag between adjacent stages, Won dialog and prefilled contract form, dashboard card, Setup
+  fields; no browser errors). A long headless drag to the far Won column could not be driven by
+  Playwright, so that drop was exercised with synthetic drag events; John should drag once by hand.
+  NOT run on real MongoDB; John's run is final.
+- Deploy: `git pull`, `npm ci`, `npm run build`, restart coex-app AND coex-mail with --update-env
+  (the worker sends the new reminders), pm2 save. No migration: new fields have defaults.
+- Next: architecture revamp Phase 0 (monorepo skeleton and packages/shared), docs/ARCHITECTURE-REVAMP.md.
+
+## P2.2b Pipeline and opportunities built — 10 Oct 2026 (Claude)
+
+- John answered the six CRM questions (CLAUDE.md, docs/P2-2-CRM-SPEC.md "Answers"). Built P2.2b:
+  Setup, Pipeline (stages, chances, lost reasons), Opportunities list (status, stage, owner, search
+  filters, per currency totals, next step flags), add/edit popup, move popup (Lost asks for a
+  reason, reopening asks for a reason and `pipeline.manage`), opportunity page with history.
+- Files: crm/models/pipeline-stage.model.ts, opportunity.model.ts, crm/opportunity-rules.ts,
+  crm/services/pipeline.service.ts, opportunity.service.ts, access.service.ts (shared permission
+  check, lead.service now uses it), app/(app)/opportunities/*, app/(app)/setup/pipeline/*,
+  permissions, numbering `opportunity`, tenant `lostReasons` and `opportunityPrefix`, `stage_changed`
+  timeline kind, nav items, release note 2026-10-10.
+- Verified in a scratch copy: tsc, eslint zero warnings, prettier, 145 unit tests, 11 new database
+  tests (tests/database/opportunities.test.ts) plus the lead tests on FerretDB, production build,
+  Chromium walk-through (add stage, add opportunity, Lost needs a reason, reopen needs a reason,
+  detail page history, nav, no browser errors). NOT run on real MongoDB; John's run is final.
+- Deploy: `git pull`, `npm ci`, `npm run build`, restart coex-app with --update-env, pm2 save. No
+  migration: stages are created on first use. Grant the opportunity permissions per person.
+- Next: P2.2c (lead conversion, pipeline board, customer page panel, win to contract), then P2.2d
+  (reminders, dashboard card), then the architecture revamp Phase 0.
+
+## Architecture revamp planned — 10 Oct 2026 (Claude)
+
+- John agreed the dev team's direction (Express API, Next.js only frontend, MongoDB unchanged) and
+  the plan in docs/ARCHITECTURE-REVAMP.md: monorepo, Entra in Express, 30 second poll kept, P2.2b
+  first. No code changed; this is documentation and a decision record in CLAUDE.md.
+- Next: P2.2b (pipeline and opportunities; John still owes answers to the spec's six questions),
+  then Phase 0 (monorepo skeleton and `packages/shared`).
+## Daily performance email — 10 Oct 2026 (Claude)
+
+- 9:00 Gulf every morning: everyone on the staff (managers and administrators too) gets thanks or a polite reminder about yesterday's hours; a day off is skipped unless the person worked; the combined summary goes only to the addresses entered in Setup, Email (default empty). Task page shows "All people" total to those with timesheet.read.all. Setup, Email; off by default; worker `coex-mail` must be restarted. See FEEDBACK.md.
+
+## Time on shared tasks — 10 Oct 2026 (Claude)
+
+- Task and ticket screens show the viewer's own logged time, not all assignees added together. See FEEDBACK.md.
+
+## All tasks screen — 9 Oct 2026 (Claude)
+
+- Multi space and multi assignee filters, and a New task popup (Personal or any Space). See FEEDBACK.md.
+
+## Team activity page and billable default — 9 Oct 2026 (Claude)
+
+- Built `/time/activity` (Time, `timesheet.read.all`): person, task or ticket, stage, time, working now;
+  filters date range (Today button), stage or status, several people, Tasks/Tickets checkboxes; preview popups; Share as PDF by email or download (new dependency pdf-lib, so `npm ci` on deploy). New time entries default to not billable. See FEEDBACK.md.
+
+## Feedback batch Q1 to Q5 built — 9 Oct 2026 (Claude)
+
+- Branch claude/vigilant-mendel-brfndj now also carries the other chat's P2.2a Leads branch
+  (merged, docs conflicts resolved by keeping both). CRM work beyond Leads stays paused by John.
+- Built from FEEDBACK.md (section "feedback batch Q1 to Q5"): Q1 folder archive (with or without its
+  tasks, no hard delete), Q2 ticket subject opens the preview, eye icon gone, full screen icon,
+  Q3 personal drag order of the ticket list with reset, Q4 per-person time entries on a task.
+  Q5 (All work shows every space) could not be reproduced: current code and tests scope by space;
+  likely an older deployed build. John to confirm after deploying.
+- John confirmed (9 Oct 2026): ticket order is personal; others' time entries need
+  `timesheet.read.all`; folder "delete" means archive, enough for now.
+- Verified in a scratch copy only: tsc, eslint, Prettier, 143 unit tests, DB tests on FerretDB,
+  Chromium walk-through. Not run on real MongoDB. No PR opened yet.
+- Deploy: `git pull`, `npm ci`, `npm run build`, restart coex-app with --update-env, pm2 save. No
+  migration: new fields (`ticketOrder`, `archivedWithFolder`) have defaults.
+
+## CRM visibility decided — 5 Oct 2026 (Claude)
+
+- John: managers and administrators see all leads and opportunities by default; an agent sees
+  everyone's only when John grants it per person. Modelled as permission `sales.read.all`
+  (managers and tenant administrators by default), everyone sees their own. Recorded in CLAUDE.md,
+  docs/P2-2-CRM-SPEC.md and the user page (republished). No CRM question is open now; P2.2a Leads
+  is ready to build on John's go.
+
+## CRM answers recorded — 5 Oct 2026 (Claude)
+
+- John answered the six CRM questions: everyone sells; several pipelines; no Negotiation stage and
+  stages customizable; lost reasons Price and No reply (customizable); two amounts per deal
+  (one-off and recurring); lead sources all of the proposed plus customizable. Recorded in
+  CLAUDE.md, docs/P2-2-CRM-SPEC.md and the user page docs/crm-for-users.html (republished).
+- One answer still open: whether each person sees only their own leads and deals or everyone's.
+- Leads (P2.2a) were built afterwards: see the next entry.
+
+## P2.2a Leads built — 9 Oct 2026 (Claude)
+
+- John chose "Full CRM P2.2a" as the next task. Built on the spec's proposals, ahead of his answers to
+  the six open questions (docs/P2-2-CRM-SPEC.md, section "Built: P2.2a", lists the departures).
+- Leads page under CRM: add and edit (name, company, email, mobile in E.164, source, owner, notes,
+  custom fields), status filters with counts, source/owner/search filters, start working, disqualify
+  with a required reason (kept, reopenable), archive. Duplicate warning against leads, customers and
+  contacts that never blocks. Salespeople see their own leads; `lead.read.all` sees every lead.
+- Files: crm/models/lead.model.ts, crm/lead-rules.ts, crm/services/lead.service.ts,
+  app/(app)/leads/*, permissions (`lead.read`, `lead.read.all`, `lead.manage`), numbering `lead`
+  (tenant `numbering.leadPrefix`), tenant `leadSources` (Setup, Tenant settings), custom field entity
+  `lead`, shared `Textarea` in components/ui, nav item, release note 2026-10-09.
+- Verified in a scratch copy: tsc, eslint zero warnings, prettier on changed files (CLAUDE.md already
+  failed it before), 138 unit tests, 8 new database tests in tests/database/leads.test.ts plus
+  crm-foundation and custom-fields on FerretDB 1.24, production build, Chromium walk-through (add,
+  duplicate warning keeps the form, save anyway, start working, disqualify, filter, sources in
+  Tenant settings, no browser errors). NOT run on real MongoDB; John's run is the final word.
+- Deploy: `git pull`, `npm ci`, `npm run build`, restart coex-app with --update-env, pm2 save. No
+  migration: new fields have defaults. Grant `lead.manage` to salespeople in Users and roles.
+- Next: John answers the spec's open questions, then P2.2b pipeline and opportunities. Zoho
+  (P2.1d) still waits on API access.
+
+## Contract emails — 4 Oct 2026 (Claude)
+
+- Email icon on each contract row opens a popup: recipients (the contacts chosen on the contract),
+  one of three templates (Renewal reminder, Contract ended, General message; opens on the one that
+  fits), editable subject and message with placeholders, and a live preview. One personal email per
+  contact is queued through the outbox from a new fourth sender, Contracts (Setup, Email; blank
+  falls back to Standard). Each send is logged on the customer's timeline and in the audit log;
+  a contact without an address is skipped and named.
+- Templates are edited in Setup, Email (Contract email templates) with a preview. Contract contacts
+  are chosen on the contract form after picking the customer.
+- Verified: 18 database tests pass on the emulator; Chromium walk-through (Setup sections, contacts
+  picker, popup, send queued one email, skipped the contact with no address).
+- Not built: the Zoho Books invoice link. Needs Zoho API access from John; see
+  docs/P2-1d-ZOHO-SPEC.md.
+
+## Contracts badge and expiry filters — 4 Oct 2026 (Claude)
+
+- Menu badge: count of contracts needing renewal (in force and inside the customer's warning
+  window, or past the end date) on the CRM rail icon, the sidebar Contracts item and the phone
+  menu; clicking opens /contracts?filter=due.
+- Contracts page filters with counts, like the ticket filters: All, Needs renewal, Expiring in 30
+  days, Expiring in 60 days, Expired (`?filter=`). Pure rule in crm/contract-status.ts
+  (matchesContractFilter), summary gains daysLeft. Replaced the old Renewals due strip.
+- Verified in Chromium with five contracts: badge 2, each filter correct, rail click filters.
+- Requested next (John, 4 Oct 2026), not built: send-email button per contract with a
+  configurable template, and linking a contract to Zoho Books invoices (see the spec).
+
+## Contracts form and detail polish — 4 Oct 2026 (Claude)
+
+- Contract form keeps everything typed when saving fails (React clears forms after every submit;
+  the action now returns the submitted values and the form uses them as defaults, with a key on
+  each select because React does not re-apply a select default). The "add a product" fields are
+  autoComplete off and the message explains the name-and-code rule, after a browser filled them in.
+- Detail page: the red "not ticked" flag only shows for an active contract; status badge capitalised.
+- Verified in Chromium against a local build: forced error keeps all fields, corrected save works.
+
+## Contracts page crash fixed — 4 Oct 2026 (Claude)
+
+- Live bug: saving a contract produced "This page couldn't load". Root cause was not in Contracts:
+  `disableDrag` in components/ui/sortable-table.tsx gave every element in a table an empty children
+  list, and React throws for `<input>` (void elements). Any table row holding a form field broke;
+  contract rows hold hidden inputs. Fixed in the shared component; regression test
+  tests/unit/sortable-table.test.ts fails without the fix.
+- Also: the Renewals due strip used `Notice` (a paragraph) around a list, invalid HTML; now a section.
+- Reproduced and verified in a real Chromium against a local build with FerretDB: save, list,
+  activate (Expiring), Renewals due strip, detail page, billing schedule, renew all work.
+
+## Contracts tested — 4 Oct 2026 (Claude)
+
+- tests/database/contracts.test.ts: 13/13 pass, run in the sandbox against FerretDB 1.24 (SQLite),
+  a MongoDB-compatible emulator, because real MongoDB cannot be downloaded there. Also passing:
+  crm-foundation and custom-fields. The other database files could not run on the emulator (it
+  lacks partial and TTL indexes and projections in findAndModify), which says nothing about the
+  code. Real MongoDB run by John is still the final word. Browser check not done.
+- Deploy contracts: `git pull`, `npm ci`, `npm run build`, restart coex-app and coex-mail with
+  --update-env, pm2 save. No migration: new fields have defaults.
+
+## Full CRM specification drafted — 4 Oct 2026 (Claude)
+
+- docs/P2-2-CRM-SPEC.md: leads, opportunities, one pipeline, conversion, reminders, permissions,
+  four milestones P2.2a to P2.2d, six open questions for John. No code. Contracts P2.1a to P2.1c
+  remain to be verified by John (database test) before deploy.
+
+## P2.1c built — 4 Oct 2026 (Claude)
+
+- Ticket contract notice (agents), customer line in the acknowledgement, contract detail page with
+  billing schedule and manual invoiced tick, support hours used vs included. Files:
+  crm/contract-status.ts (billingSchedule, contractExpiryNotice), contract.service.ts
+  (contractNoticeFor, getContract, setPeriodInvoiced), time.service.ts
+  (loggedTicketMinutesForOrganisation), tickets/email-text.ts, inbound-email.service.ts,
+  app/(app)/contracts/[id], ticket detail page.
+- Verified in a scratch copy: tsc, eslint zero warnings, prettier, 125 unit tests, production
+  build. NOT run: tests/database/contracts.test.ts (needs MongoDB) or the browser.
+- Next: P2.1d Zoho Books read only link (needs Zoho API access), then full CRM.
+
+## P2.1b renewals built — 4 Oct 2026 (Claude)
+
+- Renew action (draft for next term, activating it retires the old contract), Renewals due strip,
+  hourly reminder pass inside the existing coex-mail worker (no new pm2 process), new staff alert
+  `contract_renewal` (Setup, Email toggle). Files: crm/contract-status.ts, crm/services/
+  contract.service.ts, contract-reminder.service.ts, scripts/email-worker.ts, contracts page.
+- Verified in a scratch copy: tsc, eslint zero warnings, prettier on changed files, 121 unit
+  tests. NOT run: tests/database/contracts.test.ts (needs MongoDB). Deploy: restart coex-app and
+  coex-mail with --update-env.
+- Open for John: renewal task and dashboard card (cross module, see spec).
+
+## P2.1a Contracts built — 4 Oct 2026 (Claude)
+
+- Contracts live in the CRM module (they read organisations and products; a separate module would
+  break the sibling import rule). Files: crm/models/contract.model.ts, crm/contract-status.ts,
+  crm/services/contract.service.ts, app/(app)/contracts/*, nav item under CRM, permissions
+  `contract.read`/`contract.manage` (tenant admin and manager), `contract` number series
+  (tenant `numbering.contractPrefix`, default C), organisation `expiryWarningDays` (customer
+  details form), release note 2026-10-04.
+- Status: stored draft/active/renewed/cancelled; expiring/expired are derived from end date in the
+  office time zone (Asia/Dubai), so no job is needed. Dates are YYYY-MM-DD text.
+- Verified in a scratch copy: tsc, prettier, eslint (zero warnings), 118 unit tests. NOT run:
+  tests/database/contracts.test.ts (no MongoDB in the sandbox) and the browser. John to run
+  `npx vitest run tests/database/contracts.test.ts` on the Mac.
+- Next: P2.1b renewal action, reminders and tasks; P2.1c ticket warning in the acknowledgement
+  email and agent banner. Customer warning goes to the contact who raises the ticket.
+
+## Contracts spec answers — 4 Oct 2026 (Claude)
+
+- John: products from the CRM list with add-from-drop-down; renewal owner is the organisation's
+  owner; expiry warning to agents and to the customer's contract contact from 30 days before expiry
+  (configurable per customer). SLA tiers still undecided (explained in the spec). See
+  docs/P2-1-CONTRACTS-SPEC.md. No code yet.
+
+## Phase 2 order and Contracts spec — 4 Oct 2026 (Claude)
+
+- John confirmed Contracts / AMC, then full CRM, then Payroll. Billing entirely in Zoho; support
+  hours against a contract are optional; payroll needs AED, USD and PKR, no UAE specifics.
+- docs/PHASE-2-PLAN.md updated; first milestone drafted in docs/P2-1-CONTRACTS-SPEC.md with four
+  open questions for John. No code written for Phase 2 yet.
+
+## Slow Atlas tests diagnosed — 4 Oct 2026 (Claude)
+
+- Cause: `testTimeout` (30 s) does not cover `beforeAll`/`beforeEach`, whose default is 10 s, and
+  every database test clears all collections and reseeds in `beforeEach` over the link to Atlas.
+  That matches the four files that time out in a full run but pass alone (1 Oct note).
+- Changed (not run here, no database or node_modules in the sandbox): `hookTimeout` 60 s in
+  vitest.config.mts; indexes built once in `connectForTests`; optional `MONGODB_TEST_URI` for a
+  local MongoDB (see tests/README.md), falling back to `MONGODB_URI`.
+- John to run on the Mac: `npm run test:db`; for real speed install a local MongoDB and set
+  `MONGODB_TEST_URI`. Report timings.
+
+## Hardening started, M6 suspended — 4 Oct 2026 (Claude)
+
+- John suspended M6.3 to M6.6 until further notice (XVERSE team unavailable). PR #5 is merged to
+  main (M6.1, M6.2, Oct 3 release) and was deployed to the server on the morning of 4 Oct 2026
+  (John). The hardening commit below is not deployed yet.
+- M8 hardening: `npm audit` critical was `next` 16.2.0-16.3.5 (RCE in next/og ImageResponse; COEX
+  does not use next/og, but fixed anyway). package.json and package-lock.json now pin next and
+  eslint-config-next 16.3.8; production audit reports 0 vulnerabilities (lockfile updated with
+  `--package-lock-only`, nothing installed here). Five remaining high findings are the dev-only
+  lint chain (braces via fast-glob via eslint-config-next); no fixed release exists, not shipped.
+- storage.ts: added turbopackIgnore hints for the four tracing warnings. NOT verified: needs
+  `npm run build` on the Mac.
+- John to run on the Mac: `npm ci && npm run build && npx vitest run tests/unit`, then deploy;
+  on the VPS `npm ci` should no longer report a critical.
+- Still open: rotate off Raheel's SSH key; slow Atlas tests have a fix awaiting a Mac run (below).
+- Phase 2 plan drafted in docs/PHASE-2-PLAN.md for John's review.
+
+## START HERE — committed release for Claude — 3 Oct 2026 (Codex)
+
+- Feature commit: `955ea3f` (44 files), branch `claude/dreamy-carson-86yxhh`.
+  Includes today's customer creation, CC, attachments, previews, timer/sender, ticket analytics,
+  task badge/creator and colors. To do = yellow; In progress = blue. Full inventory:
+  `ai/RELEASE-2026-10-03.md`. Earlier Claude channel commits remain on this branch.
+- Verified at commit: 18 unit files / 109 tests, TypeScript, full ESLint, full source/test
+  formatting and diff checks passed. Production build blocked twice by sandbox worker-port
+  permissions. New database regressions and browser acceptance have NOT been verified.
+- John authorized commit/push and proceeding to app-server pull. Feature commit exists locally;
+  no push, CI result or deployment is confirmed. GitHub/Microsoft account actions stay with John.
+- John was given this Mac sequence: `npm run build`, then
+  `npx vitest run tests/database/ticket-collaborators.test.ts tests/database/tasks.test.ts`,
+  then (only on success) `git push origin HEAD:main`. Test databases are forced to
+  `coex_test_ticket_cc_1003` and `coex_test_tasks`; never clear shared databases.
+- Next: obtain command output, verify remote exact SHA and main CI. If push is rejected because
+  main advanced, reconcile safely; never force-push or discard another AI's work.
+- Then verify VPS /srv/coex/app has clean status, record actual HEAD/PM2, pull --ff-only,
+  npm ci/build and restart coex-app/coex-mail/coex-desk-close with --update-env, pm2 save.
+  Inspect coex-channels before restarting/creating it; avoid duplicate workers. Verify deployed
+  SHA, processes and HTTPS. Follow deploy/DEPLOYMENT-STATUS.md; keep Apache/Zabbix intact.
+- Last documented live baseline: dd037e6; actual current server revision remains unverified.
+- This handover is a documentation-only follow-up commit. No code changes after feature commit.
+
+## Release commit preparation — 3 Oct 2026 (Codex)
+
+- John authorized committing today's bundle, pushing and proceeding to app-server pull.
+- Includes today's ticket/customer/CC/attachments/preview/timer/sender/analytics and task
+  badge/creator/colors changes. Existing branch also contains Claude's M6.1/M6.2 channel work.
+- Verified: 18 unit files / 109 tests, TypeScript, full ESLint and source/test formatting pass.
+- Production build blocked twice by sandbox local-port permission (Turbopack CSS worker).
+  Database and browser acceptance still pending. Run native Mac build and focused DB tests
+  before push. No push or server change performed; GitHub credentials stay with John.
+- Next: native checks, fast-forward push HEAD to main, confirm CI, then clean ff-only VPS pull,
+  npm ci/build and restart app/mail/desk workers. Inspect channels worker before adding/restarting.
+
+## Ticket analytics counts — 3 Oct 2026 (Codex, local only)
+
+- Replaced Mine/All open/Unassigned/Missed/Everything scope buttons with green Opened, amber
+  Delayed and red Missed count buttons. Each selects its corresponding ticket list.
+- Opened = active tickets (excludes resolved/closed); Delayed = SLA due_soon (within 60 minutes),
+  excluding Missed; Missed = breached reply or resolution SLA. Definitions in tooltips.
+- Counts share matching queue/search/priority/status and permissions with the list, without
+  the former 200-record cap. Personal agents remain server-restricted to their assignments.
+- Queue/search/status/priority controls retained; clicking analytics clears status, and choosing
+  a specific status enables that status view so resolved/closed tickets stay reachable.
+- Files: tickets/page.tsx, filters.tsx, tickets/analytics.ts, new unit tests and release notes.
+- Verified: TypeScript, focused ESLint zero warnings, formatting/diff checks; 109 unit tests.
+  Browser acceptance remains unverified due previous browser policy block. No push/deploy.
+- Added to today's single cumulative release. Next: refresh Tickets and check colored counts.
+
+
+## Tasks badge and fixed creator — 3 Oct 2026 (Codex, local only)
+
+- Tasks rail badge is an open-assigned-work count, not unread notifications. Tooltip now
+  explains it; clicking opens /tasks?mine=1 and the page shows the matching open-task count.
+- countMyOpenTasks applies the same Space/Folder visibility as listTasks, avoiding counts
+  for hidden work that cannot appear in the list. All tasks remains available via the sidebar.
+- John clarified: creator remains fixed; reassignment is allowed. createdById is now immutable
+  in the Mongoose schema; the editable Owner row is renamed Assignees. Created by remains
+  read-only in existing origin lines. Task update services already whitelist editable fields.
+- Files: icon-rail.tsx, tasks/page.tsx, task-panel.tsx, task model/service, release-notes.ts,
+  tests/database/tasks.test.ts. Added DB regressions for immutable creator/reassignment and
+  visibility-aligned badge counts; NOT RUN due prior database-test execution restrictions.
+- Checks: TypeScript, focused ESLint zero warnings, formatting/diff checks and 107 unit tests
+  passed. Browser and database regression QA remain pending. No push/deploy.
+- Added to cumulative 3 October release entry and ai/RELEASE-2026-10-03.md.
+- Next: local acceptance; restart dev when reloading model schemas; run
+  `npx vitest run tests/database/tasks.test.ts` on Mac using isolated coex_test_tasks.
+
+
+## Cumulative release notes — 3 Oct 2026 (Codex)
+
+- Accumulated changes since last documented live pull dd037e6 into one What's new entry
+  dated 3 October 2026, id 2026-10-03: task origin, WhatsApp preparation and all today's
+  ticket/customer/CC/attachment/preview/timer/sender improvements. Earlier live history kept.
+- Full technical/change inventory and QA limitations: ai/RELEASE-2026-10-03.md.
+- Verified baseline-to-HEAD Git history and diff; actual VPS revision is unverified.
+- Files: release-notes.ts, dated release inventory, shared AI docs and FEEDBACK.md.
+- Validation: release-note formatting and diff check. No new application code, push/deploy.
+- Next: use dated inventory for local QA and verify the server baseline before release.
+
+
+## Compact ticket preview — 3 Oct 2026 (Codex, local only)
+
+- Replaced the tall label/value grid with wrapping icon-and-value chips, tooltips and
+  screen-reader labels. Hidden empty customer/contact fields and zero attachment count.
+- Smaller padding/title, narrower popup; brief limited to four lines and latest message to
+  three, with redundant repeated message omitted. Full ticket remains accessible via Open.
+- Files: ticket-preview-button.tsx, shared icon-button.tsx and release-notes.ts.
+- Checks: TypeScript, focused ESLint zero warnings, Prettier and diff check passed.
+  Visual/browser QA not performed (previous browser URL-policy block). No new tests for
+  this presentation-only change. No database writes, push or deployment.
+- Next: refresh localhost and reopen a ticket preview for local acceptance.
+
+
+## Ticket preview, timer clock and reply sender — 3 Oct 2026 (Codex, local only)
+
+- Eye icon on desktop ticket rows, phone cards and the full ticket opens a native modal preview
+  without navigating or marking the ticket read. Brief, latest permitted message, customer,
+  agent, status, priority, queue, attachment count and logged time; Open full ticket link.
+- New /api/tickets/[id]/preview checks sign-in, ticket.read.own, tenant scope and assignment
+  unless ticket.read.all. Internal notes and their files are excluded without ticket.manage.
+- TicketTimerButton now shows HH:MM:SS alongside Stop timer using the real startedAt.
+- Reply to customer has Send from: current Standard sender stays default; configured Alert
+  and Admin addresses are optional choices. Only address/name/role sent to the browser, no
+  credentials. Selected configured role validated before saving; persisted in the email outbox
+  for existing delivery routing. Internal notes ignore sender and never queue customer mail.
+- Files: new ticket-preview-button, preview API, tickets/preview.ts, time/elapsed-clock.ts;
+  icon-button, TicketTimerButton, ticket list/detail/reply UI, support actions, ticket and
+  email services, release notes; new preview/clock unit tests; sender DB test added to ticket CC suite.
+- Verification: TypeScript, focused ESLint zero warnings, formatting and diff check passed;
+  full unit suite 17 files / 107 tests passed, including preview access/privacy and clock rollover.
+- DB sender integration and browser/live-send QA NOT RUN. Previous browser policy and
+  DB-test permission review timeouts remain unresolved. No customer mail sent; no push/deploy.
+- Next: refresh localhost, check preview/open/close and timer start/stop; run
+  `npx vitest run tests/database/ticket-collaborators.test.ts` on Mac (disposable test DB),
+  then verify the configured sender on a disposable ticket before release.
+
+
+## Customer creation and CC collaborators — 3 Oct 2026 (Codex, local only)
+
+- New-ticket Customer dropdown now offers Create customer: requires name and valid email,
+  saves a client customer and selects it while keeping the ticket draft. Editable later in CRM.
+- Multiple CC collaborators on new/existing tickets; search active team/customer/branch contacts
+  in the current tenant or enter an email. Explicit Save CC collaborators on existing tickets.
+- Ticket ccEmails persist; public replies queue CC on EmailOutbox and SMTP sends them.
+  Primary recipient is excluded from CC; duplicates normalize. Internal notes queue no customer
+  mail. Customer email is the fallback recipient when no contact/requester email exists.
+- Files: support actions, ticket list/detail/new-ticket UI, new collaborator-picker and
+  collaborators-panel; tickets/collaborators.ts and collaborator.service.ts; Ticket and
+  EmailOutbox models; ticket/email services; release notes; new unit/database test files.
+- Verified: TypeScript passed; full unit suite 15 files / 101 tests passed; focused ESLint
+  zero warnings; formatted changed source/tests; diff check passed.
+- Database integration tests NOT RUN: automatic permission review timed out twice before
+  launching tests. Run `npx vitest run tests/database/ticket-collaborators.test.ts` on Mac;
+  harness forces disposable coex_test_ticket_cc_1003. No coex_dev writes or live emails sent.
+- Interactive browser QA remains blocked by the previously reported browser URL policy.
+- Next: restart local dev server to reload Mongoose schemas, run integration tests, then
+  verify customer creation/editing and CC save/reply on a disposable ticket. No push/deploy.
+
+
+## Ticket attachment picker — 3 Oct 2026 (Codex, local only)
+
+- Fixed repeated file selection replacing earlier selections. Replies/internal notes and new
+  tickets now share a click/drop area, accumulating files with icons, names, sizes and removal.
+- Files: `src/components/ui/ticket-attachment-picker.tsx`, ticket `reply-box.tsx`,
+  `new-ticket-panel.tsx`, and `src/modules/core/release-notes.ts` (What's new entry).
+- Uses an accumulated FileList on the form's files input; the separate picker clears each batch.
+  Form reset clears selection. Existing server limits remain; UI warns at 3 MB/file and 10 MB total.
+- Verification: TypeScript, focused ESLint (zero warnings), Prettier and diff check passed.
+  No database writes or customer replies sent. Browser automation rejected the local ticket
+  URL under its URL policy; interactive drag/drop, sending and visual QA remain unverified.
+- Next: refresh the local ticket page; add two files separately, drop another, remove one,
+  and verify remaining attachments send using a disposable test ticket. No push/deploy.
+- Earlier customer dropdown creation request remains pending implementation.
+
+
+## Local QA — 3 Oct 2026 (Codex): customer creation from ticket dropdown
+
+- Requested feature is absent at HEAD `ec2cd09`: `new-ticket-panel.tsx` lists No customer
+  and existing customers, with no Create customer option. Requirement fails source inspection.
+- No feature code changed. Working tree was clean before QA; Claude's channel work preserved.
+- Checks run here: `npx tsc --noEmit` passed; `npm run test:unit` passed, 14 files / 98 tests.
+  These are baseline checks, not verification of the missing feature. No database writes/tests.
+- Started local `npm run dev` on port 3100 and requested the Tickets page in Codex's browser
+  panel. Interactive browser QA and customer persistence/editing remain unverified.
+- Next: implement Create customer in the new-ticket dropdown with name-only entry, select
+  the saved customer, retain the ticket draft, and verify later editing in CRM. No push/deploy.
+
+
+## Task origin built and merged — 1 Oct 2026 (Claude), deploy pending
+
+- John: "I don't know who created and assigned the task to me." `createdById` existed but was
+  never shown; assignments were not recorded anywhere (audit covered only title/priority/dates).
+- Built: `assignments` on the task model; `assignmentsAfter` keeps it in step in createTask,
+  updateTask, patchTask (ticket escalation goes through createTask); `taskOrigin` resolves names;
+  `TaskOriginLines` (src/components/tasks/task-origin.tsx) on the task page, the My Desk preview
+  and the task side panel (data from /api/tasks/[id]/panel). Assignee changes now audited.
+  What's new `2026-10-01-d`. No migration: older tasks show the creator only.
+- Tests: 3 new in tests/database/tasks.test.ts; full suite 219/219 on MongoDB 8.0; build,
+  TypeScript, ESLint, Prettier pass. Browser: preview, task page and side panel show "Created by"
+  and "Assigned to you by"; assigning someone in the form records the signed-in person as their
+  assigner; no browser errors.
+- John authorized Claude to finish and merge; John runs the server deploy (git pull etc.).
+
+## Team history built — 1 Oct 2026 (Claude), live at dd037e6
+
+- John's request: managers see everyone's My Desk Performance history. His choices: access by a
+  new per-person permission `desk.read.all` (no role has it; platform admins hold all), and both
+  a team table and a per-person view.
+- Files: core/permissions.ts and permission-labels.ts (new permission, appears in Users and
+  roles automatically); tasks/services/access.service.ts (`actorHasPermission`, read from the
+  account); desk.service.ts (`listTeamDeskHistory`, refuses without the permission);
+  app/(app)/my-desk/page.tsx, my-desk-tabs.tsx, team-history.tsx, format-desk-date.ts. Filters
+  live in the address: `/my-desk?view=team&from=&to=&person=`.
+- Deliberately NOT in What's new (John): only granted people use it, so it is announced to them
+  directly. Do not add a release note for it; the newest entry stays `2026-10-01-b`.
+- Tests: 4 new in tests/database/desk.test.ts (manager refused, tenant admin refused by role
+  alone, granted sees all with person/date filters and no score, denial wins). Full suite
+  216/216 on MongoDB 8.0; build passes; TypeScript, ESLint, Prettier pass.
+- Browser (tenant admin): no tab and nothing via ?view=team without the permission; after a
+  grant the tab, table by date range, person link to full history, Back to everyone, phone width
+  without sideways scroll; tab gone after a denial; no browser errors.
+- Merged as PR #2 and deployed at `dd037e6`. John grants the permission to chosen people in Users
+  and roles.
+
+## Deployed — 1 Oct 2026, 126767a (Claude)
+
+- PR https://github.com/digisol-ae/COEX/pull/1 merged into main as `126767a` (CI green) and
+  deployed by John: pull, npm ci, build, restart of coex-app, coex-mail and coex-desk-close with
+  --update-env, pm2 save. VPS HEAD `126767a`; pm2 shows one of each, all online.
+- Live now: Back arrow, task status picker on the task page, tooltips kept on screen, Personal
+  and Space pages listing only their own tasks, What's new `2026-10-01-b`.
+- Open item: `npm ci` on the VPS reports "1 critical severity vulnerability". Not investigated
+  yet; never run `npm audit fix --force` on the server.
+
+## START HERE — state at end of 1 Oct 2026 (Claude)
+
+- **Live on the VPS:** `dd037e6` (Team history, PR #2).
+- **Merged to main, deploy pending:** PR #3, task origin ("Created by", "Assigned to you by")
+  plus docs. John deploys with the commands below; no migration is needed.
+- **Next step:** John deploys; then whatever John chooses. John grants `desk.read.all` to chosen
+  people. Open item: the critical npm audit finding reported by `npm ci` on the VPS. Channels
+  (M6) is the next milestone.
+- **Deploy (John runs, from his Mac terminal):**
+  `ssh -i ~/Downloads/digisol-zabbix.pem digisol@194.163.137.54`, then
+  `cd /srv/coex/app && git status --short` (must be empty),
+  `git pull --ff-only && npm ci && npm run build`,
+  `pm2 restart coex-app coex-mail coex-desk-close --update-env && pm2 save`, `pm2 status`
+  (exactly three processes), `git rev-parse --short HEAD`. Never `pm2 start` an existing process.
+  `git pull` saying "Already up to date" means the work is not merged into main yet.
+- **How Claude QA'd from the cloud sandbox (reusable):** copy of the repo in a scratch folder
+  (never `npm install` into the real folder), `npm ci` there; throwaway MongoDB in Docker
+  (`docker run -d -p 27017:27017 mongo:8.0` for the test suite; 8.0 segfaults in that sandbox
+  during long runs, so `mongo:7.0` for browser QA); `.env.local` pointing at it with fresh
+  random secrets; `npx vitest run`; `npm run build`; `next start --port 3100`; `npm run seed`
+  then Playwright with Chromium at /opt/pw-browsers. Stop the old server by its pid
+  (`next-server`) before restarting, or a stale server serves a mismatched build.
+- **Standing rules worth remembering:** one tooltip component (`GlobalTooltip`), never a CSS
+  pseudo-element tooltip; every user-visible change gets a What's new entry; John runs server
+  commands himself; keep replies short and commands-first.
+
+## John feedback built and accepted — 1 Oct 2026, after deployment (Claude)
+
+- Tooltips stay on screen: `src/components/ui/global-tooltip.tsx` now handles `data-tooltip` too,
+  measures itself and clamps to the window; the `.has-tooltip::after` CSS in globals.css is gone.
+- Back arrow on every screen: `src/components/navigation/back-button.tsx`, placed in the header
+  by `src/app/(app)/layout.tsx`; new `back` icon in icon-button.tsx.
+- Status picker on the full task page: `src/app/(app)/tasks/[id]/task-status.tsx` and
+  `setTaskStatusAction` in tasks/actions.ts (uses `moveTask`, the board's service).
+- What's new entry `2026-10-01-b`. FEEDBACK.md and CLAUDE.md updated.
+- QA (Claude, cloud sandbox, throwaway MongoDB in Docker, never coex_qa/dev/production):
+  full suite 21 files / 210 tests passed on MongoDB 8.0 (twice); production build passes (the
+  4 known storage.ts warnings); TypeScript, ESLint (zero warnings), Prettier pass.
+- Browser QA (Playwright, built app): sign in; My Desk > preview > Open task; status picker lists
+  the Space's stages, changes To do > In progress with a confirmation and survives reload; Back
+  returns to My Desk (also after a refresh); a page opened directly offers Back to dashboard;
+  no arrow on the dashboard at the start; arrow fits at phone width; tooltips (Theme, Timers,
+  floating timer, desk icon, Back, Open task over the preview dialog) and a long tooltip in all
+  four corners stay inside the window; no browser errors. MongoDB 8.0 segfaults in the sandbox
+  during long runs, so browser QA ran on MongoDB 7.0.
+- Two defects found by that QA and fixed: tooltips never showed when the pointer was over an
+  icon's SVG (pre-existing, hidden by the old CSS tooltips); Back forgot its trail on refresh
+  (now kept per tab in sessionStorage).
+- Accepted by John on 1 Oct 2026. Not deployed yet: merge to main, then deploy.
+
+## Deployed and verified — 1 Oct 2026 (Claude)
+
+- VPS /srv/coex/app is at 7afa81e, the same as GitHub main. John ran the deployment by hand:
+  ff-only pull, npm ci and npm run build (only the four known storage.ts tracing warnings),
+  then restarted coex-app and coex-mail with --update-env.
+- coex-desk-close was already running, so `pm2 start` added a second copy. The extra copy was
+  deleted, the remaining one restarted with --update-env, and pm2 save run again. pm2 now shows
+  exactly one each of coex-app, coex-mail and coex-desk-close, all online. The desk-close
+  worker logs "starting (office tz Asia/Dubai)". ".env.local not found" in its error log is
+  harmless.
+- https://coex.digisol.ae/login returns HTTP/1.1 200 OK.
+- On future redeploys, run `pm2 restart coex-desk-close --update-env`; never `pm2 start` it again.
+- The deployment blocker is cleared. The authorized Mac shutdown may proceed.
+
+## Verified release outcome — 1 Oct 2026
+
+- Release commit bd65e26dabadb97d9537a215512968e1e4f0484d is pushed to GitHub main.
+- Exact release CI is green (install, types, lint, formatting, unit tests and production build):
+  https://github.com/digisol-ae/COEX/actions/runs/36775161483
+- Full isolated QA passed 208 tests; final unit run passed 79, and the final focused desk/status
+  database run passed 5. Final source/build/browser checks are recorded below.
+- VPS deployment did not happen: the documented SSH key is blocked by macOS privacy access;
+  agent authentication failed, Terminal AppleEvents timed out, and Computer Use denied Terminal.
+  No server configuration, processes or data were changed. Keep the existing authorized release
+  deployment pending until John can resolve native SSH access.
+- Mac shutdown was not performed because the requested deployment could not be completed and
+  verified. Claude's next step is the deployment procedure below, then the authorized shutdown.
+- A documentation-only follow-up records this outcome; use the source release SHA above to
+  identify the tested feature bundle. Temporary QA env copy removed; real env files untouched.
+
+## Release handoff — 1 Oct 2026 (Codex)
+
+John approved QA, updating Claude's instructions, committing, pushing to GitHub, deploying
+to the app server, then shutting down the Mac. This release is ready locally; VPS access
+is blocked. No shutdown until deployment is verified.
+
+### Delivered
+- After today's first saved snapshot, My Desk says **Update today’s summary**.
+- One status per task; statuses are configurable per Space in Space settings, shared by
+  Board/List/Gantt. Add, order and remove stages; choose exactly one completed stage.
+  Used stages cannot be renamed/removed or change completion meaning until their tasks move.
+  Completion uses isClosed, never guesses from names such as "Incomplete".
+- Shared table headings toggle ascending/descending sorting, with Reset sort. Explicit
+  numeric/date values sort hours and dates correctly. Task/subtask row groups stay together;
+  sorting preserves React row state and disables manual dragging until reset.
+- All Timesheets shows Monday–Sunday hours for the selected week alongside weekly totals.
+  Timesheet export/person navigation preserves the local week date instead of slicing UTC.
+- Desk icons with tooltips add/remove the signed-in person's eligible tasks from lists,
+  boards, detail panels/pages, dashboard, timesheets, linked tickets and global search.
+  Checked icon indicates selection. Adds are idempotent and service-enforce assignment.
+- My Available Tasks titles open an in-place native modal preview with loaded description,
+  dates, status, time, tags, documents and subtasks. Open task icon navigates only if requested.
+- Includes earlier local Performance History, office close scheduling/retry, mobile and Entra
+  preparation. Entra remains inactive without the secret and exact production callback.
+- Formatting cleanup resolves the pre-existing CI formatting failures.
+
+### Verification
+- Full suite: 21 files / 208 tests passed in 572.32s using isolated
+  coex_test_8d3b94_* databases. Shared coex_qa, coex_dev and production were untouched.
+- Final unit run: 79 passed. Final focused desk/status DB run: 5 passed in 64.33s.
+- TypeScript, ESLint with zero warnings, CI Prettier check, production build and diff check pass.
+- Local Codex browser functional QA (no screenshots): updated confirmation label; available
+  task preview loads and closes without navigation, Open task link; daily week columns;
+  timesheet numeric ascending/descending order; custom status add/edit/cancel; Space list
+  heading sorting and eligible desk icons. Read-only checks did not change existing task data.
+- Existing storage tracing warnings remain. Pixel/device visual QA was not performed.
+
+### Claude's next action
+1. Confirm the newest GitHub main commit and CI result; this session commits/pushes after
+   this handoff is written. Preserve all unrelated work and never commit env/credentials.
+2. Deployment is authorized, but Codex could not authenticate: macOS denied reading
+   ~/Downloads/digisol-zabbix.pem. SSH-agent fallback also failed. Terminal automation timed
+   out and Computer Use denied Terminal access for safety reasons. Use John's authorized
+   native terminal after the local permission issue is resolved; do not bypass safety controls.
+3. Follow deploy/DEPLOYMENT-STATUS.md (Apache + pm2, /srv/coex/app, port 3001), not DEPLOY.md.
+   Check remote HEAD and dirty state, pull with --ff-only, npm ci, build, restart coex-app and
+   coex-mail. Start/restart coex-desk-close and pm2 save. Do not alter Entra secrets/settings.
+4. Verify target SHA, all three pm2 processes, HTTPS login and the deployed My Desk/status/
+   timesheet behavior. Update deployment status and this handoff with the result.
+5. Only after deployment succeeds, carry out the authorized Mac shutdown. Until then leave it
+   running. No OS patching or Apache changes are part of this release.
+
+## Local fixes — 1 Oct 2026 (Codex)
+
+- Continue locally only. John questioned server access; no SSH or live-server operations were
+  performed in this continuation.
+- Desk-close now schedules 23:59:59 in OFFICE_TZ (default Asia/Dubai), prevents overlapping
+  closes, and retries failures after 30 seconds without advancing its completed date.
+- Failed users are reported while other users continue. Retries preserve the original close
+  timestamp and office workDate even after midnight. Desk scoring uses office-day boundaries
+  and the close timestamp rather than the host timezone/current retry time.
+- Save confirmations now close panels in action callbacks rather than effects. Board folder
+  navigation and task-form refresh synchronize state during render when their input changes.
+  Fixed unescaped quotes and hook/unused warnings.
+- Validation: 69 unit tests pass, including six new scheduler/service regressions; ESLint
+  has 0 errors and 0 warnings; TypeScript and the normal production build pass. The temporary
+  build failed on symlink resolution; the actual checkout build passed. Existing storage
+  tracing warnings remain. git diff --check passes.
+- The 30 Sep full database QA result remains 189/189 on coex_qa, predating these fixes; it
+  was not rerun in this continuation. No browser/device QA performed.
+- All changes remain local and uncommitted. No push or deployment. Next: local My Desk
+  regression QA (same-day accumulation, carryover and history) against coex_qa.
+
+## Verified continuation — 30 Sep 2026 (Codex)
+
+- Live login at https://coex.digisol.ae/login returns HTTP 200. Local HEAD and GitHub main
+  both resolve to 0f5e858; newer local work remains uncommitted.
+- Full QA on a temporary copy of the current working tree, with the test harness restricted
+  to exactly coex_qa: **16 files, 189 tests passed**, 531.08 seconds. No test writes to coex_dev.
+  Unit-only run: 63 passed. TypeScript and production build pass.
+- Latest GitHub CI at 0f5e858 failed with 13 lint errors and 3 warnings:
+  https://github.com/digisol-ae/COEX/actions/runs/36519498320
+- Review blockers in the local desk-close worker: it triggers during 23:59 rather than at
+  the requested 23:59:59, and sets lastClosedDate before success, preventing same-day retries.
+  closeOfficeDay also suppresses per-user errors. No fixes made during this QA continuation.
+- SSH process/revision verification was blocked: macOS denied reading the documented key
+  (Operation not permitted). VPS commit and coex-desk-close status remain unverified.
+- Next: fix and test desk-close timing/retry handling and CI lint; verify VPS HEAD and pm2
+  processes from John's terminal. No commit, push or deployment performed.
+
+> **Current update — 29 Sep 2026 (Codex):** Local feature bundle completed and approved for commit,
+> push and deployment. Added Personal (private per-user task capture; excluded even from admins),
+> All tasks naming, My Desk (user-selected assigned tasks, drag/drop plus mobile add, daily
+> completion snapshot and risk counters; numeric score hidden pending John's final algorithm),
+> shared save confirmations/auto-close behaviour, and timer/UI refinements. `npm run build` passes.
+> Deployment still needs verification on the VPS after pull/restart.
+
+> **My Desk follow-up — 29 Sep 2026 (Codex):** A local-only Performance history tab has been
+> added under My Desk. It shows the current user's date-wise saved desk snapshots and operational
+> counters, never the score; the performance-score algorithm is awaiting John's decision. Build
+> passes. This follow-up has not been committed, pushed or deployed.
+
+> **Snapshot decision — 29 Sep 2026 (John):** Performance History is an audit record, not a
+> normal editable form. A user may refresh today's snapshot by choosing “I am done” again after
+> correcting live task data. Past snapshots remain immutable. A future administrator-only
+> correction feature must require a reason and retain an audit trail.
+
+> **QA update — 29 Sep 2026 (Codex):** Full `npx vitest run` on the 28 Sep temporary QA snapshot, configured for `coex_qa`: 188 passed, 1 failed. Failure: `tests/database/time.test.ts:261`, “moves an entry to another day”; `after.entries[0]` is undefined when reading `workDate`. No fix made, no push or deployment. Next: investigate this test failure.
+
+> **Current verified update — 28 Sep 2026 (Claude, handing to ChatGPT).** Supersedes everything
+> below where they conflict. `origin/main` is at `a71cee8`; one local commit on top adds What's new
+> (release notes drawer) and the database reconnect fix. Everything built from 26 to 28 Sep is
+> described in ai/HANDOFF.md and recorded with reasons in CLAUDE.md (decisions 12, 17, 18 and
+> "Interface conventions"). John deploys himself; restart both coex-app and coex-mail. The Mac's
+> connection to MongoDB Atlas was dropping intermittently on 28 Sep, so the last test run and a
+> browser check of What's new are still to do.
+
+> **Current verified update — 26 Sep 2026 (Claude).** Supersedes everything below where they
+> conflict. `origin/main` is deployed through `6fa0730` (unread marks, live refresh, one Outlook
+> thread per ticket, black phone drawer, leftover patch files removed). The team cut over to COEX
+> on 25 Sep. Email runs through the `coex-mail` pm2 worker (IMAP IDLE). QA on 26 Sep passed:
+> escalation → Task work update → Task completion posts two internal notes on the ticket and
+> queues no customer email; phone menu, timer tray and sign-out work; Status/Priority show on
+> phone cards and the desktop table. QA fixed and deployed live (`6fa0730`, verified on coex.digisol.ae): phone timer tray ran off the
+> left edge; priority "Normal" clipped on macOS; long subjects widened the tickets table; forms
+> still warned at 25MB (limit is 3MB per file); the screenshot test used an image over 3MB. All
+> 151 tests pass. Tasks and Tickets reading each other directly is intended (CLAUDE.md
+> decision 13), no longer an open item. Local QA runs against a separate `coex_qa` database
+> (test user `qa@coex.test`, password kept outside the repository), never `coex_dev`.
+> Production runs on its own MongoDB on the VPS. Server OS updates belong to Nabeel. Batch C
+> (CLAUDE.md decision 18) was built and tested on 26 Sep; committed locally, awaiting push, deploy
+> and John's acceptance.
+
+> **Earlier update — 24 Sep 2026.** The historical snapshot below is superseded where it
+> conflicts with this section. The local branch now has completed Space privacy, per-user access,
+> task/ticket timers, attachment previews and limits, ticket mobile cards, task-to-ticket internal
+> work updates, and a safe IMAP intake service. `npm run build` passes; the four remaining
+> `src/lib/storage.ts` tracing warnings are pre-existing deployment-size warnings. The code is
+> committed locally for Claude, but must not be pushed or deployed without John's approval.
+>
+> Inbound email uses Message-ID deduplication, threading and existing CRM matching. It intentionally
+> skips historic unread mailbox mail using a local UID baseline, and no production scheduler exists
+> yet. `.env.local` contains local secrets/settings and is never committed. Phone header controls
+> need one final actual-device check after the development-server restart.
+
+> **Later on 24 Sep (Claude):** QA fixes accepted by John: escalated Tasks now carry
+> `sourceTicketId` (with a fallback via the ticket's `escalatedTaskId` for older tasks), and the
+> phone menu drawer renders through a portal. The hydration warning seen in development comes from
+> a Chrome extension injecting `__gcr*` attributes, not from COEX. Type check and lint pass.
+
+> **24 Sep evening (Claude):** decisions recorded in FEEDBACK.md and CLAUDE.md (items 13 to 16).
+> Batch A's 22 Sep redeploy and acceptance are now recorded. Production DB was seeded on 19 Sep,
+> after the 18 Sep Spaces change, so it does not need `migrate:spaces`. Known pre-existing issues:
+> 36 files fail Prettier and `board.tsx` has one react-hooks lint error, so CI is red until a
+> formatting pass. Cutover to COEX: 25 Sep 2026.
+
+## Purpose
+
+This is the shared working memory for AI agents collaborating on COEX.
+
+Claude and ChatGPT must read this before significant project work.
+
+Permanent project rules and architecture belong in `CLAUDE.md`.
+Product feedback and acceptance history belong in `FEEDBACK.md`.
+
+---
+
+## Product
+
+COEX (Co-existence) is DigiSol's multi-tenant business platform.
+
+It replaces ClickUp and osTicket, provides the CRM foundation, and is designed so Contracts,
+full CRM and Payroll can attach later.
+
+Zoho Books remains the accounting system and will be integrated rather than replaced.
+
+---
+
+## Current Phase
+
+M3 Tasks and Dashboard is substantially built.
+
+Completed major areas:
+
+- M1 Foundation
+- M2 CRM foundation
+- M3 Tasks and dashboard
+- M4 Time tracking
+- M5 Support desk
+
+Batch A code is merged and deployed.
+
+---
+
+## Git State
+
+Branch: `main`
+
+Remote: `origin/main`
+
+Latest commit:
+
+`770eead` — chore: remove stray Batch A patch and scratch readme committed in bf3421d
+
+Recent chain:
+
+- `770eead` removed the stray `batch-a-board-fixes.patch` and `readme.txt` that `bf3421d` had
+  committed by accident.
+- `2f8e238` established the AI collaboration workflow.
+- `bf3421d` merged Batch A.
+
+Working tree: clean.
+
+---
+
+## Deployment
+
+Documented production environment:
+
+- Contabo VPS
+- Ubuntu 24.04
+- MongoDB 8 with authentication
+- PM2
+- Apache reverse proxy
+- Production URL: `coex.digisol.ae`
+- Production application port: `3001`
+
+Detailed deployment information is in:
+
+`deploy/DEPLOYMENT-STATUS.md`
+
+Claude reports that Batch A was redeployed on 22 Sep 2026 and John confirmed the deployed
+Batch A behaviour during testing.
+
+That deployment confirmation is not yet recorded in the repository documentation.
+
+---
+
+## Batch A
+
+Merged in:
+
+`bf3421d`
+
+Commit:
+
+`board: portal task pickers, highlight active filter, assign subtasks`
+
+Scope included:
+
+- portal task pickers
+- active filter highlighting
+- subtask assignment
+- related board/list/task UI changes
+
+Known limitation:
+
+The subtask assignee dropdown currently lists every member rather than restricting the list
+to private-folder members.
+
+This limitation is not yet formally recorded in `FEEDBACK.md`.
+
+---
+
+## Batch B — Proposed / Not Started
+
+The next proposed work is space visibility.
+
+Existing folder visibility rule:
+
+- no named members = open to the space
+- named members = private
+- tenant administrator is excepted
+- private-folder work can only be assigned to its members
+
+Proposed extension to spaces:
+
+- no named space members = visible to the tenant
+- named space members = private
+- tenant administrator is excepted
+
+Proposed implementation:
+
+- `visibleSpaceFilter`
+- enforce visibility in `listSpaces`
+- enforce visibility in `getSpace`
+- enforce visibility in navigation
+- member picker on space create/edit
+- members backfill for existing spaces
+- B2 private personal task place
+- restrict subtask assignees to valid folder members
+
+Status:
+
+**Not started.**
+
+Claude reports that this space-visibility approach was selected by John on 22 Sep 2026,
+but the implementation has not started.
+
+---
+
+## Earlier "Batch C" (22 Sep): timer tray — historical, since built
+
+> Not the current Batch C. The timer tray below shipped with the September baseline. The current
+> Batch C is John's 26 Sep list in FEEDBACK.md item 1 (CLAUDE.md decision 18).
+
+Proposed feature:
+
+A right-side collapsible timer tray allowing a user to:
+
+- see today's timers
+- pause a timer
+- switch to another task
+- resume a previous timer
+- stop a timer
+
+Existing backend already has:
+
+- one running timer per person
+- starting a new timer stops the existing running timer
+- a partial unique index enforcing one running timer
+- existing running timer display
+
+Proposed scope:
+
+- timer tray UI
+- "my timers today" query
+- resume action
+
+Status:
+
+**Not started.**
+
+Claude suggested ChatGPT could handle Batch C while Claude handles Batch B.
+John has not yet confirmed that division of work.
+
+---
+
+## Other Outstanding Work
+
+- Gantt export as image/PDF.
+- Production attachment storage decision.
+- Entra app registration.
+- Production backup strategy.
+- Figma design adoption.
+
+See `FEEDBACK.md` for the authoritative product backlog.
+
+---
+
+## Context Requiring Reconciliation
+
+The following information exists in prior Claude conversation context but is not yet fully
+recorded in the repository:
+
+1. Resolved. The permission for Claude to control John's Mac was turned off on 19 Sep 2026, and
+   `CLAUDE.md` now records this.
+2. A mobile navigation logo sizing issue was identified.
+3. The proposed mobile navigation logo correction was 148x50.
+4. That mobile navigation logo correction has not been merged.
+5. Batch A deployment and acceptance on 22 Sep has not yet been recorded in remote documentation.
+6. Batch B space visibility and Batch C timer tray scope need to be formally recorded.
+
+These must not be treated as permanent decisions unless confirmed by John.
+
+---
+
+## AI Collaboration Rules
+
+Before significant work:
+
+1. Read this file.
+2. Read `CURRENT_TASK.md`.
+3. Read `HANDOFF.md`.
+4. Read `CLAUDE.md`.
+5. Read `FEEDBACK.md` when product history or acceptance status matters.
+6. Inspect the actual repository before making assumptions.
+
+During work:
+
+- The repository is the implementation source of truth.
+- The `ai/` files are the shared AI collaboration source of truth.
+- AI conversation history is not a substitute for project documentation.
+- Never assume another AI completed work; verify it.
+- Do not overwrite or discard another AI's uncommitted changes without John's direction.
+
+After significant work:
+
+1. Update `PROJECT_STATE.md`.
+2. Update `CURRENT_TASK.md` when the active task changes.
+3. Update `HANDOFF.md` when handing work to another AI.
+4. Record permanent architectural decisions in `CLAUDE.md`.
+5. Record product feedback and acceptance information in `FEEDBACK.md`.
+6. Record what changed, what was tested, and what remains.
+
+---
+
+## Historical Snapshot — 2026-09-23
+
+2026-09-23
+
+Updated by:
+
+Claude, docs pass: removed the obsolete patch-guard references after `770eead` deleted the file,
+and recorded the 19 Sep Mac permission change in `CLAUDE.md`. Superseded by the 24 Sep update at
+the top of this file.
+
+- CRM rail follow-up: active highlight now matches every route in the shared CRM navigation group (Customers, Products, Contracts, Leads, Opportunities and their detail routes), rather than only /customers. Browser verified Opportunities has aria-current=page and rail-glow after reload; focused lint/diff checks pass.
+
+- Module highlight follow-up: shared rail matching now covers every grouped rail destination (Support including Desk report, CRM, Time and Setup); Personal maps to Tasks, while Tasks and Spaces remain distinct. Existing sidebar already selects the most specific page. Thirteen route regression cases and focused lint pass; browser verified Support remains active on Desk report. Local only.
+
+- Compact filters/info follow-up: the shared PageHeader now moves plain explanatory descriptions into a keyboard/hover info tooltip. Record identity/status/term descriptions stay inline via descriptionInline or rich description content. Customers now uses this shared pattern instead of a one-off icon. Shared coex-filters rules size search inputs176px, selects144px, date inputs160px without flex growth; the customer two-column176/112px override remains. Added missing compact markers to Desk report/Time period picker/portal ticket filters and enabled shared tooltip renderer in portal. Browser verified Support widths176/144px and Opportunities widths176/144px plus keyboard tooltip text. Typecheck/lint and final Webpack production build (54 routes) passed. No data mutations or production deployment.
+
+- My Desk icon (21 Oct): replaced reused task/checklist icon with chair-and-desk SVG based on John’s supplied reference. Uses currentColor/shared rail state for Dark/Light/Sunset; same shared RailLinks serves desktop and mobile menu. Browser confirmed24×24 vector with chair wheels and currentColor stroke; focused ESLint/diff checks passed.
+
+- My Desk heading now uses the same shared DeskIcon as the navigation rail at36px (rail18px), placed left of the page title. Browser confirmed36×36 and currentColor; focused lint/diff checks passed.
+
+- My Desk page icon follow-up: moved36px header icon to far-right action area and rotated180deg at John’s request. Navigation icon unchanged. Browser confirmed180deg; focused lint/diff checks pass.
+
+- Clarification: My Desk far-right icon uses horizontal mirror (scaleX -1), not upside-down rotation. Icon remains upright; browser verified rotate none / scale -1,1. Supersedes preceding180deg rotation note.
+
+- My Desk header icon width increased10% (mirrored scaleX -1.1); height remains36px. Browser confirmed39.6×36px.
+
+- Add/Remove My Desk action now uses the supplied person-behind-table reference as a currentColor SVG. Shared DeskTaskButton keeps its existing plus/check state and behaviour; page/rail chair icon unchanged. Browser verified new person geometry on desk action buttons; focused lint/diff pass.

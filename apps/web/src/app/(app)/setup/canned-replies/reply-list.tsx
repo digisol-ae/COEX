@@ -89,7 +89,7 @@ export function CannedReplyList({
                 <div className="flex gap-2">
                   <IconButton
                     icon="edit"
-                    label="Edit this saved reply"
+                    label="Edit saved reply"
                     onClick={() => setEditing(reply.id)}
                   />
 

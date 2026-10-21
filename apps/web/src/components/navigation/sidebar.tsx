@@ -1,3 +1,4 @@
+import { SidebarFrame } from './sidebar-controls';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { NavigationGroup } from './navigation';
@@ -22,23 +23,25 @@ export function Sidebar({
   counts?: Partial<Record<string, number>>;
 }) {
   return (
-    <aside className="sidebar-glow hidden w-60 shrink-0 flex-col border-r border-[var(--color-line)] md:flex">
-      <div className="flex items-center justify-between px-4 py-3">
-        <Link href="/dashboard" aria-label={`${tenantName} home`} title={tenantName}>
-          <Image
-            src="/brand/logo-long.png"
-            alt={tenantName}
-            width={148}
-            height={50}
-            className="h-9 w-auto"
-            priority
-          />
-        </Link>
-      </div>
+    <SidebarFrame>
+      <aside className="sidebar-glow hidden w-60 shrink-0 flex-col border-r border-[var(--color-line)] md:flex">
+        <div className="flex items-center justify-between px-4 py-3">
+          <Link href="/dashboard" aria-label={`${tenantName} home`} title={tenantName}>
+            <Image
+              src="/brand/logo-long.png"
+              alt={tenantName}
+              width={148}
+              height={50}
+              className="h-9 w-auto"
+              priority
+            />
+          </Link>
+        </div>
 
-      <div className="flex-1 overflow-y-auto px-2 pb-6">
-        <NavigationTree groups={groups} canManageTasks={canManageTasks} counts={counts} />
-      </div>
-    </aside>
+        <div className="flex-1 overflow-y-auto px-2 pb-6">
+          <NavigationTree groups={groups} canManageTasks={canManageTasks} counts={counts} />
+        </div>
+      </aside>
+    </SidebarFrame>
   );
 }

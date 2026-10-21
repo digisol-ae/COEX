@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { Fragment, useActionState, useState } from 'react';
 import {
   Badge,
   Button,
@@ -48,6 +48,9 @@ export function Timeline({
 }) {
   const [state, formAction, pending] = useActionState(logActivityAction, initialState);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
+  const hiddenCount = Math.max(0, entries.length - 2);
+  const visible = showAll || !hiddenCount ? entries : [entries[0], entries[entries.length - 1]];
 
   return (
     <Card>
@@ -88,38 +91,52 @@ export function Timeline({
         {entries.length === 0 ? (
           <EmptyState message="Nothing recorded yet. Notes, calls, tickets and tasks all appear here." />
         ) : (
-          <ol className="space-y-4">
-            {entries.map((entry) => (
-              <li key={entry.id} className="border-l-2 border-[var(--color-line)] pl-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge tone={entry.sourceModule === 'crm' ? 'neutral' : 'info'}>
-                    {KIND_LABEL[entry.kind] ?? entry.kind}
-                  </Badge>
-                  <span className="text-sm font-medium text-[var(--color-ink)]">
-                    {entry.summary}
-                  </span>
-                </div>
+          <ol className="space-y-3">
+            {visible.map((entry, index) => (
+              <Fragment key={entry.id}>
+                <li className="border-l-2 border-[var(--color-line)] pl-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge tone={entry.sourceModule === 'crm' ? 'neutral' : 'info'}>
+                      {KIND_LABEL[entry.kind] ?? entry.kind}
+                    </Badge>
+                    <span className="text-sm font-medium text-[var(--color-ink)]">
+                      {entry.summary}
+                    </span>
+                  </div>
 
-                <p className="mt-1 text-xs text-[var(--color-ink-subtle)]">
-                  {new Date(entry.occurredAt).toLocaleString('en-GB')} · {entry.actorName}
-                </p>
-
-                {entry.body ? (
-                  <button
-                    type="button"
-                    onClick={() => setExpanded(expanded === entry.id ? null : entry.id)}
-                    className="mt-1 text-xs text-[var(--color-ink-muted)] underline-offset-4 hover:underline"
-                  >
-                    {expanded === entry.id ? 'Hide detail' : 'Show detail'}
-                  </button>
-                ) : null}
-
-                {expanded === entry.id && entry.body ? (
-                  <p className="mt-2 rounded-[var(--radius-control)] bg-[var(--color-surface-muted)] px-3 py-2 text-sm whitespace-pre-wrap text-[var(--color-ink-muted)]">
-                    {entry.body}
+                  <p className="mt-1 text-xs text-[var(--color-ink-subtle)]">
+                    {new Date(entry.occurredAt).toLocaleString('en-GB')} · {entry.actorName}
                   </p>
+
+                  {entry.body ? (
+                    <button
+                      type="button"
+                      onClick={() => setExpanded(expanded === entry.id ? null : entry.id)}
+                      className="mt-1 text-xs text-[var(--color-ink-muted)] underline-offset-4 hover:underline"
+                    >
+                      {expanded === entry.id ? 'Hide detail' : 'Show detail'}
+                    </button>
+                  ) : null}
+
+                  {expanded === entry.id && entry.body ? (
+                    <p className="mt-2 rounded-[var(--radius-control)] bg-[var(--color-surface-muted)] px-3 py-2 text-sm whitespace-pre-wrap text-[var(--color-ink-muted)]">
+                      {entry.body}
+                    </p>
+                  ) : null}
+                </li>
+                {index === 0 && hiddenCount > 0 ? (
+                  <li className="pl-3">
+                    <button
+                      type="button"
+                      aria-expanded={showAll}
+                      onClick={() => setShowAll((value) => !value)}
+                      className="rounded-full border border-[var(--color-line)] bg-[var(--color-surface-muted)] px-3 py-1.5 text-xs font-medium text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
+                    >
+                      {showAll ? 'Show less' : `Show more · ${hiddenCount} entries in between`}
+                    </button>
+                  </li>
                 ) : null}
-              </li>
+              </Fragment>
             ))}
           </ol>
         )}

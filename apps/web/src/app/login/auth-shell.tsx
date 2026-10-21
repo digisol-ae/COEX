@@ -10,7 +10,9 @@ export function AuthShell({
   title,
   intro,
   children,
+  beforeTitle,
 }: {
+  beforeTitle?: ReactNode;
   title: string;
   intro: ReactNode;
   children: ReactNode;
@@ -51,6 +53,7 @@ export function AuthShell({
             className="mb-10 h-8 w-auto lg:hidden"
           />
 
+          {beforeTitle}
           <h1 className="text-2xl font-bold text-[var(--color-ink)]">{title}</h1>
           <p className="mt-2 text-sm text-[var(--color-ink-muted)]">{intro}</p>
 

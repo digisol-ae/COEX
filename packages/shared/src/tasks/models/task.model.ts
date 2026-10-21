@@ -76,6 +76,7 @@ const taskSchema = new Schema(
       ],
       default: [],
     },
+    mySubtaskDoneByIds: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
     primaryAssigneeId: { type: Schema.Types.ObjectId, ref: 'User', default: null, index: true },
     watcherIds: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
 
@@ -144,6 +145,15 @@ taskSchema.index({ tenantId: 1, folderId: 1, isClosed: 1 });
 taskSchema.index({ tenantId: 1, primaryAssigneeId: 1, isClosed: 1 });
 
 export type Task = InferSchemaType<typeof taskSchema>;
+
+// Next dev retains compiled models across reloads; upgrade this newly added path in place.
+if (models.Task && !models.Task.schema.path('mySubtaskDoneByIds')) {
+  models.Task.schema.add({
+    mySubtaskDoneByIds: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
+  });
+}
+
+if (models.Task && process.env.NODE_ENV === 'development') models.Task.recompileSchema();
 
 export const TaskModel: Model<Task> =
   (models.Task as Model<Task>) ?? model<Task>('Task', taskSchema);

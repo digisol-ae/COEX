@@ -6,6 +6,8 @@ import { toDateKey } from '@coex/shared/time/week';
 export async function GET(request: Request) {
   const user = await getSignedInUser();
 
+  if (user?.role === 'client_contact')
+    return Response.json({ error: 'Not allowed.' }, { status: 403 });
   if (!user) {
     return new Response('Sign in first.', { status: 401 });
   }

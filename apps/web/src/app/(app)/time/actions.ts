@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { asUser, requirePermission, requireUser } from '@/lib/session';
+import { asUser, requirePermission, requireStaffUser as requireUser } from '@/lib/session';
 import {
   addManualEntry,
   removeEntry,

@@ -29,7 +29,7 @@ export function MetricsFilters({
   }
 
   return (
-    <div className="flex flex-wrap items-end gap-2">
+    <div className="coex-filters flex flex-wrap items-end gap-1.5">
       <label className="text-[11px] text-[var(--color-ink-subtle)]">
         From
         <Input

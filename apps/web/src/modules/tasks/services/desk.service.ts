@@ -49,7 +49,9 @@ export async function loadMyDesk() {
   const userId = getContext().userId;
   const entries = await DeskEntryModel.find({ tenantId: getContext().tenantId, userId });
   const ids = new Set(entries.map((e) => String(e.taskId)));
-  const tasks = (await listTasks({ includeClosed: true })).filter((t) => ids.has(t.id));
+  const tasks = (await listTasks({ includeClosed: true, personalWork: 'active' })).filter((t) =>
+    ids.has(t.id),
+  );
   return { tasks, selectedIds: [...ids], score: score(tasks) };
 }
 

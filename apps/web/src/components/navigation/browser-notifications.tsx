@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 
 /**
  * Browser notifications (John's team, 15 Oct 2026).
@@ -26,18 +26,18 @@ interface NotificationEvent {
 
 export type NotificationState = 'unsupported' | 'blocked' | 'off' | 'on';
 
-function readEnabled(): boolean {
+function readEnabled(scope = ''): boolean {
   try {
-    return localStorage.getItem(ENABLED_KEY) === 'yes';
+    return localStorage.getItem(ENABLED_KEY + scope) === 'yes';
   } catch {
     return false;
   }
 }
 
-function currentState(): NotificationState {
+function currentState(scope = ''): NotificationState {
   if (typeof Notification === 'undefined') return 'unsupported';
   if (Notification.permission === 'denied') return 'blocked';
-  return Notification.permission === 'granted' && readEnabled() ? 'on' : 'off';
+  return Notification.permission === 'granted' && readEnabled(scope) ? 'on' : 'off';
 }
 
 const listeners = new Set<() => void>();
@@ -56,48 +56,92 @@ function announceChange() {
 }
 
 /** What the menu shows and does; the polling itself lives in BrowserNotifications. */
-export function useNotificationSwitch() {
+export function useNotificationSwitch(scope = '') {
   // The browser is the source of truth (its permission and this site's stored choice), so the
   // state is read from it rather than copied into React; the server always renders "off".
-  const state = useSyncExternalStore<NotificationState>(subscribe, currentState, () => 'off');
+  const state = useSyncExternalStore<NotificationState>(
+    subscribe,
+    () => currentState(scope),
+    () => 'off',
+  );
 
+  const [feedback, setFeedback] = useState('');
   async function turnOn() {
-    if (typeof Notification === 'undefined') return;
-    const permission = await Notification.requestPermission();
     try {
-      if (permission === 'granted') {
-        localStorage.setItem(ENABLED_KEY, 'yes');
-        // Start from now, so turning it on does not replay the past.
-        localStorage.setItem(SINCE_KEY, new Date().toISOString());
+      if (typeof Notification === 'undefined') {
+        setFeedback(
+          'This browser does not support desktop notifications. Open COEX in Chrome or Edge.',
+        );
+        return;
       }
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        setFeedback(
+          permission === 'denied'
+            ? 'Notifications are blocked. Allow notifications for this site in your browser settings.'
+            : 'Notification permission was not granted. If no prompt appeared, open COEX in Chrome or Edge and try again.',
+        );
+        announceChange();
+        return;
+      }
+      localStorage.setItem(ENABLED_KEY + scope, 'yes');
+      localStorage.setItem(SINCE_KEY + scope, new Date().toISOString());
+      setFeedback('Notifications are on. Alerts appear while COEX is open in another tab.');
     } catch {
-      // Storage blocked: the switch simply stays off.
+      setFeedback(
+        'This browser could not enable notifications. Open COEX in Chrome or Edge and try again.',
+      );
     }
     announceChange();
   }
+  function testNotification() {
+    try {
+      if (currentState(scope) !== 'on') {
+        setFeedback('Enable browser notifications first.');
+        return;
+      }
+      new Notification('COEX · Test notification', {
+        body: 'Browser notifications are working.',
+        requireInteraction: true,
+        tag: `coex-notification-test-${Date.now()}`,
+      });
+      setFeedback(
+        'Test sent. If no alert appeared, check your system notification settings and Do Not Disturb.',
+      );
+    } catch {
+      setFeedback('Desktop notification could not be shown by this browser.');
+    }
+  }
 
   function turnOff() {
+    setFeedback('Notifications are off.');
     try {
-      localStorage.removeItem(ENABLED_KEY);
+      localStorage.removeItem(ENABLED_KEY + scope);
     } catch {
       // Nothing to undo.
     }
     announceChange();
   }
 
-  return { state, turnOn, turnOff };
+  return { state, turnOn, turnOff, feedback, testNotification };
 }
 
 /** Mounted once in the app shell. Does nothing unless the person turned notifications on. */
-export function BrowserNotifications() {
+export function BrowserNotifications({
+  endpoint = '/api/notifications',
+  scope = '',
+}: {
+  endpoint?: string;
+  scope?: string;
+}) {
   useEffect(() => {
     async function poll() {
-      if (currentState() !== 'on') return;
+      if (currentState(scope) !== 'on') return;
 
       try {
-        const since = localStorage.getItem(SINCE_KEY);
+        const since = localStorage.getItem(SINCE_KEY + scope);
         const response = await fetch(
-          `/api/notifications${since ? `?since=${encodeURIComponent(since)}` : ''}`,
+          `${endpoint}${since ? `?since=${encodeURIComponent(since)}` : ''}`,
           { cache: 'no-store' },
         );
         if (!response.ok) return;
@@ -106,7 +150,7 @@ export function BrowserNotifications() {
           events: NotificationEvent[];
           serverTime: string;
         };
-        localStorage.setItem(SINCE_KEY, serverTime);
+        localStorage.setItem(SINCE_KEY + scope, serverTime);
 
         // Someone looking at COEX already sees the badges; speak only to a hidden tab.
         if (document.visibilityState === 'visible' && document.hasFocus()) return;
@@ -116,6 +160,7 @@ export function BrowserNotifications() {
           const shown = new Notification(event.title, {
             body: event.body,
             tag: event.id,
+            requireInteraction: true,
           });
           shown.onclick = () => {
             window.focus();
@@ -131,7 +176,7 @@ export function BrowserNotifications() {
     poll();
     const timer = setInterval(poll, POLL_MS);
     return () => clearInterval(timer);
-  }, []);
+  }, [endpoint, scope]);
 
   return null;
 }

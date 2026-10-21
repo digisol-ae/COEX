@@ -16,6 +16,7 @@ import { normaliseMobile } from '@coex/shared/crm/phone';
 const contacts = () => repository(ContactModel);
 
 export interface ContactSummary {
+  portalLinked?: boolean;
   id: string;
   name: string;
   title: string | null;
@@ -31,6 +32,7 @@ export async function listContacts(organisationId: string): Promise<ContactSumma
   const found = await contacts().find({ organisationId }).sort({ isPrimary: -1, name: 1 });
 
   return found.map((contact) => ({
+    portalLinked: Boolean(contact.userId),
     id: String(contact._id),
     name: contact.name,
     title: contact.title ?? null,
@@ -104,4 +106,44 @@ async function demoteOtherPrimaries(organisationId: string, keepId: string): Pro
       .filter((contact) => String(contact._id) !== keepId)
       .map((contact) => contacts().updateOne({ _id: contact._id }, { $set: { isPrimary: false } })),
   );
+}
+
+export async function updateContact(id: string, input: ContactInput): Promise<void> {
+  await connectToDatabase();
+  const before = await contacts().findOne({
+    _id: id,
+    organisationId: toObjectId(input.organisationId),
+  });
+  if (!before) throw new Error('Contact not found.');
+  const name = input.name.trim(),
+    email = input.email?.trim().toLowerCase() || null;
+  if (!name || name.length > 120) throw new Error('Enter a name up to 120 characters.');
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    throw new Error('Enter a valid email address.');
+  if (before.userId && email !== before.email)
+    throw new Error(
+      'This contact has a portal login. Its login email must be changed through account administration.',
+    );
+  const after = {
+    name,
+    title: input.title?.trim() || null,
+    email,
+    mobile: normaliseMobile(input.mobile, input.country ?? 'AE'),
+    isPrimary: input.isPrimary ?? false,
+  };
+  await contacts().updateOne({ _id: before._id }, { $set: after });
+  if (after.isPrimary) await demoteOtherPrimaries(input.organisationId, id);
+  await recordAudit({
+    action: 'contact.updated',
+    entityType: 'Contact',
+    entityId: before._id,
+    before: {
+      name: before.name,
+      title: before.title,
+      email: before.email,
+      mobile: before.mobile,
+      isPrimary: before.isPrimary,
+    },
+    after,
+  });
 }

@@ -493,3 +493,31 @@ export async function resetTicketOrderAction(): Promise<void> {
   await asUser(actor, () => saveTicketOrder([]));
   revalidatePath('/support/tickets');
 }
+
+export async function setTicketCustomerAction(
+  _previous: SupportFormState,
+  form: FormData,
+): Promise<SupportFormState> {
+  const actor = await requirePermission('ticket.manage');
+  if (!actor.permissions.includes('customer.read'))
+    return { error: 'Customer access is required.' };
+  const id = text(form, 'ticketId');
+  try {
+    await asUser(actor, async () => {
+      const { getTicketDetail, setTicketCustomer } =
+        await import('@/modules/tickets/services/ticket.service');
+      const ticket = await getTicketDetail(id);
+      if (
+        !ticket ||
+        (!actor.permissions.includes('ticket.read.all') && ticket.assigneeId !== actor.id)
+      )
+        throw new Error('Ticket not found.');
+      await setTicketCustomer(id, text(form, 'organisationId'), text(form, 'contactId'));
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not update customer.' };
+  }
+  refreshTicket(id);
+  revalidatePath('/portal', 'layout');
+  return { saved: true };
+}

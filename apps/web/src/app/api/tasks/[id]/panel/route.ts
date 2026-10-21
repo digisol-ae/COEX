@@ -3,6 +3,8 @@ import {
   assignableUserIdsForSubtask,
   assignableUserIdsForTask,
   getTask,
+  listTaskComments,
+  mentionableForTask,
   sourceTicketFor,
   taskOrigin,
 } from '@/modules/tasks/services/task.service';
@@ -19,6 +21,8 @@ import { loggedMinutesForTask, getRunningTimer } from '@/modules/time/services/t
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getSignedInUser();
 
+  if (user?.role === 'client_contact')
+    return Response.json({ error: 'Not allowed.' }, { status: 403 });
   if (!user) return Response.json({ error: 'Sign in first.' }, { status: 401 });
   if (!user.permissions.includes('task.read.own')) {
     return Response.json({ error: 'Not allowed.' }, { status: 403 });
@@ -50,6 +54,17 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       assignableUserIds: await assignableUserIdsForTask(task),
       subtaskAssignableUserIds: await assignableUserIdsForSubtask(task),
       origin: await taskOrigin(task),
+      // The compact Updates section: the history to expand and who can be @mentioned.
+      comments: (await listTaskComments(id)).map((comment) => ({
+        isSystem: comment.isSystem ?? false,
+        attachments: comment.attachments,
+        id: comment.id,
+        body: comment.body,
+        authorName: comment.authorName,
+        createdAt: comment.createdAt.toISOString(),
+        editedAt: comment.editedAt ? comment.editedAt.toISOString() : null,
+      })),
+      mentionable: await mentionableForTask(id),
       viewerId: user.id,
       sourceTicket: await sourceTicketFor(task).then((ticket) =>
         ticket ? { id: ticket.id, number: ticket.number } : null,

@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const REFRESH_MS = 30 * 1000;
+const REFRESH_MS = 15 * 1000;
 
 /**
- * Keeps a server rendered page current without a refresh button.
+ * Keeps a server rendered page current, with a manual refresh control.
  *
  * Email tickets arrive within seconds, and an agent watching a list that only changes on reload
  * misses them; a button only helps someone who already suspects the list is stale. Refreshing
@@ -46,15 +46,22 @@ export function LiveRefresh() {
   }, [router]);
 
   return (
-    <span
+    <button
+      type="button"
+      onClick={() => {
+        router.refresh();
+        setUpdatedAt(new Date());
+      }}
+      aria-label="Refresh page"
       className="inline-flex items-center gap-1.5 text-[11px] text-[var(--color-ink-subtle)]"
-      title="This page updates itself every 30 seconds."
+      title="Refresh now. This page also updates every 15 seconds when you are not typing."
       // The server and the browser render this a moment apart, and may sit in different time zones.
       suppressHydrationWarning
     >
       <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-status-ok)]" aria-hidden />
       Updated {updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-    </span>
+      <span aria-hidden>↻</span>
+    </button>
   );
 }
 

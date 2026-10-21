@@ -1,4 +1,5 @@
 'use client';
+import { UI_LABELS } from '@/components/ui/labels';
 
 import { useState, useTransition } from 'react';
 import { Button, Field, Input, Notice, Select, Textarea } from '@/components/ui';
@@ -13,15 +14,17 @@ import { createTaskAnywhereAction } from './actions';
  * an assignee, say) must not lose what was typed.
  */
 export function NewTaskPopup({
+  defaultOpen = false,
   spaces,
   folders,
   users,
 }: {
+  defaultOpen?: boolean;
   spaces: { id: string; name: string }[];
   folders: { id: string; spaceId: string; name: string }[];
   users: { id: string; name: string }[];
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [pending, startTransition] = useTransition();
   const { showToast } = useToast();
   const [error, setError] = useState<string | null>(null);
@@ -94,7 +97,7 @@ export function NewTaskPopup({
           <button
             type="button"
             onClick={() => setOpen(false)}
-            aria-label="Close"
+            aria-label={UI_LABELS.close}
             className="text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
           >
             ✕
@@ -143,7 +146,7 @@ export function NewTaskPopup({
           ) : null}
 
           {!personal ? (
-            <Field label="Assignees">
+            <Field label={UI_LABELS.assignedTo}>
               <AssigneePicker users={users} selectedIds={assigneeIds} onChange={setAssigneeIds} />
             </Field>
           ) : null}
@@ -185,7 +188,7 @@ export function NewTaskPopup({
 
         <div className="mt-4 flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-            Cancel
+            {UI_LABELS.cancel}
           </Button>
           <Button type="submit" disabled={pending}>
             {pending ? 'Creating' : 'Create task'}

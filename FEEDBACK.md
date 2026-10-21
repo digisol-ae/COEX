@@ -1,5 +1,125 @@
 # FEEDBACK
 
+## Release resumed — 21 October 2026
+
+John explicitly confirmed full access and requested completion after reviewing the proposed mixed COEX bundle. Proceed with the proposed COEX application/docs/tests/assets, excluding separate projects/done-coex-integration files. This supersedes the earlier scope-approval pause. Preserve the existing remote handoff commit, verify GitHub CI, then deploy and verify the server.
+
+## Release preparation — 21 October 2026
+
+John requested Markdown updates, commit, GitHub upload and app-server pull. Full workspace typecheck/lint, 37 unit files / 227 tests, production Webpack build (64 pages), formatting and diff checks passed. Scoped task-image browser QA passed; older full-QA findings and small-image 0 KB display remain documented. No full DB suite rerun.
+
+GitHub PR #24 is open. Remote feature branch contains one earlier handoff commit to preserve. Server preflight verified clean main at 9703f432fd8053c0fff6ac7dd138867b8fbaf9af, exactly one of each four COEX PM2 services online, and SSH works with ~/.ssh/contabo.pem as digisol.
+
+Automatic approval review rejected the proposed broad mixed-worktree commit as insufficiently scoped (portal, CRM, project and docs changes beyond the reviewed agent candidate). No files staged, no commit/push/merge or deployment. Exact proposed COEX bundle and excluded separate dOne project files: ai/COMMIT-SCOPE-2026-10-21.md. Await explicit scope approval before the broad commit.
+
+## Handoff consolidation —21 Oct2026
+
+Latest decisions and pending QA boundaries consolidated in [compact context](ai/CONTEXT-2026-10-21.md). User requested a fresh start; preserve the decisions below. Tickets filter Anyone is now All agents; no role-filtering fix is implied.
+
+
+## Setup tabs — 21 Oct 2026
+
+John requested Setup to open a popup with Queues, Tutorials, Email and other Setup submenus as tabs. Implemented locally; [guide and QA](docs/SETUP-WORKSPACE.md). Security remains separate.
+
+## Consistent compact application UI — 21 Oct 2026
+
+John requested Support styling across COEX, smaller filters, a + menu beside timer for Task/Ticket/Lead, settings drawers, mobile optimisation and a collapsible sidebar. Implemented shared foundation and named settings flows; [UI standards and acceptance](docs/UI-STANDARDS.md). Preserve semantic labels/tooltips and existing coloured workload controls.
+
+
+## Contractual and subscription services — 21 Oct 2026
+
+John confirmed two service models: contractual IT services and annual percentage support for perpetual R4; subscriptions for R4 licensing, server hardware, dOne modules and Xverse. Subscription setup/training upfront, recurring monthly/quarterly/yearly. A customer may hold both models. Keep commitment dates separate from billing cycle. Implemented local CRM extension: [guide and validation](docs/CRM-SERVICE-MODELS.md). No real customer records changed.
+
+
+## QA findings — 20 Oct 2026
+
+QA-only: [complete evidence](docs/qa/QA-2026-10-20.md). Fixes pending: ticket customer/contact popup displays stale selections after a successful save; customer portal users appear in staff ticket assignee choices; team activity omits manual time on Asia/Karachi due to inconsistent date boundaries. Full regression 468 passed / 4 failed, including two stale test expectations. No feature fixes, push or deployment in this run.
+
+
+## Customer page layout — 19 Oct 2026
+
+John requested Opportunities, Contacts and Sites as customer-specific drawer features. Main timeline stays compact: first and last entry, Show more to see the complete history, Show less to collapse. Implemented locally.
+
+## John — CRM/support/email feedback — 19 Oct 2026
+
+- Customer page: edit existing contacts, not only add/remove.
+- Existing tickets: link/change customer and contact, including newly created records.
+- Faster page updates or push/manual refresh. Implement 15-second visible/non-typing refresh plus manual refresh control first.
+- Contract email: choose configured From identity, add/remove To and CC recipients, offer team agents and relevant customer contacts. John confirmed Ali (`ali@digisol.ae`) as default CC. Sender identities are added/removed in Setup → Email; no arbitrary From spoofing.
+
+## dOne support integration project — 18 Oct 2026
+
+Dedicated planning and AI continuity: [dOne ↔ COEX project](projects/done-coex-integration/README.md). Separate web application; Bilal frontend, Uzair backend, beginner deployment teammate. Waiting for dOne local setup/access; documentation base only, no integration implemented or deployment authorised.
+
+## Customer portal T6 — 18 Oct 2026 (Codex, local)
+
+- John explicitly resumed T6 and confirmed **own tickets only**, not all company tickets. Built same-site `/portal`, customer password sign-in routing, own ticket search/filter/pagination, Raise ticket, public conversation/reply, safe image/file attachments and pre-send previews. Default queue and authenticated contact/company are server-selected. Internal notes/attachments, engineering and staff time are excluded.
+- Administrative account provisioning is on Customer → Contacts (`user.manage`), using existing Contact.userId/User.organisationId. Fresh client accounts only; no staff account conversion, no automatic invite email. Suspension/contact archival revokes access. Staff pages/actions and both API surfaces reject client-contact sessions even with permission overrides.
+- Verified: production build and workspace typecheck; portal DB suite **10/10** and tutorial DB regressions **3/3** in separate coex_test databases. Portal HTTP boundary unit tests **2/2**. Browser synthetic QA verified login, own list, create with image, attachment preview, customer reply and refresh persistence, foreign direct URL 404, staff dashboard redirect, public reply visibility and hidden internal note. No real customer account or ticket created. Final full unit run: **31 files / 195 tests passed**; focused ESLint, formatting and diff checks passed.
+- Isolated UI QA at 127.0.0.1:3101 used `coex_test_pui_1018`, separate cookies and storage. Stopped after verification, temporary launcher removed; localhost:3100 remains running. No push/merge/deploy. Mailbox delivery and real-device/theme acceptance remain unverified.
+- Implementation, setup and security notes: `docs/CUSTOMER-PORTAL.md`. T9 subtask-assignee changes and T10 XVERSE remain on hold. Leads API pilot remains paused.
+
+## John — final UI/tutorial decisions, consolidated 18 Oct 2026 (Codex)
+
+- COEX and Worktello refer to the same product; keep COEX for now, rename may happen later.
+- Use transparent compact control areas, meaningful icon + name badges, minimal spacing; same function must have matching label, tooltip, icon and button style throughout COEX. Every module page clearly identifies its context.
+- Tickets: sender email + raised time immediately below subject; customer line also carries SLA and ticket-history icon. History is a popup with who/when; system events stay out of messages. Owner name and priority name remain beside their icons; queue has icon + name. Timer/engineering/related actions share a row with separators.
+- Paste images directly into create/reply forms, show thumbnails and full preview before sending; saved image thumbnails show filename and current size only, without original-size text.
+- Tasks: make Assigned to explicit, allow manual Add time without running a timer, show each agent's time and a visually prominent Total time at the end. History opens records immediately without a second expand click. Existing permission boundaries remain.
+- Brief tutorials float while users work; administrator controls preview/publish/stop/repeat. Upload or supported streaming/direct-video link. No voiceover for current 20-second Ticket tours. Current Create ticket video is an illustrated demo draft, not a screen recording and not published.
+- Implemented locally; shared standards recorded in CLAUDE.md. Current status, checks, limitations and Claude's incoming PR #24 handover: ai/RELEASE-2026-10-18.md. Broad all-screen visual acceptance remains pending; no blanket production acceptance is claimed.
+
+## Create ticket tutorial — 18 Oct 2026 (Codex, draft)
+
+- Created docs/tutorials/create-ticket-20s.mp4: exactly 20 seconds, 1280x720 H.264, no audio, caption-only illustrated walkthrough with labelled demo data. Source: docs/tutorials/create-ticket/render.py.
+- Verified against the current Raise ticket form: open Tickets, whose words/subject/body, queue/priority/customer/contact, optional Cc and attachments with image preview, review and Raise ticket. No ticket created.
+- Uploaded through local Setup → Tutorials as the current draft, replacing the previous style-tour draft; previous video artifact remains in docs/tutorials. Expanded floating preview plays successfully (browser duration=20, playing=true). Not published to users; no push/deploy.
+
+## Tutorial video links — 17 Oct 2026 (Codex, local)
+
+- Setup → Tutorials now supports upload OR saving a video link as a draft. YouTube watch/share/shorts/live links and Vimeo links normalize to trusted embed origins with autoplay off; direct HTTPS MP4/WebM links use the native player. Other arbitrary streaming pages/iframe code are rejected with clear guidance. Vimeo unlisted hashes are preserved. No server downloads of external media.
+- Link drafts share the existing publish/stop/per-user display flow. Embedded playback unloads when minimized/closed; Replay reloads the provider player. Existing uploaded draft preserved; no all-user publication.
+- Local dev server restarted on 3100 to load model changes. Typecheck, lint and 25 unit tests passed; isolated linked-draft database verification added. Live provider playback remains dependent on the video's embedding/privacy settings.
+
+## Floating tutorial system — 17 Oct 2026 (Codex, local)
+
+- John requested a 20-second silent tour of the new Ticket style, first building the floating tutorial window. Built Setup → Tutorials (tenant.manage): MP4/WebM upload up to 30 MB, draft preview, publish to all users in the current tenant, stop, and republish as a new display round. Nothing published during development.
+- Shared floating player on signed-in pages: drag, expand/restore, minimize, close, replay and native video controls. Starts only on Play; retains time when minimized. Positioned bottom-left above navigation, away from existing timer; constrained to viewport. Polls every 30 seconds; one automatic display per user per publication with server-side seen tracking; Watch again remains available while published.
+- Video route requires sign-in, scopes to tenant, hides drafts except from administrators, supports seek byte ranges, and does not expose file keys. Upload stream bounded before parsing; file signatures checked; admin changes audited. No external video host required.
+- Created docs/tutorials/ticket-style-preview-20s.mp4: silent captioned illustrative feature tour with demo content (not a screen recording). Four scenes: compact ticket controls, manual time, history with actor/date, paste/preview images. Uploaded as a draft through the local UI.
+- Browser verified preview playback (~20s, 1280x720), expand, minimize and restore. Isolated coex_test_tutorials_1017 tests passed; further access/range checks recorded in final response. No push/deploy or all-user publication.
+
+## Clear module identity — 17 Oct 2026 (Codex, local)
+
+- Shared ModuleContext in the app layout identifies every current signed-in module/list and record page, including Task, Ticket, Customer, Product, Lead, Contract, Opportunity, Space, Time, Setup and Security screens. It remains visible without the sidebar on mobile and updates on navigation.
+- Standing rule added to CLAUDE.md. No records changed or deployment.
+
+## Uniform UI wording — 17 Oct 2026 (Codex, local)
+
+- John requires matching labels, tooltips and buttons for matching functionality throughout COEX. Standing rule in CLAUDE.md; common action vocabulary centralized in components/ui/labels.ts.
+- Normalized common task/ticket/time controls, Assigned to terminology, Time history, Close, Save/Saving and Add time/Adding, edit tooltip pattern across customer/contract/task/queue/saved reply controls. Timer accessible labels now agree with their tooltip. Shared Button/IconButton remain the visual controls. Distinct archive/delete and domain-specific CRM ownership are preserved.
+- No records changed, push or deploy.
+
+## Shared compact COEX standard — 17 Oct 2026 (Codex, local)
+
+- John: apply the refined Ticket standard to Tasks and throughout COEX. Standing rules updated in CLAUDE.md. Shared DetailPopup supports one-click history/edit views, and FactBadge sizing is now compact across consumers.
+- Task page: transparent facts, compact named assignees/priority/dates, edit form in popup, tighter spacing, controls moved below title, time history popup with every person's entries visible. Creation/assignment popup uses shared component. Task panel updates history opens in a popup.
+- Ticket-linked system events are separated from task work updates; history shows actor names from tenant-scoped user IDs. Ordinary notes keep their existing edit/delete controls. No records changed.
+- Customer/Contract/Opportunity detail facts use transparent panels and tighter spacing; Opportunity history opens directly in shared popup with actor names. Other list/board/setup workflows retain their current structure; the standard is recorded for applicable future work.
+- Browser verified task edit popup and system-history names. No save, archive, push or deploy. Existing untracked docs/handover preserved. CRM detail visual acceptance and full responsive/theme review remain pending.
+
+## Image previews and compact badges — 17 Oct 2026 (Codex, local)
+
+- Follow-up: selected/pasted images have thumbnails and a full preview before sending. Owner and priority names restored with smaller badges. Existing image attachments show clickable thumbnails; unavailable local images have a fallback.
+- Browser verified clipboard thumbnail/full preview and recent saved image loading. Older Tahoe images could not load locally; no stored files changed. Temporary test attachment removed without sending.
+
+## Ticket detail refinement — 17 Oct 2026 (Codex, local only)
+
+- John requested sender email and raised time below the subject, less header spacing, icon-only owner/priority controls, an escalation icon, queue icon plus name, and separated timer/engineering/related groups on one wrapping row. Implemented.
+- System messages moved out of the conversation into a history icon popup; customer messages have a wider, consistent conversation surface.
+- Reply attachment picker accepts pasted clipboard images from the reply form, using the existing file limits and submission path. Browser paste verified with a temporary image, then removed without sending. History popup verified with the 29 Sep and 3 Oct entries.
+- No push or deploy. Existing untracked docs/handover preserved.
+
 ## John, 9 Oct 2026 — feedback batch Q1 to Q5 (built, answers confirmed, acceptance pending)
 
 John paused CRM work on 9 Oct 2026 for feedback and improvements, then said to start. Built together
@@ -314,6 +434,39 @@ Running backlog. Newest at the top. Each item is numbered, has a state and a sho
 
 ## Open
 
+### John, 18 Oct 2026 — compact everywhere (ticket and task screens built; rest of the app to follow)
+
+- Ticket: one card; Status, Owner, Priority, Queue as badges that are also the controls; clocks, timer, Add
+  time, time logged, Escalate and Related as badges and buttons in the second row; escalate, link and
+  merge as popups; Cc inside the reply box.
+- Task page: origin as one line with history, Time as badges, details in columns, small description.
+- Convention recorded in CLAUDE.md. Also applied (18 Oct): customer page (badges row, details form in a popup),
+  contract page (terms and support hours as badges), opportunity page (deal as badges, history folded).
+  Shared `FactBadge`, `FactRow`, `FactGlyph` in components/ui/fact-badge.tsx. Still to apply: the Leads
+  list and panel, Spaces, and the settings screens.
+
+### John, 18 Oct 2026 — ticket page layout (built on the branch, acceptance pending)
+
+- Ticket properties (Status, Owner, Priority, Queue), Engineering and Related tickets moved to a row
+  across the top so the conversation and the reply box get the full width. The timer and time entries
+  sit beside the CC collaborators panel.
+- A conversation of more than three messages shows the first and the latest with a fold button for the
+  messages between. Long unbroken text (addresses, mailto links) now wraps inside the message box.
+
+### John, 18 Oct 2026 — task side panel (built on the branch, acceptance pending)
+
+- Compact origin: one line ("Created by X, date · N assignments") with a history icon opening the full
+  list in a popup. Self-assignments are no longer listed (display only; stored data unchanged).
+- Assignees, dates, priority, folder and time in one wrapping row of icons (names in tooltips); tags below.
+- Description starts at two lines and grows on hover or focus.
+- Updates section in the panel: add an update at once, latest shown, history opens with an icon.
+
+### John, 17 Oct 2026 — time entries layout (built on the branch, acceptance pending)
+
+- The Time entries list on a task looked ugly with every entry shown. Now one consolidated line per
+  person (name, number of entries, total) with a history icon that expands that person's entries and
+  closes them again. Same on the ticket page. Shared component `TimeEntriesByPerson`.
+
 ### Team feedback, 17 Oct 2026 (John, from his team) — built on the branch, acceptance pending
 
 U1. Task work updates can be edited and deleted. Built: the author edits their own update (it then
@@ -517,3 +670,107 @@ T12. (Task page already listed each person's entries since 9 Oct; ticket pages n
    user overrides, audit log, tenant settings, user administration and tenant creation.
 12. Product name COEX, repository digisol-ae/COEX, terminology Portfolio, Project, Task, Step, team
    size ten, port 3100, Node 22 LTS.
+
+## Ticket conversation as a chat — trial (John, 18 Oct 2026)
+- "All the conversation in ticket should be something like WhatsApp style." Built as a trial for John
+  to judge before it goes further: customer messages left, staff replies right (green), internal
+  notes right but dashed and warm with an "Internal note" tag, day labels in office time, time on
+  each bubble, long messages cut with "Read more". Not yet in What's new until John accepts it.
+
+- 18 Oct 2026: John requested CAPTCHA on the customer portal. Turnstile integration prepared for login/create/reply; activation awaits Cloudflare account and widget keys.
+
+- 18 Oct 2026: Prominent Create Support Ticket heading on signed-out entry; opt-in Remember me on this PC for at least 60 days, avoiding repeated login on trusted PCs.
+
+- 18 Oct 2026: Login entry uses prominent Customer / Agent toggle above the heading, default Customer with Create / View Your Support Ticket. Actual account role continues to control access.
+
+- 18 Oct 2026: Customer portal conversation should use the same WhatsApp bubble standard as agents, with refined spacing, own messages right, support left, dates/times and attachment previews.
+
+- 18 Oct 2026: Clarified chat colour standard: agent/support replies green, customer messages light yellow, both with restrained neon accents adjusted for Dark, Light and Sunset. Applies on customer and agent conversation views.
+
+- 18 Oct 2026: Customer header follows agent account-menu standard: profile, reset password, browser notifications and future tutorials in one place. Customer tutorials later; prepare base only, no publication/display now.
+
+- 18 Oct 2026: Browser notification should remain until customer dismisses it. Request persistent interaction from browser; OS/browser notification behaviour remains subject to system settings.
+
+- 19 Oct 2026: Customer kind badge (e.g. Partner) belongs beside the customer heading; Customer details drawer trigger sits at the far-right header edge. Implemented and browser checked.
+
+## Transparent ticket bubbles — 21 October 2026
+
+Ticket communication bubbles now have transparent backgrounds in staff and customer portal views. Existing green/yellow neon borders, glow and sender colours are preserved; internal notes keep their dashed warm border and label with transparent fill. Continues the conversation-style trial, so no What’s new entry. Local only; focused ESLint and diff checks passed, browser/theme acceptance pending.
+
+## Bubble design refinement — 21 October 2026
+
+Supersedes the yellow customer/dashed note styling above: transparent rounded chat bubbles with small bottom tails; customer purple neon, agent green neon, internal notes orange dotted. Shared public styles cover staff and portal. Focused ESLint and diff checks passed; current staff ticket visually verified in Dark with all three types. Other themes and portal not separately browser rechecked. Local only; conversation trial remains outside What’s new.
+
+Bubble-tail correction (21 Oct): replaced separate pseudo-element curves with a continuous SVG nine-slice outline, creating a small curved dialogue tail integrated into the bottom corner. Transparent fill and purple/green/orange colour roles preserved. Focused diff check passed; Light staff view visually checked.
+
+Bubble glow refinement (21 Oct): softened outline to 1px at 55% opacity; green/purple neon shadows expand by 2px in blur and spread outside the transparent bubble. Orange dotted outline also softened. Diff check passed; local only.
+
+Bubble outlines removed (21 Oct, user accepted glow): removed purple/green/orange border artwork and tails. Transparent rounded bubbles retain soft external neon glow in their role colour, including orange internal notes. Sender colours and internal-note label preserved. Diff check passed; local only.
+
+Internal-note colour (21 Oct): changed internal-note glow, sender and label from orange to red; transparent fill and borderless styling preserved. Diff check passed. Local only.
+
+## Conversation ordering and composer — 21 October 2026
+
+Added Message order: Ascending (oldest first, default) / Descending (newest first), stored in the ticket URL as messageOrder. Messages and office-day separators follow the selected chronological order, with existing middle-message folding retained. Moved the complete staff ReplyBox above the conversation, retaining attachments, saved replies, CC, sender, signature and internal-note mode. Browser verified composer precedes conversation and descending reverses endpoints; focused ESLint, web typecheck and diff checks passed. Local only; no messages sent.
+
+## Main task conversation styling — 21 October 2026
+
+Applied ticket-style transparent rounded red-glow internal-note bubbles, explicit Internal note badges, long-text Read more, middle-message folding and ascending/descending ordering to the full task page. Complete existing update composer now precedes the conversation; mentions/edit/delete permissions retained. Task toolbar uses compact filter styling and task tags render individually as #tag badges. Task comments remain private internal notes; no customer reply mode added. Browser verified composer position, internal tags and order reversal on DGS-T-6; ESLint, web typecheck and diff checks passed. No comment submitted; local only.
+
+## Subtask assignment email — 21 October 2026
+
+Subtask assignee changes now queue the existing task_assigned staff alert, including subtask title, parent task and link. Respects email settings and existing self-assignment suppression. Unchanged selection and unassignment do not queue alerts; existing assignment access rules retained. Notification failure does not undo the saved assignment, matching main task behaviour. Regression test passed (1 passed, 47 skipped) against isolated coex_test_tasks after network-enabled retry; lint, web typecheck and diff checks passed. Test spies on the mail queue entry point; no real email delivery claimed. Added What’s new entry. Local only, no push/deploy.
+
+## My subtask done — 21 October 2026
+
+User-approved personal completion uses exact label My subtask done, with Resume my work. Persisted per-assignee IDs; only the current assigned user may mark their own work, with private Space/Folder checks and an atomic guard rejecting unfinished own subtasks. Does not close shared task/remove assignee. Mine defaults Active; filter supports My subtask done/All my work and preserves existing filters. Personal active task lists/My work, Tasks badge, My Desk and available desk tasks exclude completed personal work; team/Space views remain unchanged. Assignee completion badge on full task page. Newly assigned or reopened own subtasks reset personal completion; removing parent assignees drops stale markers. Existing desk selection stays stored so resume can restore its visibility. No real records migrated.
+
+Verification: focused DB regressions 2 passed/47 skipped in isolated coex_test_tasks (assignment-alert regression plus personal completion, independent users, invalid actor, unfinished guard, resume and reactivation). Web typecheck, focused ESLint and diff checks passed. Browser read-only verified button on assigned task and three Mine filter choices; no live completion clicked. What’s new updated. Local only; no push/deploy.
+
+## Subtask missing-field crash and error handling — 21 October 2026
+
+Fixed user-reported Cannot read properties of undefined (reading filter): personal completion arrays now safely default empty in subtask reopen/assignment. Next development model cache is upgraded and recompiled for the newly added path, so hot reload cannot retain the old schema. Subtask completion/assignment/add actions now return friendly expected errors, log unexpected details only server-side and display generic retry messages. Board/list optimistic updates handle returned failures; full-page subtask forms show inline Notice and assignment errors are no longer ignored. Personal-completion errors use the same safe mapping.
+
+Verified: database regressions 3 passed/47 skipped (legacy undefined field, personal completion, assignment alerts); action error unit tests 2/2 passed (raw TypeError masked and expected validation preserved). Web typecheck, focused ESLint and diff checks passed. No real subtask changed during verification. Local only.
+
+Home navigation icon (21 Oct): replaced the rail Home glyph with user-supplied transparent house asset at public/brand/home-icon.png, rendered as a currentColor mask at 18px. Shared desktop/mobile RailLinks retains active/theme colours and Home label/destination. Focused ESLint and diff checks passed; local only.
+
+Tasks navigation icon (21 Oct): replaced Tasks rail glyph with user-supplied transparent tasks-icon.png, using the shared 18px currentColor mask for desktop/mobile. Label, destination, counts and active colours preserved. Focused ESLint and diff checks passed. Local only.
+
+Folder/Spaces navigation icon (21 Oct): replaced the folder glyph in the Spaces rail entry with the supplied transparent spaces-icon.png. Shared 18px currentColor mask applies on desktop/mobile; Spaces label and route preserved. Focused ESLint and diff checks passed. Local only.
+
+Time navigation icon (21 Oct): replaced Time rail clock with the user-supplied transparent time-icon.png, rendered through the shared theme-aware 18px mask on desktop/mobile. Label and route retained. Focused ESLint and diff checks passed. Local only.
+
+CRM navigation icon (21 Oct): replaced CRM rail glyph with the supplied transparent customers-icon.png. Shared 18px currentColor mask covers desktop/mobile and preserves CRM label, route, active colours and renewal badge. Focused ESLint and diff checks passed. Local only.
+
+Support navigation icon (21 Oct): replaced Support rail glyph with supplied support-icon.png using shared 18px theme-aware mask on desktop/mobile. Support route, label and unread count retained. Focused ESLint and diff checks passed; local only.
+
+Setup navigation icon (21 Oct): replaced Setup gear with supplied settings-icon.png using shared 18px currentColor mask. Desktop/mobile retain Setup popup routing, permissions and active colours. Removed unused legacy SVG fallback after all non-desk rail icons moved to supplied assets. Focused ESLint and diff checks passed. Local only.
+
+Second navigation selection (21 Oct): shared navigation-active now uses a soft rainbow neon gradient blended with the theme surface and 1px coloured shadows. Applies to selected secondary sidebar links, Spaces, folders and task-tree items on desktop/mobile; current label contrast and red marker preserved. Diff check passed. Local only.
+
+Navigation selection hierarchy (21 Oct): active main section headings (e.g. Timesheet), plus standalone Dashboard/My desk/Setup, use the rainbow background. Active submenu/tree entries use transparent fill, continuous 1px rainbow border and 1px colour shadow; old red marker removed. Active group detection retains current route matching. Focused ESLint/diff checks passed; local only.
+
+Navigation submenu shadow (21 Oct): increased selected submenu rainbow shadow from 1px to 2px; transparent fill and 1px rainbow border retained. Diff check passed. Local only.
+
+Task half drawer (21 Oct): removed Documents section and document add/remove controls from the quick panel only; full task document management retained. Updates now render inline newest-first, initially 3 threads, Show more reveals 5 more at a time and Show less collapses. Full text/Read more, author/time, edited flag and Internal note/Activity tagging included; composer stays above. Focused ESLint, web typecheck and diff checks passed; local only.
+
+## Images in task updates — 21 October 2026
+
+Main task page and half drawer reuse the ticket attachment picker for image paste/drop/upload with pre-send thumbnails; saved update images use existing preview/download UI. Image-only posts supported. PNG/JPEG/WebP, 3MB/file and 10MB/update enforced before buffering and in service, decoded/processed using ticket image pipeline. Native task comments store private attachment metadata; ticket-linked updates store attachments directly on shared internal TicketMessage, without customer email. New authenticated task-image route enforces staff role, task permissions, assignee/read-all and Space/Folder/tenant visibility; only internal ticket-note attachments are reachable through task links. Deleted task updates no longer serve images. Failed storage/comment creation cleans uploaded files. Unexpected posting errors use friendly retry copy.
+
+Verification: isolated coex_test_tasks regressions 3 passed/48 skipped (image persistence/download, invalid images/SVG rejection, wrong-task/cross-tenant denial, ticket-note privacy, prior personal-completion regressions). Unit tests 5/5 across image-route access/headers and subtask error regressions. Web typecheck and focused ESLint passed. Browser read-only verified image composer on task page; actual clipboard and saved-thumbnail browser end-to-end acceptance remains pending. No real update posted. What’s new updated; local only.
+
+## Agent release summary and upload review — 21 October 2026
+
+User requested 17-to-today agent-related information only. Consolidated 17–21 Oct What’s new into one current agent summary covering tasks/subtasks, update images, support, time and navigation. Removed duplicate date-range entries and admin/contract/portal administration copy; older pre-17-Oct release history retained. Upload candidate, dependencies, mixed-worktree boundaries and remaining verification recorded in ai/RELEASE-2026-10-21.md. Release-note lint/diff checks passed. Review only; no staging/commit/push/deploy.
+
+## Top task documents/attachments drawer — 21 October 2026
+
+Moved main task Documents section into a compact Documents & attachments button in the top action bar, with a combined count. Drawer lists all current update attachments as a thumbnail grid (deduplicated by attachment ID, with author labels) and existing document links/add/remove controls. Uses protected task attachment URLs, keeps comment thumbnails in context, includes shared internal-note attachments on ticket-linked tasks, excludes deleted updates through existing comment service. Reuses native SettingsDrawer for Escape/focus and responsive width. Half drawer Documents remains removed. Focused ESLint, web typecheck and diff checks passed; browser acceptance pending. Local only.
+
+Drawer visibility refinement (21 Oct): moved Documents & attachments trigger from the action strip to the full task title header; made it a prominent labelled button with count. Added the same drawer at the top of the task half panel. Update composer upload controls now explicitly say Upload attachment or paste an image on both surfaces (PNG/JPEG/WebP image support retained). Browser opened the current task drawer and verified heading, empty state and document-link form; composer label also verified. Focused ESLint, web typecheck and diff checks passed. No data posted.
+
+## Task image browser QA — 21 October 2026
+
+Scoped end-to-end browser QA completed on isolated 127.0.0.1:3102 and coex_test_tasks with clearly labelled synthetic task/user. Main-page clipboard paste, image-only post, reload persistence, half-drawer file upload/text+image post/newest-first display, central gallery, preview and verified 320×180 download passed. Ordinary agent role also pasted/posted successfully; final gallery count 3. Minor display finding: tiny/compressed images round to 0 KB; no code fix during QA. Atlas collection limit affected isolated login/dashboard setup, resolved enough for task flow by dropping eight verified-empty collections only in disposable test DB. Report: docs/qa/QA-2026-10-21-TASK-IMAGES.md. Temporary server stopped and scripts removed; no main-site data changed, push/deploy or external email. Prior image clipboard/browser acceptance pending notes are superseded only for these tested task paths.

@@ -33,6 +33,9 @@ export function ContractEmailButton({
   const [template, setTemplate] = useState<TemplateKey>('general');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
+  const [to, setTo] = useState('');
+  const [cc, setCc] = useState('');
+  const [sender, setSender] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, startLoading] = useTransition();
   const [sending, startSending] = useTransition();
@@ -46,6 +49,7 @@ export function ContractEmailButton({
 
   function openPopup() {
     setOpen(true);
+    setDraft(null);
     setError(null);
     startLoading(async () => {
       const result = await prepareContractEmailAction(contractId);
@@ -54,6 +58,14 @@ export function ContractEmailButton({
         return;
       }
       setDraft(result.draft);
+      setTo(
+        result.draft.recipients
+          .filter((r) => r.email)
+          .map((r) => r.email)
+          .join(', '),
+      );
+      setCc(result.draft.defaultCc.join(', '));
+      setSender(result.draft.defaultSender);
       choose(result.draft.defaultTemplate, result.draft);
     });
   }
@@ -61,7 +73,17 @@ export function ContractEmailButton({
   function send() {
     setError(null);
     startSending(async () => {
-      const result = await sendContractEmailAction(contractId, subject, body);
+      const result = await sendContractEmailAction(contractId, subject, body, {
+        to: to
+          .split(/[;,\n]+/)
+          .map((e) => e.trim())
+          .filter(Boolean),
+        cc: cc
+          .split(/[;,\n]+/)
+          .map((e) => e.trim())
+          .filter(Boolean),
+        sender,
+      });
       if (result.error) {
         setError(result.error);
         return;
@@ -71,6 +93,15 @@ export function ContractEmailButton({
     });
   }
 
+  const previewEmail = to
+    .split(/[;,\n]+/)
+    .map((email) => email.trim().toLowerCase())
+    .find(Boolean);
+  const previewName =
+    draft?.addressOptions.find((person) => person.email === previewEmail)?.name ??
+    previewEmail ??
+    'Customer contact';
+  const previewValues = draft ? { ...draft.sampleValues, contact: previewName } : null;
   const label = lastEmailedAt
     ? `Email contract contacts (last emailed ${lastEmailedAt.slice(0, 10)})`
     : 'Email contract contacts';
@@ -86,29 +117,79 @@ export function ContractEmailButton({
 
         {draft ? (
           <div className="mt-3 space-y-3">
-            <div className="text-sm">
-              <p className="font-medium text-[var(--color-ink)]">To</p>
-              {draft.recipients.length === 0 ? (
-                <p className="text-[var(--color-ink-muted)]">
-                  Nobody yet. Edit the contract and choose its contract contacts.
-                </p>
-              ) : (
-                <ul className="text-[var(--color-ink-muted)]">
-                  {draft.recipients.map((recipient) => (
-                    <li key={recipient.id}>
-                      {recipient.name}{' '}
-                      {recipient.email ? (
-                        `<${recipient.email}>`
-                      ) : (
-                        <span className="text-[var(--color-status-alert)]">
-                          (no email address, will be skipped)
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            {!draft.senders.length ? (
+              <Notice tone="warn">
+                Sending is off or no sender is configured. Configure sending identities in Setup →
+                Email before sending.
+              </Notice>
+            ) : null}
+            <Field label="From" hint="Add or remove sending identities in Setup → Email.">
+              <Select value={sender} onChange={(e) => setSender(e.target.value)}>
+                <option value="" disabled>
+                  Choose sender
+                </option>
+                {draft.senders.map((s) => (
+                  <option key={s.role} value={s.role}>
+                    {s.name} · {s.address}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="To" hint="Add or remove addresses, separated by commas.">
+              <Input
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+                list={`contract-addresses-${contractId}`}
+              />
+            </Field>
+            <Field
+              label="CC"
+              hint={
+                draft.defaultCc.length
+                  ? 'Ali is included by default. You can add or remove addresses.'
+                  : 'Add or remove CC addresses, separated by commas.'
+              }
+            >
+              <Input
+                value={cc}
+                onChange={(e) => setCc(e.target.value)}
+                list={`contract-addresses-${contractId}`}
+              />
+            </Field>
+            <datalist id={`contract-addresses-${contractId}`}>
+              {draft.addressOptions.map((a, i) => (
+                <option key={`${a.email}-${i}`} value={a.email}>
+                  {a.name} · {a.source}
+                </option>
+              ))}
+            </datalist>
+            <details className="text-xs text-[var(--color-ink-muted)]">
+              <summary className="cursor-pointer">Add team or customer contact</summary>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {draft.addressOptions.map((a, i) => (
+                  <span
+                    key={`${a.email}-${i}`}
+                    className="rounded border border-[var(--color-line)] px-2 py-1"
+                  >
+                    {a.name} · {a.email}{' '}
+                    <button
+                      type="button"
+                      className="ml-2 underline"
+                      onClick={() => setTo((value) => (value ? `${value}, ${a.email}` : a.email))}
+                    >
+                      To
+                    </button>
+                    <button
+                      type="button"
+                      className="ml-2 underline"
+                      onClick={() => setCc((value) => (value ? `${value}, ${a.email}` : a.email))}
+                    >
+                      CC
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </details>
 
             <Field label="Template">
               <Select
@@ -140,14 +221,12 @@ export function ContractEmailButton({
             </Field>
 
             <div className="rounded-[var(--radius-control)] bg-[var(--color-surface-sunken)] p-3 text-sm">
-              <p className="text-xs text-[var(--color-ink-subtle)]">
-                Preview for {draft.previewName}
-              </p>
+              <p className="text-xs text-[var(--color-ink-subtle)]">Preview for {previewName}</p>
               <p className="mt-1 font-medium text-[var(--color-ink)]">
-                {fillContractTemplate(subject, draft.sampleValues)}
+                {fillContractTemplate(subject, previewValues!)}
               </p>
               <p className="mt-1 whitespace-pre-wrap text-[var(--color-ink-muted)]">
-                {fillContractTemplate(body, draft.sampleValues)}
+                {fillContractTemplate(body, previewValues!)}
               </p>
             </div>
           </div>
@@ -163,7 +242,7 @@ export function ContractEmailButton({
           <Button
             type="button"
             onClick={send}
-            disabled={sending || !draft || draft.recipients.length === 0}
+            disabled={sending || !draft || !to.trim() || !sender}
           >
             {sending ? 'Sending' : 'Send email'}
           </Button>

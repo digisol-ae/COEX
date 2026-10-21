@@ -22,6 +22,12 @@ const productSchema = new Schema(
     },
 
     description: { type: String, default: null },
+    serviceModels: {
+      type: [String],
+      enum: ['contractual', 'subscription'],
+      default: () => ['contractual', 'subscription'],
+    },
+    parentProductId: { type: Schema.Types.ObjectId, ref: 'Product', default: null },
 
     listPriceMinorUnits: { type: Number, default: null },
     currency: { type: String, default: 'AED' },

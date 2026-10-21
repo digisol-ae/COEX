@@ -1,4 +1,5 @@
 'use client';
+import { SettingsDrawer } from '@/components/ui/settings-drawer';
 
 import { useActionState, useState, useTransition } from 'react';
 import { Button, Field, Input, Notice } from '@/components/ui';
@@ -88,25 +89,8 @@ export function FolderSettings({
   }
 
   return (
-    <div
-      className="popup-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Folder settings"
-    >
-      <form action={action} className="w-full max-w-lg popup-glass p-5 text-left">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-[var(--color-ink)]">Folder settings</h2>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
-            aria-label="Close settings"
-          >
-            ✕
-          </button>
-        </div>
-
+    <SettingsDrawer title="Folder settings" open={open} onClose={() => setOpen(false)}>
+      <form action={action} className="w-full space-y-3 text-left">
         <input type="hidden" name="id" value={folder.id} />
         <input type="hidden" name="spaceId" value={spaceId} />
 
@@ -184,6 +168,6 @@ export function FolderSettings({
           )}
         </div>
       </form>
-    </div>
+    </SettingsDrawer>
   );
 }

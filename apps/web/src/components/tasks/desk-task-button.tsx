@@ -99,13 +99,15 @@ export function DeskTaskButton({
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"
         aria-hidden="true"
       >
-        <path d="M3 12h18M5 12v8M19 12v8M7 4h10v6H7zM10 12v-2" />
-        {selected || removeOnly ? <path d="m14 18 2 2 5-5" /> : <path d="M17 16v5M14.5 18.5h5" />}
+        <circle cx="12" cy="4.75" r="3.1" />
+        <path d="M6.5 12V10c0-1.3 3.5-2.2 5.5-2.2s5.5.9 5.5 2.2v2" />
+        <path d="M2 12h20v2H2zM4 14v8h2v-8M18 14v8h2v-8" />
+        {selected || removeOnly ? <path d="m9 19 2 2 4-5" /> : <path d="M12 17v4M10 19h4" />}
       </svg>
     </button>
   );

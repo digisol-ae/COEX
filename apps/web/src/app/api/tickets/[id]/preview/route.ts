@@ -5,6 +5,8 @@ import { STATUS_LABELS } from '@/modules/tickets/labels';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getSignedInUser();
+  if (user?.role === 'client_contact')
+    return Response.json({ error: 'Not allowed.' }, { status: 403 });
   if (!user) return Response.json({ error: 'Sign in first.' }, { status: 401 });
   if (!user.permissions.includes('ticket.read.own'))
     return Response.json({ error: 'Not allowed.' }, { status: 403 });

@@ -23,7 +23,7 @@ export function ProfileForm({ name, title }: { name: string; title: string }) {
           {state.saved ? <Notice tone="ok">Saved.</Notice> : null}
           <div className="flex justify-end">
             <Button type="submit" disabled={pending}>
-              {pending ? 'Saving…' : 'Save details'}
+              {pending ? 'Saving' : 'Save'}
             </Button>
           </div>
         </form>

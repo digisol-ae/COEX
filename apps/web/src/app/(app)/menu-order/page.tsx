@@ -1,4 +1,4 @@
-import { asUser, requireUser } from '@/lib/session';
+import { asUser, requireStaffUser as requireUser } from '@/lib/session';
 import { PageHeader } from '@/components/ui';
 import { orderGroups, visibleGroups } from '@/components/navigation/navigation';
 import { getNavigationOrder } from '@/modules/core/services/user.service';

@@ -42,6 +42,7 @@ const products = () => repository(ProductModel);
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export interface OpportunitySummary {
+  serviceModel?: 'contractual' | 'subscription';
   id: string;
   number: string;
   organisationId: string;
@@ -71,6 +72,7 @@ export interface OpportunitySummary {
 }
 
 export interface OpportunityInput {
+  serviceModel?: 'contractual' | 'subscription';
   organisationId: string;
   contactId?: string;
   title: string;
@@ -154,6 +156,8 @@ async function prepare(input: OpportunityInput) {
     throw new Error('One of the products was not found.');
   }
 
+  if (input.serviceModel && !['contractual', 'subscription'].includes(input.serviceModel))
+    throw new Error('Choose a service model.');
   const ownerId = input.ownerId || String(organisation.ownerId ?? getContext().userId);
   const owner = await UserModel.findOne({
     _id: ownerId,
@@ -163,6 +167,7 @@ async function prepare(input: OpportunityInput) {
   if (!owner) throw new Error('The owner must be an active member of the team.');
 
   return {
+    serviceModel: input.serviceModel ?? 'contractual',
     title,
     organisationId: organisation._id,
     contactId: input.contactId ? new Types.ObjectId(input.contactId) : null,
@@ -260,6 +265,7 @@ export async function updateOpportunity(id: string, input: OpportunityInput): Pr
       {
         title: before.title,
         owner: String(before.ownerId),
+        serviceModel: before.serviceModel,
         oneOff: before.oneOffMinorUnits,
         recurring: before.recurringMinorUnits,
         currency: before.currency,
@@ -271,6 +277,7 @@ export async function updateOpportunity(id: string, input: OpportunityInput): Pr
       {
         title: after?.title,
         owner: String(after?.ownerId),
+        serviceModel: after?.serviceModel,
         oneOff: after?.oneOffMinorUnits,
         recurring: after?.recurringMinorUnits,
         currency: after?.currency,
@@ -463,6 +470,7 @@ export async function listOpportunities(
       status: item.status as OpportunityStatus,
       ownerId: String(item.ownerId),
       ownerName: ownerName.get(String(item.ownerId)) ?? 'Unknown',
+      serviceModel: item.serviceModel ?? 'contractual',
       oneOffMinorUnits: item.oneOffMinorUnits ?? 0,
       recurringMinorUnits: item.recurringMinorUnits ?? 0,
       currency: item.currency ?? 'AED',

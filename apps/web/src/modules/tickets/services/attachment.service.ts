@@ -93,6 +93,49 @@ async function prepare(file: IncomingFile): Promise<{ body: Buffer; processed: b
   }
 }
 
+/** Store task update images using the same compression, size limits and private store as tickets. */
+export async function storeTaskImages(files: IncomingFile[]): Promise<StoredAttachment[]> {
+  if (files.reduce((sum, file) => sum + file.body.length, 0) > MAX_MESSAGE_ATTACHMENT_BYTES) {
+    throw new Error('Images total more than 10MB. Send a cloud link instead.');
+  }
+  for (const file of files) {
+    if (!PROCESSED_IMAGE_TYPES.has(file.contentType))
+      throw new Error('Use PNG, JPEG or WebP images for task updates.');
+    if (file.body.length > MAX_FILE_BYTES) throw new Error('Each image must be 3MB or smaller.');
+    try {
+      await sharp(file.body, { failOn: 'error' }).metadata();
+    } catch {
+      throw new Error(
+        'One image could not be read. Please choose a valid PNG, JPEG or WebP image.',
+      );
+    }
+  }
+  const stored: StoredAttachment[] = [];
+  try {
+    for (const file of files) {
+      const result = await prepare(file);
+      const saved = await fileStorage().put({
+        tenantId: String(getContext().tenantId),
+        fileName: file.fileName,
+        contentType: file.contentType,
+        body: result.body,
+      });
+      stored.push({
+        fileName: file.fileName,
+        contentType: file.contentType,
+        storageKey: saved.key,
+        bytes: saved.bytes,
+        originalBytes: result.processed ? file.body.length : null,
+        processedAt: result.processed ? new Date() : null,
+      });
+    }
+    return stored;
+  } catch (error) {
+    await Promise.allSettled(stored.map((file) => fileStorage().remove(file.storageKey)));
+    throw error;
+  }
+}
+
 export async function attachToMessage(
   messageId: string,
   files: IncomingFile[],

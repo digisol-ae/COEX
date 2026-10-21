@@ -52,6 +52,7 @@ export default async function SpacePage({
 
       <div className="mt-2">
         <PageHeader
+          descriptionInline
           icon={<Monogram name={space.name} />}
           title={space.name}
           titleExtra={

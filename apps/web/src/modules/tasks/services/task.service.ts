@@ -1,3 +1,5 @@
+import { fileStorage } from '@/lib/storage';
+import { storeTaskImages, type IncomingFile } from '@/modules/tickets/services/attachment.service';
 import { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
@@ -76,6 +78,7 @@ export interface TaskSummary {
 export interface TaskFilter {
   /** Only these tasks, for screens that already know which ones they need. */
   ids?: string[];
+  personalWork?: 'active' | 'done' | 'all';
   spaceId?: string;
   /** Any of these spaces; used by the All tasks screen's space picker. */
   spaceIds?: string[];
@@ -158,6 +161,14 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   if (filter.assigneeId) query.assigneeIds = toObjectId(filter.assigneeId);
   else if (filter.assigneeIds?.length) {
     query.assigneeIds = { $in: filter.assigneeIds.map(toObjectId) };
+  }
+  const personalWork =
+    filter.personalWork ?? (filter.assigneeId === String(getContext().userId) ? 'active' : 'all');
+  if (personalWork !== 'all') {
+    query.mySubtaskDoneByIds =
+      personalWork === 'done'
+        ? toObjectId(String(getContext().userId))
+        : { $ne: toObjectId(String(getContext().userId)) };
   }
   if (filter.status) query.status = filter.status;
   if (!filter.includeClosed) query.isClosed = false;
@@ -281,7 +292,11 @@ export async function countMyOpenTasks(userId: string): Promise<number> {
   await connectToDatabase();
 
   const conditions = [
-    { assigneeIds: toObjectId(userId), isClosed: false },
+    {
+      assigneeIds: toObjectId(userId),
+      isClosed: false,
+      mySubtaskDoneByIds: { $ne: toObjectId(userId) },
+    },
     await visibleFolderFilter(),
     await visibleSpaceFilter('spaceId'),
   ].filter((condition) => Object.keys(condition).length > 0);
@@ -296,7 +311,27 @@ export async function getTask(id: string) {
   return task;
 }
 
+/** Personal completion never closes the shared task or removes its assignee. */
+export async function setMySubtaskDone(taskId: string, done: boolean): Promise<void> {
+  const task = await getTask(taskId);
+  const actor = getContext().userId;
+  if (!task || !task.assigneeIds.some((id) => String(id) === String(actor))) {
+    throw new Error('Only an assignee can change their own subtask completion.');
+  }
+  const query: Record<string, unknown> = { _id: task._id, assigneeIds: actor };
+  if (done) {
+    query.subtasks = { $not: { $elemMatch: { assigneeId: actor, done: false } } };
+  }
+  const saved = await tasks().updateOne(
+    query,
+    done ? { $addToSet: { mySubtaskDoneByIds: actor } } : { $pull: { mySubtaskDoneByIds: actor } },
+  );
+  if (!saved) throw new Error('Complete your assigned subtasks first.');
+}
+
 export interface TaskCommentView {
+  attachments: { id: string; fileName: string; contentType: string; bytes: number }[];
+  isSystem?: boolean;
   id: string;
   body: string;
   authorName: string;
@@ -372,11 +407,38 @@ export async function taskOrigin(task: {
     createdBy:
       creator && task.createdAt ? { name: creator, at: task.createdAt.toISOString() } : null,
     assignedBy: assignments.flatMap((entry) => {
+      // Putting yourself on your own task is not news (John's team, 18 Oct 2026), so it is not listed.
+      if (String(entry.assignedById) === String(entry.userId)) return [];
       const byName = entry.assignedById ? names.get(String(entry.assignedById)) : undefined;
       return byName
         ? [{ userId: String(entry.userId), byName, at: entry.assignedAt.toISOString() }]
         : [];
     }),
+  };
+}
+
+export async function taskUpdateImage(taskId: string, attachmentId: string) {
+  const task = await getTask(taskId);
+  if (!task) return null;
+  const sourceTicketId = await sourceTicketIdFor(task);
+  const record = sourceTicketId
+    ? await TicketMessageModel.findOne({
+        tenantId: getContext().tenantId,
+        ticketId: sourceTicketId,
+        visibility: 'internal',
+        'attachments._id': toObjectId(attachmentId),
+      })
+    : await taskComments().findOne({
+        taskId: task._id,
+        deletedAt: null,
+        'attachments._id': toObjectId(attachmentId),
+      });
+  const attachment = record?.attachments?.find((item) => String(item._id) === attachmentId);
+  if (!attachment) return null;
+  return {
+    fileName: attachment.fileName,
+    contentType: attachment.contentType,
+    body: await fileStorage().get(attachment.storageKey),
   };
 }
 
@@ -392,13 +454,33 @@ export async function listTaskComments(taskId: string): Promise<TaskCommentView[
       visibility: 'internal',
     }).sort({ sentAt: 1 });
 
+    const actors = await UserModel.find({
+      tenantId: getContext().tenantId,
+      _id: {
+        $in: notes
+          .filter((note) => note.channel === 'system' && note.authorUserId)
+          .map((note) => note.authorUserId),
+      },
+    }).select('name');
+    const actorNames = new Map(actors.map((user) => [String(user._id), user.name]));
     return notes.map((note) => ({
+      attachments: (note.attachments ?? []).map((a) => ({
+        id: String(a._id),
+        fileName: a.fileName,
+        contentType: a.contentType,
+        bytes: a.bytes,
+      })),
+      isSystem: note.channel === 'system',
       id: String(note._id),
       body: note.body,
-      authorName: note.authorName,
+      authorName:
+        note.channel === 'system' && note.authorName === 'COEX'
+          ? (actorNames.get(String(note.authorUserId)) ?? 'COEX')
+          : note.authorName,
       createdAt: note.sentAt ?? note.createdAt,
       editedAt: note.editedAt ?? null,
-      canEdit: String(note.authorUserId) === String(getContext().userId),
+      canEdit:
+        note.channel !== 'system' && String(note.authorUserId) === String(getContext().userId),
       // A ticket's notes are its record: they can be corrected here, never removed.
       canDelete: false,
     }));
@@ -413,6 +495,12 @@ export async function listTaskComments(taskId: string): Promise<TaskCommentView[
     const own = String(comment.authorUserId) === String(getContext().userId);
 
     return {
+      attachments: (comment.attachments ?? []).map((a) => ({
+        id: String(a._id),
+        fileName: a.fileName,
+        contentType: a.contentType,
+        bytes: a.bytes,
+      })),
       id: String(comment._id),
       body: comment.body,
       authorName: comment.authorName,
@@ -536,8 +624,9 @@ export async function addTaskComment(
   taskId: string,
   body: string,
   mentionIds: string[] = [],
+  images: IncomingFile[] = [],
 ): Promise<void> {
-  const text = body.trim();
+  const text = body.trim() || (images.length ? 'Image update' : '');
   if (!text) throw new Error('Write a comment before posting it.');
   if (text.length > 4_000) throw new Error('A comment can be up to 4,000 characters.');
 
@@ -553,28 +642,36 @@ export async function addTaskComment(
   const now = new Date();
 
   const sourceTicketId = await sourceTicketIdFor(task);
+  const attachments = await storeTaskImages(images);
+  const cleanupImages = async (error: unknown): Promise<never> => {
+    await Promise.allSettled(attachments.map((file) => fileStorage().remove(file.storageKey)));
+    throw error;
+  };
   if (sourceTicketId) {
     await TicketMessageModel.create({
       tenantId: context.tenantId,
       ticketId: sourceTicketId,
+      attachments,
       visibility: 'internal',
       direction: 'outbound',
       body: text,
       authorUserId: context.userId,
       authorName,
       channel: 'agent',
-    });
+    }).catch(cleanupImages);
     await TicketModel.updateOne(
       { _id: sourceTicketId, tenantId: context.tenantId },
       { $set: { lastActivityAt: now } },
     );
   } else {
-    await taskComments().create({
+    await TaskCommentModel.create({
+      tenantId: context.tenantId,
       taskId: task._id,
+      attachments,
       body: text,
       authorUserId: context.userId,
       authorName,
-    });
+    }).catch(cleanupImages);
   }
 
   await tasks().updateOne({ _id: task._id }, { $set: { lastActivityAt: now } });
@@ -965,6 +1062,9 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
           assigneeIds,
           before.assigneeIds.map(String),
         ),
+        mySubtaskDoneByIds: (before.mySubtaskDoneByIds ?? []).filter((id) =>
+          assigneeIds.some((current) => String(current) === String(id)),
+        ),
         primaryAssigneeId: assigneeIds[0] ?? null,
         startAt,
         endAt,
@@ -1062,6 +1162,9 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
       assigneeIds,
       before.assigneeIds.map(String),
     );
+    set.mySubtaskDoneByIds = (before.mySubtaskDoneByIds ?? []).filter((id) =>
+      assigneeIds.some((current) => String(current) === String(id)),
+    );
     set.primaryAssigneeId = assigneeIds[0] ?? null;
   }
 
@@ -1137,6 +1240,11 @@ export async function toggleSubtask(
   const subtask = task.subtasks.find((candidate) => String(candidate._id) === subtaskId);
   if (!subtask) throw new Error('Subtask not found.');
 
+  if (!done && subtask.assigneeId) {
+    task.mySubtaskDoneByIds = (task.mySubtaskDoneByIds ?? []).filter(
+      (id) => String(id) !== String(subtask.assigneeId),
+    );
+  }
   subtask.done = done;
   subtask.completedAt = done ? new Date() : null;
   task.lastActivityAt = new Date();
@@ -1172,10 +1280,38 @@ export async function setSubtaskAssignee(
     }
   }
 
+  const previousAssigneeId = subtask.assigneeId ? String(subtask.assigneeId) : null;
+  if (previousAssigneeId === assigneeId) return;
+
+  if (assigneeId) {
+    task.mySubtaskDoneByIds = (task.mySubtaskDoneByIds ?? []).filter(
+      (id) => String(id) !== assigneeId,
+    );
+  }
   subtask.assigneeId = assigneeId ? toObjectId(assigneeId) : null;
   task.lastActivityAt = new Date();
 
   await task.save();
+
+  if (assigneeId) {
+    try {
+      await alertStaff(
+        'task_assigned',
+        assigneeId,
+        `[${task.number}] Subtask assigned to you: ${subtask.title}`,
+        [
+          `A subtask on task ${task.number} has been assigned to you.`,
+          '',
+          `Subtask: ${subtask.title}`,
+          `Task: ${task.title}`,
+          '',
+          `${appBaseUrl()}/tasks/${task._id}`,
+        ],
+      );
+    } catch (error) {
+      console.error('Subtask alert skipped:', error instanceof Error ? error.message : error);
+    }
+  }
 }
 
 export async function addDocumentLink(

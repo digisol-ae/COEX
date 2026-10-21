@@ -1,4 +1,4 @@
-import { asUser, requireUser } from '@/lib/session';
+import { asUser, requireStaffUser as requireUser } from '@/lib/session';
 import { PageHeader } from '@/components/ui';
 import { getMyProfile } from '@/modules/core/services/user.service';
 import { PasswordLink, ProfileForm } from './profile-forms';
@@ -12,6 +12,7 @@ export default async function ProfilePage() {
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <PageHeader
+        descriptionInline
         title="My profile"
         description={`${profile.email} · ${user.tenantName}. Your role and access are set by an administrator.`}
       />

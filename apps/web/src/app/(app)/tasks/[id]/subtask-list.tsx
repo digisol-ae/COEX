@@ -1,7 +1,7 @@
 'use client';
 
-import { useTransition } from 'react';
-import { Button, Card, CardSection, EmptyState, Input } from '@/components/ui';
+import { useState, useTransition } from 'react';
+import { Button, Card, CardSection, EmptyState, Input, Notice } from '@/components/ui';
 import { addSubtaskAction, setSubtaskAssigneeAction, toggleSubtaskAction } from '../actions';
 
 /** One level of breakdown. A subtask that needs subtasks of its own is really a task. */
@@ -17,27 +17,40 @@ export function SubtaskList({
   canManage: boolean;
 }) {
   const done = subtasks.filter((subtask) => subtask.done).length;
-  const [, startTransition] = useTransition();
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <Card>
       <CardSection
         title={subtasks.length ? `Subtasks · ${done} of ${subtasks.length}` : 'Subtasks'}
       >
+        {error ? <Notice tone="warn">{error}</Notice> : null}
         {subtasks.length === 0 ? (
           <EmptyState message="No subtasks. Add them if the task is worth breaking down." />
         ) : (
           <ul className="space-y-2">
             {subtasks.map((subtask) => (
               <li key={subtask.id} className="flex items-center gap-2">
-                <form action={toggleSubtaskAction} className="flex flex-1 items-center gap-2">
+                <form
+                  action={async (formData) => {
+                    setError(null);
+                    try {
+                      const result = await toggleSubtaskAction(formData);
+                      if (result.error) setError(result.error);
+                    } catch {
+                      setError('Could not update this subtask. Please try again.');
+                    }
+                  }}
+                  className="flex flex-1 items-center gap-2"
+                >
                   <input type="hidden" name="taskId" value={taskId} />
                   <input type="hidden" name="subtaskId" value={subtask.id} />
                   <input type="hidden" name="done" value={String(subtask.done)} />
                   <input
                     type="checkbox"
                     checked={subtask.done}
-                    disabled={!canManage}
+                    disabled={!canManage || pending}
                     onChange={(event) => event.currentTarget.form?.requestSubmit()}
                   />
                   <span
@@ -58,11 +71,17 @@ export function SubtaskList({
                     onChange={(event) => {
                       const assigneeId = event.target.value || null;
                       startTransition(async () => {
-                        await setSubtaskAssigneeAction({
-                          taskId,
-                          subtaskId: subtask.id,
-                          assigneeId,
-                        });
+                        setError(null);
+                        try {
+                          const result = await setSubtaskAssigneeAction({
+                            taskId,
+                            subtaskId: subtask.id,
+                            assigneeId,
+                          });
+                          if (result.error) setError(result.error);
+                        } catch {
+                          setError('Could not assign this subtask. Please try again.');
+                        }
                       });
                     }}
                     className="max-w-40 truncate rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2 py-1 text-xs text-[var(--color-ink-muted)]"
@@ -85,7 +104,18 @@ export function SubtaskList({
         )}
 
         {canManage ? (
-          <form action={addSubtaskAction} className="mt-4 flex gap-2">
+          <form
+            action={async (formData) => {
+              setError(null);
+              try {
+                const result = await addSubtaskAction(formData);
+                if (result.error) setError(result.error);
+              } catch {
+                setError('Could not add this subtask. Please try again.');
+              }
+            }}
+            className="mt-4 flex gap-2"
+          >
             <input type="hidden" name="taskId" value={taskId} />
             <Input name="title" placeholder="Add a subtask" className="flex-1" />
             <Button type="submit" variant="secondary">

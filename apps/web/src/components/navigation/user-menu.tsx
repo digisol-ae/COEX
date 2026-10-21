@@ -17,7 +17,11 @@ export function UserMenu({
   email,
   tenantName,
   newsUnseen = false,
+  portal = false,
+  notificationScope = '',
 }: {
+  portal?: boolean;
+  notificationScope?: string;
   name: string;
   email: string;
   tenantName: string;
@@ -25,7 +29,7 @@ export function UserMenu({
   newsUnseen?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const notifications = useNotificationSwitch();
+  const notifications = useNotificationSwitch(notificationScope);
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -100,21 +104,51 @@ export function UserMenu({
           </div>
 
           <div className="py-1">
-            <MenuLink href="/profile" onNavigate={() => setOpen(false)} icon={<PersonIcon />}>
+            <MenuLink
+              href={portal ? '/portal/profile' : '/profile'}
+              onNavigate={() => setOpen(false)}
+              icon={<PersonIcon />}
+            >
               Edit profile
             </MenuLink>
-            <MenuLink href="/menu-order" onNavigate={() => setOpen(false)} icon={<ListIcon />}>
-              Arrange my menu
-            </MenuLink>
-            {notifications.state !== 'unsupported' ? (
+            {portal ? (
+              <>
+                <MenuLink
+                  href="/forgot-password"
+                  onNavigate={() => setOpen(false)}
+                  icon={<PersonIcon />}
+                >
+                  Reset password
+                </MenuLink>
+                <span
+                  role="menuitem"
+                  aria-disabled="true"
+                  className="flex items-center gap-2.5 px-2.5 py-2 text-sm text-[var(--color-ink-muted)]"
+                >
+                  <SparkleIcon />
+                  Tutorials <span className="ml-auto text-xs">Coming soon</span>
+                </span>
+              </>
+            ) : (
+              <MenuLink href="/menu-order" onNavigate={() => setOpen(false)} icon={<ListIcon />}>
+                Arrange my menu
+              </MenuLink>
+            )}
+            {notifications.state !== 'unsupported' || portal ? (
               <button
                 type="button"
                 role="menuitem"
-                disabled={notifications.state === 'blocked'}
+                disabled={
+                  notifications.state === 'blocked' || notifications.state === 'unsupported'
+                }
                 title={
-                  notifications.state === 'blocked'
-                    ? 'Notifications are blocked for this site in your browser settings.'
-                    : 'Get a notification when a customer writes on your ticket or someone assigns you a task, while COEX is open in another tab.'
+                  notifications.state === 'unsupported'
+                    ? 'Browser notifications are unavailable in this browser.'
+                    : notifications.state === 'blocked'
+                      ? 'Notifications are blocked for this site in your browser settings.'
+                      : portal
+                        ? 'Get a notification when support replies to your ticket while COEX is open in another tab.'
+                        : 'Get a notification when a customer writes on your ticket or someone assigns you a task, while COEX is open in another tab.'
                 }
                 onClick={() =>
                   notifications.state === 'on' ? notifications.turnOff() : notifications.turnOn()
@@ -126,33 +160,53 @@ export function UserMenu({
                 </span>
                 <span className="flex-1">Browser notifications</span>
                 <span className="text-xs text-[var(--color-ink-subtle)]">
-                  {notifications.state === 'on'
-                    ? 'On'
-                    : notifications.state === 'blocked'
-                      ? 'Blocked'
-                      : 'Off'}
+                  {notifications.state === 'unsupported'
+                    ? 'Unavailable'
+                    : notifications.state === 'on'
+                      ? 'On'
+                      : notifications.state === 'blocked'
+                        ? 'Blocked'
+                        : 'Off'}
                 </span>
               </button>
             ) : null}
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setOpen(false);
-                openWhatsNew();
-              }}
-              className="flex w-full items-center gap-2.5 rounded-[var(--radius-control)] px-2.5 py-2 text-left text-sm text-[var(--color-ink)] transition-colors hover:bg-[var(--color-surface-muted)]"
-            >
-              <span className="text-[var(--color-ink-subtle)]">
-                <SparkleIcon />
-              </span>
-              <span className="flex-1">What&apos;s new</span>
-              {newsUnseen ? (
-                <span className="rounded-full bg-[var(--color-brand-red)] px-1.5 text-[10px] font-semibold text-white">
-                  New
+            {notifications.state === 'on' ? (
+              <button
+                type="button"
+                role="menuitem"
+                className="flex w-full items-center gap-2.5 rounded-[var(--radius-control)] px-2.5 py-2 text-left text-sm hover:bg-[var(--color-surface-muted)]"
+                onClick={notifications.testNotification}
+              >
+                <BellIcon />
+                Test notification
+              </button>
+            ) : null}
+            {notifications.feedback ? (
+              <p role="status" className="px-2.5 py-2 text-xs text-[var(--color-ink-muted)]">
+                {notifications.feedback}
+              </p>
+            ) : null}
+            {!portal ? (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false);
+                  openWhatsNew();
+                }}
+                className="flex w-full items-center gap-2.5 rounded-[var(--radius-control)] px-2.5 py-2 text-left text-sm text-[var(--color-ink)] transition-colors hover:bg-[var(--color-surface-muted)]"
+              >
+                <span className="text-[var(--color-ink-subtle)]">
+                  <SparkleIcon />
                 </span>
-              ) : null}
-            </button>
+                <span className="flex-1">What&apos;s new</span>
+                {newsUnseen ? (
+                  <span className="rounded-full bg-[var(--color-brand-red)] px-1.5 text-[10px] font-semibold text-white">
+                    New
+                  </span>
+                ) : null}
+              </button>
+            ) : null}
           </div>
 
           <form action={logoutAction} className="border-t border-[var(--color-line)] pt-1">

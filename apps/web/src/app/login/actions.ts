@@ -1,4 +1,6 @@
 'use server';
+import { verifyCaptcha } from '@/lib/captcha';
+import { resolveAuthenticatedUser } from '@/modules/core/services/auth-context.service';
 
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -17,11 +19,18 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
     return { error: 'Enter your email address and password.' };
   }
 
+  try {
+    await verifyCaptcha(formData, 'login');
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Security check failed.' };
+  }
+
   const headerList = await headers();
 
   const result = await signInWithPassword({
     email,
     password,
+    rememberMe: formData.get('rememberMe') === 'on',
     ipAddress: headerList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null,
     userAgent: headerList.get('user-agent'),
   });
@@ -37,10 +46,11 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
-    expires: result.expiresAt,
+    ...(formData.get('rememberMe') === 'on' ? { expires: result.expiresAt } : {}),
   });
 
-  redirect('/dashboard');
+  const user = await resolveAuthenticatedUser(result.token);
+  redirect(user?.role === 'client_contact' ? '/portal' : '/dashboard');
 }
 
 export async function logoutAction(): Promise<void> {

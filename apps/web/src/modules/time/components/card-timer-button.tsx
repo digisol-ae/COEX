@@ -1,4 +1,5 @@
 'use client';
+import { UI_LABELS } from '@/components/ui/labels';
 
 import { startTimerAction, stopTimerAction } from '@/app/(app)/time/actions';
 
@@ -31,8 +32,8 @@ export function CardTimerButton({
         {running ? null : <input type="hidden" name="taskId" value={taskId} />}
         <button
           type="submit"
-          title={running ? 'Stop timer' : 'Start timer'}
-          aria-label={running ? 'Stop the timer for this task' : 'Start timer for this task'}
+          title={running ? UI_LABELS.stopTimer : UI_LABELS.startTimer}
+          aria-label={running ? UI_LABELS.stopTimer : UI_LABELS.startTimer}
           className={
             running
               ? 'flex h-4 w-4 items-center justify-center rounded-full text-[var(--color-status-alert)] transition-colors hover:bg-[var(--color-status-alert-soft)]'

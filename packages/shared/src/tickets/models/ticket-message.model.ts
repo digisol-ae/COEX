@@ -9,7 +9,7 @@ import { Schema, model, models, type InferSchemaType, type Model } from 'mongoos
  * be assumed, and the two are never rendered alike.
  */
 
-const attachmentSchema = new Schema(
+export const attachmentSchema = new Schema(
   {
     fileName: { type: String, required: true },
     contentType: { type: String, required: true },

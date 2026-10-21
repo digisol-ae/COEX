@@ -32,14 +32,17 @@ const TRANSITION_MS = 220;
 export function AttachmentItem({
   ticketId,
   attachment,
+  attachmentBase = '/api/tickets',
 }: {
   ticketId: string;
   attachment: AttachmentView;
+  attachmentBase?: string;
 }) {
+  const [thumbnailFailed, setThumbnailFailed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const closeTimer = useRef<number | undefined>(undefined);
-  const downloadHref = `/api/tickets/${ticketId}/attachments/${attachment.id}`;
+  const downloadHref = `${attachmentBase}/${ticketId}/attachments/${attachment.id}`;
 
   function open() {
     window.clearTimeout(closeTimer.current);
@@ -85,8 +88,34 @@ export function AttachmentItem({
 
   return (
     <>
-      <button type="button" onClick={open} className="inline-flex">
-        {chip}
+      <button
+        type="button"
+        onClick={open}
+        aria-label={`Preview ${attachment.fileName}`}
+        className="inline-flex w-36 flex-col overflow-hidden rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] text-left hover:border-[var(--color-line-strong)]"
+      >
+        {thumbnailFailed ? (
+          <span className="flex h-24 w-full items-center justify-center bg-[var(--color-surface-sunken)] text-[11px] text-[var(--color-ink-muted)]">
+            Preview unavailable
+          </span>
+        ) : (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element -- Authenticated attachment served by the ticket route. */}
+            <img
+              src={`${downloadHref}?view=1`}
+              alt={attachment.fileName}
+              onError={() => setThumbnailFailed(true)}
+              loading="lazy"
+              className="h-24 w-full bg-[var(--color-surface-sunken)] object-contain"
+            />
+          </>
+        )}
+        <span className="w-full px-2 py-1.5 text-[11px] text-[var(--color-ink-muted)]">
+          <span className="block truncate">{attachment.fileName}</span>
+          <span className="block text-[10px] text-[var(--color-ink-subtle)]">
+            {attachment.sizeLabel.split(', from ')[0]}
+          </span>
+        </span>
       </button>
 
       {mounted ? (

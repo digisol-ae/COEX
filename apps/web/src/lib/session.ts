@@ -45,8 +45,16 @@ export async function requireUser(): Promise<SignedInUser> {
   return user;
 }
 
+/** Staff-only entry point for authenticated internal pages/actions that do not need a specific permission. */
+export async function requireStaffUser(): Promise<SignedInUser> {
+  const user = await requireUser();
+  if (user.role === 'client_contact') redirect('/portal');
+  return user;
+}
+
 export async function requirePermission(permission: Permission): Promise<SignedInUser> {
   const user = await requireUser();
+  if (user.role === 'client_contact') redirect('/portal');
 
   if (!user.permissions.includes(permission)) {
     redirect('/dashboard?denied=' + encodeURIComponent(permission));

@@ -1,0 +1,178 @@
+ M CLAUDE.md
+ M FEEDBACK.md
+ M README.md
+ M ai/CURRENT_TASK.md
+ M ai/HANDOFF.md
+ M ai/PROJECT_STATE.md
+ M apps/api/src/http/middleware.ts
+ M apps/web/src/app/(app)/contracts/[id]/page.tsx
+ M apps/web/src/app/(app)/contracts/actions.ts
+ M apps/web/src/app/(app)/contracts/contract-email-button.tsx
+ M apps/web/src/app/(app)/contracts/contract-panel.tsx
+ M apps/web/src/app/(app)/contracts/page.tsx
+ M apps/web/src/app/(app)/customers/[id]/contacts-panel.tsx
+ M apps/web/src/app/(app)/customers/[id]/customer-summary.tsx
+ M apps/web/src/app/(app)/customers/[id]/page.tsx
+ M apps/web/src/app/(app)/customers/[id]/timeline.tsx
+ M apps/web/src/app/(app)/customers/actions.ts
+ M apps/web/src/app/(app)/customers/filters.tsx
+ M apps/web/src/app/(app)/dashboard/page.tsx
+ M apps/web/src/app/(app)/layout.tsx
+ M apps/web/src/app/(app)/leads/lead-panel.tsx
+ M apps/web/src/app/(app)/leads/page.tsx
+ M apps/web/src/app/(app)/menu-order/actions.ts
+ M apps/web/src/app/(app)/menu-order/menu-order-form.tsx
+ M apps/web/src/app/(app)/menu-order/page.tsx
+ M apps/web/src/app/(app)/my-desk/page.tsx
+ M apps/web/src/app/(app)/opportunities/[id]/page.tsx
+ M apps/web/src/app/(app)/opportunities/actions.ts
+ M apps/web/src/app/(app)/opportunities/opportunity-panel.tsx
+ M apps/web/src/app/(app)/opportunities/page.tsx
+ M apps/web/src/app/(app)/preferences/actions.ts
+ M apps/web/src/app/(app)/products/actions.ts
+ M apps/web/src/app/(app)/products/page.tsx
+ M apps/web/src/app/(app)/products/product-panel.tsx
+ M apps/web/src/app/(app)/profile/actions.ts
+ M apps/web/src/app/(app)/profile/page.tsx
+ M apps/web/src/app/(app)/profile/profile-forms.tsx
+ M apps/web/src/app/(app)/setup/canned-replies/reply-list.tsx
+ M apps/web/src/app/(app)/setup/email/email-settings-form.tsx
+ M apps/web/src/app/(app)/setup/email/page.tsx
+ M apps/web/src/app/(app)/setup/page.tsx
+ M apps/web/src/app/(app)/setup/pipeline/page.tsx
+ M apps/web/src/app/(app)/setup/queues/queue-list.tsx
+ M apps/web/src/app/(app)/setup/tenant/page.tsx
+ M apps/web/src/app/(app)/spaces/[id]/folder-settings.tsx
+ M apps/web/src/app/(app)/spaces/[id]/page.tsx
+ M apps/web/src/app/(app)/spaces/[id]/space-settings.tsx
+ M apps/web/src/app/(app)/support/actions.ts
+ M apps/web/src/app/(app)/support/metrics/filters.tsx
+ M apps/web/src/app/(app)/support/tickets/[id]/attachment-item.tsx
+ M apps/web/src/app/(app)/support/tickets/[id]/conversation.tsx
+ M apps/web/src/app/(app)/support/tickets/[id]/page.tsx
+ M apps/web/src/app/(app)/support/tickets/[id]/properties.tsx
+ M apps/web/src/app/(app)/support/tickets/filters.tsx
+ M apps/web/src/app/(app)/support/tickets/new-ticket-panel.tsx
+ M apps/web/src/app/(app)/support/tickets/page.tsx
+ M apps/web/src/app/(app)/tasks/[id]/page.tsx
+ M apps/web/src/app/(app)/tasks/[id]/task-comments.tsx
+ M apps/web/src/app/(app)/tasks/[id]/task-form.tsx
+ M apps/web/src/app/(app)/tasks/[id]/task-status.tsx
+ M apps/web/src/app/(app)/tasks/filters.tsx
+ M apps/web/src/app/(app)/tasks/new-task-popup.tsx
+ M apps/web/src/app/(app)/tasks/page.tsx
+ M apps/web/src/app/(app)/tasks/task-list.tsx
+ M apps/web/src/app/(app)/time/actions.ts
+ M apps/web/src/app/(app)/time/activity/activity-filters.tsx
+ M apps/web/src/app/(app)/time/activity/pdf/route.ts
+ M apps/web/src/app/(app)/time/entry-row.tsx
+ M apps/web/src/app/(app)/time/export/route.ts
+ M apps/web/src/app/(app)/time/report/export/route.ts
+ M apps/web/src/app/(app)/time/report/period-picker.tsx
+ M apps/web/src/app/(app)/time/timesheet.tsx
+ M apps/web/src/app/api/crm/contacts/route.ts
+ M apps/web/src/app/api/navigation/spaces/[id]/folders/route.ts
+ M apps/web/src/app/api/navigation/spaces/route.ts
+ M apps/web/src/app/api/notifications/route.ts
+ M apps/web/src/app/api/search/route.ts
+ M apps/web/src/app/api/tasks/[id]/panel/route.ts
+ M apps/web/src/app/api/tickets/[id]/attachments/[attachmentId]/route.ts
+ M apps/web/src/app/api/tickets/[id]/preview/route.ts
+ M apps/web/src/app/api/tickets/search/route.ts
+ M apps/web/src/app/api/time/today/route.ts
+ M apps/web/src/app/globals.css
+ M apps/web/src/app/login/actions.ts
+ M apps/web/src/app/login/auth-shell.tsx
+ M apps/web/src/app/login/login-form.tsx
+ M apps/web/src/app/login/page.tsx
+ M apps/web/src/components/navigation/browser-notifications.tsx
+ M apps/web/src/components/navigation/icon-rail.tsx
+ M apps/web/src/components/navigation/navigation-tree.tsx
+ M apps/web/src/components/navigation/navigation.ts
+ M apps/web/src/components/navigation/sidebar.tsx
+ M apps/web/src/components/navigation/user-menu.tsx
+ M apps/web/src/components/tasks/desk-task-button.tsx
+ M apps/web/src/components/tasks/task-origin-summary.tsx
+ M apps/web/src/components/tasks/task-panel.tsx
+ M apps/web/src/components/ui/fact-badge.tsx
+ M apps/web/src/components/ui/index.tsx
+ M apps/web/src/components/ui/live-refresh.tsx
+ M apps/web/src/components/ui/ticket-attachment-picker.tsx
+ M apps/web/src/lib/session.ts
+ M apps/web/src/modules/core/release-notes.ts
+ M apps/web/src/modules/core/services/auth.service.ts
+ M apps/web/src/modules/core/services/email.service.ts
+ M apps/web/src/modules/core/services/session.service.ts
+ M apps/web/src/modules/crm/services/contact.service.ts
+ M apps/web/src/modules/crm/services/contract.service.ts
+ M apps/web/src/modules/crm/services/opportunity.service.ts
+ M apps/web/src/modules/crm/services/product.service.ts
+ M apps/web/src/modules/tasks/services/task.service.ts
+ M apps/web/src/modules/tickets/services/ticket.service.ts
+ M apps/web/src/modules/time/components/card-timer-button.tsx
+ M apps/web/src/modules/time/components/task-time-summary.tsx
+ M apps/web/src/modules/time/components/ticket-add-time.tsx
+ M apps/web/src/modules/time/components/ticket-timer-button.tsx
+ M apps/web/src/modules/time/components/time-entries-by-person.tsx
+ M apps/web/src/modules/time/components/timer-button.tsx
+ M deploy/DEPLOYMENT-STATUS.md
+ M packages/shared/src/crm/models/contract.model.ts
+ M packages/shared/src/crm/models/opportunity.model.ts
+ M packages/shared/src/crm/models/product.model.ts
+ M tests/database/contracts.test.ts
+ M tests/database/crm-foundation.test.ts
+ M tests/database/opportunities.test.ts
+?? ai/RELEASE-2026-10-18.md
+?? ai/RELEASE-2026-10-19.md
+?? ai/archive/
+?? apps/web/AGENTS.md
+?? apps/web/CLAUDE.md
+?? apps/web/src/app/(app)/@setupModal/
+?? apps/web/src/app/(app)/contracts/service-terms-fields.tsx
+?? apps/web/src/app/(app)/customers/[id]/customer-drawer.tsx
+?? apps/web/src/app/(app)/customers/[id]/portal-access.tsx
+?? apps/web/src/app/(app)/default.tsx
+?? apps/web/src/app/(app)/setup/layout.tsx
+?? apps/web/src/app/(app)/setup/tutorials/
+?? apps/web/src/app/(app)/setup/workspace-content.tsx
+?? apps/web/src/app/(app)/support/tickets/[id]/ticket-customer.tsx
+?? apps/web/src/app/(app)/support/tickets/[id]/ticket-history.tsx
+?? apps/web/src/app/api/portal/
+?? apps/web/src/app/api/tutorials/
+?? apps/web/src/app/login/login-entry.tsx
+?? apps/web/src/app/portal/
+?? apps/web/src/components/navigation/module-context.tsx
+?? apps/web/src/components/navigation/quick-create.tsx
+?? apps/web/src/components/navigation/rail-active.ts
+?? apps/web/src/components/navigation/setup-workspace.tsx
+?? apps/web/src/components/navigation/sidebar-controls.tsx
+?? apps/web/src/components/ui/captcha.tsx
+?? apps/web/src/components/ui/desk-icon.tsx
+?? apps/web/src/components/ui/detail-popup.tsx
+?? apps/web/src/components/ui/labels.ts
+?? apps/web/src/components/ui/settings-drawer.tsx
+?? apps/web/src/lib/captcha.ts
+?? apps/web/src/modules/portal/
+?? apps/web/src/modules/tutorials/
+?? docs/CRM-SERVICE-MODELS.md
+?? docs/CUSTOMER-PORTAL.md
+?? docs/SETUP-WORKSPACE.md
+?? docs/UI-STANDARDS.md
+?? docs/design-references/
+?? docs/handover/
+?? docs/qa/
+?? docs/tutorials/
+?? packages/shared/src/core/models/tutorial.model.ts
+?? packages/shared/src/crm/service-terms.ts
+?? projects/
+?? tests/database/portal.test.ts
+?? tests/database/service-terms.test.ts
+?? tests/database/tutorials.test.ts
+?? tests/unit/captcha.test.ts
+?? tests/unit/portal-boundaries.test.ts
+?? tests/unit/rail-active.test.ts
+?? tests/unit/service-terms.test.ts
+?? tests/unit/session-duration.test.ts
+?? tests/unit/tutorial-access.test.ts
+?? tests/unit/tutorial-link.test.ts
+?? tests/unit/tutorial-video.test.ts

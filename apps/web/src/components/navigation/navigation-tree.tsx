@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useSyncExternalStore } from 'react';
 import { clsx } from 'clsx';
 import { DESK, HOME, type NavigationGroup } from './navigation';
@@ -32,6 +32,8 @@ export function NavigationTree({
   counts?: Partial<Record<string, number>>;
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const returnTo = `${pathname}${searchParams.size ? `?${searchParams.toString()}` : ''}`;
   const collapsed = useSyncExternalStore(subscribe, getCollapsedSnapshot, getServerSnapshot);
 
   // The most specific link wins, so /time/all does not also light up /time (My timesheet).
@@ -66,6 +68,17 @@ export function NavigationTree({
       </div>
 
       {groups.map((group) => {
+        if (group.id === 'setup')
+          return (
+            <NavigationLink
+              key={group.id}
+              href={`/setup?${new URLSearchParams({ returnTo })}`}
+              label={group.label}
+              active={pathname === '/setup' || pathname.startsWith('/setup/')}
+              onNavigate={onNavigate}
+              heading
+            />
+          );
         // The group holding the current page stays open whatever was collapsed before, so nobody
         // can lose the page they are looking at.
         const holdsCurrentPage = group.items.some((item) => isActive(item.href));
@@ -77,7 +90,10 @@ export function NavigationTree({
               type="button"
               onClick={() => toggleCollapsed(group.id)}
               aria-expanded={open}
-              className="navigation-heading flex w-full items-center justify-between rounded-[var(--radius-control)] px-2 py-1 uppercase transition-opacity hover:opacity-75 max-md:min-h-11"
+              className={clsx(
+                'navigation-heading flex w-full items-center justify-between rounded-[var(--radius-control)] px-2 py-1 uppercase transition-opacity hover:opacity-75 max-md:min-h-11',
+                holdsCurrentPage && 'navigation-section-active',
+              )}
             >
               {group.label}
               <Chevron open={open} />
@@ -150,7 +166,9 @@ function NavigationLink({
         'flex items-center justify-between rounded-[var(--radius-control)] px-2 py-2 text-[13px] transition-colors max-md:min-h-11 max-md:text-sm',
         heading && 'navigation-heading uppercase',
         active
-          ? 'navigation-active pl-3'
+          ? heading
+            ? 'navigation-section-active'
+            : 'navigation-active pl-3'
           : heading
             ? 'hover:bg-[var(--color-surface-muted)]'
             : 'text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]',

@@ -1,22 +1,25 @@
 'use client';
+import { TaskFilesDrawer } from '@/app/(app)/tasks/[id]/task-files-drawer';
+import { TicketAttachmentPicker } from '@/components/ui/ticket-attachment-picker';
+import { AttachmentItem } from '@/app/(app)/support/tickets/[id]/attachment-item';
+import { UI_LABELS } from '@/components/ui/labels';
+
+import { BubbleText } from '@/app/(app)/support/tickets/[id]/bubble-text';
 
 import { DeskTaskButton } from '@/components/tasks/desk-task-button';
 
 import Link from 'next/link';
-import { useActionState, useCallback, useEffect, useState, useTransition } from 'react';
+import { useActionState, useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { clsx } from 'clsx';
-import { Button, Input, Notice } from '@/components/ui';
-import { IconButton, IconLink } from '@/components/ui/icon-button';
+import { Button, Notice } from '@/components/ui';
+import { IconLink } from '@/components/ui/icon-button';
 import { StatusDot } from '@/components/ui/pill';
 import { formatMinutes } from '@coex/shared/time/week';
 import { formatDateTime } from '@coex/shared/tasks/dates';
+import { MentionTextarea, type MentionPerson } from '@/components/ui/mention-textarea';
 import type { TaskOrigin, TaskSummary } from '@/modules/tasks/services/task.service';
-import { TaskOriginLines } from './task-origin';
-import {
-  addDocumentAction,
-  removeDocumentAction,
-  type TaskFormState,
-} from '@/app/(app)/tasks/actions';
+import { TaskOriginSummary } from './task-origin-summary';
+import { addTaskCommentAction, type TaskFormState } from '@/app/(app)/tasks/actions';
 import {
   AssigneePicker,
   CalendarIcon,
@@ -56,6 +59,17 @@ interface PanelDetail {
   sourceTicket: { id: string; number: string } | null;
   origin: TaskOrigin;
   viewerId: string;
+  /** The task's work updates, oldest first, for the compact Updates section. */
+  comments: {
+    attachments?: { id: string; fileName: string; contentType: string; bytes: number }[];
+    isSystem?: boolean;
+    id: string;
+    body: string;
+    authorName: string;
+    createdAt: string;
+    editedAt: string | null;
+  }[];
+  mentionable: MentionPerson[];
 }
 
 export interface PanelHandlers {
@@ -95,10 +109,12 @@ export function TaskPanel({
   const [subtaskTitle, setSubtaskTitle] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
-  const [docState, docFormAction, docPending] = useActionState<TaskFormState, FormData>(
-    addDocumentAction,
+  const [visibleUpdates, setVisibleUpdates] = useState(3);
+  const [commentState, commentFormAction, commentPending] = useActionState<TaskFormState, FormData>(
+    addTaskCommentAction,
     {},
   );
+  const commentForm = useRef<HTMLFormElement>(null);
 
   const { canManage, users } = handlers;
   const columns = handlers.columnsFor(task);
@@ -151,18 +167,10 @@ export function TaskPanel({
   }, [onClose]);
 
   useEffect(() => {
-    if (docState.saved) return loadDetail();
-  }, [docState, loadDetail]);
-
-  function removeLink(linkId: string) {
-    startTransition(async () => {
-      const form = new FormData();
-      form.set('taskId', task.id);
-      form.set('linkId', linkId);
-      await removeDocumentAction(form);
-      loadDetail();
-    });
-  }
+    if (!commentState.saved) return;
+    commentForm.current?.reset();
+    return loadDetail();
+  }, [commentState, loadDetail]);
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end">
@@ -211,7 +219,7 @@ export function TaskPanel({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={UI_LABELS.close}
             className="flex h-7 w-7 items-center justify-center rounded-[var(--radius-control)] text-[var(--color-ink-subtle)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]"
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
@@ -226,6 +234,21 @@ export function TaskPanel({
         </header>
 
         <div className="space-y-4 px-4 py-4">
+          {detail ? (
+            <div className="flex justify-end">
+              <TaskFilesDrawer
+                taskId={task.id}
+                canManage={canManage}
+                links={detail.documentLinks}
+                attachments={detail.comments.flatMap((comment) =>
+                  (comment.attachments ?? []).map((file) => ({
+                    ...file,
+                    authorName: comment.authorName,
+                  })),
+                )}
+              />
+            </div>
+          ) : null}
           {error ? <Notice tone="alert">{error}</Notice> : null}
 
           <textarea
@@ -241,28 +264,35 @@ export function TaskPanel({
           />
 
           {detail ? (
-            <TaskOriginLines
+            <TaskOriginSummary
               origin={detail.origin}
               viewerId={detail.viewerId}
               people={task.assigneeIds.map((id, index) => ({
                 id,
                 name: task.assigneeNames[index] ?? '',
               }))}
-              className="space-y-0.5 px-2 text-xs text-[var(--color-ink-muted)]"
             />
           ) : null}
 
-          <dl className="space-y-2 text-[13px]">
-            <Row label="Assignees">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 text-[13px]">
+            <Meta label={UI_LABELS.assignedTo}>
               <AssigneePicker
                 users={ownerOptions}
                 selectedIds={task.assigneeIds}
                 disabled={!canManage}
                 onChange={(ids) => handlers.onAssignees(task, ids)}
               />
-            </Row>
+            </Meta>
 
-            <Row label="Dates">
+            <Meta
+              label={
+                task.startAt || task.endAt
+                  ? `Dates: ${task.startAt ? `${formatDateTime(task.startAt)} to ` : ''}${
+                      task.endAt ? formatDateTime(task.endAt) : 'no end'
+                    }`
+                  : 'Dates'
+              }
+            >
               <SchedulePicker
                 startAt={task.startAt}
                 endAt={task.endAt}
@@ -280,58 +310,68 @@ export function TaskPanel({
                     )}
                   >
                     <CalendarIcon />
-                    {task.startAt ? `${formatDateTime(task.startAt)} to ` : ''}
-                    {task.endAt ? formatDateTime(task.endAt) : 'Set dates'}
+                    {task.endAt
+                      ? `Due ${formatDateTime(task.endAt)}`
+                      : task.startAt
+                        ? `From ${formatDateTime(task.startAt)}`
+                        : 'Set dates'}
                   </span>
                 }
               />
-            </Row>
+            </Meta>
 
-            <Row label="Priority">
-              <span className="flex items-center gap-1.5">
-                <PriorityPicker
-                  priority={task.priority}
-                  disabled={!canManage}
-                  onChange={(priority) => handlers.onPriority(task, priority)}
-                />
-                <span className="text-[var(--color-ink-muted)] capitalize">{task.priority}</span>
-              </span>
-            </Row>
+            <Meta label={`Priority: ${task.priority}`}>
+              <PriorityPicker
+                priority={task.priority}
+                disabled={!canManage}
+                onChange={(priority) => handlers.onPriority(task, priority)}
+              />
+              <span className="text-[var(--color-ink-muted)] capitalize">{task.priority}</span>
+            </Meta>
 
             {task.folderName ? (
-              <Row label="Folder">
-                <span className="text-[var(--color-ink-muted)]">{task.folderName}</span>
-              </Row>
+              <Meta label={`Folder: ${task.folderName}`}>
+                <FolderGlyph />
+                <span className="max-w-32 truncate text-[var(--color-ink-muted)]">
+                  {task.folderName}
+                </span>
+              </Meta>
             ) : null}
 
-            <Row label="Hours">
+            <Meta
+              label={`Time: ${detail ? formatMinutes(detail.loggedMinutes) : '…'} logged by you${
+                task.estimateMinutes ? `, ${formatMinutes(task.estimateMinutes)} estimated` : ''
+              }`}
+            >
+              <ClockGlyph />
               <span className="text-[var(--color-ink-muted)] tabular-nums">
-                {detail ? formatMinutes(detail.loggedMinutes) : '…'} logged by you
-                {task.estimateMinutes ? ` · ${formatMinutes(task.estimateMinutes)} estimated` : ''}
+                {detail ? formatMinutes(detail.loggedMinutes) : '…'}
+                {task.estimateMinutes ? ` / ${formatMinutes(task.estimateMinutes)}` : ''}
               </span>
-            </Row>
+            </Meta>
+          </div>
 
-            <Row label="Tags">
-              {detail ? (
-                <input
-                  key={`tags-${task.id}`}
-                  defaultValue={detail.tags.join(', ')}
-                  readOnly={!canManage}
-                  placeholder={canManage ? 'Separated by commas' : '—'}
-                  onBlur={(event) => {
-                    const next = event.target.value
-                      .split(',')
-                      .map((tag) => tag.trim())
-                      .filter(Boolean);
-                    handlers.onTags(task, next);
-                  }}
-                  className="w-full rounded-[var(--radius-control)] border border-transparent bg-transparent px-1 py-0.5 text-[13px] text-[var(--color-ink-muted)] hover:border-[var(--color-line)] focus:border-[var(--color-line-strong)] focus:outline-none"
-                />
-              ) : (
-                <span className="text-[var(--color-ink-subtle)]">…</span>
-              )}
-            </Row>
-          </dl>
+          <div className="flex items-center gap-1.5 px-1 text-[13px]" title="Tags">
+            <TagGlyph />
+            {detail ? (
+              <input
+                key={`tags-${task.id}`}
+                defaultValue={detail.tags.join(', ')}
+                readOnly={!canManage}
+                placeholder={canManage ? 'Tags, separated by commas' : '—'}
+                onBlur={(event) => {
+                  const next = event.target.value
+                    .split(',')
+                    .map((tag) => tag.trim())
+                    .filter(Boolean);
+                  handlers.onTags(task, next);
+                }}
+                className="min-w-0 flex-1 rounded-[var(--radius-control)] border border-transparent bg-transparent px-1 py-0.5 text-[13px] text-[var(--color-ink-muted)] hover:border-[var(--color-line)] focus:border-[var(--color-line-strong)] focus:outline-none"
+              />
+            ) : (
+              <span className="text-[var(--color-ink-subtle)]">…</span>
+            )}
+          </div>
 
           <section>
             <h3 className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
@@ -343,18 +383,123 @@ export function TaskPanel({
                 key={`description-${task.id}`}
                 defaultValue={detail.description ?? ''}
                 readOnly={!canManage}
-                rows={5}
+                rows={2}
                 placeholder="What needs doing, and what done looks like."
                 onBlur={(event) => {
                   const next = event.target.value;
                   if (next !== (detail.description ?? '')) handlers.onDescribe(task, next);
                 }}
-                className="mt-1 w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2.5 py-2 text-[13px] text-[var(--color-ink-muted)] focus:border-[var(--color-line-strong)] focus:outline-none"
+                className="mt-1 h-14 w-full resize-none rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2.5 py-2 text-[13px] text-[var(--color-ink-muted)] transition-[height] duration-150 hover:h-36 focus:h-36 focus:border-[var(--color-line-strong)] focus:outline-none"
               />
             ) : (
               <p className="mt-1 text-[13px] text-[var(--color-ink-subtle)]">Loading</p>
             )}
           </section>
+
+          {detail ? (
+            <section>
+              <div className="flex items-center justify-between">
+                <h3 className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                  Updates {detail.comments.length > 0 ? `· ${detail.comments.length}` : ''}
+                </h3>
+              </div>
+
+              {canManage ? (
+                <form
+                  ref={commentForm}
+                  action={commentFormAction}
+                  className="mt-1 flex flex-wrap items-start gap-2"
+                >
+                  <input type="hidden" name="taskId" value={task.id} />
+                  <MentionTextarea
+                    people={detail.mentionable}
+                    name="body"
+                    maxLength={4000}
+                    rows={1}
+                    placeholder="Add an update, @ to mention"
+                    wrapperClassName="min-w-0 flex-1"
+                    className="h-9 w-full resize-none rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-2.5 py-1.5 text-[13px] text-[var(--color-ink)] transition-[height] duration-150 focus:h-24 focus:border-[var(--color-line-strong)] focus:outline-none"
+                  />
+                  <div className="w-full">
+                    <TicketAttachmentPicker
+                      label="Upload attachment or paste an image"
+                      imagesOnly
+                      disabled={commentPending}
+                    />
+                  </div>
+                  <Button type="submit" variant="secondary" disabled={commentPending}>
+                    {commentPending ? 'Posting' : 'Post'}
+                  </Button>
+                </form>
+              ) : null}
+              {commentState.error ? <Notice tone="warn">{commentState.error}</Notice> : null}
+
+              {detail.comments.length === 0 ? (
+                <p className="mt-1 text-[13px] text-[var(--color-ink-subtle)]">No updates yet.</p>
+              ) : (
+                <div className="mt-3 space-y-3">
+                  {[...detail.comments]
+                    .sort(
+                      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+                    )
+                    .slice(0, visibleUpdates)
+                    .map((comment) => (
+                      <article key={comment.id} className="chat-bubble chat-note-orange px-3 py-2">
+                        <div className="flex flex-wrap items-baseline gap-x-2 text-xs">
+                          <b className="text-[var(--chat-orange-name)]">{comment.authorName}</b>
+                          <span className="text-[10px] uppercase text-[var(--chat-orange-name)]">
+                            {comment.isSystem ? 'Activity' : 'Internal note'}
+                          </span>
+                          <span className="text-[var(--color-ink-subtle)]">
+                            {formatDateTime(comment.createdAt)}
+                            {comment.editedAt ? ' · edited' : ''}
+                          </span>
+                        </div>
+                        <div className="mt-1">
+                          <BubbleText text={comment.body} />
+                          {comment.attachments?.length ? (
+                            <ul className="mt-2 flex flex-wrap gap-2">
+                              {comment.attachments.map((image) => (
+                                <li key={image.id}>
+                                  <AttachmentItem
+                                    ticketId={task.id}
+                                    attachmentBase="/api/tasks"
+                                    attachment={{
+                                      id: image.id,
+                                      fileName: image.fileName,
+                                      sizeLabel: `${Math.round(image.bytes / 1024)} KB`,
+                                      previewable: [
+                                        'image/png',
+                                        'image/jpeg',
+                                        'image/webp',
+                                      ].includes(image.contentType),
+                                    }}
+                                  />
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                        </div>
+                      </article>
+                    ))}
+                  {visibleUpdates < detail.comments.length ? (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setVisibleUpdates((count) => count + 5)}
+                    >
+                      Show more ({detail.comments.length - visibleUpdates})
+                    </Button>
+                  ) : null}
+                  {visibleUpdates > 3 && detail.comments.length > 3 ? (
+                    <Button type="button" variant="secondary" onClick={() => setVisibleUpdates(3)}>
+                      Show less
+                    </Button>
+                  ) : null}
+                </div>
+              )}
+            </section>
+          ) : null}
 
           <section>
             <h3 className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
@@ -439,69 +584,56 @@ export function TaskPanel({
               </form>
             ) : null}
           </section>
-
-          {detail ? (
-            <section>
-              <h3 className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                Documents
-              </h3>
-
-              {detail.documentLinks.length > 0 ? (
-                <ul className="mt-1 space-y-1">
-                  {detail.documentLinks.map((link) => (
-                    <li key={link.id} className="flex items-center justify-between gap-2">
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="min-w-0 flex-1 truncate text-[13px] text-[var(--color-ink)] underline-offset-4 hover:underline"
-                      >
-                        {link.title}
-                      </a>
-
-                      {canManage ? (
-                        <IconButton
-                          icon="remove"
-                          label="Remove this link"
-                          tone="danger"
-                          onClick={() => removeLink(link.id)}
-                        />
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-1 text-[13px] text-[var(--color-ink-subtle)]">None linked.</p>
-              )}
-
-              {canManage ? (
-                <form action={docFormAction} className="mt-2 flex gap-2">
-                  <input type="hidden" name="taskId" value={task.id} />
-                  <Input
-                    name="url"
-                    placeholder="https://digisol.sharepoint.com/..."
-                    className="flex-1 text-[13px]"
-                  />
-                  <Button type="submit" variant="secondary" disabled={docPending}>
-                    {docPending ? 'Adding' : 'Add'}
-                  </Button>
-                </form>
-              ) : null}
-
-              {docState.error ? <Notice tone="alert">{docState.error}</Notice> : null}
-            </section>
-          ) : null}
         </div>
       </aside>
     </div>
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+/** One fact about the task: an icon or picker and a few words, its name in the tooltip. */
+function Meta({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-3">
-      <dt className="w-20 shrink-0 text-[var(--color-ink-subtle)]">{label}</dt>
-      <dd className="min-w-0 flex-1">{children}</dd>
+    <div title={label} className="flex items-center gap-1.5">
+      {children}
     </div>
+  );
+}
+
+const glyph = {
+  width: 14,
+  height: 14,
+  viewBox: '0 0 16 16',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.4,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+  'aria-hidden': true,
+  className: 'shrink-0 text-[var(--color-ink-subtle)]',
+};
+
+function FolderGlyph() {
+  return (
+    <svg {...glyph}>
+      <path d="M2 4.5A1.5 1.5 0 0 1 3.5 3h2.6l1.4 1.5h5A1.5 1.5 0 0 1 14 6v5.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5z" />
+    </svg>
+  );
+}
+
+function ClockGlyph() {
+  return (
+    <svg {...glyph}>
+      <circle cx="8" cy="8" r="5.5" />
+      <path d="M8 5v3.2l2 1.3" />
+    </svg>
+  );
+}
+
+function TagGlyph() {
+  return (
+    <svg {...glyph}>
+      <path d="M2.5 8.2V3.5h4.7l6 6-4.7 4.7z" />
+      <circle cx="5.2" cy="6" r=".8" />
+    </svg>
   );
 }

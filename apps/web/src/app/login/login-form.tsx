@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Captcha } from '@/components/ui/captcha';
 import { useState } from 'react';
 import { useActionState } from 'react';
 import { Button, Field, Input, Notice } from '@/components/ui';
@@ -31,6 +32,7 @@ export function LoginForm({
       ) : null}
       {entraEnabled ? (
         <>
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- This authentication route handler requires a full redirect, not client page navigation. */}
           <a
             href="/api/auth/entra"
             className="block w-full rounded-[var(--radius-control)] border border-[var(--color-line-strong)] px-4 py-2.5 text-center text-sm font-medium text-[var(--color-ink)] hover:bg-[var(--color-surface-muted)]"
@@ -67,6 +69,11 @@ export function LoginForm({
         </div>
       </Field>
 
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="rememberMe" className="h-4 w-4" />
+        Remember me on this PC for 60 days
+      </label>
+      <Captcha action="login" pending={pending} />
       {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
 
       <Button type="submit" disabled={pending} className="w-full py-2.5">

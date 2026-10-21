@@ -9,7 +9,7 @@ export function PeriodPicker({ from, to }: { from: string; to: string }) {
 
   return (
     <form
-      className="flex flex-wrap items-end gap-3"
+      className="coex-filters flex flex-wrap items-end gap-1.5"
       onSubmit={(event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);

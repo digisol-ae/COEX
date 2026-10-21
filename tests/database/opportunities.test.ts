@@ -433,3 +433,12 @@ describe('next steps, reminders and the dashboard snapshot', () => {
     expect((await asManager(() => loadOpportunitySnapshot())).openCount).toBe(0);
   });
 });
+
+it('records service model independently of yearly opportunity value', async () => {
+  const id = await asManager(async () =>
+    createOpportunity(await input({ serviceModel: 'subscription' })),
+  );
+  expect((await asManager(() => getOpportunity(id)))?.serviceModel).toBe('subscription');
+  await asManager(async () => updateOpportunity(id, await input({ serviceModel: 'contractual' })));
+  expect((await asManager(() => getOpportunity(id)))?.serviceModel).toBe('contractual');
+});

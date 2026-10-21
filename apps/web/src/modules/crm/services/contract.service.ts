@@ -1,3 +1,10 @@
+import {
+  serviceTerms,
+  type ServiceTermsInput,
+  type ServiceLine,
+} from '@coex/shared/crm/service-terms';
+import { normaliseCc } from '@coex/shared/tickets/collaborators';
+import { UserModel } from '@coex/shared/core/models/user.model';
 import { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
@@ -5,6 +12,9 @@ import { getContext } from '@/lib/tenant-context';
 import { recordAudit, changedFields } from '@/modules/core/services/audit.service';
 import {
   getContractTemplates,
+  contractEmailSenders,
+  type CustomerReplySender,
+  type SenderRole,
   queueEmail,
   type ContractTemplateKey,
   type ContractTemplates,
@@ -30,7 +40,6 @@ import {
   type ContractStatus,
   type StoredContractStatus,
 } from '@coex/shared/crm/contract-status';
-import { toMinorUnits } from './product.service';
 import {
   defaultContractTemplate,
   fillContractTemplate,
@@ -67,6 +76,13 @@ export interface ContractSummary {
   startDate: string;
   endDate: string;
   billingFrequency: BillingFrequency;
+  pricingMethod?: 'fixed' | 'licence_percentage';
+  licenceValueMinorUnits?: number;
+  annualSupportPercent?: number | null;
+  setupFeeMinorUnits?: number;
+  trainingFeeMinorUnits?: number;
+  hardwareTerms?: string | null;
+  serviceLines?: ServiceLine[];
   valueMinorUnits: number;
   currency: string;
   productIds: string[];
@@ -81,7 +97,7 @@ export interface ContractSummary {
   notes: string | null;
 }
 
-export interface ContractInput {
+export interface ContractInput extends ServiceTermsInput {
   organisationId: string;
   title: string;
   type: ContractType;
@@ -143,9 +159,22 @@ async function validate(
     throw new Error('That customer was not found.');
   }
 
-  const wanted = [...new Set(input.productIds ?? [])];
+  serviceTerms(input);
+  const wanted = [
+    ...new Set([
+      ...(input.productIds ?? []),
+      ...(input.serviceLines ?? []).map((line) => line.productId),
+    ]),
+  ];
   const found = wanted.length ? await products().find({ _id: { $in: wanted } }) : [];
   if (found.length !== wanted.length) throw new Error('One of the products was not found.');
+  for (const line of input.serviceLines ?? []) {
+    const product = found.find((product) => String(product._id) === line.productId);
+    const model = input.type === 'subscription' ? 'subscription' : 'contractual';
+    if (product?.status !== 'active') throw new Error('Service lines must use active products.');
+    if (product.serviceModels?.length && !product.serviceModels.includes(model))
+      throw new Error(`${product.name} is not available for ${model} services.`);
+  }
 
   const wantedContacts = [...new Set(input.contactIds ?? [])];
   const foundContacts = wantedContacts.length
@@ -169,6 +198,7 @@ function fields(
   input: ContractInput,
   linked: { productIds: Types.ObjectId[]; contactIds: Types.ObjectId[] },
 ) {
+  const terms = serviceTerms(input);
   return {
     organisationId: new Types.ObjectId(input.organisationId),
     title: input.title.trim(),
@@ -176,7 +206,18 @@ function fields(
     startDate: input.startDate,
     endDate: input.endDate,
     billingFrequency: input.billingFrequency,
-    valueMinorUnits: toMinorUnits(input.value) ?? 0,
+    ...terms,
+    serviceLines: new Types.DocumentArray<{
+      productId: Types.ObjectId;
+      description: string;
+      quantity: number;
+      unitPriceMinorUnits: number;
+    }>(
+      terms.serviceLines.map((line) => ({
+        ...line,
+        productId: new Types.ObjectId(line.productId),
+      })),
+    ),
     currency: (input.currency || 'AED').toUpperCase(),
     productIds: linked.productIds,
     contactIds: linked.contactIds,
@@ -229,6 +270,15 @@ export async function updateContract(id: string, input: ContractInput): Promise<
         value: before.valueMinorUnits,
         currency: before.currency,
         billingFrequency: before.billingFrequency,
+        terms: JSON.stringify({
+          pricingMethod: before.pricingMethod,
+          licenceValueMinorUnits: before.licenceValueMinorUnits,
+          annualSupportPercent: before.annualSupportPercent,
+          setupFeeMinorUnits: before.setupFeeMinorUnits,
+          trainingFeeMinorUnits: before.trainingFeeMinorUnits,
+          serviceLines: before.serviceLines,
+          hardwareTerms: before.hardwareTerms,
+        }),
       },
       {
         title: after?.title,
@@ -237,6 +287,15 @@ export async function updateContract(id: string, input: ContractInput): Promise<
         value: after?.valueMinorUnits,
         currency: after?.currency,
         billingFrequency: after?.billingFrequency,
+        terms: JSON.stringify({
+          pricingMethod: after?.pricingMethod,
+          licenceValueMinorUnits: after?.licenceValueMinorUnits,
+          annualSupportPercent: after?.annualSupportPercent,
+          setupFeeMinorUnits: after?.setupFeeMinorUnits,
+          trainingFeeMinorUnits: after?.trainingFeeMinorUnits,
+          serviceLines: after?.serviceLines,
+          hardwareTerms: after?.hardwareTerms,
+        }),
       },
     ),
   });
@@ -329,6 +388,18 @@ export async function listContracts(filter?: {
       endDate: contract.endDate,
       billingFrequency: contract.billingFrequency as BillingFrequency,
       valueMinorUnits: contract.valueMinorUnits ?? 0,
+      pricingMethod: (contract.pricingMethod ?? 'fixed') as 'fixed' | 'licence_percentage',
+      licenceValueMinorUnits: contract.licenceValueMinorUnits ?? 0,
+      annualSupportPercent: contract.annualSupportPercent ?? null,
+      setupFeeMinorUnits: contract.setupFeeMinorUnits ?? 0,
+      trainingFeeMinorUnits: contract.trainingFeeMinorUnits ?? 0,
+      hardwareTerms: contract.hardwareTerms ?? null,
+      serviceLines: (contract.serviceLines ?? []).map((line) => ({
+        productId: String(line.productId),
+        description: line.description ?? '',
+        quantity: line.quantity,
+        unitPriceMinorUnits: line.unitPriceMinorUnits,
+      })),
       currency: contract.currency ?? 'AED',
       productIds: (contract.productIds ?? []).map(String),
       contactIds: (contract.contactIds ?? []).map(String),
@@ -368,6 +439,14 @@ export async function renewContract(id: string): Promise<string> {
     endDate: term.endDate,
     billingFrequency: old.billingFrequency,
     valueMinorUnits: old.valueMinorUnits,
+    pricingMethod: old.pricingMethod ?? 'fixed',
+    licenceValueMinorUnits: old.licenceValueMinorUnits ?? 0,
+    annualSupportPercent: old.annualSupportPercent ?? null,
+    serviceLines: old.serviceLines ?? [],
+    hardwareTerms: old.hardwareTerms ?? null,
+    setupFeeMinorUnits: 0,
+    trainingFeeMinorUnits: 0,
+    contactIds: old.contactIds,
     currency: old.currency,
     productIds: old.productIds,
     documentUrl: null,
@@ -531,6 +610,10 @@ export interface ContractEmailRecipient {
 }
 
 export interface ContractEmailDraft {
+  senders: CustomerReplySender[];
+  defaultSender: string;
+  defaultCc: string[];
+  addressOptions: { name: string; email: string; source: string }[];
   recipients: ContractEmailRecipient[];
   templates: ContractTemplates;
   defaultTemplate: ContractTemplateKey;
@@ -564,12 +647,33 @@ export async function prepareContractEmail(id: string): Promise<ContractEmailDra
   if (!contract) throw new Error('Contract not found.');
 
   const recipients = await recipientsOf(contract);
+  const senders = await contractEmailSenders();
+  const contacts = await contactRecords().find({
+    organisationId: contract.organisationId,
+    status: 'active',
+  });
+  const staff = await UserModel.find({
+    tenantId: getContext().tenantId,
+    deletedAt: null,
+    status: 'active',
+    role: { $ne: 'client_contact' },
+  }).select('name email');
+  const defaultCc = staff.some((user) => user.email === 'ali@digisol.ae') ? ['ali@digisol.ae'] : [];
 
   // The preview is written for someone who will actually receive the email.
   const previewName =
     (recipients.find((person) => person.email) ?? recipients[0])?.name ?? 'Customer contact';
 
   return {
+    senders,
+    defaultSender: senders.find((s) => s.role === 'contracts')?.role ?? senders[0]?.role ?? '',
+    defaultCc,
+    addressOptions: [
+      ...contacts
+        .filter((c) => c.email)
+        .map((c) => ({ name: c.name, email: c.email!, source: 'Customer contact' })),
+      ...staff.map((user) => ({ name: user.name, email: user.email, source: 'Team' })),
+    ],
     recipients,
     templates: await getContractTemplates(),
     defaultTemplate: defaultContractTemplate(contract.status),
@@ -585,7 +689,7 @@ export async function prepareContractEmail(id: string): Promise<ContractEmailDra
  */
 export async function sendContractEmail(
   id: string,
-  input: { subject: string; body: string },
+  input: { subject: string; body: string; to?: string[]; cc?: string[]; sender?: string },
 ): Promise<{ queued: number; skipped: string[] }> {
   await connectToDatabase();
 
@@ -596,12 +700,56 @@ export async function sendContractEmail(
   const contract = await getContract(id);
   if (!contract) throw new Error('Contract not found.');
 
-  const recipients = await recipientsOf(contract);
-  if (recipients.length === 0) {
+  const originalRecipients = await recipientsOf(contract);
+  if (input.to === undefined && !originalRecipients.length)
     throw new Error('Choose who to email: edit the contract and add contract contacts.');
+  if (input.to === undefined && !originalRecipients.some((r) => r.email))
+    throw new Error('None of the contract contacts has an email address.');
+  const addresses =
+    input.to === undefined
+      ? originalRecipients.filter((r) => r.email).map((r) => r.email!)
+      : input.to;
+  const to = normaliseCc(addresses);
+  const manager =
+    input.cc === undefined
+      ? await UserModel.exists({
+          tenantId: getContext().tenantId,
+          email: 'ali@digisol.ae',
+          status: 'active',
+          deletedAt: null,
+          role: { $ne: 'client_contact' },
+        })
+      : false;
+  const cc = normaliseCc(input.cc ?? (manager ? ['ali@digisol.ae'] : [])).filter(
+    (email) => !to.includes(email),
+  );
+  if (!to.length) throw new Error('Add at least one To email address.');
+  if (to.length + cc.length > 50) throw new Error('Use at most 50 recipient addresses.');
+  let sender: SenderRole | undefined;
+  if (input.sender) {
+    const allowed = await contractEmailSenders();
+    sender = allowed.find((s) => s.role === input.sender)?.role;
+    if (!sender) throw new Error('Choose a configured sending email address.');
   }
+  const availableContacts = await contactRecords().find({
+    organisationId: contract.organisationId,
+    status: 'active',
+  });
+  const availableStaff = await UserModel.find({
+    tenantId: getContext().tenantId,
+    deletedAt: null,
+    status: 'active',
+    role: { $ne: 'client_contact' },
+  }).select('name email');
+  const recipients = to.map((email) => {
+    const contact = availableContacts.find((c) => c.email === email);
+    return contact
+      ? { id: String(contact._id), name: contact.name, email }
+      : { id: '', name: availableStaff.find((user) => user.email === email)?.name ?? email, email };
+  });
 
-  const skipped: string[] = [];
+  const skipped: string[] =
+    input.to === undefined ? originalRecipients.filter((r) => !r.email).map((r) => r.name) : [];
   let queued = 0;
 
   for (const recipient of recipients) {
@@ -615,6 +763,8 @@ export async function sendContractEmail(
 
     const accepted = await queueEmail({
       kind: 'contract_email',
+      sender,
+      cc,
       to: recipient.email,
       subject,
       text: fillContractTemplate(input.body, values).trim(),
@@ -624,7 +774,7 @@ export async function sendContractEmail(
     queued += 1;
     await recordActivity({
       organisationId: contract.organisationId,
-      contactId: recipient.id,
+      contactId: recipient.id || null,
       kind: 'email',
       direction: 'outbound',
       summary: `Contract email sent: ${subject}`,
@@ -646,7 +796,13 @@ export async function sendContractEmail(
     action: 'contract.emailed',
     entityType: 'Contract',
     entityId: new Types.ObjectId(id),
-    after: { recipients: queued, subject: input.subject.trim() },
+    after: {
+      recipients: queued,
+      to,
+      cc,
+      sender: sender ?? 'contracts',
+      subject: input.subject.trim(),
+    },
   });
 
   return { queued, skipped };

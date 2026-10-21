@@ -66,6 +66,8 @@ export async function saveOpportunityAction(
       }
 
       const input: OpportunityInput = {
+        serviceModel: (text(formData, 'serviceModel') ||
+          'contractual') as OpportunityInput['serviceModel'],
         organisationId: text(formData, 'organisationId'),
         contactId: text(formData, 'contactId'),
         title: text(formData, 'title'),

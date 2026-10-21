@@ -6,7 +6,9 @@ import { Button, Card, CardSection, Notice } from '@/components/ui';
 import { expandCannedReply, type ReplyContext } from '@coex/shared/tickets/canned-reply-text';
 import type { CannedReplySummary } from '@/modules/tickets/services/canned-reply.service';
 import { MentionTextarea, type MentionPerson } from '@/components/ui/mention-textarea';
+import type { CollaboratorOption } from '@coex/shared/tickets/collaborators';
 import { replyAction, type SupportFormState } from '../../actions';
+import { CollaboratorsInline } from './collaborators-panel';
 
 import type { CustomerReplySender } from '@/modules/core/services/email.service';
 
@@ -33,7 +35,12 @@ export function ReplyBox({
   senders = [],
   people = [],
   autoSignature = '',
+  ccEmails = [],
+  collaboratorOptions = [],
 }: {
+  /** Who is copied on public replies, edited from the reply box itself. */
+  ccEmails?: string[];
+  collaboratorOptions?: CollaboratorOption[];
   /** Added to the customer's email by the server; shown so the agent knows it is there. */
   senders?: CustomerReplySender[];
   autoSignature?: string;
@@ -117,6 +124,14 @@ export function ReplyBox({
             </select>
           ) : null}
         </div>
+
+        {!isInternal ? (
+          <CollaboratorsInline
+            ticketId={ticketId}
+            emails={ccEmails}
+            options={collaboratorOptions}
+          />
+        ) : null}
 
         <form action={formAction} className="mt-3 space-y-2">
           <input type="hidden" name="ticketId" value={ticketId} />

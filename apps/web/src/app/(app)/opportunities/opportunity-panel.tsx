@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/toast';
 import { saveOpportunityAction, type OpportunityFormState } from './actions';
 
 export interface OpportunityFormValues {
+  serviceModel?: string;
   id: string;
   organisationId: string;
   contactId: string;
@@ -137,6 +138,15 @@ export function OpportunityPanel({
             </Field>
           </div>
 
+          <Field label="Service model">
+            <Select
+              name="serviceModel"
+              defaultValue={text('serviceModel', opportunity?.serviceModel ?? 'contractual')}
+            >
+              <option value="contractual">Contractual</option>
+              <option value="subscription">Subscription</option>
+            </Select>
+          </Field>
           <Field label="Title" hint="For example: R4+ rollout, three clinics">
             <Input name="title" required defaultValue={text('title', opportunity?.title)} />
           </Field>

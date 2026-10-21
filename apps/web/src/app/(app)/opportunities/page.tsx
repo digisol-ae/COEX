@@ -150,7 +150,10 @@ export default async function OpportunitiesPage({
         }
       />
 
-      <div className="mb-4 flex flex-wrap items-center gap-2" aria-label="Opportunity filters">
+      <div
+        className="coex-filters mb-3 flex flex-wrap items-center gap-1.5"
+        aria-label="Opportunity filters"
+      >
         {([undefined, ...OPPORTUNITY_STATUSES] as (OpportunitySummary['status'] | undefined)[]).map(
           (option) => (
             <Link
@@ -169,7 +172,7 @@ export default async function OpportunitiesPage({
           ),
         )}
 
-        <form action="/opportunities" className="ml-auto flex flex-wrap gap-2">
+        <form action="/opportunities" className="coex-filters ml-auto flex flex-wrap gap-1.5">
           {status ? <input type="hidden" name="status" value={status} /> : null}
           <select
             name="stage"
@@ -304,7 +307,8 @@ export default async function OpportunitiesPage({
                         {item.title}
                       </Link>
                       <div className="font-mono text-xs text-[var(--color-ink-subtle)]">
-                        {item.number}
+                        {item.number} ·{' '}
+                        {item.serviceModel === 'subscription' ? 'Subscription' : 'Contractual'}
                       </div>
                     </Td>
                     <Td>{item.organisationName}</Td>
@@ -360,6 +364,7 @@ export default async function OpportunitiesPage({
                                 ownerId: item.ownerId,
                                 oneOff: fromMinorUnits(item.oneOffMinorUnits),
                                 recurring: fromMinorUnits(item.recurringMinorUnits),
+                                serviceModel: item.serviceModel,
                                 currency: item.currency,
                                 expectedCloseDate: item.expectedCloseDate ?? '',
                                 probability: String(item.probability),

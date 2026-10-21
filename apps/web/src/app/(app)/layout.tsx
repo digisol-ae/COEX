@@ -1,6 +1,11 @@
+import { QuickCreate } from '@/components/navigation/quick-create';
+import { SidebarToggle } from '@/components/navigation/sidebar-controls';
+import { redirect } from 'next/navigation';
+import { FloatingTutorial } from '@/modules/tutorials/floating-tutorial';
+import { ModuleContext } from '@/components/navigation/module-context';
 import { DeskProvider } from '@/components/tasks/desk-task-button';
 import { listDeskTaskIds } from '@/modules/tasks/services/desk.service';
-import { asUser, requireUser } from '@/lib/session';
+import { asUser, requireStaffUser as requireUser } from '@/lib/session';
 import { getRunningTimer } from '@/modules/time/services/time.service';
 import { countMyOpenTasks, listTasks } from '@/modules/tasks/services/task.service';
 import { countContractsNeedingRenewal } from '@/modules/crm/services/contract.service';
@@ -29,8 +34,15 @@ import { BrowserNotifications } from '@/components/navigation/browser-notificati
  * current area, and a bar carrying search, the running timer and identity. Permissions are applied
  * on the server, so a link the person may not open is never sent to the browser at all.
  */
-export default async function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({
+  children,
+  setupModal,
+}: {
+  children: React.ReactNode;
+  setupModal: React.ReactNode;
+}) {
   const user = await requireUser();
+  if (user.role === 'client_contact') redirect('/portal');
   /**
    * The badges on the rail: a prompt to act, never a total.
    *
@@ -84,7 +96,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           />
 
           <div className="flex min-w-0 flex-1 flex-col">
-            <header className="sticky top-0 z-40 flex touch-manipulation items-center gap-3 border-b border-[var(--color-line)] bg-[var(--color-surface)]/95 px-4 py-2 pointer-events-auto backdrop-blur sm:px-6">
+            <header className="sticky top-0 z-40 flex touch-manipulation items-center gap-1 sm:gap-1.5 border-b border-[var(--color-line)] bg-[var(--color-surface)]/95 px-4 py-2 pointer-events-auto backdrop-blur sm:px-6">
               <MobileNavigation
                 groups={groups}
                 canManageTasks={user.permissions.includes('task.manage')}
@@ -95,6 +107,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 renewalsDue={counts['/contracts']}
               />
 
+              <SidebarToggle />
               <BackButton />
 
               <p className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--color-ink)] sm:hidden">
@@ -109,6 +122,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 <TimerTray running={Boolean(timer)} />
               ) : null}
 
+              <QuickCreate
+                task={user.permissions.includes('task.manage')}
+                ticket={user.permissions.includes('ticket.manage')}
+                lead={user.permissions.includes('lead.manage')}
+              />
               <ThemeMenu current={user.theme} />
 
               <UserMenu
@@ -119,10 +137,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               />
             </header>
 
-            <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6">{children}</main>
+            <main className="flex-1 px-3 py-3 sm:px-5 sm:py-4">
+              <ModuleContext />
+              {children}
+            </main>
 
+            {setupModal}
             <WhatsNew seen={user.releaseNotesSeen} />
 
+            <FloatingTutorial />
             <GlobalTooltip />
             <BrowserNotifications />
 

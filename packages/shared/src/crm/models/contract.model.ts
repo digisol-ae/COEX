@@ -42,6 +42,27 @@ const contractSchema = new Schema(
     valueMinorUnits: { type: Number, default: 0, min: 0 },
     currency: { type: String, default: 'AED' },
 
+    pricingMethod: { type: String, enum: ['fixed', 'licence_percentage'], default: 'fixed' },
+    licenceValueMinorUnits: { type: Number, default: 0, min: 0 },
+    annualSupportPercent: { type: Number, default: null, min: 0, max: 100 },
+    setupFeeMinorUnits: { type: Number, default: 0, min: 0 },
+    trainingFeeMinorUnits: { type: Number, default: 0, min: 0 },
+    hardwareTerms: { type: String, default: null },
+    serviceLines: {
+      type: [
+        new Schema(
+          {
+            productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
+            description: { type: String, default: '' },
+            quantity: { type: Number, required: true, min: 1 },
+            unitPriceMinorUnits: { type: Number, required: true, min: 0 },
+          },
+          { _id: false },
+        ),
+      ],
+      default: () => [],
+    },
+
     productIds: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
 
     /** Who at the customer is emailed about this contract (John, 4 Oct 2026). */

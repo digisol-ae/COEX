@@ -1,6 +1,6 @@
 'use server';
 
-import { asUser, requireUser } from '@/lib/session';
+import { asUser, requireStaffUser as requireUser } from '@/lib/session';
 import { acknowledgeReleaseNotes, saveTheme } from '@/modules/core/services/user.service';
 import { LATEST_RELEASE_ID } from '@/modules/core/release-notes';
 

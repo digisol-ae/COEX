@@ -193,12 +193,17 @@ export function TaskList({
           },
         });
 
-        await setSubtaskDoneAction({
-          taskId: task.id,
-          subtaskId,
-          done,
-          spaceId: task.spaceId,
-        });
+        try {
+          const result = await setSubtaskDoneAction({
+            taskId: task.id,
+            subtaskId,
+            done,
+            spaceId: task.spaceId,
+          });
+          if (result.error) setError(result.error);
+        } catch {
+          setError('Could not update this subtask. Please try again.');
+        }
       });
     },
     onSubtaskAssignee: (task, subtaskId, assigneeId) => {
@@ -380,7 +385,7 @@ export function TaskList({
                     <Th>Task</Th>
                     <Th>Due</Th>
                     <Th>My time</Th>
-                    {!hideAssignees ? <Th>Assignees</Th> : null}
+                    {!hideAssignees ? <Th>Assigned to</Th> : null}
                     <Th>Priority</Th>
                   </tr>
                 </thead>

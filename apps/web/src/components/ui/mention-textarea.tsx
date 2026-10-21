@@ -22,9 +22,14 @@ export function MentionTextarea({
   people,
   ref,
   className,
+  wrapperClassName,
   onKeyDown,
   ...props
-}: ComponentProps<'textarea'> & { people: MentionPerson[] }) {
+}: ComponentProps<'textarea'> & {
+  people: MentionPerson[];
+  /** For the box around the textarea, which is what a flex row sizes, not the textarea itself. */
+  wrapperClassName?: string;
+}) {
   const inner = useRef<HTMLTextAreaElement | null>(null);
   const [text, setText] = useState('');
   const [chosen, setChosen] = useState<MentionPerson[]>([]);
@@ -109,7 +114,7 @@ export function MentionTextarea({
   const stillMentioned = chosen.filter((person) => text.includes(`@${person.name}`));
 
   return (
-    <div className="relative">
+    <div className={clsx('relative', wrapperClassName)}>
       <textarea
         {...props}
         ref={attach}

@@ -33,7 +33,7 @@ export function ActivityFilters({
   const [people, setPeople] = useState(selectedPeople);
 
   return (
-    <form method="get" className="mb-4 flex flex-wrap items-end gap-3 text-sm">
+    <form method="get" className="coex-filters mb-3 flex flex-wrap items-end gap-1.5 text-sm">
       <input type="hidden" name="shown" value="1" />
       {people.map((id) => (
         <input key={id} type="hidden" name="person" value={id} />

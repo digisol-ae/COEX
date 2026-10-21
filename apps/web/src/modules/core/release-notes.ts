@@ -16,21 +16,35 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
-    id: '2026-10-17',
-    date: '17 October 2026',
-    title: 'Edit updates, move Personal tasks, add ticket time',
+    id: '2026-10-21-agent-summary',
+    date: '21 October 2026',
+    title: 'Agent updates: tasks, tickets and your workspace',
     sections: [
       {
-        heading: 'Tasks',
+        heading: 'Tasks and subtasks',
         items: [
-          'Work updates on a task can now be edited by the person who wrote them (they show "edited"), and deleted by their author or an administrator. Updates on a task raised from a ticket are the ticket\'s internal notes: they can be edited, but not deleted.',
-          'A task in Personal can be moved to a Space, and a Folder if you choose one, with the move icon on its row. It goes into the first column of that Space.',
+          'Finished your assigned subtasks? Choose My subtask done to clear the shared task from your active work and My Desk. Find it under Mine → My subtask done or All my work, and choose Resume my work when needed. New or reopened subtasks bring it back automatically; the main task stays open for your teammates.',
+          'Subtask assignments now queue an email with the subtask name and main task link, when assignment emails are enabled. Re-selecting the same person sends no duplicate alert.',
+          'Paste, drop or attach screenshots to updates, with thumbnails before posting and image previews afterward. Available on the full task page and half drawer; image-only updates are supported. Limit: 3MB per image, 10MB per update.',
+          'The half drawer shows updates newest first, with Show more for older threads. Documents have been removed from the drawer. The main task page has message ordering and the update box above the conversation.',
+          'Edit your own updates; edited notes are labelled. Task updates shared with a support ticket stay internal and are never shown to the customer.',
         ],
       },
       {
-        heading: 'Time',
+        heading: 'Support tickets',
         items: [
-          'On a ticket, the new Add time button lets you add time by hand when you forgot to start the timer: the day, how long (1.5, 1:30 or 90m) and a note.',
+          'The complete reply box now sits above the conversation. Choose Ascending or Descending message order; use Show more for older messages and Read more for long text.',
+          'Transparent message bubbles use purple glow for customers, green for agent replies and red for internal notes. Internal notes remain private.',
+          'Paste screenshots into replies and preview attachments before sending. Ticket details, history and common actions are more compact; the sender and raised time stay below the subject.',
+          'Where your permissions allow, edit contacts and change the customer/contact linked to an existing ticket. Pages with the update indicator refresh while you are not typing; click it to refresh immediately.',
+        ],
+      },
+      {
+        heading: 'Time and navigation',
+        items: [
+          'Add time manually on a task or ticket when you forgot the timer. Time entries are grouped by person, with dates, notes and totals; visibility follows your existing permissions.',
+          'Use the + beside the timer for permitted Task, Ticket or Lead creation. Collapse the sidebar when you need more room.',
+          'Navigation has refreshed icons. The active main section has a rainbow background; the selected submenu has a transparent background and rainbow outline.',
         ],
       },
     ],
