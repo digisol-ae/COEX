@@ -31,11 +31,21 @@ function issuerFromEnvironment() {
 /** The path Microsoft sends the person back to. The web app's own route is the default. */
 export const WEB_ENTRA_CALLBACK_PATH = '/api/auth/entra/callback';
 
+/** Browser redirects must use the registered public site, never the proxy's internal listener. */
+export function entraReturnUrl(path: string): URL {
+  const base = new URL(process.env.AUTH_URL || process.env.COEX_APP_URL || 'http://localhost:3100');
+  if (!['http:', 'https:'].includes(base.protocol) || base.username || base.password)
+    throw new Error('Invalid application URL.');
+  const destination = new URL(path, base.origin);
+  if (destination.origin !== base.origin) throw new Error('Invalid sign-in destination.');
+  return destination;
+}
+
 function config(callbackPath = WEB_ENTRA_CALLBACK_PATH): EntraConfig | null {
   const clientId = process.env.AUTH_MICROSOFT_ENTRA_ID_ID;
   const clientSecret = process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET;
   const issuer = issuerFromEnvironment();
-  const appUrl = process.env.AUTH_URL ?? process.env.COEX_APP_URL;
+  const appUrl = process.env.AUTH_URL || process.env.COEX_APP_URL;
   if (!clientId || !clientSecret || !issuer || !appUrl) return null;
   return {
     clientId,
