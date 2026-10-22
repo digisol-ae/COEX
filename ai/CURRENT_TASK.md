@@ -1,5 +1,12 @@
 # COEX — Current AI Task
 
+## Microsoft redirect and DigiSol attribution deployed — 22 October 2026
+
+PR #36 merged as `f266afe451f3881ffd6ef707b121b0deba0a705f`; PR CI run 39806601526 and merged-main run 39807108288 passed. Microsoft callback redirects now use configured public origin instead of internal listener. Login/recovery shell shows “Powered by DigiSol” above the actual high-resolution DigiSol logo, on desktop and mobile/tablet. Legal company remains Digisol LLC-FZ in policies. No branding announcement; existing maintenance entry remains generic 3 bug fixes / 1 improvement.
+
+Local and isolated server production builds passed (71 pages); 8 redirect regressions passed; six viewport/DPR combinations (320/768/1440, 1x/2x) showed one loaded 96px DigiSol logo and no overflow. Small-screen gutters accommodate the existing security widget without changing verification behavior. Live cancelled Microsoft callback returns the public HTTPS login URL. No actual Microsoft interactive sign-in performed; success/session-cookie coverage is mocked. See `ai/RELEASE-2026-10-22-ENTRA-FOOTER.md` for deployment evidence and limitations. This supersedes prepared entries and older slot mappings; projects/ preserved.
+
+
 ## Login operator attribution — 22 October 2026 (prepared)
 
 Owner requested replacing visible Digisol LLC-FZ on the signed-out shell with “Powered by DigiSol” and the actual DigiSol logo beneath it. AuthShell now shows this footer on desktop rail and below legal links on mobile/tablet, reusing transparent high-resolution public/brand/logo-long.png (3671×1240) at 96px proportional width. Company legal identity remains unchanged in policies. This extends to shared password recovery/reset screens. Branding excluded from What's new as previously requested; existing generic count is 3 bug fixes / 1 improvement for the maintenance work. Local/production build and visual verification pending; Microsoft redirect fix remains in the same reviewed release.

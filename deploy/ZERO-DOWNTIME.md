@@ -1,12 +1,14 @@
 # COEX isolated web rollout — current operating state
 
-## Active slots after tutorial maintenance — 22 October 2026
+## Active slots after Microsoft/footer release — 22 October 2026
 
-- Public Apache COEX vhosts target `http://127.0.0.1:3002/`.
-- Active web: PM2 `coex-app-green` id 6, `/srv/coex/releases/tutorial-origin-20261022`, application merge `92525ae237c3e46723bc2461db91ccf05b1968a6`.
-- Warm fallback: PM2 `coex-app` id 5, `/srv/coex/releases/teams-email-6a41d1f`, port 3001. Keep its build intact until deliberately retired. Original green id 4 was retired only while blue served traffic, before reusing green port 3002.
-- `coex-mail`, `coex-desk-close`, `coex-channels` still run once each from `/srv/coex/app`, unchanged PIDs. Web-only changes must not duplicate/restart these workers.
-- Five processes are intentional: active/fallback web plus three workers. PM2 saved; releases link the existing ignored root `.env`; storage remains shared. Never print credentials.
+- Apache COEX vhosts target `http://127.0.0.1:3001/`.
+- Active blue: `coex-app` id7 / PID184237, `/srv/coex/releases/entra-redirect-20261022`, application merge `f266afe451f3881ffd6ef707b121b0deba0a705f`.
+- Warm green fallback: `coex-app-green` id6 / PID181724, `/srv/coex/releases/tutorial-origin-20261022`, port3002. Former blue id5 retired while green served traffic.
+- Exactly three unchanged workers run from `/srv/coex/app`; five intentional PM2 entries saved. Existing ignored environment and shared storage preserved.
+- Latest switch: 40/40 HTTPS200; Apache snapshots `/srv/coex/shared/apache-before-entra-20261022194406/`. Rollback: verify green login200, change both canonical vhost mappings3001→3002, configtest, graceful reload, verify public HTTPS. No worker restart.
+- Latest tenant session expiry: three revoked at fixed cutoff2026-10-22T15:44:07Z; later logins excluded. No repeated expiry for docs-only pull.
+- Full evidence: `ai/RELEASE-2026-10-22-ENTRA-FOOTER.md`. Older tutorial rollback directions below are historical and superseded by the current mapping here.
 
 Owner permits a short maintenance interruption if necessary. Isolated builds/healthy candidate switching remain the current procedure. The old `deploy/release.sh` builds in the original folder and does not target the active web slot. Inspect Apache and PM2 before acting; `/srv/coex/app` currently hosts workers/configuration only.
 
