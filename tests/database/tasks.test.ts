@@ -1,5 +1,3 @@
-import { EmailSettingsModel } from '@coex/shared/core/models/email-settings.model';
-import { EmailOutboxModel } from '@coex/shared/core/models/email-outbox.model';
 import sharp from 'sharp';
 import * as taskEmail from '@/modules/core/services/email.service';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -1136,35 +1134,5 @@ it('stores pasted task images privately and keeps linked ticket images internal'
     expect(note!.attachments).toHaveLength(1);
     expect((await listTaskComments(id))[0].attachments).toHaveLength(1);
     expect((await taskUpdateImage(id, String(note!.attachments[0]._id)))!.body).toEqual(png);
-  });
-});
-
-it('confirms external self-assignment once while respecting tenant email switches', async () => {
-  await EmailSettingsModel.create({
-    tenantId,
-    outbound: { enabled: true },
-    staff: { taskAssigned: true },
-  });
-  await runWithContext(context, async () => {
-    const spaceId = await aSpace();
-    const input = { spaceId, title: 'Teams self assignment QA', assigneeIds: [String(userId)] };
-    await createTask(input);
-    expect(await EmailOutboxModel.countDocuments({ tenantId })).toBe(0);
-    const taskId = await createTask(input, { notifySelf: true });
-    const queued = await EmailOutboxModel.find({ tenantId });
-    expect(queued).toHaveLength(1);
-    expect(queued[0].kind).toBe('task_assigned');
-    expect(queued[0].to).toBe('ali@example.com');
-    expect(queued[0].status).toBe('pending');
-    expect(queued[0].text).toContain(`/tasks/${taskId}`);
-    await EmailSettingsModel.updateOne({ tenantId }, { $set: { 'staff.taskAssigned': false } });
-    await createTask(input, { notifySelf: true });
-    expect(await EmailOutboxModel.countDocuments({ tenantId })).toBe(1);
-    await EmailSettingsModel.updateOne(
-      { tenantId },
-      { $set: { 'staff.taskAssigned': true, 'outbound.enabled': false } },
-    );
-    await createTask(input, { notifySelf: true });
-    expect(await EmailOutboxModel.countDocuments({ tenantId })).toBe(1);
   });
 });

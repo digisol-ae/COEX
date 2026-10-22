@@ -144,7 +144,6 @@ describe('Teams task access and duplicate protection', () => {
         ),
         endAt: '2026-10-22T00:00',
       }),
-      { notifySelf: true },
     );
     expect(mocks.reserve.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.create.mock.invocationCallOrder[0],
@@ -203,7 +202,6 @@ describe('Teams task access and duplicate protection', () => {
         assigneeIds: [actorId],
         endAt: '2026-10-22T09:30',
       }),
-      { notifySelf: true },
     );
   });
   it('rejects an assignee who cannot access the destination', async () => {

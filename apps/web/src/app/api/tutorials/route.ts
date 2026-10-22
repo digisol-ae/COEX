@@ -1,3 +1,4 @@
+import { hasTrustedRequestOrigin } from '@/lib/request-origin';
 import { parseVideoLink } from '@/modules/tutorials/video-link';
 import { recordAudit } from '@/modules/core/services/audit.service';
 import { randomUUID } from 'node:crypto';
@@ -11,7 +12,7 @@ const MAX_UPLOAD = 30 * 1024 * 1024;
 export async function GET(request: Request) {
   const user = await getSignedInUser();
   if (user?.role === 'client_contact')
-    return Response.json({ error: 'Not allowed.' }, { status: 403 });
+    return Response.json({ error: 'Tutorials are available to staff accounts.' }, { status: 403 });
   if (!user) return Response.json({ error: 'Sign in first.' }, { status: 401 });
   const admin =
     new URL(request.url).searchParams.get('admin') === '1' &&
@@ -24,10 +25,13 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getSignedInUser();
   if (user?.role === 'client_contact')
-    return Response.json({ error: 'Not allowed.' }, { status: 403 });
+    return Response.json({ error: 'Tutorials are available to staff accounts.' }, { status: 403 });
   if (!user) return Response.json({ error: 'Sign in first.' }, { status: 401 });
-  if (request.headers.get('origin') !== new URL(request.url).origin)
-    return Response.json({ error: 'Not allowed.' }, { status: 403 });
+  if (!hasTrustedRequestOrigin(request))
+    return Response.json(
+      { error: 'This request could not be verified. Refresh COEX and try again.' },
+      { status: 403 },
+    );
   try {
     // Bound the stream before parsing multipart data; uploads never enter a server action.
     const reader = request.body?.getReader();
@@ -47,7 +51,10 @@ export async function POST(request: Request) {
     const body = Buffer.concat(chunks);
     const multipart = request.headers.get('content-type')?.startsWith('multipart/form-data');
     if (multipart && !user.permissions.includes('tenant.manage'))
-      return Response.json({ error: 'Not allowed.' }, { status: 403 });
+      return Response.json(
+        { error: 'Only workspace administrators can manage tutorials.' },
+        { status: 403 },
+      );
     return await asUser(user, async () => {
       const tutorial = await currentTutorial();
       const { tenantId, userId } = getContext();
@@ -103,7 +110,10 @@ export async function POST(request: Request) {
             );
         } else {
           if (!user.permissions.includes('tenant.manage'))
-            return Response.json({ error: 'Not allowed.' }, { status: 403 });
+            return Response.json(
+              { error: 'Only workspace administrators can manage tutorials.' },
+              { status: 403 },
+            );
           if (input.action === 'link') {
             const title = typeof input.title === 'string' ? input.title.trim() : '';
             if (!title || title.length > 100)
