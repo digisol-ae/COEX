@@ -1,6 +1,8 @@
 /**
  * What's new in COEX, newest first, in words for the people using it (John, 28 Sep 2026).
  *
+ * Describe user-facing features/UI improvements only; keep technical/backend details in handover docs.
+ * Owner-requested maintenance entries show counts only.
  * Add a release at the top whenever something users will notice ships. The newest release's id is
  * what "I understand" records on a person's account, so a new entry at the top is all it takes for
  * the drawer to open by itself once more for everyone.
@@ -15,6 +17,17 @@ export interface ReleaseNote {
 }
 
 export const RELEASE_NOTES: ReleaseNote[] = [
+  {
+    id: '2026-10-22-maintenance',
+    date: '22 October 2026',
+    title: 'Bug fixes and improvements',
+    sections: [
+      {
+        heading: 'Maintenance update',
+        items: ['2 bug fixes and 1 improvement.'],
+      },
+    ],
+  },
   {
     id: '2026-10-22-teams-pilot',
     date: '22 October 2026',

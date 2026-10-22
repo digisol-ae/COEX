@@ -1,5 +1,12 @@
 # COEX — Current AI Task
 
+## Release communication and sign-in policy — 22 October 2026
+
+Owner authorised rollout, permits a brief maintenance interruption if needed, and requested ending existing logins smoothly when users are signed in. Preflight found 23 unexpired sessions in this COEX tenant, 3 seen in the last 15 minutes. At successful cutover, revoke only this tenant's previously issued, unrevoked/unexpired sessions using the existing revokedAt mechanism and a fixed release cutoff; new logins after that cutoff remain valid. Already authorised in-flight work can finish; existing auth checks return users to sign-in on their next protected navigation/refresh. No session token contents or user identities are printed. This is operational session expiry, not a new client-side idle/draft preservation feature; do not claim immediate browser logout or saved unsent text.
+
+What's new gets only the owner-requested generic summary “2 bug fixes and 1 improvement.” Detailed descriptions belong only to user-facing new features/UI changes; internal/backend/security/rollout details stay in developer Markdown. Count rationale for handover only: tutorial origin guard and undesired self-email override corrected; clearer tutorial errors are the improvement. This new maintenance entry supersedes the Teams entry as the latest acknowledgement, without rewriting history. Production rollout remains pending until verified.
+
+
 ## Tutorial link save and requested email behavior — 22 October 2026 (local only)
 
 Validation complete: **46 focused unit tests passed**, focused ESLint and fresh TypeScript passed, local Webpack production build passed (71 pages). Preview 3106 rebuilt/restarted. No commit/push/deployment.
