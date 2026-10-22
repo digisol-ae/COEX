@@ -1,14 +1,14 @@
 # COEX isolated web rollout — current operating state
 
-## Active slots after Teams email correction — 22 October 2026
+## Active slots after tutorial maintenance — 22 October 2026
 
-- Public Apache COEX vhosts target `http://127.0.0.1:3001/`.
-- Active web: PM2 `coex-app` id 5, `/srv/coex/releases/teams-email-6a41d1f`, application merge `530e19225b6839dd9c7446999418b07c3a5ac446`.
-- Warm fallback: PM2 `coex-app-green` id 4, `/srv/coex/releases/logo-bb66964`, port 3002. Keep its build intact until deliberately retired. The prior original web process id 0 was retired while green served traffic, before reusing blue port 3001.
-- `coex-mail`, `coex-desk-close`, `coex-channels` each still run once from `/srv/coex/app`, with unchanged PIDs. A web-only change must not duplicate/restart these workers.
-- Five processes are intentional: active/fallback web plus three workers. PM2 startup state saved. Releases link the existing ignored root `.env`; storage remains shared. Never copy credentials into docs/output.
+- Public Apache COEX vhosts target `http://127.0.0.1:3002/`.
+- Active web: PM2 `coex-app-green` id 6, `/srv/coex/releases/tutorial-origin-20261022`, application merge `92525ae237c3e46723bc2461db91ccf05b1968a6`.
+- Warm fallback: PM2 `coex-app` id 5, `/srv/coex/releases/teams-email-6a41d1f`, port 3001. Keep its build intact until deliberately retired. Original green id 4 was retired only while blue served traffic, before reusing green port 3002.
+- `coex-mail`, `coex-desk-close`, `coex-channels` still run once each from `/srv/coex/app`, unchanged PIDs. Web-only changes must not duplicate/restart these workers.
+- Five processes are intentional: active/fallback web plus three workers. PM2 saved; releases link the existing ignored root `.env`; storage remains shared. Never print credentials.
 
-The old `deploy/release.sh` builds in the original folder and restarts four services. It is **not the no-downtime rollout procedure** and does not target the active isolated web release. Future deployers must inspect Apache and PM2 before acting. Current `/srv/coex/app` serves workers and configuration only.
+Owner permits a short maintenance interruption if necessary. Isolated builds/healthy candidate switching remain the current procedure. The old `deploy/release.sh` builds in the original folder and does not target the active web slot. Inspect Apache and PM2 before acting; `/srv/coex/app` currently hosts workers/configuration only.
 
 ## Procedure used
 
@@ -22,10 +22,16 @@ The old `deploy/release.sh` builds in the original folder and restarts four serv
 
 The 22 October logo switch observed 40/40 HTTP 200 responses. That is a bounded monitor result, not a guarantee that every user request or authenticated workflow was tested.
 
-## Rollback for the Teams email release
+## Owner-requested release session expiry
 
-The green fallback on port 3002 must first return 200 at `/login`. Restore both COEX ProxyPass/ProxyPassReverse mappings from `http://127.0.0.1:3001/` to `http://127.0.0.1:3002/` in the canonical files `/etc/apache2/sites-available/coex.conf` and `coex-le-ssl.conf`. Run Apache config test before a graceful reload. Confirm public HTTPS and continue monitoring. No web process or worker needs stopping for this traffic switch. Previous vhost snapshots: `/srv/coex/shared/apache-before-teams-email-20261022102033/`.
+At verified healthy cutover, inspect unexpired/recent COEX tenant sessions. Mark existing pre-cutoff sessions revokedAt using a fixed release cutoff and explicit tenant scope; do not delete accounts, reset passwords or print session tokens. New sessions created after cutoff must remain valid. Allow already authorised work to finish. Existing auth checks return expired sessions to sign-in on next protected request/navigation; this is not an immediate client logout or unsaved-draft preservation feature. Log counts and verify zero matching old sessions remain.
 
-The earlier logo rollout remains historical evidence: snapshots `/srv/coex/shared/apache-before-logo-20261022095700/`, 40/40 monitor HTTP 200 responses. Its old original port-3001 process is superseded, so do not restore that old mapping blindly. The email correction also observed 40/40 successful samples.
+For 22 October tutorial maintenance: cutoff 2026-10-22T15:19:18Z, 23 revoked, 0 old unexpired sessions remaining. No need to re-expire sessions on a docs-only pull.
 
-Do not reset source, delete a release directory, rebuild the fallback or remove either slot during emergency rollback. Retire a fallback only in a separately planned cleanup after acceptance; update this runbook and PM2 saved state at that time. A docs-only pull into the active release requires no rebuild or restart.
+## Rollback for the tutorial release
+
+Blue fallback on port 3001 must first return 200 at `/login`. Restore both COEX ProxyPass/ProxyPassReverse mappings from `http://127.0.0.1:3002/` to `http://127.0.0.1:3001/` in canonical `/etc/apache2/sites-available/coex.conf` and `coex-le-ssl.conf`. Test Apache config before a graceful reload. Verify public HTTPS and continue monitoring. No worker or web process needs stopping for this traffic switch. Vhost snapshots: `/srv/coex/shared/apache-before-tutorial-20261022191918/`.
+
+Fallback code restores prior self-email behavior along with prior availability. Session expiry is shared database state and stays in effect across rollback; users can sign in again. Historical logo/email snapshots and old port instructions are superseded by this active mapping. Each of the three 22 October switches observed 40/40 successful HTTPS samples, a bounded monitor result rather than proof of every user workflow.
+
+Do not reset source, delete a release directory, rebuild fallback or remove either slot during emergency rollback. Retire fallback only through planned cleanup after acceptance, updating this runbook and saved PM2 state. Docs-only source sync needs no rebuild/restart/session expiry.
