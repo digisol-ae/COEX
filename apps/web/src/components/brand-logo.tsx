@@ -19,7 +19,7 @@ export function BrandLogo({
     );
   return (
     <Image
-      src={mark ? '/brand/coex-monogram.svg' : '/brand/coex-logo.svg'}
+      src="/brand/coex-monogram-hires.png"
       alt="COEX"
       width={mark ? 512 : 1496}
       height={mark ? 512 : 328}
