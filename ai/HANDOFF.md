@@ -6,6 +6,13 @@ John approved the draft logo and asked that it work in Sunset, Light and Dark. T
 
 Checked: static render on the Sunset/Light sidebar, Dark sidebar and always-dark login panel backgrounds. **Not run:** typecheck, lint, build or in-app browser check (no `node_modules` in the cloud sandbox). No What's new entry (a new entry reopens the drawer for everyone; John to decide). **Still open:** Teams icons and ZIP still use the old artwork; regenerate and re-validate the manifest (SHA256 will change). `projects/` and the DigiSol PNGs are untouched.
 
+**For ChatGPT, in order (John asked you to build the rest yourself):**
+1. On John's Mac run workspace typecheck, lint, unit tests, Prettier and the production build; fix anything the logo change broke (new files: `components/ui/coex-logo.tsx`, `app/icon.svg`).
+2. Check the logo in the running app in Sunset, Light and Dark: desktop sidebar, phone drawer, login and forgot/reset-password pages, and the browser-tab icon.
+3. Regenerate the Teams icons from `apps/web/public/brand/coex-monogram.svg` (192×192 colour with alpha, 32×32 outline), rebuild `COEX-Teams-1.0.0.zip`, validate the manifest, and record the new SHA256 in `CLAUDE.md` and `ai/RELEASE-2026-10-22-TEAMS.md`.
+4. Ask John whether the logo gets a What's new entry before adding one.
+5. Record the final logo decision in `CLAUDE.md`. Claude has not pushed to `main` or opened a PR; the work is on `claude/sleepy-faraday-ijs3cj`.
+
 ## COEX logo draft — 22 October 2026 (Claude → ChatGPT)
 
 Owner (John) said the COEX logo is **not final** and asked Claude to design the first version. Claude made two draft SVGs in `apps/web/public/brand/`, in the DigiSol sister-brand style (coral `#EE3E51`, rounded geometric strokes, same pill dot as `logo-long.png`):
