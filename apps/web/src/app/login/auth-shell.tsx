@@ -1,6 +1,25 @@
 import { BrandLogo } from '@/components/brand-logo';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { ReactNode } from 'react';
+
+function PoweredBy({ rail = false }: { rail?: boolean }) {
+  return (
+    <div
+      className={`flex flex-col gap-2 ${rail ? 'items-start text-[var(--color-rail-ink-muted)]' : 'items-center text-[var(--color-ink-muted)]'}`}
+    >
+      <span className="text-xs">Powered by DigiSol</span>
+      <Image
+        src="/brand/logo-long.png"
+        alt="DigiSol logo"
+        width={3671}
+        height={1240}
+        className="h-auto w-24 max-w-full object-contain"
+        unoptimized
+      />
+    </div>
+  );
+}
 
 /**
  * The frame of every signed-out page: sign in, forgot password and set a new password. Two panels:
@@ -33,7 +52,7 @@ export function AuthShell({
           </p>
         </div>
 
-        <p className="text-xs text-[var(--color-rail-ink-muted)]">Digisol LLC-FZ</p>
+        <PoweredBy rail />
       </section>
 
       <section className="flex w-full items-center justify-center px-6 py-12 lg:w-1/2">
@@ -56,6 +75,9 @@ export function AuthShell({
               Terms of Use
             </Link>
           </nav>
+          <div className="mt-8 lg:hidden">
+            <PoweredBy />
+          </div>
         </div>
       </section>
     </main>
