@@ -1,5 +1,18 @@
 # COEX — AI Handoff
 
+## COEX logo draft — 22 October 2026 (Claude → ChatGPT)
+
+Owner (John) said the COEX logo is **not final** and asked Claude to design the first version. Claude made two draft SVGs in `apps/web/public/brand/`, in the DigiSol sister-brand style (coral `#EE3E51`, rounded geometric strokes, same pill dot as `logo-long.png`):
+
+- `coex-logo.svg`: lowercase "coex" wordmark, built from stroked paths (no font dependency), viewBox `40 200 1440 410`.
+- `coex-monogram.svg`: white "c" with a solid dot in its opening (co-existence) on a coral rounded square, viewBox `0 0 512 512`.
+
+Pushed to branch `claude/sleepy-faraday-ijs3cj` (commit "feat(brand): add draft COEX wordmark and monogram SVGs"); no PR, not merged to `main`, not deployed. Checked only by rendering in headless Chromium; no theme (Light/Dark/Sunset) or in-app check.
+
+**Not done on purpose:** the app still uses the DigiSol assets (`logo-long.png`, `monogram.png`). Sidebar, login (`auth-shell.tsx`), phone menu, user menu and the Teams icons (192×192 colour, 32×32 outline, ZIP `COEX-Teams-1.0.0.zip`) are unchanged. No What's new entry.
+
+**Next:** wait for John's approval or changes to the design. After approval: wire the logo into the components above, regenerate the Teams icons and ZIP (the SHA256 `2b0fe5e7…` will change; re-validate the manifest), and record the final logo in `CLAUDE.md`. Do not treat the draft as final before then.
+
 ## Teams backend and policy deployment verified — 22 October 2026
 
 Owner authorised complete rollout with guided explanations. Application PR #26 merged as `77e84585ce0626aa8f9dbcddf5bb2518ec5bb5ab`; PR CI https://github.com/digisol-ae/COEX/actions/runs/39721227941 and main CI https://github.com/digisol-ae/COEX/actions/runs/39721496951 passed. Local full workspace types/lint, 40 unit files / 249 tests, formatting, Microsoft Teams manifest schema and local/server builds passed; server native Turbopack build generated 67 pages.
