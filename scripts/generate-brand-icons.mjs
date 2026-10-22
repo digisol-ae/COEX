@@ -1,4 +1,4 @@
-import { copyFile, writeFile } from 'node:fs/promises';
+import { copyFile, readFile, writeFile } from 'node:fs/promises';
 import sharp from 'sharp';
 
 // Keep browser and Apple icons derived from the same vector as the app's brand mark.
@@ -28,3 +28,21 @@ sizes.forEach((size, index) => {
 });
 await writeFile(new URL('favicon.ico', app), Buffer.concat([header, ...images]));
 console.log('Generated icon.svg, apple-icon.png (180px), favicon.ico (16/32/48px).');
+
+// Keep transparent high-density UI artwork separate from browser icons. At the smallest
+// sidebar size, the 1496px-wide master supplies more than 8 source pixels per CSS pixel.
+const brand = new URL('../apps/web/public/brand/', import.meta.url);
+const wordmark = await readFile(new URL('coex-logo.svg', brand), 'utf8');
+const css = await readFile(new URL('../apps/web/src/app/globals.css', import.meta.url), 'utf8');
+const coral = css.match(/--color-brand-red:\s*(#[a-f\d]{6})/i)?.[1];
+if (!coral) throw new Error('Cannot find the COEX brand colour.');
+const letters = wordmark.replace(/<\/g>[\s\S]*<\/svg>/, '</g></svg>').replace(/#EE3E51/gi, coral);
+await sharp(Buffer.from(letters))
+  .resize(1496, 328)
+  .png({ compressionLevel: 9 })
+  .toFile(new URL('coex-wordmark-hires.png', brand).pathname);
+await sharp(source.pathname)
+  .resize(512, 512)
+  .png({ compressionLevel: 9 })
+  .toFile(new URL('coex-monogram-hires.png', brand).pathname);
+console.log('Generated high-density transparent wordmark and monogram PNGs for UI rendering.');

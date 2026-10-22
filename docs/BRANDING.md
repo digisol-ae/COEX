@@ -1,5 +1,14 @@
 # COEX product branding
 
+## Responsive logo rendering follow-up — 22 October 2026 (prepared locally)
+
+Owner reported rough production lettering on Windows Edge and requested mobile/tablet/all-screen optimization without taking the application down. Shared wordmark now uses a transparent 1496×328 PNG derived losslessly from the editable SVG; the dot remains vector and theme-aware. Monogram uses a transparent 512×512 PNG. Source artwork/proportions retained; lettering uses the existing application brand token. Regenerate with `node scripts/generate-brand-icons.mjs`. No branding entry in What’s new.
+
+Focused ESLint and fresh web TypeScript passed. Isolated Chrome shared-component fixture checked 320/390/768/1024/1440 CSS-pixel viewports at DPR 1 and 2 (10 combinations), with stable proportions, loaded monograms and no horizontal overflow. 320px light/dark screenshot inspected. Evidence: `/private/tmp/coex-logo-quality/results.json` and `responsive-*.png`. This is logo/component QA, not authenticated full-application or Windows Edge visual acceptance; original Edge-specific rasterization was not reproduced on this Mac.
+
+Production rollout must build in an isolated release directory, start a candidate on another loopback port, retain old static chunks and server-action encryption key privately, then health-check before graceful Apache proxy switching. Keep the existing app available for rollback; do not run the in-place `deploy/release.sh` for this no-downtime release. Existing mail/desk/channel workers must not be duplicated or restarted for a logo-only change. No production mutation yet for this follow-up; this paragraph is preparation evidence, not a deployment claim.
+
+
 ## Single-screen Teams and COEX branding deployed — 22 October 2026
 
 Owner-authorised application rollout completed. PR #28 merged as `e70f8c0f166beaa53fd7e8eb22662d4b633ab5bf` (feature commit `1b95fc8`). PR CI https://github.com/digisol-ae/COEX/actions/runs/39727006511 and merged-main CI https://github.com/digisol-ae/COEX/actions/runs/39727214405 passed. Workspace types/lint, formatting, **41 unit files / 255 tests**, final CI build and server native Turbopack build (**71 pages**) passed. Production-only dependency audit: **0 vulnerabilities**; overall dependency audit retains 8 development findings (2 moderate, 6 high), no forced upgrades.
@@ -32,7 +41,7 @@ Wordmark is red lowercase coex with a pale dot. Monogram is white C/dot on a red
 - `scripts/generate-brand-icons.mjs`: regenerates all browser icons from the source monogram. Run `node scripts/generate-brand-icons.mjs` after editing the monogram.
 - `scripts/package-teams.mjs`: generates Teams 192px colour and 32px white-on-transparent outline icons from the same monogram. Removes the red tile only for the outline. Package version advanced to 1.0.1 so installed apps can receive new artwork.
 
-`apps/web/src/components/ui/coex-logo.tsx` is Claude’s theme-aware inline wordmark; it contains the same vector paths but theme-aware dot fills. Static SVG remains the source/export asset.
+`apps/web/src/components/ui/coex-logo.tsx` is Claude’s theme-aware inline wordmark; it renders the high-density transparent letter master plus theme-aware vector dot fills. Static SVG remains the editable source/export asset.
 
 Old `logo-long.png` and `monogram.png` retained as historical assets; active app logo references now use BrandLogo. Do not replace arbitrary initials components with product branding.
 
