@@ -55,7 +55,7 @@ export function AuthShell({
         <PoweredBy rail />
       </section>
 
-      <section className="flex w-full items-center justify-center px-6 py-12 lg:w-1/2">
+      <section className="flex min-w-0 w-full items-center justify-center px-2.5 py-12 min-[360px]:px-6 lg:w-1/2">
         <div className="w-full max-w-sm">
           <BrandLogo className="mb-8 h-10 w-44 max-w-full lg:hidden" priority />
 
