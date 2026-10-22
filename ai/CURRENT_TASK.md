@@ -1,5 +1,16 @@
 # COEX — Current AI Task
 
+## Tutorial link save and requested email behavior — 22 October 2026 (local only)
+
+Validation complete: **46 focused unit tests passed**, focused ESLint and fresh TypeScript passed, local Webpack production build passed (71 pages). Preview 3106 rebuilt/restarted. No commit/push/deployment.
+
+Owner deferred deployment and reported every YouTube link failing with “Not allowed” in Tutorials. Admin page itself requires tenant.manage; POST additionally compared browser Origin to Request.url.origin, which can be an internal HTTP URL behind the HTTPS reverse proxy. Added hasTrustedRequestOrigin: accept exact request origin or configured COEX_APP_URL (AUTH_URL fallback), reject absent/null/unrelated origins and do not trust arbitrary forwarded-host headers. Admin permission requirements remain. Origin failures now explain refresh/retry; account/permission denials have distinct messages. Supplied YouTube /embed/ID?si=... format already normalizes correctly to the privacy-enhanced player, without autoplay; iframe already uses strict-origin-when-cross-origin referrer policy.
+
+Route regression tests exercise the supplied video ID through authenticated draft save with mocked persistence/audit: public HTTPS origin with internal HTTP listener succeeds, canonical embed URL and inactive draft are passed to tenant-scoped update; unrelated/forged origin, missing Origin and non-admin JSON writes fail; local origin and AUTH_URL fallback succeed. Also covers existing link/video rules. Native browser control remains unavailable; actual signed-in save/playback acceptance is not claimed. No real tutorial saved/published and no server changes/deployment for this follow-up.
+
+Owner clarified self-assignment emails should remain suppressed. Locally restored Teams/task creation service and associated tests to pre-override behavior (from 078f03c): emails go to another selected assignee, not the creator assigning themselves. This clarification supersedes preceding self-confirmation decision. Current production still runs the earlier deployed override until the explicitly deferred next rollout; do not describe the local reversal or tutorial fix as deployed. Preserve unrelated projects/.
+
+
 ## Teams self-assignment email fix deployed — 22 October 2026
 
 PR #32 merged as `530e19225b6839dd9c7446999418b07c3a5ac446` (feature `6a41d1f`). PR CI https://github.com/digisol-ae/COEX/actions/runs/39732776761 and main CI https://github.com/digisol-ae/COEX/actions/runs/39733067549 passed. Fresh local Webpack and isolated server native builds passed (71 pages). Existing self-action email suppression caused the creator-default Teams task to queue no email; Teams now opts into initial self-assignment confirmation through the shared service. Normal web behavior and tenant email switches retained; receipt retries cannot create another task/email. No backfill or real test email sent.

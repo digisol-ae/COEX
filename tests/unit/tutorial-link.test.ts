@@ -3,6 +3,7 @@ import { parseVideoLink } from '@/modules/tutorials/video-link';
 describe('tutorial video links', () => {
   it.each([
     'https://youtu.be/M7lc1UVf-VE',
+    'https://www.youtube.com/embed/M7lc1UVf-VE?si=FmNDSFsWTcgmAk4D',
     'https://www.youtube.com/watch?v=M7lc1UVf-VE',
     'https://youtube.com/shorts/M7lc1UVf-VE',
     'https://www.youtube-nocookie.com/embed/M7lc1UVf-VE?autoplay=1',
