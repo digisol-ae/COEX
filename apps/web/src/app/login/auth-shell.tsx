@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 /**
@@ -58,6 +59,17 @@ export function AuthShell({
           <p className="mt-2 text-sm text-[var(--color-ink-muted)]">{intro}</p>
 
           {children}
+          <nav
+            aria-label="Legal information"
+            className="mt-8 flex justify-center gap-5 text-xs text-[var(--color-ink-muted)]"
+          >
+            <Link href="/privacy" className="underline underline-offset-4">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="underline underline-offset-4">
+              Terms of Use
+            </Link>
+          </nav>
         </div>
       </section>
     </main>

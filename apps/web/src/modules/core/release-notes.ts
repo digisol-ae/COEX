@@ -16,6 +16,21 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-22-teams-pilot',
+    date: '22 October 2026',
+    title: 'Teams task creation and public policies',
+    sections: [
+      {
+        heading: 'Connected work',
+        items: [
+          'After your administrator installs the COEX Teams app, use a message’s More actions menu to create a task. Choose a Space or Folder, review the message text, and select an assignee, priority and due date. Your existing COEX permissions apply; sign in to COEX with Microsoft first.',
+          'The task keeps a link to the original Teams message. Chat history and attachments are not copied. Check the destination before sharing private message content.',
+          'Privacy Policy and Terms of Use are now available from the sign-in screen without signing in.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-21-agent-summary',
     date: '21 October 2026',
     title: 'Agent updates: tasks, tickets and your workspace',
