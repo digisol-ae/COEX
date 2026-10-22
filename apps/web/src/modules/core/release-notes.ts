@@ -24,7 +24,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     sections: [
       {
         heading: 'Maintenance update',
-        items: ['2 bug fixes and 1 improvement.'],
+        items: ['3 bug fixes and 1 improvement.'],
       },
     ],
   },

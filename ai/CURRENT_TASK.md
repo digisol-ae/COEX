@@ -1,5 +1,17 @@
 # COEX — Current AI Task
 
+## Login operator attribution — 22 October 2026 (prepared)
+
+Owner requested replacing visible Digisol LLC-FZ on the signed-out shell with “Powered by DigiSol” and the actual DigiSol logo beneath it. AuthShell now shows this footer on desktop rail and below legal links on mobile/tablet, reusing transparent high-resolution public/brand/logo-long.png (3671×1240) at 96px proportional width. Company legal identity remains unchanged in policies. This extends to shared password recovery/reset screens. Branding excluded from What's new as previously requested; existing generic count is 3 bug fixes / 1 improvement for the maintenance work. Local/production build and visual verification pending; Microsoft redirect fix remains in the same reviewed release.
+
+
+## Microsoft callback public redirect — 22 October 2026 (prepared)
+
+Owner reported Continue with Microsoft landing on http://localhost:3002/dashboard after production sign-in. Root cause: callback success and error redirects used Request.url, which is the internal proxy listener. Shared entraReturnUrl now uses configured AUTH_URL / COEX_APP_URL origin for dashboard and login redirects, including not-configured failure. State/PKCE/nonce/token verification, account linking, session cookies and Microsoft registration/secrets unchanged. Cross-origin destination inputs rejected; local configured preview port remains supported.
+
+Eight focused callback/start regressions passed: public success/session cookie, account denial, validation error, cancellation, local 3106, blank AUTH_URL fallback, not-configured error, external destination denial. Focused ESLint and fresh web TypeScript passed. No real Microsoft sign-in performed by automation. What's new remains generic and the existing maintenance count advances to “3 bug fixes and 1 improvement”; same acknowledgement ID, no new feature popup. Deployment pending; preserve projects/ and previous release state until live verification.
+
+
 ## Tutorial maintenance release deployed — 22 October 2026
 
 PR #34 merged as `92525ae237c3e46723bc2461db91ccf05b1968a6` (feature `9af3896`, communication follow-up `ab04ddd`). Final PR CI https://github.com/digisol-ae/COEX/actions/runs/39802601116 and merged-main CI https://github.com/digisol-ae/COEX/actions/runs/39803184419 passed. Full local types/lint/format and **41 unit files / 262 tests** passed; isolated server build passed (71 pages). Tutorial saves now accept configured public origins behind the proxy, with admin/foreign-origin guards retained. Self-assignment email override removed as requested. What's new shows only “2 bug fixes and 1 improvement”; user-facing features/UI changes alone get detailed announcements.
