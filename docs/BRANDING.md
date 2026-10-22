@@ -63,3 +63,7 @@ Web typecheck, focused ESLint, formatting/diff checks and production Webpack bui
 New package: `/Users/syedali/Downloads/COEX-Teams-1.0.1.zip`; previous 1.0.0 ZIP preserved. Files in `/private/tmp/coex-teams-package-1.0.1/` are reproducible build artifacts. Screenshots in `/private/tmp/coex-brand-login-desktop.png` and `/private/tmp/coex-brand-login-mobile-390.png`.
 
 These branding and Teams single-screen changes remain local, uncommitted and undeployed. Last live application still has the previous logo/two-step Teams flow. No live task created or Teams package installed. Separate untracked `projects/` preserved. No branding entry in What’s new, per owner.
+
+## DigiSol operator attribution — 22 October 2026
+
+The shared signed-out shell intentionally reuses `public/brand/logo-long.png` (3671×1240 transparent DigiSol wordmark) at 96px proportional width beneath “Powered by DigiSol”. This is the exception to historical-only DigiSol asset use above; Coex product logos remain unchanged. Desktop rail and mobile/tablet footer replace the former visible company text. Legal policies retain Digisol LLC-FZ. `auth-shell.tsx` controls this responsive JSX/TypeScript layout; Markdown guides record rationale, QA and handover. No branding entry in What's new.
