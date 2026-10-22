@@ -47,7 +47,8 @@ mongoose.models.TeamsTaskReceipt = {
   create: mocks.reserve,
   updateOne: mocks.update,
 } as never;
-const { handleTeamsActivity } = await import('@/modules/integrations/teams/teams.service');
+const { handleTeamsActivity, loadTeamsForm } =
+  await import('@/modules/integrations/teams/teams.service');
 const { activitySchema, signDraft } = await import('@/modules/integrations/teams/teams-protocol');
 const tenantId = 'aaaaaaaaaaaaaaaaaaaaaaaa';
 const actorId = 'bbbbbbbbbbbbbbbbbbbbbbbb';
@@ -115,6 +116,23 @@ beforeEach(async () => {
 });
 
 describe('Teams task access and duplicate protection', () => {
+  it('rejects invalid form-loader tokens before accessing the database', async () => {
+    await expect(loadTeamsForm('not-a-signed-token', settings)).rejects.toThrow();
+    expect(mocks.connect).not.toHaveBeenCalled();
+  });
+  it('rejects a signed form for another tenant before accessing the database', async () => {
+    const foreign = await signDraft(
+      {
+        sub: actorId,
+        tenant: 'ffffffffffffffffffffffff',
+        text: 'private',
+        url: 'https://teams.microsoft.com/l/message/x/1',
+      },
+      settings.secret,
+    );
+    await expect(loadTeamsForm(foreign, settings)).rejects.toThrow();
+    expect(mocks.connect).not.toHaveBeenCalled();
+  });
   it('creates through the existing service with source provenance and reserves first', async () => {
     await invoke({ destination: `${spaceId}:${folderId}`, dueDate: '2026-10-22' });
     expect(mocks.create).toHaveBeenCalledWith(
@@ -124,7 +142,7 @@ describe('Teams task access and duplicate protection', () => {
         description: expect.stringContaining(
           'Original Teams message: https://teams.microsoft.com/',
         ),
-        endAt: '2026-10-22',
+        endAt: '2026-10-22T00:00',
       }),
     );
     expect(mocks.reserve.mock.invocationCallOrder[0]).toBeLessThan(
@@ -175,14 +193,16 @@ describe('Teams task access and duplicate protection', () => {
     );
     expect(mocks.reserve).not.toHaveBeenCalled();
   });
-  it('filters the assignee picker for the chosen destination before creation', async () => {
-    mocks.allowed.mockResolvedValue([actorId]);
-    const response = await invoke({ step: 'destination' });
-    expect(mocks.users).toHaveBeenLastCalledWith(
-      expect.objectContaining({ _id: { $in: [actorId] }, tenantId: actor.tenantId }),
+  it('defaults assignment to the creator and accepts separate space/folder with time', async () => {
+    await invoke({ spaceId, folderId, dueDate: '2026-10-22', dueTime: '09:30' });
+    expect(mocks.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        spaceId,
+        folderId,
+        assigneeIds: [actorId],
+        endAt: '2026-10-22T09:30',
+      }),
     );
-    expect(JSON.stringify(response)).toContain('Eligible agent');
-    expect(mocks.create).not.toHaveBeenCalled();
   });
   it('rejects an assignee who cannot access the destination', async () => {
     mocks.allowed.mockResolvedValue([]);

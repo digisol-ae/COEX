@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import sharp from 'sharp';
@@ -19,7 +19,7 @@ const manifest = {
   $schema:
     'https://developer.microsoft.com/en-us/json-schemas/teams/v1.17/MicrosoftTeams.schema.json',
   manifestVersion: '1.17',
-  version: '1.0.0',
+  version: '1.0.1',
   id: appId,
   developer: {
     name: 'Digisol LLC-FZ',
@@ -53,14 +53,11 @@ const manifest = {
   validDomains: [baseUrl.hostname],
 };
 await writeFile(resolve(output, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
-const icon = Buffer.from(
-  '<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg"><rect width="192" height="192" rx="32" fill="#101827"/><path d="M137 61a50 50 0 1 0 0 70" stroke="#50e3c2" stroke-width="18" fill="none" stroke-linecap="round"/></svg>',
-);
-await sharp(icon).png().toFile(resolve(output, 'color.png'));
-const outline = Buffer.from(
-  '<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><path d="M24 7a12 12 0 1 0 0 18" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/></svg>',
-);
-await sharp(outline).png().toFile(resolve(output, 'outline.png'));
+const icon = await readFile(new URL('../apps/web/public/brand/coex-monogram.svg', import.meta.url));
+await sharp(icon).resize(192, 192).png().toFile(resolve(output, 'color.png'));
+// Teams requires white artwork on transparency: preserve the C/dot and remove its red tile.
+const outline = Buffer.from(icon.toString('utf8').replace(/<rect[^>]*\/>/, ''));
+await sharp(outline).resize(32, 32).png().toFile(resolve(output, 'outline.png'));
 const result = spawnSync(
   'zip',
   [

@@ -1,5 +1,6 @@
 import { GlobalTooltip } from '@/components/ui/global-tooltip';
 import Link from 'next/link';
+import { BrandLogo } from '@/components/brand-logo';
 import { getSignedInUser } from '@/lib/session';
 import { UserMenu } from '@/components/navigation/user-menu';
 import { BrowserNotifications } from '@/components/navigation/browser-notifications';
@@ -9,8 +10,8 @@ export default async function PortalLayout({ children }: { children: React.React
     <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-ink)]">
       <header className="border-b border-[var(--color-line)] px-4 py-3">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3">
-          <Link href="/portal" className="font-bold">
-            COEX{' '}
+          <Link href="/portal" className="flex flex-wrap items-center gap-2 font-bold">
+            <BrandLogo className="h-7 w-auto" />
             <span className="font-normal text-[var(--color-ink-muted)]">· Customer portal</span>
           </Link>
           {user ? (

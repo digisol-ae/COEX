@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-8 257 1496 328" role="img" aria-label="COEX">
+  <title>COEX</title>
+  <g fill="none" stroke="#EE3E51" stroke-width="64" stroke-linecap="round" stroke-linejoin="round">
+    <!-- c -->
+    <path d="M243.7 333.3A124 124 0 1 0 243.7 508.7"/>
+    <!-- o -->
+    <circle cx="524" cy="421" r="124"/>
+    <!-- e -->
+    <path d="M768 421H1016A124 124 0 1 0 979.7 508.7"/>
+    <!-- x -->
+    <path d="M1160 297L1360 545M1360 297L1160 545"/>
+  </g>
+  <!-- Same pill dot as the DigiSol wordmark -->
+  <circle cx="1440" cy="546" r="36" fill="#E4E4E4"/>
+  <circle cx="1440" cy="546" r="28" fill="#F6F6F6"/>
+</svg>

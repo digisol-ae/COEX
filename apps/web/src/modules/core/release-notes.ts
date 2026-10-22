@@ -23,7 +23,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
       {
         heading: 'Connected work',
         items: [
-          'After your administrator installs the COEX Teams app, use a message’s More actions menu to create a task. Choose a Space or Folder, review the message text, and select an assignee, priority and due date. Your existing COEX permissions apply; sign in to COEX with Microsoft first.',
+          'Now you can create COEX tasks directly from Microsoft Teams messages. Use a message’s More actions menu, choose a Space or Folder, and select an assignee, priority and due date.',
           'The task keeps a link to the original Teams message. Chat history and attachments are not copied. Check the destination before sharing private message content.',
           'Privacy Policy and Terms of Use are now available from the sign-in screen without signing in.',
         ],

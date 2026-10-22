@@ -4,10 +4,12 @@ Status: backend and public policies deployed/verified on 22 October 2026 at appl
 
 ## Agent experience
 
+The single-screen form below is implemented locally; the previously deployed baseline still uses the destination-first card until the next release.
+
 1. On a Teams message, select **… → More actions → Create COEX task**.
-2. Choose an accessible active Space or Folder, then Continue.
-3. Review the prefilled title/description; select an eligible assignee, priority and optional due date.
-4. Create task. The confirmation includes **Open in COEX**.
+2. In one screen, review title/description; choose **Space**, **Folder**, **Assignee**, **Date** and **Time**, and priority.
+3. Creator is selected by default where eligible. Space changes reset folder/assignee and filter eligible options. Private-destination membership restrictions remain enforced.
+4. Select Create task; confirmation includes Open in COEX. Due date/time use COEX office time **Asia/Dubai**; time requires a date. Date without time uses office midnight.
 
 The original message link is appended to the description. This copies selected message text only: no attachments, replies, chat history or Microsoft Graph access. Source chat participants do not automatically gain COEX task access. The agent must choose a task destination appropriate for the message's audience. Confirmation stays in the agent's dialog; this version does not automatically post to the chat or send Teams notifications. Existing COEX assignment alerts still use the existing service.
 
@@ -80,3 +82,13 @@ Server `/srv/coex/app` clean at application SHA after deploy, four expected PM2 
 Live verification: https://coex.digisol.ae/privacy, /terms and /login return 200; operator Digisol LLC-FZ, contact info@digisol.ae and public policy links verified. Teams endpoint returns 401 for well-formed unsigned invoke (configured and refusing unauthenticated access). No real Teams invoke/task creation yet. ZIP `/Users/syedali/Downloads/COEX-Teams-1.0.0.zip` prepared; SHA256 `2b0fe5e748e09a271c6bb5f4d536fd65d52dbcef0b573d7f54fd7e9a150ce72d`. Microsoft schema validation passed, Developer Portal/client installation acceptance remains pending.
 
 Next: user installs ZIP through Teams approved custom-app process, then validate actual message action, linked staff identity, destination/eligible assignee, one saved task/source link and duplicate prevention. Native browser automation unavailable; no visual/Teams end-to-end claim. Public policy deployment completes; **Teams installation and functional pilot remain open**. No separate `projects/` files committed. File-type explanations are in `ai/RELEASE-2026-10-22-TEAMS.md`; implementation/operating guides in `docs/MICROSOFT-TEAMS.md` and `docs/LEGAL-PAGES.md`. Subsequent docs-only pull requires no application rebuild/restart.
+
+## Single-screen Teams create form — 22 October 2026 (local)
+
+Owner requested one screen with separate Space, Folder, Assignee, Date and Time controls; creator selected as default assignee. Replaced destination/Continue card with a TeamsJS HTML dialog. Title/description/priority retained; Space changes reset Folder and eligible people; creator defaults where eligible, otherwise explicit unassigned notice rather than breaking private membership rules. Server defaults omitted assignee to creator, permits explicit unassigned and rechecks destination/assignee on signed Connector submission. Separate date/time combine into task endAt using existing Asia/Dubai office-time parsing; time without date rejected.
+
+New `.tsx` files under `app/integrations/teams/create/` render the single screen; `form-model.ts` filters choices and computes creator default. Read-only `api/integrations/teams/form/route.ts` verifies a signed 15-minute draft and active linked staff/task access before loading choices; body bounded 32KiB, no-store, no-referrer. Draft arrives in URL fragment, is removed from visible history and POSTed in body, never in request URL/query/referrer. Creation still requires Microsoft-signed submitAction and unique receipt. TeamsJS SDK 2.58.0 added with lockfile; Next headers permit framing only for this dialog by Teams/Microsoft hosts. Existing manifest validDomains already covers the dialog; no ZIP change required for this server UI update.
+
+Validation: web typecheck/focused ESLint and 41 unit files / 255 tests passed, including folder/assignee filtering, creator default, private membership, date/time/office conversion, invalid and foreign-tenant form tokens and prior duplicate guards. Production build verification recorded after completion below. Actual Teams/webview/mobile acceptance remains pending. This change and the simplified What's new copy are LOCAL ONLY; last live code remains the previously deployed application release. Do not confuse this form with the old two-step flow currently deployed. No commit/push/deployment or real task creation for this follow-up; unrelated `projects/` untouched.
+
+Single-screen form plus branding follow-up: production build passed (71 pages). Local branded installer is `/Users/syedali/Downloads/COEX-Teams-1.0.1.zip`; this supersedes 1.0.0 artwork for the next install/update. Current server still runs the earlier two-step flow until follow-up deployment. See `docs/BRANDING.md` for artwork derivation.

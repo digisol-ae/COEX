@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { BrandLogo } from '@/components/brand-logo';
 import { DeskIcon } from '@/components/ui/desk-icon';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { clsx } from 'clsx';
@@ -159,7 +160,7 @@ export function IconRail({
         aria-label="COEX home"
         className="mb-2 flex h-9 w-9 items-center justify-center rounded-[10px] bg-[image:var(--gradient-brand)] text-sm font-bold text-white"
       >
-        C
+        <BrandLogo mark className="h-9 w-9" />
       </Link>
 
       <RailLinks permissions={permissions} counts={counts} groupOrder={groupOrder} />
