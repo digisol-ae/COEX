@@ -30,3 +30,7 @@ The Azure Bot/Teams channel setup is user-reported in the Teams guide. No commit
 ## Reference
 
 Microsoft's [Teams validation guidelines](https://learn.microsoft.com/en-us/microsoftteams/platform/publishing/office-store-approval) require public privacy and terms pages, contact details, and disclosure of storage/retention/deletion and security controls. Meeting these content points alone does not establish store approval or legal compliance.
+
+## Deployment update — 22 October 2026
+
+Policies deployed with application SHA `77e84585ce0626aa8f9dbcddf5bb2518ec5bb5ab`; both production HTTPS routes and login return 200 with operator/contact/navigation verified. The previous local-only paragraphs above describe pre-release QA. ZIP copied to `/Users/syedali/Downloads/COEX-Teams-1.0.0.zip`. Actual Teams installation/pilot remains pending. See `ai/RELEASE-2026-10-22-TEAMS.md` for full release evidence.
