@@ -171,15 +171,18 @@ export async function handleTeamsActivity(
       }
       // If downstream work fails after insertion, leave the receipt pending. Check the task list
       // before starting a NEW form; automatically retrying could duplicate a saved task.
-      const taskId = await createTask({
-        spaceId,
-        folderId: folderId ?? null,
-        title: input.title,
-        description: `${input.description || draft.text}\n\nOriginal Teams message: ${draft.url}`,
-        assigneeIds: assigneeId ? [assigneeId] : [],
-        priority: input.priority,
-        endAt: input.dueDate ? `${input.dueDate}T${input.dueTime || '00:00'}` : null,
-      });
+      const taskId = await createTask(
+        {
+          spaceId,
+          folderId: folderId ?? null,
+          title: input.title,
+          description: `${input.description || draft.text}\n\nOriginal Teams message: ${draft.url}`,
+          assigneeIds: assigneeId ? [assigneeId] : [],
+          priority: input.priority,
+          endAt: input.dueDate ? `${input.dueDate}T${input.dueTime || '00:00'}` : null,
+        },
+        { notifySelf: true },
+      );
       await Receipts.updateOne({ _id: draft.jti }, { $set: { taskId } });
       return receiptResponse(taskId, settings.url);
     },
