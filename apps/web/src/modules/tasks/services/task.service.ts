@@ -765,7 +765,11 @@ export async function assignableUserIdsForSubtask(task: {
   return assignableUserIdsForTask(task);
 }
 
-export async function createTask(input: CreateTaskInput): Promise<string> {
+export async function createTask(
+  input: CreateTaskInput,
+  /** External entry points can confirm a new task even when its creator is the assignee. */
+  options: { notifySelf?: boolean } = {},
+): Promise<string> {
   await connectToDatabase();
 
   const space = await SpaceModel.findOne({
@@ -834,7 +838,9 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     after: { number: created.number, title: created.title, space: space.name },
   });
 
-  await alertNewAssignees(created, [], created.assigneeIds.map(String));
+  await alertNewAssignees(created, [], created.assigneeIds.map(String), created.title, {
+    evenIfSelf: options.notifySelf,
+  });
 
   // A task against a customer belongs on that customer's timeline, which is the whole point of
   // keeping one activity collection.
@@ -1460,17 +1466,24 @@ async function alertNewAssignees(
   beforeIds: string[],
   afterIds: string[],
   title = task.title,
+  options: { evenIfSelf?: boolean } = {},
 ): Promise<void> {
   const added = afterIds.filter((id) => !beforeIds.includes(id));
   for (const userId of added) {
     try {
-      await alertStaff('task_assigned', userId, `[${task.number}] Assigned to you: ${title}`, [
-        `Task ${task.number} has been assigned to you.`,
-        '',
-        title,
-        '',
-        `${appBaseUrl()}/tasks/${task._id}`,
-      ]);
+      await alertStaff(
+        'task_assigned',
+        userId,
+        `[${task.number}] Assigned to you: ${title}`,
+        [
+          `Task ${task.number} has been assigned to you.`,
+          '',
+          title,
+          '',
+          `${appBaseUrl()}/tasks/${task._id}`,
+        ],
+        options,
+      );
     } catch (error) {
       console.error('Task alert skipped:', error instanceof Error ? error.message : error);
     }

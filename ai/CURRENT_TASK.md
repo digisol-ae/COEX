@@ -1,5 +1,14 @@
 # COEX — Current AI Task
 
+## Teams self-assignment email correction — 22 October 2026 (prepared)
+
+Production read-only diagnosis: Teams task DGS-T-472 was self-assigned and had no assignment outbox row. Earlier Teams task DGS-T-470 was assigned to another person and its email was sent; outbound and task-assignment settings are enabled. Root cause is existing `alertStaff` self-action suppression combined with the new creator-default assignee, not a disabled worker or SMTP outage.
+
+Teams now calls the shared `createTask` with trusted service option `{ notifySelf: true }`; this forwards the existing `evenIfSelf` email option for initial assignee alerts. Ordinary web creation/assignment keeps self-action suppression. Existing outbound/taskAssigned settings still apply; no separate send path, changes to private destination checks, automatic backfill or duplicate-receipt replay. A retry still returns the existing task without another creation/email.
+
+Validation: 14 Teams service unit tests, focused ESLint and fresh web TypeScript passed. Real queue regression passed (1 selected / 51 skipped), checking ordinary self-assignment queues nothing, explicit external confirmation queues exactly one pending task_assigned email to the creator with task URL, and both tenant switches suppress later mail. Shared Atlas test run hit its 500-collection infrastructure limit; protected server MongoDB required auth. Final regression ran against a separate temporary loopback MongoDB on 27019, forced `coex_test_tasks` database, no production credentials or mail worker. Temporary MongoDB stopped afterwards. No real email/task created during QA. Source files: teams.service.ts selects the confirmation behavior; task.service.ts shares existing queue logic; tests/database/tasks.test.ts verifies persisted outbox behavior. Production rollout pending, using the isolated/graceful process in deploy/ZERO-DOWNTIME.md.
+
+
 ## Responsive logo release live — 22 October 2026
 
 PR #30 merged as `a5d5356f4d903556df8cf01217e38d64c49c9de9` (feature `bb66964`). PR CI https://github.com/digisol-ae/COEX/actions/runs/39729739615 and main CI https://github.com/digisol-ae/COEX/actions/runs/39730246182 passed. Server isolated native build passed (71 pages). Transparent 1496×328 wordmark and 512×512 monogram generated from source SVGs; shared responsive sizes and theme-aware dot retained. No What’s new logo entry; unrelated `projects/` excluded.

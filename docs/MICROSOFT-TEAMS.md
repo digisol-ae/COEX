@@ -1,5 +1,14 @@
 # Microsoft Teams → COEX tasks
 
+## Teams self-assignment email correction — 22 October 2026 (prepared)
+
+Production read-only diagnosis: Teams task DGS-T-472 was self-assigned and had no assignment outbox row. Earlier Teams task DGS-T-470 was assigned to another person and its email was sent; outbound and task-assignment settings are enabled. Root cause is existing `alertStaff` self-action suppression combined with the new creator-default assignee, not a disabled worker or SMTP outage.
+
+Teams now calls the shared `createTask` with trusted service option `{ notifySelf: true }`; this forwards the existing `evenIfSelf` email option for initial assignee alerts. Ordinary web creation/assignment keeps self-action suppression. Existing outbound/taskAssigned settings still apply; no separate send path, changes to private destination checks, automatic backfill or duplicate-receipt replay. A retry still returns the existing task without another creation/email.
+
+Validation: 14 Teams service unit tests, focused ESLint and fresh web TypeScript passed. Real queue regression passed (1 selected / 51 skipped), checking ordinary self-assignment queues nothing, explicit external confirmation queues exactly one pending task_assigned email to the creator with task URL, and both tenant switches suppress later mail. Shared Atlas test run hit its 500-collection infrastructure limit; protected server MongoDB required auth. Final regression ran against a separate temporary loopback MongoDB on 27019, forced `coex_test_tasks` database, no production credentials or mail worker. Temporary MongoDB stopped afterwards. No real email/task created during QA. Source files: teams.service.ts selects the confirmation behavior; task.service.ts shares existing queue logic; tests/database/tasks.test.ts verifies persisted outbox behavior. Production rollout pending, using the isolated/graceful process in deploy/ZERO-DOWNTIME.md.
+
+
 ## Single-screen Teams and COEX branding deployed — 22 October 2026
 
 Owner-authorised application rollout completed. PR #28 merged as `e70f8c0f166beaa53fd7e8eb22662d4b633ab5bf` (feature commit `1b95fc8`). PR CI https://github.com/digisol-ae/COEX/actions/runs/39727006511 and merged-main CI https://github.com/digisol-ae/COEX/actions/runs/39727214405 passed. Workspace types/lint, formatting, **41 unit files / 255 tests**, final CI build and server native Turbopack build (**71 pages**) passed. Production-only dependency audit: **0 vulnerabilities**; overall dependency audit retains 8 development findings (2 moderate, 6 high), no forced upgrades.
