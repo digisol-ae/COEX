@@ -27,6 +27,22 @@ const repositoryRoot = existsSync(path.resolve(process.cwd(), '../../packages/sh
  * genuine need for something larger shows up.
  */
 const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        source: '/integrations/teams/create',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value:
+              "frame-ancestors 'self' https://teams.microsoft.com https://*.teams.microsoft.com https://*.cloud.microsoft https://*.skype.com",
+          },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+          { key: 'Cache-Control', value: 'no-store' },
+        ],
+      },
+    ];
+  },
   // A phone on the same Wi-Fi reaches the development server by the Mac's LAN address rather
   // than localhost. Keep that temporary address in .env.local, never in source control.
   allowedDevOrigins: process.env.COEX_DEV_ORIGIN ? [process.env.COEX_DEV_ORIGIN] : undefined,

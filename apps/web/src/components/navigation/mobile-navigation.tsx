@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { BrandLogo } from '@/components/brand-logo';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -107,7 +107,7 @@ export function MobileNavigation({
                     aria-label="COEX home"
                     className="mb-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[image:var(--gradient-brand)] text-sm font-bold text-white"
                   >
-                    C
+                    <BrandLogo mark className="h-9 w-9" />
                   </Link>
                   <RailLinks
                     permissions={permissions}
@@ -125,13 +125,7 @@ export function MobileNavigation({
                       aria-label={`${tenantName} home`}
                       title={tenantName}
                     >
-                      <Image
-                        src="/brand/logo-long.png"
-                        alt={tenantName}
-                        width={148}
-                        height={50}
-                        className="h-9 w-auto"
-                      />
+                      <BrandLogo className="h-10 w-44 max-w-full" />
                     </Link>
 
                     <button

@@ -123,24 +123,47 @@ export async function readDraft(
   return draft;
 }
 
-export const taskFieldsSchema = z.object({
-  draft: z.string().min(1).max(24000),
-  title: z.string().trim().min(1).max(250),
-  description: z.string().trim().max(12000).default(''),
-  destination: z.string().regex(/^[a-f\d]{24}(?::[a-f\d]{24})?$/i),
-  assignee: z.union([z.literal(''), z.string().regex(/^[a-f\d]{24}$/i)]).default(''),
-  priority: z.enum(['low', 'normal', 'high', 'urgent']).default('normal'),
-  dueDate: z
-    .string()
-    .default('')
-    .refine(
-      (value) =>
-        !value ||
-        (/^\d{4}-\d{2}-\d{2}$/.test(value) &&
-          !Number.isNaN(Date.parse(value)) &&
-          new Date(value).toISOString().slice(0, 10) === value),
-    ),
-});
+export const taskFieldsSchema = z
+  .object({
+    draft: z.string().min(1).max(24000),
+    title: z.string().trim().min(1).max(250),
+    description: z.string().trim().max(12000).default(''),
+    destination: z
+      .string()
+      .regex(/^[a-f\d]{24}(?::[a-f\d]{24})?$/i)
+      .optional(),
+    spaceId: z
+      .string()
+      .regex(/^[a-f\d]{24}$/i)
+      .optional(),
+    folderId: z.union([z.literal(''), z.string().regex(/^[a-f\d]{24}$/i)]).default(''),
+    assignee: z.union([z.literal(''), z.string().regex(/^[a-f\d]{24}$/i)]).optional(),
+    priority: z.enum(['low', 'normal', 'high', 'urgent']).default('normal'),
+    dueTime: z
+      .string()
+      .regex(/^(?:[01]\d|2[0-3]):[0-5]\d$|^$/)
+      .default(''),
+    dueDate: z
+      .string()
+      .default('')
+      .refine(
+        (value) =>
+          !value ||
+          (/^\d{4}-\d{2}-\d{2}$/.test(value) &&
+            !Number.isNaN(Date.parse(value)) &&
+            new Date(value).toISOString().slice(0, 10) === value),
+      ),
+  })
+  .refine((value) => Boolean(value.spaceId || value.destination), { message: 'Choose a space.' })
+  .refine((value) => !value.dueTime || Boolean(value.dueDate), {
+    message: 'Choose a date with the time.',
+  })
+  .transform((value) => ({
+    ...value,
+    destination: value.spaceId
+      ? value.spaceId + (value.folderId ? ':' + value.folderId : '')
+      : value.destination!,
+  }));
 
 export function messageResponse(text: string) {
   return { task: { type: 'message', value: text } };

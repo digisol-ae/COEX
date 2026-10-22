@@ -1,5 +1,19 @@
 # COEX
 
+## COEX SVG branding — 22 October 2026 (local)
+
+Imported Claude’s wordmark/monogram from branch `claude/sleepy-faraday-ijs3cj`, source commit `93b892b`, at owner’s request. Shared BrandLogo applies across desktop/mobile navigation, sign-in/recovery, portal, policies and Teams create form; browser/touch/Teams icons derived from monogram. Wordmark canvas expanded to prevent clipped C stroke; colours/shapes retained. Teams ZIP 1.0.1 generated. Owner explicitly requested **no What’s new entry for logo work**; only the previously requested Teams wording change is in release-notes.ts.
+
+Typecheck, focused lint, formatting/diff and production build (71 pages) passed. Guide `docs/BRANDING.md` explains asset/source/component mapping and icon regeneration. Prior single-screen Teams checks: 255 unit tests passed. Local only, no commit/push/deployment; current production remains previous branding/two-step Teams flow. Preserve existing Teams edits and `projects/`.
+
+## Single-screen Teams create form — 22 October 2026 (local)
+
+Owner requested one screen with separate Space, Folder, Assignee, Date and Time controls; creator selected as default assignee. Replaced destination/Continue card with a TeamsJS HTML dialog. Title/description/priority retained; Space changes reset Folder and eligible people; creator defaults where eligible, otherwise explicit unassigned notice rather than breaking private membership rules. Server defaults omitted assignee to creator, permits explicit unassigned and rechecks destination/assignee on signed Connector submission. Separate date/time combine into task endAt using existing Asia/Dubai office-time parsing; time without date rejected.
+
+New `.tsx` files under `app/integrations/teams/create/` render the single screen; `form-model.ts` filters choices and computes creator default. Read-only `api/integrations/teams/form/route.ts` verifies a signed 15-minute draft and active linked staff/task access before loading choices; body bounded 32KiB, no-store, no-referrer. Draft arrives in URL fragment, is removed from visible history and POSTed in body, never in request URL/query/referrer. Creation still requires Microsoft-signed submitAction and unique receipt. TeamsJS SDK 2.58.0 added with lockfile; Next headers permit framing only for this dialog by Teams/Microsoft hosts. Existing manifest validDomains already covers the dialog; no ZIP change required for this server UI update.
+
+Validation: web typecheck/focused ESLint and 41 unit files / 255 tests passed, including folder/assignee filtering, creator default, private membership, date/time/office conversion, invalid and foreign-tenant form tokens and prior duplicate guards. Production build verification recorded after completion below. Actual Teams/webview/mobile acceptance remains pending. This change and the simplified What's new copy are LOCAL ONLY; last live code remains the previously deployed application release. Do not confuse this form with the old two-step flow currently deployed. No commit/push/deployment or real task creation for this follow-up; unrelated `projects/` untouched.
+
 ## Teams backend and policy deployment verified — 22 October 2026
 
 Owner authorised complete rollout with guided explanations. Application PR #26 merged as `77e84585ce0626aa8f9dbcddf5bb2518ec5bb5ab`; PR CI https://github.com/digisol-ae/COEX/actions/runs/39721227941 and main CI https://github.com/digisol-ae/COEX/actions/runs/39721496951 passed. Local full workspace types/lint, 40 unit files / 249 tests, formatting, Microsoft Teams manifest schema and local/server builds passed; server native Turbopack build generated 67 pages.

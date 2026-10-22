@@ -1,3 +1,4 @@
+import { decodeJwt } from 'jose';
 import { Schema, model, models } from 'mongoose';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { TenantModel } from '@coex/shared/core/models/tenant.model';
@@ -92,63 +93,24 @@ export async function handleTeamsActivity(
     async () => {
       if (activity.name === 'composeExtension/fetchTask') {
         const source = sourceMessage(activity);
-        const spaces = await SpaceModel.find({
-          tenantId: actor.tenantId,
-          deletedAt: null,
-          status: 'active',
-          isPersonal: { $ne: true },
-          ...(await visibleSpaceFilter()),
-        })
-          .sort({ name: 1 })
-          .select('_id name');
-        const folderIds = await visibleFolderIds();
-        const folders = await FolderModel.find({
-          tenantId: actor.tenantId,
-          deletedAt: null,
-          status: 'active',
-          spaceId: { $in: spaces.map((s) => s._id) },
-          ...(folderIds === null ? {} : { _id: { $in: folderIds } }),
-        })
-          .sort({ name: 1 })
-          .select('_id name spaceId');
-        if (!spaces.length)
-          return messageResponse(
-            'No active COEX space is available to your account. Ask your administrator for access.',
-          );
         const draft = await signDraft(
           { sub: String(actor._id), tenant: settings.tenantId, ...source },
           settings.secret,
         );
-        return taskCard(
-          'Choose a destination',
-          [
-            {
-              type: 'Input.ChoiceSet',
-              id: 'destination',
-              label: 'Space / folder',
-              isRequired: true,
-              errorMessage: 'Choose a destination.',
-              style: 'compact',
-              choices: spaces.flatMap((space) => [
-                { title: space.name, value: String(space._id) },
-                ...folders
-                  .filter((f) => String(f.spaceId) === String(space._id))
-                  .map((f) => ({
-                    title: `${space.name} / ${f.name}`,
-                    value: `${space._id}:${f._id}`,
-                  })),
-              ]),
+        return {
+          task: {
+            type: 'continue',
+            value: {
+              title: 'Create COEX task',
+              width: 'large',
+              height: 'large',
+              url: `${settings.url}/integrations/teams/create#draft=${encodeURIComponent(draft)}`,
             },
-          ],
-          { type: 'Action.Submit', title: 'Continue', data: { step: 'destination', draft } },
-        );
+          },
+        };
       }
 
-      const parsed = taskFieldsSchema.safeParse(
-        activity.value.data?.step === 'destination'
-          ? { ...activity.value.data, title: 'Draft' }
-          : activity.value.data,
-      );
+      const parsed = taskFieldsSchema.safeParse(activity.value.data);
       if (!parsed.success)
         return messageResponse('Check the title, destination and due date, then try again.');
       const input = parsed.data;
@@ -185,83 +147,17 @@ export async function handleTeamsActivity(
             'That folder is no longer available to you. Open a new task form.',
           );
       }
-      if (activity.value.data?.step === 'destination') {
-        const allowed = await assignableUserIdsForTask({ spaceId, folderId });
-        const people = await UserModel.find({
-          tenantId: actor.tenantId,
-          deletedAt: null,
-          status: 'active',
-          role: { $ne: 'client_contact' },
-          ...(allowed === null ? {} : { _id: { $in: allowed } }),
-        })
-          .sort({ name: 1 })
-          .select('_id name');
-        return taskCard(
-          'Create COEX task',
-          [
-            { type: 'TextBlock', text: `Space: ${space.name}`, weight: 'Bolder', wrap: true },
-            {
-              type: 'Input.Text',
-              id: 'title',
-              label: 'Title',
-              value: draft.text.split('\n')[0].slice(0, 250),
-              isRequired: true,
-              errorMessage: 'Enter a title.',
-              maxLength: 250,
-            },
-            {
-              type: 'Input.Text',
-              id: 'description',
-              label: 'Description',
-              value: draft.text,
-              isMultiline: true,
-              maxLength: 12000,
-            },
-            {
-              type: 'Input.ChoiceSet',
-              id: 'assignee',
-              label: 'Assignee',
-              style: 'compact',
-              choices: [
-                { title: 'Unassigned', value: '' },
-                ...people.map((p) => ({ title: p.name, value: String(p._id) })),
-              ],
-            },
-            {
-              type: 'Input.ChoiceSet',
-              id: 'priority',
-              label: 'Priority',
-              value: 'normal',
-              choices: ['low', 'normal', 'high', 'urgent'].map((value) => ({
-                title: value[0].toUpperCase() + value.slice(1),
-                value,
-              })),
-            },
-            { type: 'Input.Date', id: 'dueDate', label: 'Due date (optional)' },
-            {
-              type: 'TextBlock',
-              text: 'The original message link will be saved. Files and chat history are not copied.',
-              wrap: true,
-              isSubtle: true,
-            },
-          ],
-          {
-            type: 'Action.Submit',
-            title: 'Create task',
-            data: { draft: input.draft, destination: input.destination },
-          },
-        );
-      }
-      if (input.assignee) {
+      const assigneeId = input.assignee ?? String(actor._id);
+      if (assigneeId) {
         const person = await UserModel.findOne({
-          _id: input.assignee,
+          _id: assigneeId,
           tenantId: actor.tenantId,
           status: 'active',
           deletedAt: null,
           role: { $ne: 'client_contact' },
         });
         const allowed = await assignableUserIdsForTask({ spaceId, folderId });
-        if (!person || (allowed && !allowed.includes(input.assignee)))
+        if (!person || (allowed && !allowed.includes(assigneeId)))
           return messageResponse(
             'That person cannot be assigned in this space/folder. Choose another assignee in a new form.',
           );
@@ -280,9 +176,9 @@ export async function handleTeamsActivity(
         folderId: folderId ?? null,
         title: input.title,
         description: `${input.description || draft.text}\n\nOriginal Teams message: ${draft.url}`,
-        assigneeIds: input.assignee ? [input.assignee] : [],
+        assigneeIds: assigneeId ? [assigneeId] : [],
         priority: input.priority,
-        endAt: input.dueDate || null,
+        endAt: input.dueDate ? `${input.dueDate}T${input.dueTime || '00:00'}` : null,
       });
       await Receipts.updateOne({ _id: draft.jti }, { $set: { taskId } });
       return receiptResponse(taskId, settings.url);
@@ -318,25 +214,90 @@ function receiptResponse(taskId: string | null | undefined, url: string) {
   };
 }
 
-function taskCard(title: string, body: Record<string, unknown>[], action: Record<string, unknown>) {
-  return {
-    task: {
-      type: 'continue',
-      value: {
-        title,
-        width: 'medium',
-        height: 'large',
-        card: {
-          contentType: 'application/vnd.microsoft.card.adaptive',
-          content: {
-            type: 'AdaptiveCard',
-            version: '1.4',
-            $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
-            body,
-            actions: [action],
-          },
-        },
-      },
+/** A short-lived signed draft grants only read access to the form's permitted choices.
+ * It arrives in the URL fragment (not proxy logs/referrers) and is POSTed to this loader.
+ * Creation still goes through a Microsoft-signed submitAction; this loader cannot write tasks. */
+export async function loadTeamsForm(
+  token: string,
+  settings: NonNullable<ReturnType<typeof teamsConfig>>,
+) {
+  const subject = decodeJwt(token).sub;
+  if (!subject || !/^[a-f\d]{24}$/i.test(subject)) throw new Error('Invalid draft');
+  const draft = await readDraft(token, subject, settings.tenantId, settings.secret);
+  await connectToDatabase();
+  const [actor, tenant] = await Promise.all([
+    UserModel.findOne({
+      _id: subject,
+      tenantId: settings.tenantId,
+      status: 'active',
+      deletedAt: null,
+      entraObjectId: { $type: 'string' },
+      role: { $ne: 'client_contact' },
+    }),
+    TenantModel.findOne({ _id: settings.tenantId, status: 'active' }),
+  ]);
+  if (
+    !actor ||
+    !tenant?.modules?.tasks ||
+    !permissionsFor({
+      role: actor.role as Role,
+      permissionGrants: actor.permissionGrants,
+      permissionDenials: actor.permissionDenials,
+    }).has('task.manage')
+  )
+    throw new Error('Access denied');
+  return runWithContext(
+    {
+      tenantId: actor.tenantId,
+      userId: actor._id,
+      isPlatformAdmin: actor.role === 'platform_admin',
     },
-  };
+    async () => {
+      const spaces = await SpaceModel.find({
+        tenantId: actor.tenantId,
+        deletedAt: null,
+        status: 'active',
+        isPersonal: { $ne: true },
+        ...(await visibleSpaceFilter()),
+      })
+        .sort({ name: 1 })
+        .select('_id name memberIds');
+      const folderIds = await visibleFolderIds();
+      const folders = await FolderModel.find({
+        tenantId: actor.tenantId,
+        deletedAt: null,
+        status: 'active',
+        spaceId: { $in: spaces.map((s) => s._id) },
+        ...(folderIds === null ? {} : { _id: { $in: folderIds } }),
+      })
+        .sort({ name: 1 })
+        .select('_id name spaceId memberIds');
+      const people = await UserModel.find({
+        tenantId: actor.tenantId,
+        status: 'active',
+        deletedAt: null,
+        role: { $ne: 'client_contact' },
+      })
+        .sort({ name: 1 })
+        .select('_id name');
+      return {
+        appId: settings.appId,
+        actorId: String(actor._id),
+        title: draft.text.split('\n')[0].slice(0, 250),
+        description: draft.text,
+        spaces: spaces.map((s) => ({
+          id: String(s._id),
+          name: s.name,
+          memberIds: s.memberIds.map(String),
+        })),
+        folders: folders.map((f) => ({
+          id: String(f._id),
+          name: f.name,
+          spaceId: String(f.spaceId),
+          memberIds: f.memberIds.map(String),
+        })),
+        people: people.map((p) => ({ id: String(p._id), name: p.name })),
+      };
+    },
+  );
 }

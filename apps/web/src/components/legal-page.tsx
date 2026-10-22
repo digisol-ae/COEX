@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BrandLogo } from './brand-logo';
 import type { ReactNode } from 'react';
 
 /** Public notices must remain readable without a COEX account or Teams session. */
@@ -7,7 +8,7 @@ export function LegalPage({ title, children }: { title: string; children: ReactN
     <main className="min-h-screen bg-[var(--color-surface)] px-5 py-8 text-[var(--color-ink)] sm:px-8 sm:py-12">
       <article className="mx-auto max-w-3xl">
         <header className="border-b border-[var(--color-line-strong)] pb-6">
-          <p className="text-sm font-semibold text-[var(--color-ink-muted)]">COEX · DigiSol</p>
+          <BrandLogo className="h-9 w-auto" priority />
           <h1 className="mt-3 text-3xl font-bold">{title}</h1>
           <p className="mt-3 text-sm text-[var(--color-ink-muted)]">
             Effective date: 22 October 2026 · Last updated: 22 October 2026
