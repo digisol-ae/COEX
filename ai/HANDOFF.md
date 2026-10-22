@@ -1,5 +1,11 @@
 # COEX — AI Handoff
 
+## COEX logo approved and wired in — 22 October 2026
+
+John approved the draft logo and asked that it work in Sunset, Light and Dark. The shared `CoexLogo` component (`apps/web/src/components/ui/coex-logo.tsx`, inline SVG) now replaces the DigiSol image in the desktop sidebar, phone menu drawer and both login/recovery logos (`auth-shell.tsx`). Coral `--color-brand-red` letters; the small dot follows `--color-ink-subtle` and `--color-surface`. `apps/web/src/app/icon.svg` (the monogram) is the browser-tab icon. Fixed a clipped "c" in the earlier draft viewBox (now `-16 216 1508 384`, also in `public/brand/coex-logo.svg`).
+
+Checked: static render on the Sunset/Light sidebar, Dark sidebar and always-dark login panel backgrounds. **Not run:** typecheck, lint, build or in-app browser check (no `node_modules` in the cloud sandbox). No What's new entry (a new entry reopens the drawer for everyone; John to decide). **Still open:** Teams icons and ZIP still use the old artwork; regenerate and re-validate the manifest (SHA256 will change). `projects/` and the DigiSol PNGs are untouched.
+
 ## COEX logo draft — 22 October 2026 (Claude → ChatGPT)
 
 Owner (John) said the COEX logo is **not final** and asked Claude to design the first version. Claude made two draft SVGs in `apps/web/public/brand/`, in the DigiSol sister-brand style (coral `#EE3E51`, rounded geometric strokes, same pill dot as `logo-long.png`):

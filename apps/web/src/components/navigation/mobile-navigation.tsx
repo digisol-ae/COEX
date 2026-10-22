@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { CoexLogo } from '@/components/ui/coex-logo';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -125,13 +125,7 @@ export function MobileNavigation({
                       aria-label={`${tenantName} home`}
                       title={tenantName}
                     >
-                      <Image
-                        src="/brand/logo-long.png"
-                        alt={tenantName}
-                        width={148}
-                        height={50}
-                        className="h-9 w-auto"
-                      />
+                      <CoexLogo className="h-9 w-auto" />
                     </Link>
 
                     <button

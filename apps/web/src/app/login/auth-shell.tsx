@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { CoexLogo } from '@/components/ui/coex-logo';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
@@ -21,14 +21,7 @@ export function AuthShell({
   return (
     <main className="flex min-h-screen">
       <section className="relative hidden w-1/2 flex-col justify-between bg-[image:var(--gradient-rail)] p-12 lg:flex">
-        <Image
-          src="/brand/logo-long.png"
-          alt="DigiSol"
-          width={296}
-          height={200}
-          priority
-          className="h-12 w-auto object-contain"
-        />
+        <CoexLogo className="h-12 w-auto" />
 
         <div>
           <h2 className="max-w-md text-3xl leading-tight font-bold text-[var(--color-rail-ink)]">
@@ -45,14 +38,7 @@ export function AuthShell({
 
       <section className="flex w-full items-center justify-center px-6 py-12 lg:w-1/2">
         <div className="w-full max-w-sm">
-          <Image
-            src="/brand/logo-long.png"
-            alt="DigiSol"
-            width={237}
-            height={80}
-            priority
-            className="mb-10 h-8 w-auto lg:hidden"
-          />
+          <CoexLogo className="mb-10 h-8 w-auto lg:hidden" />
 
           {beforeTitle}
           <h1 className="text-2xl font-bold text-[var(--color-ink)]">{title}</h1>

@@ -1,5 +1,5 @@
 import { SidebarFrame } from './sidebar-controls';
-import Image from 'next/image';
+import { CoexLogo } from '@/components/ui/coex-logo';
 import Link from 'next/link';
 import type { NavigationGroup } from './navigation';
 import { NavigationTree } from './navigation-tree';
@@ -27,14 +27,7 @@ export function Sidebar({
       <aside className="sidebar-glow hidden w-60 shrink-0 flex-col border-r border-[var(--color-line)] md:flex">
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/dashboard" aria-label={`${tenantName} home`} title={tenantName}>
-            <Image
-              src="/brand/logo-long.png"
-              alt={tenantName}
-              width={148}
-              height={50}
-              className="h-9 w-auto"
-              priority
-            />
+            <CoexLogo className="h-9 w-auto" />
           </Link>
         </div>
 
