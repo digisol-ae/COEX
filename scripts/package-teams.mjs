@@ -19,7 +19,7 @@ const manifest = {
   $schema:
     'https://developer.microsoft.com/en-us/json-schemas/teams/v1.17/MicrosoftTeams.schema.json',
   manifestVersion: '1.17',
-  version: '1.0.1',
+  version: '1.1.0',
   id: appId,
   developer: {
     name: 'Digisol LLC-FZ',
@@ -29,11 +29,21 @@ const manifest = {
   },
   name: { short: 'COEX', full: 'COEX tasks for Microsoft Teams' },
   description: {
-    short: 'Create a COEX task from a Teams message.',
-    full: 'Turn a selected Teams message into a COEX task. Choose the space or folder, assignee, priority and due date. Requires a linked COEX staff account.',
+    short: 'Manage your COEX tasks inside Teams.',
+    full: 'View your tasks, read and post updates, and create tasks inside Teams. Turn selected messages into tasks too. Requires a linked COEX staff account.',
   },
   icons: { color: 'color.png', outline: 'outline.png' },
   accentColor: '#101827',
+  staticTabs: [
+    {
+      entityId: 'coex-my-tasks',
+      name: 'My Tasks',
+      contentUrl: `${baseUrl.origin}/integrations/teams/app`,
+      websiteUrl: `${baseUrl.origin}/tasks?mine=1`,
+      scopes: ['personal'],
+    },
+  ],
+  webApplicationInfo: { id: appId, resource: `api://${baseUrl.hostname}/${appId}` },
   composeExtensions: [
     {
       botId: appId,

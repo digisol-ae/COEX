@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { BrandLogo } from '@/components/brand-logo';
+import { teamsTabRequest } from '@/modules/integrations/teams/tab-client';
 import { TASK_TIME_ZONE } from '@coex/shared/tasks/dates';
 import {
   defaultAssignee,
@@ -9,7 +10,14 @@ import {
   type TeamsFormData,
 } from '@/modules/integrations/teams/form-model';
 
-export function TeamsCreateForm() {
+export function TeamsCreateForm({
+  personal = false,
+  onCreated,
+}: {
+  personal?: boolean;
+  onCreated?: (id: string) => void;
+}) {
+  const requestId = useRef('');
   const tokenRef = useRef('');
   const [data, setData] = useState<TeamsFormData | null>(null);
   const [draft, setDraft] = useState('');
@@ -26,8 +34,8 @@ export function TeamsCreateForm() {
       tokenRef.current || new URLSearchParams(window.location.hash.slice(1)).get('draft') || '';
     tokenRef.current = token;
     // Fragments are not sent to HTTP servers or in referrers; remove it from browser history too.
-    window.history.replaceState(null, '', window.location.pathname);
-    if (!token) {
+    if (!personal) window.history.replaceState(null, '', window.location.pathname);
+    if (!token && !personal) {
       setError('Open Create COEX task from a Teams message.');
       return;
     }
@@ -38,6 +46,16 @@ export function TeamsCreateForm() {
         await teams.app.initialize();
         if (controller.signal.aborted) return;
         setReady(true);
+        if (personal) {
+          const choices = await teamsTabRequest<TeamsFormData>('action=form');
+          if (controller.signal.aborted) return;
+          setData(choices);
+          const initial = choices.spaces[0]?.id ?? '';
+          setSpace(initial);
+          setAssignee(defaultAssignee(choices, initial, ''));
+          requestId.current = crypto.randomUUID();
+          return;
+        }
         const response = await fetch('/api/integrations/teams/form', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -63,7 +81,7 @@ export function TeamsCreateForm() {
     }
     void load();
     return () => controller.abort();
-  }, []);
+  }, [personal]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -76,23 +94,42 @@ export function TeamsCreateForm() {
     setError('');
     setSubmitting(true);
     try {
+      if (personal) {
+        const result = await teamsTabRequest<{ taskId: string }>('create', {
+          requestId: requestId.current,
+          fields: { ...Object.fromEntries(fields), spaceId: space, folderId: folder, assignee },
+        });
+        onCreated?.(result.taskId);
+        return;
+      }
       const teams = await import('@microsoft/teams-js');
       teams.dialog.url.submit(
         { ...Object.fromEntries(fields), draft, spaceId: space, folderId: folder, assignee },
         data.appId,
       );
-    } catch {
+    } catch (cause) {
       setSubmitting(false);
-      setError('Could not submit. Check your task list before trying again.');
+      setError(
+        personal && cause instanceof Error
+          ? cause.message
+          : 'Could not submit. Check your task list before trying again.',
+      );
     }
   }
 
   const choices = data ? formChoices(data, space, folder) : { folders: [], people: [] };
   const control =
     'mt-1 w-full rounded-lg border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-3 py-2 text-[var(--color-ink)]';
+  const Container = personal ? 'section' : 'main';
   return (
-    <main className="mx-auto max-w-3xl p-5 text-[var(--color-ink)]">
-      <BrandLogo className="mb-4 h-8 w-auto" />
+    <Container
+      className={
+        personal
+          ? 'max-w-3xl text-[var(--color-ink)]'
+          : 'mx-auto max-w-3xl p-5 text-[var(--color-ink)]'
+      }
+    >
+      {!personal && <BrandLogo className="mb-4 h-8 w-auto" />}
       <h1 className="mb-4 text-xl font-semibold">Create COEX task</h1>
       {error ? (
         <p role="alert" className="mb-4 rounded-lg border border-red-400 p-3 text-sm">
@@ -102,7 +139,9 @@ export function TeamsCreateForm() {
       {!data ? (
         <p className="text-sm" aria-live="polite">
           {error
-            ? 'Close this window and reopen the action when ready.'
+            ? personal
+              ? 'Return to My Tasks and reopen Create task when ready.'
+              : 'Close this window and reopen the action when ready.'
             : 'Loading your workspace…'}
         </p>
       ) : (
@@ -223,6 +262,6 @@ export function TeamsCreateForm() {
           </button>
         </form>
       )}
-    </main>
+    </Container>
   );
 }
