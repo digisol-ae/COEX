@@ -244,8 +244,8 @@ export function TeamsCreateForm({
             </label>
           </div>
           <p className="text-xs text-[var(--color-ink-muted)]">
-            Due date and time use office time ({TASK_TIME_ZONE}). The original Teams message link is
-            saved with the task.
+            Due date and time use office time ({TASK_TIME_ZONE}).
+            {!personal && ' The original Teams message link is saved with the task.'}
           </p>
           {!choices.people.some((p) => p.id === data.actorId) && space ? (
             <p className="text-xs">
