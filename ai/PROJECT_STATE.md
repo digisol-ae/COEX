@@ -1,5 +1,12 @@
 # COEX — Shared AI Project State
 
+## Teams personal workspace deployed — 23 October 2026 (installation/pilot pending)
+
+PR #38 merged as `6dfcf1509c46b1963c0e8de886adfe58c6ba004e`; PR CI 39902606641 and main CI 39905072621 passed. Teams My Tasks, detail/latest updates, text posting, personal completion filters and creator-default create are now served at /integrations/teams/app. Existing message action preserved. Owner reports correct COEX Teams registration URI/scope, both preauthorized Teams clients and v2 token setting saved; real Microsoft SSO and Teams desktop/web/mobile pilot still pending. Updated package 1.1.0 is in Downloads. No What's new announcement until available to users.
+
+Active green coex-app-green id8 / PID214898, port3002, /srv/coex/releases/teams-tab-20261023. Blue coex-app id7 / PID184237, port3001, /srv/coex/releases/entra-redirect-20261022 remains warm fallback. Three workers unchanged. Native server build passed (73 pages), public tab/dialog/login/policies healthy, anonymous/invalid-token API 401; 40/40 switch samples 200. Tenant-scoped release session expiry: 7 old sessions revoked at 2026-10-23T05:23:38Z, zero matching old sessions remain. Full evidence: ai/RELEASE-2026-10-23-TEAMS-TAB.md; setup/file map: docs/TEAMS-PERSONAL-TAB.md. Docs-only sync needs no restart or further expiry. Supersedes earlier not-deployed entries. Unrelated projects/ preserved.
+
+
 ## Microsoft redirect and DigiSol attribution deployed — 22 October 2026
 
 PR #36 merged as `f266afe451f3881ffd6ef707b121b0deba0a705f`; PR CI run 39806601526 and merged-main run 39807108288 passed. Microsoft callback redirects now use configured public origin instead of internal listener. Login/recovery shell shows “Powered by DigiSol” above the actual high-resolution DigiSol logo, on desktop and mobile/tablet. Legal company remains Digisol LLC-FZ in policies. No branding announcement; existing maintenance entry remains generic 3 bug fixes / 1 improvement.
