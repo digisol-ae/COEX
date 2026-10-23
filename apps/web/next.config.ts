@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: '/integrations/teams/create',
+        source: '/integrations/teams/:path*',
         headers: [
           {
             key: 'Content-Security-Policy',

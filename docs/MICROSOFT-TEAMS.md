@@ -1,5 +1,10 @@
 # Microsoft Teams → COEX tasks
 
+## Personal tab follow-up — 23 October 2026
+
+COEX inside Teams is being implemented on codex/teams-personal-tab. Current setup, verification and remaining installation/SSO steps: [TEAMS-PERSONAL-TAB.md](TEAMS-PERSONAL-TAB.md). Not deployed or installed yet; older deployment notes below refer to historical message-action releases.
+
+
 ## Teams self-assignment email fix deployed — 22 October 2026
 
 PR #32 merged as `530e19225b6839dd9c7446999418b07c3a5ac446` (feature `6a41d1f`). PR CI https://github.com/digisol-ae/COEX/actions/runs/39732776761 and main CI https://github.com/digisol-ae/COEX/actions/runs/39733067549 passed. Fresh local Webpack and isolated server native builds passed (71 pages). Existing self-action email suppression caused the creator-default Teams task to queue no email; Teams now opts into initial self-assignment confirmation through the shared service. Normal web behavior and tenant email switches retained; receipt retries cannot create another task/email. No backfill or real test email sent.

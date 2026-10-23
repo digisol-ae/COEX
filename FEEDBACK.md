@@ -1,5 +1,10 @@
 # FEEDBACK
 
+## Teams personal workspace — 23 October 2026 (implementation/QA, not deployed)
+
+Owner approved starting COEX inside Teams. Branch codex/teams-personal-tab adds personal My Tasks, detail/latest-first updates, text posting, personal-completion filters and creator-default single-screen create. Existing message action retained. Header-bearer Teams SSO uses server-side Microsoft signature/app/tenant/scope/client verification and active linked staff permissions; no third-party cookie dependency. Permanent request receipts prevent duplicate task creation. Attachments/full editing currently open normal COEX. No live Teams SSO/pilot, real task or email claimed. Existing Entra API URI confirmation requested from owner; registration/consent and package1.1.0 installation remain external prerequisites. Detailed setup/file map/security/testing: docs/TEAMS-PERSONAL-TAB.md. Branding and existing ordinary browser login unchanged; no What's new announcement before availability. Preserve projects/.
+
+
 ## Microsoft redirect and DigiSol attribution deployed — 22 October 2026
 
 PR #36 merged as `f266afe451f3881ffd6ef707b121b0deba0a705f`; PR CI run 39806601526 and merged-main run 39807108288 passed. Microsoft callback redirects now use configured public origin instead of internal listener. Login/recovery shell shows “Powered by DigiSol” above the actual high-resolution DigiSol logo, on desktop and mobile/tablet. Legal company remains Digisol LLC-FZ in policies. No branding announcement; existing maintenance entry remains generic 3 bug fixes / 1 improvement.
