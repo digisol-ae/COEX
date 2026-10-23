@@ -1,14 +1,14 @@
 # COEX isolated web rollout — current operating state
 
-## Active slots after Microsoft/footer release — 22 October 2026
+## Active slots after Teams personal tab — 23 October 2026
 
-- Apache COEX vhosts target `http://127.0.0.1:3001/`.
-- Active blue: `coex-app` id7 / PID184237, `/srv/coex/releases/entra-redirect-20261022`, application merge `f266afe451f3881ffd6ef707b121b0deba0a705f`.
-- Warm green fallback: `coex-app-green` id6 / PID181724, `/srv/coex/releases/tutorial-origin-20261022`, port3002. Former blue id5 retired while green served traffic.
-- Exactly three unchanged workers run from `/srv/coex/app`; five intentional PM2 entries saved. Existing ignored environment and shared storage preserved.
-- Latest switch: 40/40 HTTPS200; Apache snapshots `/srv/coex/shared/apache-before-entra-20261022194406/`. Rollback: verify green login200, change both canonical vhost mappings3001→3002, configtest, graceful reload, verify public HTTPS. No worker restart.
-- Latest tenant session expiry: three revoked at fixed cutoff2026-10-22T15:44:07Z; later logins excluded. No repeated expiry for docs-only pull.
-- Full evidence: `ai/RELEASE-2026-10-22-ENTRA-FOOTER.md`. Older tutorial rollback directions below are historical and superseded by the current mapping here.
+- Apache COEX vhosts target `http://127.0.0.1:3002/`.
+- Active green: coex-app-green id8 / PID214898, /srv/coex/releases/teams-tab-20261023, application merge6dfcf1509c46b1963c0e8de886adfe58c6ba004e.
+- Warm blue fallback: coex-app id7 / PID184237, /srv/coex/releases/entra-redirect-20261022, port3001. Old green id6 retired only while blue served traffic.
+- Exactly three unchanged workers remain in /srv/coex/app; five intentional PM2 entries saved. Existing ignored environment/shared storage retained.
+- Latest monitor40/40 HTTPS200. Apache snapshots: /srv/coex/shared/apache-before-teams-tab-20261023092338. Rollback: verify blue3001 login200, change both canonical vhost mappings3002→3001, configtest, graceful reload and public HTTPS verification. Do not restart workers.
+- Tenant-scoped session expiry: 7 old sessions revoked at cutoff2026-10-23T05:23:38Z; new post-cutoff sessions preserved. No repeated expiry for docs-only sync.
+- Evidence and remaining installation/pilot: ai/RELEASE-2026-10-23-TEAMS-TAB.md. Older mapping/rollback instructions below are historical and superseded here.
 
 Owner permits a short maintenance interruption if necessary. Isolated builds/healthy candidate switching remain the current procedure. The old `deploy/release.sh` builds in the original folder and does not target the active web slot. Inspect Apache and PM2 before acting; `/srv/coex/app` currently hosts workers/configuration only.
 

@@ -1,5 +1,12 @@
 # COEX — Current AI Task
 
+## Teams personal workspace deployed — 23 October 2026 (installation/pilot pending)
+
+PR #38 merged as `6dfcf1509c46b1963c0e8de886adfe58c6ba004e`; PR CI 39902606641 and main CI 39905072621 passed. Teams My Tasks, detail/latest updates, text posting, personal completion filters and creator-default create are now served at /integrations/teams/app. Existing message action preserved. Owner reports correct COEX Teams registration URI/scope, both preauthorized Teams clients and v2 token setting saved; real Microsoft SSO and Teams desktop/web/mobile pilot still pending. Updated package 1.1.0 is in Downloads. No What's new announcement until available to users.
+
+Active green coex-app-green id8 / PID214898, port3002, /srv/coex/releases/teams-tab-20261023. Blue coex-app id7 / PID184237, port3001, /srv/coex/releases/entra-redirect-20261022 remains warm fallback. Three workers unchanged. Native server build passed (73 pages), public tab/dialog/login/policies healthy, anonymous/invalid-token API 401; 40/40 switch samples 200. Tenant-scoped release session expiry: 7 old sessions revoked at 2026-10-23T05:23:38Z, zero matching old sessions remain. Full evidence: ai/RELEASE-2026-10-23-TEAMS-TAB.md; setup/file map: docs/TEAMS-PERSONAL-TAB.md. Docs-only sync needs no restart or further expiry. Supersedes earlier not-deployed entries. Unrelated projects/ preserved.
+
+
 ## Teams personal workspace — 23 October 2026 (implementation/QA, not deployed)
 
 Owner approved starting COEX inside Teams. Branch codex/teams-personal-tab adds personal My Tasks, detail/latest-first updates, text posting, personal-completion filters and creator-default single-screen create. Existing message action retained. Header-bearer Teams SSO uses server-side Microsoft signature/app/tenant/scope/client verification and active linked staff permissions; no third-party cookie dependency. Permanent request receipts prevent duplicate task creation. Attachments/full editing currently open normal COEX. No live Teams SSO/pilot, real task or email claimed. Existing Entra API URI confirmation requested from owner; registration/consent and package1.1.0 installation remain external prerequisites. Detailed setup/file map/security/testing: docs/TEAMS-PERSONAL-TAB.md. Branding and existing ordinary browser login unchanged; no What's new announcement before availability. Preserve projects/.

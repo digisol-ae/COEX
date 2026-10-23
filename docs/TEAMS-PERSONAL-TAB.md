@@ -2,7 +2,7 @@
 
 ## Status — 23 October 2026
 
-Implementation branch: `codex/teams-personal-tab`. Not yet deployed or installed. Existing message action remains available. This adds a personal **My Tasks** tab, task detail with latest-first updates and Show more, text update posting, personal completion/filter and a single-screen create form with creator-default assignment. Attachments/full task editing open the normal COEX website; they are not embedded in this first tab screen. This is a focused Teams workspace, not the entire browser application embedded unchanged.
+Server implementation deployed from PR #38 / merge6dfcf15 on23 October2026. Teams package installation and real SSO pilot remain pending. Existing message action remains available. This adds a personal **My Tasks** tab, task detail with latest-first updates and Show more, text update posting, personal completion/filter and a single-screen create form with creator-default assignment. Attachments/full task editing open the normal COEX website; they are not embedded in this first tab screen. This is a focused Teams workspace, not the entire browser application embedded unchanged.
 
 Teams UI package version 1.1.0 preserves the existing app ID and message extension. Update the existing organisation app rather than submitting a second app with the same external ID. Installation/Entra admin configuration and real desktop/mobile/web acceptance remain required. No user-facing release announcement until the feature is actually available.
 
@@ -64,4 +64,4 @@ Required live pilot: linked staff in Teams desktop/web/mobile, silent token or c
 
 ## Local review artifacts
 
-Preview: `http://localhost:3107/integrations/teams/app` (outside Teams shows an explanatory sign-in/host message). Package: `/Users/syedali/Downloads/COEX-Teams-1.1.0.zip`; generated manifest/icons also in `/private/tmp/coex-teams-package-1.1.0/`. Browser fixture screenshots/results: `/private/tmp/coex-teams-tab-qa/`. Fixture harness and test data are temporary QA artifacts, not part of production source or package. No production deployment or Teams app installation performed for this phase.
+Preview: `http://localhost:3107/integrations/teams/app` (outside Teams shows an explanatory sign-in/host message). Package: `/Users/syedali/Downloads/COEX-Teams-1.1.0.zip`; generated manifest/icons also in `/private/tmp/coex-teams-package-1.1.0/`. Browser fixture screenshots/results: `/private/tmp/coex-teams-tab-qa/`. Fixture harness and test data are temporary QA artifacts, not part of production source or package. Server deployed; Teams package installation remains pending.
