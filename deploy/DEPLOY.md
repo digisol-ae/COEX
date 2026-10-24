@@ -49,8 +49,13 @@ Running as its own user means a mistake in COEX cannot touch the other service's
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt-get install -y nodejs
-node --version    # expect v22.x
+node --version    # expect v22.23.4 or later
 ```
+
+Node 22.23.4 is the minimum: earlier 22.x releases carry the October 2026 security issues
+(CVE-2026-111497 Brotli remote code execution, TLS and DNS validation bypasses). Upgrading an
+existing server is `sudo apt-get update && sudo apt-get install -y nodejs`, then restart every PM2
+process, because a running process keeps the old binary until it restarts.
 
 If Node is already there for the other service and is a different major version, do not replace it.
 Install `nvm` under the `coex` user instead and point the service file at that binary.
