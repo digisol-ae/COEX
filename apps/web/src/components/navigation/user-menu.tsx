@@ -147,8 +147,8 @@ export function UserMenu({
                     : notifications.state === 'blocked'
                       ? 'Notifications are blocked for this site in your browser settings.'
                       : portal
-                        ? 'Get a notification when support replies to your ticket while COEX is open in another tab.'
-                        : 'Get a notification when a customer writes on your ticket or someone assigns you a task, while COEX is open in another tab.'
+                        ? 'Get a notification when support replies to your ticket while Worktello is open in another tab.'
+                        : 'Get a notification when a customer writes on your ticket or someone assigns you a task, while Worktello is open in another tab.'
                 }
                 onClick={() =>
                   notifications.state === 'on' ? notifications.turnOff() : notifications.turnOn()

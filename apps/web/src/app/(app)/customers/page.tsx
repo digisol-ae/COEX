@@ -8,7 +8,7 @@ import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components
 import { CustomerFilters } from './filters';
 import { NewCustomerPanel } from './new-customer-panel';
 
-export const metadata = { title: 'Customers · COEX' };
+export const metadata = { title: 'Customers · Worktello' };
 
 const KIND_TONE = {
   client: 'ok',

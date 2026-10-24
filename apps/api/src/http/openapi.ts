@@ -78,10 +78,10 @@ export function buildOpenApi(routes: AnyRoute[], version: string) {
   return {
     openapi: '3.0.3',
     info: {
-      title: 'COEX API',
+      title: 'Worktello API',
       version,
       description:
-        'The COEX Express API. It reads the same session cookie as the web app. Errors are `{ error: { code, message } }`.',
+        'The Worktello Express API. It reads the same session cookie as the web app. Errors are `{ error: { code, message } }`.',
     },
     paths,
   };

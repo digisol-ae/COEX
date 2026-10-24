@@ -19,7 +19,7 @@ import { ConvertButton } from './convert-button';
 import { DisqualifyButton } from './disqualify-button';
 import { LeadPanel } from './lead-panel';
 
-export const metadata = { title: 'Leads · COEX' };
+export const metadata = { title: 'Leads · Worktello' };
 
 const STATUS_LABEL: Record<LeadSummary['status'], string> = {
   new: 'New',

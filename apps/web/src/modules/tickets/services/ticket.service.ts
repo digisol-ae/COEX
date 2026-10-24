@@ -723,7 +723,7 @@ export async function getTicketDetail(id: string): Promise<TicketDetail | null> 
       authorName:
         message.channel === 'system' && message.authorName === 'COEX'
           ? (historyNames.get(String(message.authorUserId)) ??
-            (message.authorUserId ? 'User no longer available' : 'COEX (automatic)'))
+            (message.authorUserId ? 'User no longer available' : 'Worktello (automatic)'))
           : message.authorName,
       channel: message.channel,
       sentAt: message.sentAt ?? message.createdAt,

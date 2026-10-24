@@ -19,7 +19,7 @@ const manifest = {
   $schema:
     'https://developer.microsoft.com/en-us/json-schemas/teams/v1.17/MicrosoftTeams.schema.json',
   manifestVersion: '1.17',
-  version: '1.1.0',
+  version: '1.2.0',
   id: appId,
   developer: {
     name: 'Digisol LLC-FZ',
@@ -27,10 +27,10 @@ const manifest = {
     privacyUrl: privacyUrl.href,
     termsOfUseUrl: termsUrl.href,
   },
-  name: { short: 'COEX', full: 'COEX tasks for Microsoft Teams' },
+  name: { short: 'Worktello', full: 'Worktello tasks for Microsoft Teams' },
   description: {
-    short: 'Manage your COEX tasks inside Teams.',
-    full: 'View your tasks, read and post updates, and create tasks inside Teams. Turn selected messages into tasks too. Requires a linked COEX staff account.',
+    short: 'Manage your Worktello tasks inside Teams.',
+    full: 'View your tasks, read and post updates, and create tasks inside Teams. Turn selected messages into tasks too. Requires a linked Worktello staff account.',
   },
   icons: { color: 'color.png', outline: 'outline.png' },
   accentColor: '#101827',
@@ -52,7 +52,7 @@ const manifest = {
         {
           id: 'createCoexTask',
           type: 'action',
-          title: 'Create COEX task',
+          title: 'Create Worktello task',
           description: 'Create a task from this message',
           fetchTask: true,
           context: ['message'],
@@ -63,20 +63,37 @@ const manifest = {
   validDomains: [baseUrl.hostname],
 };
 await writeFile(resolve(output, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
-const icon = await readFile(new URL('../apps/web/public/brand/coex-monogram.svg', import.meta.url));
+const icon = await readFile(
+  new URL('../apps/web/public/brand/worktello-monogram.svg', import.meta.url),
+);
 await sharp(icon).resize(192, 192).png().toFile(resolve(output, 'color.png'));
-// Teams requires white artwork on transparency: preserve the C/dot and remove its red tile.
-const outline = Buffer.from(icon.toString('utf8').replace(/<rect[^>]*\/>/, ''));
+// Teams requires white artwork on transparency; reuse the approved handoff W alpha.
+const symbol = await readFile(
+  new URL('../apps/web/public/brand/worktello-symbol.png', import.meta.url),
+);
+const alpha = await sharp(symbol)
+  .resize(28, 28, { fit: 'contain', background: '#00000000' })
+  .ensureAlpha()
+  .extractChannel(3)
+  .raw()
+  .toBuffer();
+const outline = await sharp({
+  create: { width: 28, height: 28, channels: 3, background: '#ffffff' },
+})
+  .joinChannel(alpha, { raw: { width: 28, height: 28, channels: 1 } })
+  .extend({ top: 2, bottom: 2, left: 2, right: 2, background: '#00000000' })
+  .png()
+  .toBuffer();
 await sharp(outline).resize(32, 32).png().toFile(resolve(output, 'outline.png'));
 const result = spawnSync(
   'zip',
   [
     '-j',
-    resolve(output, 'coex-teams.zip'),
+    resolve(output, 'worktello-teams.zip'),
     ...['manifest.json', 'color.png', 'outline.png'].map((file) => resolve(output, file)),
   ],
   { stdio: 'inherit' },
 );
 if (result.status !== 0)
   throw new Error('Could not create zip; zip manifest.json color.png outline.png manually.');
-console.log(`Teams package: ${resolve(output, 'coex-teams.zip')}`);
+console.log(`Teams package: ${resolve(output, 'worktello-teams.zip')}`);

@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     // Never return database errors or log selected private message contents/tokens.
     return Response.json(
       messageResponse(
-        'COEX could not finish this request. Check your task list before trying again. If no task was created, open a new form or contact your administrator.',
+        'Worktello could not finish this request. Check your task list before trying again. If no task was created, open a new form or contact your administrator.',
       ),
       { headers },
     );

@@ -5,7 +5,7 @@ import { portalIdentity, portalTickets } from '@/modules/portal/service';
 import { PageHeader, Notice, Input, Button, Select } from '@/components/ui';
 import { STATUS_LABELS } from '@/modules/tickets/labels';
 import { formatDateTime } from '@coex/shared/tasks/dates';
-export const metadata = { title: 'Customer portal · COEX' };
+export const metadata = { title: 'Customer portal · Worktello' };
 export default async function PortalPage({
   searchParams,
 }: {
@@ -32,7 +32,7 @@ export default async function PortalPage({
               Use the account provided by your support team. Contact support if you need access.
             </p>
             <Link href={user ? '/dashboard' : '/login'} className="font-medium underline">
-              {user ? 'Back to COEX' : 'Sign in to create a support ticket'}
+              {user ? 'Back to Worktello' : 'Sign in to create a support ticket'}
             </Link>
           </section>
         </div>

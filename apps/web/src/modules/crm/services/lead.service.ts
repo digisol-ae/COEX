@@ -77,7 +77,7 @@ export interface LeadDuplicate {
 /** Thrown when a new lead looks like someone already known; the person may save it anyway. */
 export class DuplicateLeadError extends Error {
   constructor(public readonly duplicates: LeadDuplicate[]) {
-    super('This looks like someone already in COEX.');
+    super('This looks like someone already in Worktello.');
   }
 }
 

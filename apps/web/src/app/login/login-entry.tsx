@@ -15,7 +15,7 @@ export function LoginEntry({
   const customer = mode === 'customer';
   return (
     <AuthShell
-      title={customer ? 'Create / View Your Support Ticket' : 'Sign in to COEX'}
+      title={customer ? 'Create / View Your Support Ticket' : 'Sign in to Worktello'}
       intro={
         customer
           ? 'Raise a request, follow its progress and talk to our support team.'

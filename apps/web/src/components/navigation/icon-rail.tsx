@@ -157,8 +157,8 @@ export function IconRail({
     >
       <Link
         href="/dashboard"
-        aria-label="COEX home"
-        className="mb-2 flex h-9 w-9 items-center justify-center rounded-[10px] bg-[image:var(--gradient-brand)] text-sm font-bold text-white"
+        aria-label="Worktello home"
+        className="mb-2 flex h-9 w-9 items-center justify-center rounded-[10px] text-sm font-bold text-white"
       >
         <BrandLogo mark className="h-9 w-9" />
       </Link>

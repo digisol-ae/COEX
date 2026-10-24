@@ -9,7 +9,7 @@ export async function teamsTabRequest<T>(
     token = await teams.authentication.getAuthToken();
   } catch {
     throw new Error(
-      'Microsoft sign-in for COEX is unavailable. Reopen COEX in Teams; if this continues, ask your administrator to check Teams access.',
+      'Microsoft sign-in for Worktello is unavailable. Reopen Worktello in Teams; if this continues, ask your administrator to check Teams access.',
     );
   }
   const response = await fetch(`/api/integrations/teams/app${data ? '' : '?' + action}`, {
@@ -23,6 +23,6 @@ export async function teamsTabRequest<T>(
     ...(data ? { body: JSON.stringify({ ...data, action }) } : {}),
   });
   const result = await response.json();
-  if (!response.ok) throw new Error(result.error || 'Unable to load COEX. Try again.');
+  if (!response.ok) throw new Error(result.error || 'Unable to load Worktello. Try again.');
   return result as T;
 }

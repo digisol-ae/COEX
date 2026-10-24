@@ -4,7 +4,7 @@ import { getStaleDays, listLostReasons, listStages } from '@/modules/crm/service
 import { PageHeader } from '@/components/ui';
 import { PipelineEditor } from './pipeline-editor';
 
-export const metadata = { title: 'Pipeline · COEX' };
+export const metadata = { title: 'Pipeline · Worktello' };
 
 export default async function PipelinePage() {
   const actor = await requirePermission('pipeline.manage');

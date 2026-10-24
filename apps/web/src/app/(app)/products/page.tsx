@@ -4,7 +4,7 @@ import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components
 import { ProductPanel } from './product-panel';
 import { StatusToggle } from './status-toggle';
 
-export const metadata = { title: 'Products · COEX' };
+export const metadata = { title: 'Products · Worktello' };
 
 const PERIOD_LABEL: Record<string, string> = {
   once: 'One off',

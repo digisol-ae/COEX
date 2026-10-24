@@ -1,9 +1,9 @@
 import { LegalPage } from '@/components/legal-page';
 
 export const metadata = {
-  title: 'Privacy Policy | COEX',
+  title: 'Privacy Policy | Worktello',
   description:
-    'How Digisol LLC-FZ handles personal information in COEX and its Microsoft Teams integration.',
+    'How Digisol LLC-FZ handles personal information in Worktello and its Microsoft Teams integration.',
 };
 
 export default function PrivacyPage() {
@@ -13,20 +13,20 @@ export default function PrivacyPage() {
         <h2>1. Scope and responsibility</h2>
         <p>
           This notice explains how Digisol LLC-FZ (DigiSol) handles personal information through
-          COEX, including its task, time, customer-management and support features, customer portal
-          and Microsoft Teams integration when enabled.
+          Worktello, including its task, time, customer-management and support features, customer
+          portal and Microsoft Teams integration when enabled.
         </p>
         <p>
-          Your organisation decides what business information it puts into its COEX workspace and
-          who may access it. DigiSol operates the platform and processes workspace information to
-          provide and support the service. Your organisation may have additional privacy notices and
-          responsibilities for its employees, customers and contacts.
+          Your organisation decides what business information it puts into its Worktello workspace
+          and who may access it. DigiSol operates the platform and processes workspace information
+          to provide and support the service. Your organisation may have additional privacy notices
+          and responsibilities for its employees, customers and contacts.
         </p>
       </section>
       <section>
         <h2>2. Information processed</h2>
         <p>
-          Depending on the features your organisation uses, COEX processes account names, email
+          Depending on the features your organisation uses, Worktello processes account names, email
           addresses, roles, permissions, organisation identifiers and sign-in records; business
           contact details; tasks, assignments, updates and time entries; support requests, messages
           and uploaded files; and customer or service records entered by authorised users.
@@ -35,30 +35,30 @@ export default function PrivacyPage() {
           Operational and security records may include IP addresses, browser or device information,
           access events and audit history. Password accounts use password hashes rather than
           plain-text passwords. Microsoft sign-in uses identity information including the Microsoft
-          Entra object identifier to link an existing COEX account.
+          Entra object identifier to link an existing Worktello account.
         </p>
       </section>
       <section>
         <h2>3. Microsoft Teams integration</h2>
         <p>
-          When you choose Create COEX task on a Teams message, Microsoft sends the selected message
-          content and link, your Microsoft identity and tenant identifiers, and the context needed
-          to process that action. COEX uses your linked staff account to check permissions and show
-          a task form. Creating a task saves the submitted task details and the original Teams
-          message link in your organisation’s COEX workspace.
+          When you choose Create Worktello task on a Teams message, Microsoft sends the selected
+          message content and link, your Microsoft identity and tenant identifiers, and the context
+          needed to process that action. Worktello uses your linked staff account to check
+          permissions and show a task form. Creating a task saves the submitted task details and the
+          original Teams message link in your organisation’s Worktello workspace.
         </p>
         <p>
           This integration does not request Microsoft Graph access to browse your chat history or
-          copy the selected message’s attachments. The submitted task is subject to COEX workspace
-          permissions, which may differ from the audience of the original Teams conversation. Only
-          copy information that is appropriate for the selected Space or Folder.
+          copy the selected message’s attachments. The submitted task is subject to Worktello
+          workspace permissions, which may differ from the audience of the original Teams
+          conversation. Only copy information that is appropriate for the selected Space or Folder.
         </p>
         <p>
           Short-lived signed form data is used to verify the request. Submission identifiers, actor
           and tenant identifiers, creation timestamps and resulting task identifiers are retained to
           prevent duplicate creation and help investigate interrupted requests. Teams task creation
-          does not automatically post a confirmation to the conversation; existing COEX assignment
-          notifications may still apply.
+          does not automatically post a confirmation to the conversation; existing Worktello
+          assignment notifications may still apply.
         </p>
       </section>
       <section>
@@ -90,17 +90,17 @@ export default function PrivacyPage() {
       <section>
         <h2>6. Storage, location and protection</h2>
         <p>
-          COEX uses an application server, a MongoDB database and file storage; operational backups
-          may contain copies of workspace information. Depending on the service providers and
-          deployment, information may be processed outside your country. Selecting a location or
+          Worktello uses an application server, a MongoDB database and file storage; operational
+          backups may contain copies of workspace information. Depending on the service providers
+          and deployment, information may be processed outside your country. Selecting a location or
           Global data residency for an Azure Bot registration does not by itself define the location
-          of all COEX or Microsoft 365 information.
+          of all Worktello or Microsoft 365 information.
         </p>
         <p>
           Controls include authenticated access, tenant-scoped data access, role and resource
           permissions, protected file downloads, HTTPS on the public service, password hashing and
           audit records. The Teams endpoint verifies Microsoft-signed requests and checks the linked
-          COEX account before creating tasks. No system can guarantee absolute security.
+          Worktello account before creating tasks. No system can guarantee absolute security.
         </p>
       </section>
       <section>
@@ -108,9 +108,9 @@ export default function PrivacyPage() {
         <p>
           Workspace records are retained while needed for your organisation’s work, service
           operation, audit, dispute handling or applicable legal obligations. There is no single
-          automatic deletion period for all COEX data. Some removal actions archive or hide records
-          rather than permanently erasing them. Removing the Teams app does not delete tasks already
-          created in COEX.
+          automatic deletion period for all Worktello data. Some removal actions archive or hide
+          records rather than permanently erasing them. Removing the Teams app does not delete tasks
+          already created in Worktello.
         </p>
         <p>
           Ask your workspace administrator or DigiSol to review an access, correction, export or
@@ -124,16 +124,16 @@ export default function PrivacyPage() {
       <section>
         <h2>8. Cookies and browser storage</h2>
         <p>
-          COEX uses session and sign-in security cookies and browser storage for functionality such
-          as remembering interface preferences. Choosing Remember me extends the sign-in session on
-          that browser. You can sign out or clear browser data; disabling required cookies can
-          prevent sign-in and other features from working.
+          Worktello uses session and sign-in security cookies and browser storage for functionality
+          such as remembering interface preferences. Choosing Remember me extends the sign-in
+          session on that browser. You can sign out or clear browser data; disabling required
+          cookies can prevent sign-in and other features from working.
         </p>
       </section>
       <section>
         <h2>9. Requests, questions and updates</h2>
         <p>
-          For privacy questions or requests, contact your organisation’s COEX administrator or
+          For privacy questions or requests, contact your organisation’s Worktello administrator or
           DigiSol at <a href="mailto:info@digisol.ae">info@digisol.ae</a>. Include enough
           information to identify your workspace and request; do not email passwords or unnecessary
           sensitive information. Identity or authority may need to be verified before information is

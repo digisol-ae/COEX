@@ -59,18 +59,18 @@ export async function notifyPasswordSetByAdmin(
   const queued = await queueEmail({
     kind: 'password_set_by_admin',
     to: user.email,
-    subject: 'Your COEX password was reset',
+    subject: 'Your Worktello password was reset',
     text: [
       `Hello ${user.name},`,
       '',
-      `${adminName} has reset the password for your COEX account. They will give you the temporary`,
+      `${adminName} has reset the password for your Worktello account. They will give you the temporary`,
       'password. You can also choose your own now with this link, which works once, for 24 hours:',
       '',
       link,
       '',
       'If you did not expect this, tell your administrator.',
       '',
-      'This is an automatic message from COEX.',
+      'This is an automatic message from Worktello.',
     ].join('\n'),
   });
   if (queued) await storeLink(user, token, ADMIN_LINK_HOURS * 60);
@@ -105,18 +105,18 @@ export async function requestPasswordReset(email: string): Promise<ResetRequestR
     const queued = await queueEmail({
       kind: 'password_reset',
       to: user.email,
-      subject: 'Change your COEX password',
+      subject: 'Change your Worktello password',
       text: [
         `Hello ${user.name},`,
         '',
-        'Someone asked to change the password for your COEX account. If it was you, open this link',
+        'Someone asked to change the password for your Worktello account. If it was you, open this link',
         `within ${LINK_MINUTES} minutes to choose a new one:`,
         '',
         link,
         '',
         'If it was not you, ignore this email: your password stays as it is.',
         '',
-        'This is an automatic message from COEX.',
+        'This is an automatic message from Worktello.',
       ].join('\n'),
     });
     if (!queued) return 'email_off';

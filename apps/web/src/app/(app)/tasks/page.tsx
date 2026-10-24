@@ -9,7 +9,7 @@ import { TaskList } from './task-list';
 import { listFolders } from '@/modules/tasks/services/folder.service';
 import { NewTaskPopup } from './new-task-popup';
 
-export const metadata = { title: 'Tasks · COEX' };
+export const metadata = { title: 'Tasks · Worktello' };
 
 /**
  * Every open task the signed in person is allowed to see, grouped by when it is due.

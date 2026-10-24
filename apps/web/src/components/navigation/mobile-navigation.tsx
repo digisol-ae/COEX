@@ -104,8 +104,8 @@ export function MobileNavigation({
                   <Link
                     href="/dashboard"
                     onClick={() => setOpen(false)}
-                    aria-label="COEX home"
-                    className="mb-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[image:var(--gradient-brand)] text-sm font-bold text-white"
+                    aria-label="Worktello home"
+                    className="mb-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-sm font-bold text-white"
                   >
                     <BrandLogo mark className="h-9 w-9" />
                   </Link>

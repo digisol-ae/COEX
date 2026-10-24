@@ -6,7 +6,7 @@ import { listTickets } from '@/modules/tickets/services/ticket.service';
 import { PageHeader } from '@/components/ui';
 import { Timesheet } from './timesheet';
 
-export const metadata = { title: 'Timesheet · COEX' };
+export const metadata = { title: 'Timesheet · Worktello' };
 
 /**
  * One person's week.

@@ -111,7 +111,7 @@ export async function storeInbound(messages: CanonicalInbound[]): Promise<Inboun
     if (!account) {
       result.rejected.push({
         providerMessageId: message.providerMessageId,
-        error: `${message.to} is not a WhatsApp number turned on in COEX.`,
+        error: `${message.to} is not a WhatsApp number turned on in Worktello.`,
       });
       continue;
     }

@@ -36,7 +36,7 @@ export function TeamsCreateForm({
     // Fragments are not sent to HTTP servers or in referrers; remove it from browser history too.
     if (!personal) window.history.replaceState(null, '', window.location.pathname);
     if (!token && !personal) {
-      setError('Open Create COEX task from a Teams message.');
+      setError('Open Create Worktello task from a Teams message.');
       return;
     }
     setDraft(token);
@@ -130,7 +130,7 @@ export function TeamsCreateForm({
       }
     >
       {!personal && <BrandLogo className="mb-4 h-8 w-auto" />}
-      <h1 className="mb-4 text-xl font-semibold">Create COEX task</h1>
+      <h1 className="mb-4 text-xl font-semibold">Create Worktello task</h1>
       {error ? (
         <p role="alert" className="mb-4 rounded-lg border border-red-400 p-3 text-sm">
           {error}

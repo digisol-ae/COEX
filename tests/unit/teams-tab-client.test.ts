@@ -25,7 +25,7 @@ it('sends identity only in a header, omits cookies and acquires tokens per reque
 it('explains SSO failures without raw Microsoft diagnostics', async () => {
   mocks.token.mockRejectedValue(new Error('AADSTS internal diagnostic'));
   await expect(teamsTabRequest('action=list')).rejects.toThrow(
-    'Microsoft sign-in for COEX is unavailable.',
+    'Microsoft sign-in for Worktello is unavailable.',
   );
   expect(request).not.toHaveBeenCalled();
 });

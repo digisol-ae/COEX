@@ -16,7 +16,7 @@ import { ActivityFilters } from './activity-filters';
 import { ActivityTaskLink } from './activity-task-link';
 import { ShareButton } from './share-button';
 
-export const metadata = { title: 'Team activity · COEX' };
+export const metadata = { title: 'Team activity · Worktello' };
 
 const ticketLabel = (status: string) => (STATUS_LABELS as Record<string, string>)[status] ?? status;
 

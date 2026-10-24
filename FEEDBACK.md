@@ -1,5 +1,10 @@
 # FEEDBACK
 
+## 24 October 2026 — Worktello loading animation approved
+
+Owner prefers **highlight bars** as the default. Preserve the build-up animation in `docs/brand/animations/worktello-build-preview.html` for later; do not make it the default. Branding/loader documentation and commit requested; no push/deployment requested.
+
+
 ## Teams personal workspace deployed — 23 October 2026 (installation/pilot pending)
 
 PR #38 merged as `6dfcf1509c46b1963c0e8de886adfe58c6ba004e`; PR CI 39902606641 and main CI 39905072621 passed. Teams My Tasks, detail/latest updates, text posting, personal completion filters and creator-default create are now served at /integrations/teams/app. Existing message action preserved. Owner reports correct COEX Teams registration URI/scope, both preauthorized Teams clients and v2 token setting saved; real Microsoft SSO and Teams desktop/web/mobile pilot still pending. Updated package 1.1.0 is in Downloads. No What's new announcement until available to users.

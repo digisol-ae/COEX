@@ -1,9 +1,9 @@
-# COEX — fresh chat entrypoint
+# Worktello — fresh chat entrypoint
 
-Read [compact continuation context](CONTEXT-2026-10-21.md), then [current task](CURRENT_TASK.md), root [CLAUDE.md](../CLAUDE.md) and [FEEDBACK.md](../FEEDBACK.md).
+Read [current task](CURRENT_TASK.md), [project state](PROJECT_STATE.md), [handoff](HANDOFF.md), root [CLAUDE.md](../CLAUDE.md), [branding](../docs/BRANDING.md) and [animation assets](../docs/brand/animations/README.md). The older [compact context](CONTEXT-2026-10-21.md) retains release history; the latest entries in the current files take precedence.
 
-The user requested a fresh start after documentation consolidation. Local code is ahead of committed HEAD; no release/deployment is implied. Await the next requested task.
+Product name is **Worktello**, formerly COEX. Approved page loader is **highlight bars**. Keep the build-up alternative archived for later. Preserve technical COEX identifiers and all unrelated unfinished work. The local app is http://localhost:3110; local implementation and Git commits do not imply production deployment.
 
 Suggested fresh-chat prompt:
 
-> Continue COEX from ai/START-HERE.md and ai/CONTEXT-2026-10-21.md. Verify the current checkout, preserve existing changes, then wait for my next instruction.
+> Continue Worktello from ai/START-HERE.md. Verify the current checkout and Git state, read the latest owner decisions, preserve unrelated local changes, and continue the requested task. Highlight bars is the approved loader; the build-up version is archived.

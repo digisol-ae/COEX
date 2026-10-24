@@ -6,7 +6,7 @@ import { listProducts } from '@/modules/crm/services/product.service';
 import { Card, CardSection, EmptyState, PageHeader } from '@/components/ui';
 import { QueueList } from './queue-list';
 
-export const metadata = { title: 'Queues · COEX' };
+export const metadata = { title: 'Queues · Worktello' };
 
 export default async function QueuesPage() {
   const actor = await requirePermission('tenant.manage');

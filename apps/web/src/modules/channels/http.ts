@@ -35,6 +35,6 @@ export async function handleChannelCall(
     );
   } catch (error) {
     console.error('channels: request failed', error);
-    return Response.json({ error: 'COEX could not process the request.' }, { status: 500 });
+    return Response.json({ error: 'Worktello could not process the request.' }, { status: 500 });
   }
 }

@@ -100,9 +100,9 @@ export function EmailSettingsForm({
         <CardSection title="Support mailbox (incoming)">
           <div className="space-y-4">
             <p className="text-sm text-[var(--color-ink-muted)]">
-              Every new email to this mailbox becomes a ticket, and replies join their ticket. COEX
-              is told of new mail the moment it arrives. Mail already in the inbox when intake
-              starts is left alone.
+              Every new email to this mailbox becomes a ticket, and replies join their ticket.
+              Worktello is told of new mail the moment it arrives. Mail already in the inbox when
+              intake starts is left alone.
             </p>
             <Toggle
               name="inboundEnabled"
@@ -183,7 +183,7 @@ export function EmailSettingsForm({
             </p>
             <Toggle
               name="outboundEnabled"
-              label="Send email from COEX"
+              label="Send email from Worktello"
               defaultChecked={outbound.enabled}
             />
             <div className="grid gap-4 sm:grid-cols-3">
@@ -343,8 +343,8 @@ export function EmailSettingsForm({
         <CardSection title="Staff alerts">
           <div className="space-y-3">
             <p className="text-sm text-[var(--color-ink-muted)]">
-              Sent from the Alert sender to each person&apos;s COEX login email. Nobody is alerted
-              about their own action.
+              Sent from the Alert sender to each person&apos;s Worktello login email. Nobody is
+              alerted about their own action.
             </p>
             <Field
               label="When a new ticket arrives, tell"
@@ -426,7 +426,7 @@ export function EmailSettingsForm({
             </Field>
             <Field
               label="Combined summary goes to"
-              hint="One or more email addresses, separated by commas. Leave empty to send no summary. They need not be COEX users."
+              hint="One or more email addresses, separated by commas. Leave empty to send no summary. They need not be Worktello users."
             >
               <Input
                 name="dailyReportRecipients"

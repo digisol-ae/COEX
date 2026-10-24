@@ -146,7 +146,7 @@ export function LeadPanel({
 
           {state.duplicates?.length ? (
             <Notice tone="warn">
-              <p className="font-medium">This looks like someone already in COEX:</p>
+              <p className="font-medium">This looks like someone already in Worktello:</p>
               <ul className="mt-1 list-disc pl-5">
                 {state.duplicates.map((duplicate) => (
                   <li key={`${duplicate.kind}-${duplicate.id}`}>

@@ -4,7 +4,7 @@ import { resetLinkIsValid } from '@/modules/core/services/password-reset.service
 import { AuthShell } from '../login/auth-shell';
 import { ResetForm } from './reset-form';
 
-export const metadata = { title: 'Choose a new password · COEX' };
+export const metadata = { title: 'Choose a new password · Worktello' };
 
 export default async function ResetPasswordPage({
   searchParams,

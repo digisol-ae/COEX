@@ -475,7 +475,7 @@ export async function listTaskComments(taskId: string): Promise<TaskCommentView[
       body: note.body,
       authorName:
         note.channel === 'system' && note.authorName === 'COEX'
-          ? (actorNames.get(String(note.authorUserId)) ?? 'COEX')
+          ? (actorNames.get(String(note.authorUserId)) ?? 'Worktello')
           : note.authorName,
       createdAt: note.sentAt ?? note.createdAt,
       editedAt: note.editedAt ?? null,

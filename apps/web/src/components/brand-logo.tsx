@@ -1,29 +1,32 @@
 import Image from 'next/image';
-import { CoexLogo } from './ui/coex-logo';
+import { WorktelloLogo } from './ui/worktello-logo';
 
 /** Product identity is shared; tenant names and user/Space initials stay separate. */
 export function BrandLogo({
   mark = false,
   className,
   priority = false,
+  inverse = false,
 }: {
   mark?: boolean;
   className?: string;
   priority?: boolean;
+  inverse?: boolean;
 }) {
   if (!mark)
     return (
-      <CoexLogo
+      <WorktelloLogo
+        inverse={inverse}
         className={`block shrink-0 object-contain ${className ?? 'h-10 w-44 max-w-full'}`}
       />
     );
   return (
     <Image
-      src="/brand/coex-monogram-hires.png"
-      alt="COEX"
-      width={mark ? 512 : 1496}
-      height={mark ? 512 : 328}
-      className={`block shrink-0 object-contain ${className ?? 'h-10 w-44 max-w-full'}`}
+      src="/brand/worktello-app-icon.png"
+      alt="Worktello"
+      width={512}
+      height={512}
+      className={`block shrink-0 object-contain ${className ?? 'h-10 w-10'}`}
       priority={priority}
       unoptimized
     />

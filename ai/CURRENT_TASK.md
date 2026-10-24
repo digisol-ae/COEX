@@ -1,4 +1,48 @@
-# COEX — Current AI Task
+# Worktello (formerly COEX) — Current AI Task
+
+## Worktello rebrand committed by Claude — 24 October 2026
+
+ChatGPT stopped before committing. Claude finished the task: branding committed alone as `f58985e` on branch `claude/worktello-rebrand` (from main `d491c0d`), pushed, PR opened for owner review. Staged snapshot verified in a clean install: typecheck, `eslint apps packages --max-warnings=0`, CI prettier globs, 298 unit tests (the earlier 342 included uncommitted WIP tests) and production build all passed. Signed-out pages (login, privacy, forgot password) render Worktello titles with no visible COEX; desktop 1440px and 390px dark mobile login and loader preview visually checked.
+
+Not done: merge, production deployment, Teams 1.2.0 package upload, domain/DNS, trademark clearance. Owner approval required before merge or deploy.
+
+Unrelated WIP (Gantt, Teams permissions/time/sharing, search, subtask, data transfer, local Docker) remains uncommitted in the working tree on this branch, untouched. **Do not resume the old rebrand task.** Next agent: continue from this entry; keep the WIP out of branding commits.
+
+## Worktello branding and loader — owner decision, 24 October 2026
+
+**Product identity is Worktello (formerly COEX). Approved loader: highlight bars.** Keep `WorktelloLoader` default `variant="highlight"`; root, signed-in and portal loading boundaries use this default. Each complete diagonal W bar brightens in sequence. The build-up alternative remains dormant in the component and is archived at `docs/brand/animations/worktello-build-preview.html` for future use. Do not enable it by default without a new owner request.
+
+This branding/loader commit includes the approved handoff W, user-visible name changes, browser/touch icons, reproducible icon/Teams packaging scripts, saved concept art and previews, and continuity documentation. It deliberately excludes unrelated uncommitted Gantt, Teams permissions/time/sharing, search, subtask and data-transfer changes and local Docker setup. Mixed files are staged by branding changes only; preserve their remaining working-tree changes. No push, merge or production deployment is included in this request.
+
+Current local Docker app at http://localhost:3110 has the rebrand and loader; its existing database/attachment volumes are preserved. Domain/DNS remains with the owner, and formal trademark clearance is unverified. Keep technical COEX identifiers, cookies, environment variables, Microsoft IDs, configured hostnames and protocol headers unchanged for compatibility. SVG exports embed raster masters; do not claim traced vector artwork. Keep DigiSol attribution and legal identity.
+
+Evidence: the preceding rebrand passed 342 unit tests and a 75-page isolated build; loader changes passed focused ESLint, web TypeScript and formatting/diff checks. Browser access to localhost was declined during loader verification; animation and route-transition visual acceptance remain owner-reviewed, not independently browser-verified. No real task/email or Teams app installation was performed. Read `docs/BRANDING.md` and `docs/brand/animations/README.md` for asset locations and reuse.
+
+
+## Loading animation variants — 24 October 2026
+
+Owner requested whole-bar highlighting instead of rectangular slices, plus a second build-up version. WorktelloLoader supports `variant="highlight"` (default, one complete diagonal ribbon bright at a time) and `variant="build"` (left appears, middle joins, right joins; all hold then reset). Polygon masks follow the W ribbon boundaries. Reduced-motion shows the complete static W in both variants. Native route fallback keeps version 1 until the owner selects otherwise. Both standalone previews offer version, theme and pause/play controls: docs/brand/worktello-loading-preview.html and docs/brand/worktello-loading-build-preview.html. No artificial page delay, commit, push or production deployment. Browser visual QA remains unavailable after the prior origin denial; no bypass attempted.
+
+
+## Worktello local preview and loading animation — 24 October 2026
+
+Owner requested local implementation and a matching page-loading animation. All five generated concept/extraction images are preserved in `docs/brand/concepts/`; active transparent masters and browser icons remain in `apps/web/public/brand/worktello-*` and app metadata icon files.
+
+Added shared `WorktelloLoader` and native root, signed-in app and portal `loading.tsx` boundaries. A 1.65-second staggered opacity wave moves through the W folds, reusing the approved symbol and lettering alpha. Status is announced politely; reduced-motion disables the animation. No timer adds artificial loading delays. Native loading boundaries do not cover their own parent layout's data fetch; no global click interception or fake progress is introduced.
+
+Existing local Docker web/API rebuilt and running at http://localhost:3110; MongoDB healthy and volumes preserved. Saved loader and symbol hashes exactly match the running web container. Focused lint, web TypeScript and formatting/diff checks passed. Earlier 342-test and 75-page build results belong to the preceding rebrand, not a new full-suite run for this CSS/loading-only change.
+
+Browser access to localhost:3110 was declined by the origin approval gate. No alternate browser or network workaround attempted. Current local UI, animation playback, reduced-motion behavior and real route-transition visibility therefore remain visually unverified in this continuation. Standalone `docs/brand/worktello-loading-preview.html` embeds the same artwork/CSS and provides light/dark and pause/play controls for owner review. No production deployment, push or commit.
+
+
+## Worktello rebrand — 24 October 2026 (local implementation)
+
+Owner selected Worktello and the coral folded W with subtle handoff/palm negative space. Domain/DNS remains with the owner. Public-web screening is preliminary, not trademark clearance; a historical third-party Worktello mention was found, not verified as a software business. No legal-availability claim.
+
+Shared BrandLogo now uses the approved generated raster symbol and lettering with theme-aware alpha-mask lettering and explicit white lettering on dark rails. New worktello assets, browser favicon/touch icon, user-facing page titles/auth/policies/notifications/email and Teams UI wording are updated. DigiSol attribution and legal operator remain. COEX environment variables, package names, auth cookies, domains, Microsoft IDs/command IDs, protocol headers, DB identities and legacy stored system authors remain compatible. Release-note history retained; no branding announcement. Teams packaging script advances to 1.2.0 with Worktello title/artwork; installer upload/install is separate.
+
+The checkout already contains unrelated uncommitted Gantt, Teams, data-transfer and task changes, which must be preserved. No commit, push or deployment performed by this rebrand task. Verification: all workspace type checks, focused ESLint and 51 unit files / 342 tests passed; isolated final production Webpack build passed (75 pages). Desktop and 390px mobile visual checks, light/dark logo and 16/36/64px icon checks passed; mobile document width remained 390px. Preview copy used a signed-out session stub only for visual QA, then actual session sources were restored for the production build. No authenticated acceptance, real email/task creation or Teams install claimed. Packaging smoke test used a synthetic app ID in /private/tmp and must not be installed. SVG exports embed the approved raster masters; they are not traced vector artwork.
+
 
 ## Teams personal workspace deployed — 23 October 2026 (installation/pilot pending)
 

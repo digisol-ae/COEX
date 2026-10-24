@@ -312,7 +312,7 @@ export async function provisionPortalAccount(contactId: string) {
   // Password sign-in resolves a global email; do not create an ambiguous second identity.
   if (await UserModel.exists({ email: contact.email, deletedAt: null }))
     throw new Error(
-      'This email already has a COEX account. Ask an administrator to review its access.',
+      'This email already has a Worktello account. Ask an administrator to review its access.',
     );
   const result = await createUser({
     name: contact.name,

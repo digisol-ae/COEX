@@ -58,7 +58,7 @@ export async function handleTeamsActivity(
   settings: NonNullable<ReturnType<typeof teamsConfig>>,
 ) {
   if (activity.channelData.tenant.id !== settings.microsoftTenant)
-    return messageResponse('This Microsoft organisation is not connected to COEX.');
+    return messageResponse('This Microsoft organisation is not connected to Worktello.');
   await connectToDatabase();
   const [users, tenant] = await Promise.all([
     UserModel.find({
@@ -72,7 +72,7 @@ export async function handleTeamsActivity(
   const actor = users.length === 1 ? users[0] : null;
   if (!actor || !tenant || actor.role === 'client_contact')
     return messageResponse(
-      'Sign in to COEX with Microsoft first to link your staff account. If it is already linked, ask your administrator to check access.',
+      'Sign in to Worktello with Microsoft first to link your staff account. If it is already linked, ask your administrator to check access.',
     );
   if (
     !tenant.modules?.tasks ||
@@ -82,7 +82,7 @@ export async function handleTeamsActivity(
       permissionDenials: actor.permissionDenials,
     }).has('task.manage')
   )
-    return messageResponse('Your COEX account does not have permission to create tasks.');
+    return messageResponse('Your Worktello account does not have permission to create tasks.');
 
   return runWithContext(
     {
@@ -101,7 +101,7 @@ export async function handleTeamsActivity(
           task: {
             type: 'continue',
             value: {
-              title: 'Create COEX task',
+              title: 'Create Worktello task',
               width: 'large',
               height: 'large',
               url: `${settings.url}/integrations/teams/create#draft=${encodeURIComponent(draft)}`,
@@ -119,7 +119,7 @@ export async function handleTeamsActivity(
         draft = await readDraft(input.draft, String(actor._id), settings.tenantId, settings.secret);
       } catch {
         return messageResponse(
-          'This form has expired or could not be verified. Open Create COEX task from the message again.',
+          'This form has expired or could not be verified. Open Create Worktello task from the message again.',
         );
       }
       const previous = await Receipts.findById(draft.jti);
@@ -189,13 +189,13 @@ export async function handleTeamsActivity(
 function receiptResponse(taskId: string | null | undefined, url: string) {
   if (!taskId)
     return messageResponse(
-      'This request is being processed or needs checking. Check COEX tasks before opening a new form; resubmitting this form will not create another task.',
+      'This request is being processed or needs checking. Check Worktello tasks before opening a new form; resubmitting this form will not create another task.',
     );
   return {
     task: {
       type: 'continue',
       value: {
-        title: 'COEX task created',
+        title: 'Worktello task created',
         height: 'small',
         width: 'medium',
         card: {
@@ -203,9 +203,9 @@ function receiptResponse(taskId: string | null | undefined, url: string) {
           content: {
             type: 'AdaptiveCard',
             version: '1.4',
-            body: [{ type: 'TextBlock', text: 'Task created in COEX.', wrap: true }],
+            body: [{ type: 'TextBlock', text: 'Task created in Worktello.', wrap: true }],
             actions: [
-              { type: 'Action.OpenUrl', title: 'Open in COEX', url: `${url}/tasks/${taskId}` },
+              { type: 'Action.OpenUrl', title: 'Open in Worktello', url: `${url}/tasks/${taskId}` },
             ],
           },
         },

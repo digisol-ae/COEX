@@ -70,7 +70,7 @@ export function useNotificationSwitch(scope = '') {
     try {
       if (typeof Notification === 'undefined') {
         setFeedback(
-          'This browser does not support desktop notifications. Open COEX in Chrome or Edge.',
+          'This browser does not support desktop notifications. Open Worktello in Chrome or Edge.',
         );
         return;
       }
@@ -79,17 +79,17 @@ export function useNotificationSwitch(scope = '') {
         setFeedback(
           permission === 'denied'
             ? 'Notifications are blocked. Allow notifications for this site in your browser settings.'
-            : 'Notification permission was not granted. If no prompt appeared, open COEX in Chrome or Edge and try again.',
+            : 'Notification permission was not granted. If no prompt appeared, open Worktello in Chrome or Edge and try again.',
         );
         announceChange();
         return;
       }
       localStorage.setItem(ENABLED_KEY + scope, 'yes');
       localStorage.setItem(SINCE_KEY + scope, new Date().toISOString());
-      setFeedback('Notifications are on. Alerts appear while COEX is open in another tab.');
+      setFeedback('Notifications are on. Alerts appear while Worktello is open in another tab.');
     } catch {
       setFeedback(
-        'This browser could not enable notifications. Open COEX in Chrome or Edge and try again.',
+        'This browser could not enable notifications. Open Worktello in Chrome or Edge and try again.',
       );
     }
     announceChange();
@@ -100,7 +100,7 @@ export function useNotificationSwitch(scope = '') {
         setFeedback('Enable browser notifications first.');
         return;
       }
-      new Notification('COEX · Test notification', {
+      new Notification('Worktello · Test notification', {
         body: 'Browser notifications are working.',
         requireInteraction: true,
         tag: `coex-notification-test-${Date.now()}`,

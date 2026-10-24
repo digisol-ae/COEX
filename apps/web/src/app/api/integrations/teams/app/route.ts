@@ -9,7 +9,7 @@ async function handle(request: Request, write: boolean) {
   const authorization = request.headers.get('authorization') ?? '';
   if (!authorization.startsWith('Bearer ') || authorization.length > 24007)
     return Response.json(
-      { error: 'Open COEX from Microsoft Teams to sign in.' },
+      { error: 'Open Worktello from Microsoft Teams to sign in.' },
       { status: 401, headers },
     );
   const token = authorization.slice(7);

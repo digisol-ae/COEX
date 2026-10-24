@@ -6,7 +6,7 @@ import { IconLink } from '@/components/ui/icon-button';
 import { PeriodPicker } from './period-picker';
 import { toDateKey } from '@coex/shared/time/week';
 
-export const metadata = { title: 'Time report · COEX' };
+export const metadata = { title: 'Time report · Worktello' };
 
 /**
  * Where the hours went, three ways.

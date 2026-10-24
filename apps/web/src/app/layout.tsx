@@ -3,7 +3,7 @@ import { getSignedInUser } from '@/lib/session';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'COEX',
+  title: 'Worktello',
   description: 'DigiSol business platform: CRM foundation, tasks, time and support tickets.',
 };
 

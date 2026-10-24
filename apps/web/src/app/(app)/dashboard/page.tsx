@@ -10,7 +10,7 @@ import { loadOpportunitySnapshot } from '@/modules/crm/services/opportunity.serv
 import { fromMinorUnits } from '@/modules/crm/services/product.service';
 import { MyWork } from './my-work';
 
-export const metadata = { title: 'Dashboard · COEX' };
+export const metadata = { title: 'Dashboard · Worktello' };
 
 /**
  * The screen you land on after signing in, not a report buried in a menu.

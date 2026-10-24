@@ -88,7 +88,7 @@ export function sameOriginForWrites(allowedOrigins: string[]): RequestHandler {
 
     const origin = req.headers.origin;
     if (origin && !allowedOrigins.includes(origin)) {
-      next(new HttpError(403, 'bad_origin', 'This request did not come from the COEX site.'));
+      next(new HttpError(403, 'bad_origin', 'This request did not come from the Worktello site.'));
       return;
     }
 

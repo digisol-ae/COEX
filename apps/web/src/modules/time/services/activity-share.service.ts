@@ -54,7 +54,7 @@ export async function buildReportFor(filter: ActivityFilter) {
     title: 'Team activity',
     periodLabel,
     filtersLabel,
-    generatedBy: me?.name ?? 'COEX',
+    generatedBy: me?.name ?? 'Worktello',
     generatedAt: formatWhen(new Date()),
     rows: rows.map((row) => ({
       userName: row.userName,
