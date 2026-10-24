@@ -1,5 +1,13 @@
 # Worktello (formerly COEX) — Current AI Task
 
+## Worktello rebrand committed by Claude — 24 October 2026
+
+ChatGPT stopped before committing. Claude finished the task: branding committed alone as `f58985e` on branch `claude/worktello-rebrand` (from main `d491c0d`), pushed, PR opened for owner review. Staged snapshot verified in a clean install: typecheck, `eslint apps packages --max-warnings=0`, CI prettier globs, 298 unit tests (the earlier 342 included uncommitted WIP tests) and production build all passed. Signed-out pages (login, privacy, forgot password) render Worktello titles with no visible COEX; desktop 1440px and 390px dark mobile login and loader preview visually checked.
+
+Not done: merge, production deployment, Teams 1.2.0 package upload, domain/DNS, trademark clearance. Owner approval required before merge or deploy.
+
+Unrelated WIP (Gantt, Teams permissions/time/sharing, search, subtask, data transfer, local Docker) remains uncommitted in the working tree on this branch, untouched. **Do not resume the old rebrand task.** Next agent: continue from this entry; keep the WIP out of branding commits.
+
 ## Worktello branding and loader — owner decision, 24 October 2026
 
 **Product identity is Worktello (formerly COEX). Approved loader: highlight bars.** Keep `WorktelloLoader` default `variant="highlight"`; root, signed-in and portal loading boundaries use this default. Each complete diagonal W bar brightens in sequence. The build-up alternative remains dormant in the component and is archived at `docs/brand/animations/worktello-build-preview.html` for future use. Do not enable it by default without a new owner request.
