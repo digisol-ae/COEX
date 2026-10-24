@@ -1,5 +1,7 @@
 # Worktello (formerly COEX) product branding
 
+> Release update 25 October 2026: completed implementation shipped in application 4701314. Historical local-only/pending statements below are superseded by `ai/RELEASE-2026-10-25.md`; QA limitations remain explicit there. Teams catalog 1.2.0 and real Teams web SSO/list reads verified; no production write-flow acceptance claimed.
+
 ## Worktello branding and loader — owner decision, 24 October 2026
 
 **Product identity is Worktello (formerly COEX). Approved loader: highlight bars.** Keep `WorktelloLoader` default `variant="highlight"`; root, signed-in and portal loading boundaries use this default. Each complete diagonal W bar brightens in sequence. The build-up alternative remains dormant in the component and is archived at `docs/brand/animations/worktello-build-preview.html` for future use. Do not enable it by default without a new owner request.

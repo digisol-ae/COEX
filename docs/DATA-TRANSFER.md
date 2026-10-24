@@ -1,5 +1,7 @@
 # Import and export
 
+> Release update 25 October 2026: completed implementation shipped in application 4701314. Historical local-only/pending statements below are superseded by `ai/RELEASE-2026-10-25.md`; QA limitations remain explicit there. Teams catalog 1.2.0 and real Teams web SSO/list reads verified; no production write-flow acceptance claimed.
+
 Open **Setup → Import and export**. Staff need `tenant.manage` and the module's
 read permission; imports also require its manage permission. Tasks and tickets
 require read-all, and leads require lead.read.all. Customer-facing accounts

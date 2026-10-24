@@ -1,12 +1,21 @@
 # COEX isolated web rollout — current operating state
 
+## Completed-work release deployed — 25 October 2026
+
+Application `4701314` (PR #42; branding #40 and Node #41 included) is live at https://coex.digisol.ae. Fresh 342 unit tests, types/lint/format, Docker CSV/Gantt integration, local/server 75-page builds and PR/main CI passed. Active blue `coex-app` id 9 / PID 302605 on 3001; green id 8 / PID 303896 on 3002 remains fallback. Three workers now run in `/srv/coex/releases/worktello-20261025` (mail 10, desk-close 11, channels 12), not the original checkout. All five application process trees verified Node 22.23.4; PM2 saved. 40/40 switch health samples succeeded ; 20 old tenant sessions expired, zero old unexpired remain, later login preserved.
+
+Existing Teams catalog app updated to Worktello 1.2.0 and verified after reload. Real Teams web SSO/list reads and ordinary web Microsoft sign-in passed; full role/device/write pilot remains. What's new contains user-facing planning/Teams/data-transfer features plus generic maintenance counts, no branding announcement. Full backup, PIDs, CI, limitations and rollback: `ai/RELEASE-2026-10-25.md`; operating guide: `deploy/ZERO-DOWNTIME.md`. This entry supersedes earlier pending/local-only statements. Do not repeat expiry/restart for docs-only sync. Unrelated `projects/` preserved.
+
+Current rollback is **blue 3001 → green 3002**, after checking green login 200. Restore `/srv/coex/shared/apache-before-worktello-20261024231458/` canonical configs, configtest and graceful reload. Workers are now in the new release; the earlier “workers unchanged in /srv/coex/app” instructions below are historical. For a runtime patch, controlled one-at-a-time worker migration is necessary; a normal web-only release should leave workers alone. `/usr/bin/node` and PM2 daemon remain separate from explicit 22.23.4 application interpreters. Never change cwd with `pm2 startOrRestart` and assume it worked; verify pm_cwd/script and actual descendant executables. PM2 delete/start using a private preserved environment was required here.
+
+
 ## Active slots after Teams personal tab — 23 October 2026
 
 - Apache COEX vhosts target `http://127.0.0.1:3002/`.
 - Active green: coex-app-green id8 / PID214898, /srv/coex/releases/teams-tab-20261023, application merge6dfcf1509c46b1963c0e8de886adfe58c6ba004e.
 - Warm blue fallback: coex-app id7 / PID184237, /srv/coex/releases/entra-redirect-20261022, port3001. Old green id6 retired only while blue served traffic.
 - Exactly three unchanged workers remain in /srv/coex/app; five intentional PM2 entries saved. Existing ignored environment/shared storage retained.
-- Latest monitor40/40 HTTPS200. Apache snapshots: /srv/coex/shared/apache-before-teams-tab-20261023092338. Rollback: verify blue3001 login200, change both canonical vhost mappings3002→3001, configtest, graceful reload and public HTTPS verification. Do not restart workers.
+- Latest monitor40/40 HTTPS200. Apache snapshots: /srv/coex/shared/apache-before-teams-tab-20261023092338. Rollback: verify blue 3001 login 200, change both canonical vhost mappings3002→3001, configtest, graceful reload and public HTTPS verification. Do not restart workers.
 - Tenant-scoped session expiry: 7 old sessions revoked at cutoff2026-10-23T05:23:38Z; new post-cutoff sessions preserved. No repeated expiry for docs-only sync.
 - Evidence and remaining installation/pilot: ai/RELEASE-2026-10-23-TEAMS-TAB.md. Older mapping/rollback instructions below are historical and superseded here.
 

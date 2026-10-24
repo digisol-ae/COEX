@@ -1,5 +1,7 @@
 # COEX inside Teams — personal tab
 
+> Release update 25 October 2026: completed implementation shipped in application 4701314. Historical local-only/pending statements below are superseded by `ai/RELEASE-2026-10-25.md`; QA limitations remain explicit there. Teams catalog 1.2.0 and real Teams web SSO/list reads verified; no production write-flow acceptance claimed.
+
 ## Status — 23 October 2026
 
 Server implementation deployed from PR #38 / merge6dfcf15 on23 October2026. Teams package installation and real SSO pilot remain pending. Existing message action remains available. This adds a personal **My Tasks** tab, task detail with latest-first updates and Show more, text update posting, personal completion/filter and a single-screen create form with creator-default assignment. Attachments/full task editing open the normal COEX website; they are not embedded in this first tab screen. This is a focused Teams workspace, not the entire browser application embedded unchanged.

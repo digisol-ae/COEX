@@ -1,5 +1,12 @@
 # Worktello (formerly COEX) — AI Handoff
 
+## Completed-work release deployed — 25 October 2026
+
+Application `4701314` (PR #42; branding #40 and Node #41 included) is live at https://coex.digisol.ae. Fresh 342 unit tests, types/lint/format, Docker CSV/Gantt integration, local/server 75-page builds and PR/main CI passed. Active blue `coex-app` id 9 / PID 302605 on 3001; green id 8 / PID 303896 on 3002 remains fallback. Three workers now run in `/srv/coex/releases/worktello-20261025` (mail 10, desk-close 11, channels 12), not the original checkout. All five application process trees verified Node 22.23.4; PM2 saved. 40/40 switch health samples succeeded ; 20 old tenant sessions expired, zero old unexpired remain, later login preserved.
+
+Existing Teams catalog app updated to Worktello 1.2.0 and verified after reload. Real Teams web SSO/list reads and ordinary web Microsoft sign-in passed; full role/device/write pilot remains. What's new contains user-facing planning/Teams/data-transfer features plus generic maintenance counts, no branding announcement. Full backup, PIDs, CI, limitations and rollback: `ai/RELEASE-2026-10-25.md`; operating guide: `deploy/ZERO-DOWNTIME.md`. This entry supersedes earlier pending/local-only statements. Do not repeat expiry/restart for docs-only sync. Unrelated `projects/` preserved.
+
+
 ## Completed-work release authorized — 25 October 2026
 
 Owner requested completed-work deployment end to end. Current release record: `ai/RELEASE-2026-10-25.md`; it supersedes earlier local-only and approval-pending release statements. Existing completed Teams timer controls are included from the later 24 October QA, without starting a new feature. Preserve unrelated `projects/`. Production is pending until the release record contains verified cutover evidence.
