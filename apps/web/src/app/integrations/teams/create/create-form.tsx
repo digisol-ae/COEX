@@ -23,10 +23,16 @@ export function TeamsCreateForm({
   const [draft, setDraft] = useState('');
   const [space, setSpace] = useState('');
   const [folder, setFolder] = useState('');
-  const [assignee, setAssignee] = useState('');
+  const [assignee, setFirstAssignee] = useState('');
+  const [selectedAgents, setSelectedAgents] = useState<string[] | null>(null);
+  function setAssignee(value: string) {
+    setFirstAssignee(value);
+    setSelectedAgents(null);
+  }
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [ready, setReady] = useState(false);
+  const [created, setCreated] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -98,8 +104,11 @@ export function TeamsCreateForm({
         const result = await teamsTabRequest<{ taskId: string }>('create', {
           requestId: requestId.current,
           fields: { ...Object.fromEntries(fields), spaceId: space, folderId: folder, assignee },
+          assigneeIds: selectedAgents ?? (assignee ? [assignee] : []),
         });
-        onCreated?.(result.taskId);
+        if (data.canViewOthers || (selectedAgents ?? [assignee]).includes(data.actorId))
+          onCreated?.(result.taskId);
+        else setCreated(true);
         return;
       }
       const teams = await import('@microsoft/teams-js');
@@ -136,7 +145,9 @@ export function TeamsCreateForm({
           {error}
         </p>
       ) : null}
-      {!data ? (
+      {created ? (
+        <p role="status">Task created successfully. Select Tasks to return to your work.</p>
+      ) : !data ? (
         <p className="text-sm" aria-live="polite">
           {error
             ? personal
@@ -208,22 +219,47 @@ export function TeamsCreateForm({
             </label>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-sm">
-              Choose assignee
-              <select
-                value={assignee}
-                onChange={(e) => setAssignee(e.target.value)}
-                className={control}
-              >
-                <option value="">Unassigned</option>
-                {choices.people.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                    {p.id === data.actorId ? ' (you)' : ''}
-                  </option>
+            {personal && data.canAssignOthers ? (
+              <fieldset className="space-y-2 text-sm">
+                <legend>Assign agents</legend>
+                {choices.people.map((person) => (
+                  <label key={person.id} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={(selectedAgents ?? (assignee ? [assignee] : [])).includes(person.id)}
+                      onChange={(event) => {
+                        const current = selectedAgents ?? (assignee ? [assignee] : []);
+                        setSelectedAgents(
+                          event.target.checked
+                            ? [...current, person.id]
+                            : current.filter((id) => id !== person.id),
+                        );
+                      }}
+                    />
+                    {person.name}
+                  </label>
                 ))}
-              </select>
-            </label>
+              </fieldset>
+            ) : (
+              <label className="block text-sm">
+                Choose assignee
+                <select
+                  value={assignee}
+                  onChange={(e) => setAssignee(e.target.value)}
+                  className={control}
+                >
+                  {data.canAssignOthers && <option value="">Unassigned</option>}
+                  {choices.people
+                    .filter((p) => data.canAssignOthers || p.id === data.actorId)
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                        {p.id === data.actorId ? ' (you)' : ''}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            )}
             <label className="block text-sm">
               Priority
               <select name="priority" defaultValue="normal" className={control}>

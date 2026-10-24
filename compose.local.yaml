@@ -1,0 +1,61 @@
+name: coex-local
+
+x-app: &app
+  build:
+    context: .
+    dockerfile: Dockerfile.local
+  environment: &environment
+    NODE_ENV: development
+    MONGODB_URI: mongodb://mongo:27017/coex_docker_local
+    AUTH_SECRET: ${COEX_DOCKER_AUTH_SECRET:?Set COEX_DOCKER_AUTH_SECRET in .env.docker.local}
+    AUTH_URL: http://localhost:3110
+    COEX_APP_URL: http://localhost:3110
+    STORAGE_DIR: /app/.storage
+    COEX_API_URL: http://api:3002/api/v2
+    COEX_API_MODULES: ""
+  depends_on:
+    mongo:
+      condition: service_healthy
+  init: true
+
+services:
+  mongo:
+    image: mongo:8.0
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: [CMD, mongosh, --quiet, --eval, "quit(db.adminCommand('ping').ok ? 0 : 1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks: [default]
+
+  web:
+    <<: *app
+    ports:
+      - "127.0.0.1:3110:3100"
+    volumes:
+      - attachments:/app/.storage
+
+  api:
+    <<: *app
+    command: [npm, run, api:dev]
+    environment:
+      <<: *environment
+      API_HOST: 0.0.0.0
+      API_PORT: "3002"
+    volumes:
+      - attachments:/app/.storage
+
+  seed:
+    <<: *app
+    profiles: [tools]
+    command: [npx, tsx, scripts/seed.ts]
+    environment:
+      <<: *environment
+      SEED_ADMIN_EMAIL: docker-admin@example.test
+      SEED_ADMIN_NAME: Docker Local Administrator
+
+volumes:
+  mongo-data:
+  attachments:

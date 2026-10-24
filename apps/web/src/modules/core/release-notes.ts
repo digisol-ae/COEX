@@ -18,6 +18,35 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-25-planning-and-teams',
+    date: '25 October 2026',
+    title: 'Planning, Teams and data transfer',
+    sections: [
+      {
+        heading: 'Plan your work',
+        items: [
+          'The Space timeline has adjustable zoom, Today and Fit controls. Move or resize a task to preview its dates, then Save or Discard. Undo last save is available while the dates remain unchanged.',
+          'Share a task link to Microsoft Teams from the task page or drawer. Review the preview and choose the recipient in Teams before sending.',
+        ],
+      },
+      {
+        heading: 'Work inside Teams',
+        items: [
+          'Start and stop your task timer, add time manually, and correct your own time with a reason inside the Teams app.',
+          'Where your permissions allow, filter tasks by multiple agents and assign tasks to other people. Your existing Space and Folder access still applies.',
+        ],
+      },
+      {
+        heading: 'Move your data',
+        items: [
+          'Administrators with the required access can use Data transfer in Setup to download CSV templates, preview imports, create new records and export accessible records. Supported: tasks, tickets, customers, leads, products and contracts.',
+          'Imports create new records and skip recognised duplicates; they do not update existing records. Attachments and chat history are not transferred.',
+        ],
+      },
+      { heading: 'Maintenance', items: ['2 bug fixes and 1 improvement.'] },
+    ],
+  },
+  {
     id: '2026-10-22-maintenance',
     date: '22 October 2026',
     title: 'Bug fixes and improvements',

@@ -68,7 +68,7 @@ export function UserMenu({
             />
           ) : null}
         </span>
-        <span className="hidden min-w-0 text-left sm:block">
+        <span className="hidden min-w-0 max-w-48 text-left xl:block">
           <span className="block truncate text-sm font-medium text-[var(--color-ink)]">{name}</span>
           <span className="block truncate text-xs text-[var(--color-ink-subtle)]">
             {tenantName}
@@ -80,7 +80,7 @@ export function UserMenu({
           viewBox="0 0 12 12"
           fill="none"
           aria-hidden="true"
-          className="hidden text-[var(--color-ink-subtle)] sm:block"
+          className="hidden text-[var(--color-ink-subtle)] xl:block"
         >
           <path
             d="M3 4.5 6 7.5l3-3"

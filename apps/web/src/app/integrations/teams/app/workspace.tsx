@@ -1,5 +1,7 @@
 'use client';
+import { TeamsShare } from '@/components/tasks/teams-share';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { TaskControls, type TeamsTimeEntry } from './task-controls';
 import { BrandLogo } from '@/components/brand-logo';
 import { TeamsCreateForm } from '../create/create-form';
 import { teamsTabRequest } from '@/modules/integrations/teams/tab-client';
@@ -16,9 +18,31 @@ type Task = {
   isOverdue: boolean;
   subtasksDone: number;
   subtaskCount: number;
+  assigneeIds: string[];
+  assigneeNames: string[];
+};
+type Timer = { entryId: string; itemTitle: string; startedAt: string };
+type Access = {
+  actorId: string;
+  canViewOthers: boolean;
+  canAssignOthers: boolean;
+  people: { id: string; name: string }[];
+  runningTimer: Timer | null;
 };
 type Detail = {
-  task: { id: string; number: string; title: string; description: string | null; status: string };
+  canAssignOthers: boolean;
+  assignmentPeople: { id: string; name: string }[];
+  timeEntries: TeamsTimeEntry[];
+  runningTimer: Timer | null;
+  task: {
+    id: string;
+    number: string;
+    title: string;
+    description: string | null;
+    status: string;
+    assigneeIds: string[];
+    sourceTeamsMessageUrl?: string | null;
+  };
   comments: {
     id: string;
     body: string;
@@ -34,6 +58,9 @@ const message = (error: unknown) =>
   error instanceof Error ? error.message : 'Unable to load Worktello. Try reopening it in Teams.';
 
 export function TeamsWorkspace() {
+  const [access, setAccess] = useState<Access | null>(null);
+  const [agents, setAgents] = useState<string[]>([]);
+  const [timer, setTimer] = useState<Timer | null>(null);
   const [ready, setReady] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedId, setSelectedId] = useState('');
@@ -52,14 +79,23 @@ export function TeamsWorkspace() {
     setLoading(true);
     setError('');
     try {
-      const result = await teamsTabRequest<{ tasks: Task[] }>(`action=list&work=${work}`);
-      if (current === generation.current) setTasks(result.tasks);
+      const result = await teamsTabRequest<Access & { tasks: Task[] }>(
+        `action=list&work=${work}${agents.length ? '&agents=' + agents.join(',') : ''}`,
+      );
+      if (current === generation.current) {
+        setTasks(result.tasks);
+        setAccess(result);
+        setTimer(result.runningTimer);
+      }
     } catch (cause) {
-      if (current === generation.current) setError(message(cause));
+      if (current === generation.current) {
+        setError(message(cause));
+        setTasks([]);
+      }
     } finally {
       if (current === generation.current) setLoading(false);
     }
-  }, [work]);
+  }, [work, agents]);
   useEffect(() => {
     let cancelled = false;
     async function init() {
@@ -96,7 +132,10 @@ export function TeamsWorkspace() {
     setBody('');
     try {
       const result = await teamsTabRequest<Detail>(`action=detail&taskId=${id}`);
-      if (current === generation.current) setDetail(result);
+      if (current === generation.current) {
+        setDetail(result);
+        setTimer(result.runningTimer);
+      }
     } catch (cause) {
       if (current === generation.current) setError(message(cause));
     } finally {
@@ -128,7 +167,7 @@ export function TeamsWorkspace() {
               void load();
             }}
           >
-            My Tasks
+            Tasks
           </button>
           <button
             className={button}
@@ -146,6 +185,33 @@ export function TeamsWorkspace() {
           </button>
         </div>
       </header>
+      {timer && (
+        <div role="status" className="mb-4 flex flex-wrap items-center gap-3">
+          <span>
+            Your timer: {timer.itemTitle} · started {new Date(timer.startedAt).toLocaleTimeString()}
+          </span>
+          <button
+            className={button}
+            disabled={posting}
+            onClick={async () => {
+              setPosting(true);
+              setError('');
+              try {
+                await teamsTabRequest('timerStop', {});
+                setTimer(null);
+                if (mode === 'detail') await open(selectedId);
+                else await load();
+              } catch (cause) {
+                setError(message(cause));
+              } finally {
+                setPosting(false);
+              }
+            }}
+          >
+            Stop my timer
+          </button>
+        </div>
+      )}
       {error && (
         <div role="alert" className="mb-4 rounded-lg border border-red-400 p-3">
           <p>{error}</p>
@@ -172,6 +238,22 @@ export function TeamsWorkspace() {
               <button className={button} onClick={() => void external('/tasks/' + detail.task.id)}>
                 Open attachments and full task ↗
               </button>
+              <TeamsShare
+                key={`share-${detail.task.id}`}
+                task={detail.task}
+                description={detail.task.description}
+                source={detail.task.sourceTeamsMessageUrl}
+                inTeams
+              />
+              <TaskControls
+                key={detail.task.id}
+                taskId={detail.task.id}
+                assigneeIds={detail.task.assigneeIds}
+                people={detail.assignmentPeople}
+                canAssign={detail.canAssignOthers}
+                entries={detail.timeEntries}
+                onChanged={() => open(detail.task.id)}
+              />
               <h2 className="mb-3 mt-6 text-lg font-semibold">Updates</h2>
               <form
                 className="mb-5 space-y-2"
@@ -241,7 +323,31 @@ export function TeamsWorkspace() {
         </>
       ) : (
         <>
-          <h1 className="mb-4 text-2xl font-semibold">My Tasks</h1>
+          <h1 className="mb-4 text-2xl font-semibold">
+            {agents.some((id) => id !== access?.actorId) ? 'Agent tasks' : 'My Tasks'}
+          </h1>
+          {access?.canViewOthers && (
+            <fieldset className="mb-4 flex flex-wrap gap-3">
+              <legend>View agents’ tasks</legend>
+              {access.people.map((person) => (
+                <label key={person.id} className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    checked={(agents.length ? agents : [access.actorId]).includes(person.id)}
+                    onChange={(event) => {
+                      const current = agents.length ? agents : [access.actorId];
+                      const next = event.target.checked
+                        ? [...current, person.id]
+                        : current.filter((id) => id !== person.id);
+                      setAgents(next.length ? next : [access.actorId]);
+                      setWork('all');
+                    }}
+                  />
+                  {person.name}
+                </label>
+              ))}
+            </fieldset>
+          )}
           <div className="mb-4 flex flex-wrap gap-2">
             <label className="sr-only" htmlFor="teams-search">
               Search tasks
@@ -259,6 +365,7 @@ export function TeamsWorkspace() {
             <select
               id="teams-filter"
               className={control}
+              disabled={agents.some((id) => id !== access?.actorId)}
               value={work}
               onChange={(event) => setWork(event.target.value)}
             >
@@ -292,6 +399,7 @@ export function TeamsWorkspace() {
                     {task.folderName ? ` / ${task.folderName}` : ''} · {task.status} ·{' '}
                     {task.priority}
                   </p>
+                  <p className="text-sm">{task.assigneeNames.join(', ')}</p>
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-sm">
                     <span>
                       {task.endAt
@@ -302,7 +410,7 @@ export function TeamsWorkspace() {
                         ? ` · Subtasks ${task.subtasksDone}/${task.subtaskCount}`
                         : ''}
                     </span>
-                    {work !== 'all' && (
+                    {work !== 'all' && task.assigneeIds.includes(access?.actorId ?? '') && (
                       <button
                         className={button}
                         disabled={posting}

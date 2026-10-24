@@ -114,7 +114,7 @@ export default async function AppLayout({
                 {user.tenantName}
               </p>
 
-              <div className="hidden flex-1 justify-center sm:flex">
+              <div className="hidden min-w-8 flex-1 justify-center sm:flex">
                 <QuickSearch />
               </div>
 

@@ -43,6 +43,7 @@ const taskSchema = new Schema(
     number: { type: String, required: true },
     title: { type: String, required: true, trim: true },
     description: { type: String, default: null },
+    sourceTeamsMessageUrl: { type: String, default: null },
 
     spaceId: { type: Schema.Types.ObjectId, ref: 'Space', required: true, index: true },
     /** The folder this task sits in, or nothing when it sits directly in the space. */
@@ -152,6 +153,9 @@ if (models.Task && !models.Task.schema.path('mySubtaskDoneByIds')) {
     mySubtaskDoneByIds: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
   });
 }
+
+if (models.Task && !models.Task.schema.path('sourceTeamsMessageUrl'))
+  models.Task.schema.add({ sourceTeamsMessageUrl: { type: String, default: null } });
 
 if (models.Task && process.env.NODE_ENV === 'development') models.Task.recompileSchema();
 

@@ -148,6 +148,17 @@ export async function handleTeamsActivity(
           );
       }
       const assigneeId = input.assignee ?? String(actor._id);
+      if (
+        assigneeId !== String(actor._id) &&
+        !permissionsFor({
+          role: actor.role as Role,
+          permissionGrants: actor.permissionGrants,
+          permissionDenials: actor.permissionDenials,
+        }).has('teams.tasks.assign.others')
+      )
+        return messageResponse(
+          'You may only assign tasks to yourself in Teams. Ask an administrator for Teams assignment permission.',
+        );
       if (assigneeId) {
         const person = await UserModel.findOne({
           _id: assigneeId,
@@ -175,6 +186,7 @@ export async function handleTeamsActivity(
         spaceId,
         folderId: folderId ?? null,
         title: input.title,
+        sourceTeamsMessageUrl: draft.url,
         description: `${input.description || draft.text}\n\nOriginal Teams message: ${draft.url}`,
         assigneeIds: assigneeId ? [assigneeId] : [],
         priority: input.priority,
@@ -281,6 +293,11 @@ export async function loadTeamsForm(
         .sort({ name: 1 })
         .select('_id name');
       return {
+        canAssignOthers: permissionsFor({
+          role: actor.role as Role,
+          permissionGrants: actor.permissionGrants,
+          permissionDenials: actor.permissionDenials,
+        }).has('teams.tasks.assign.others'),
         appId: settings.appId,
         actorId: String(actor._id),
         title: draft.text.split('\n')[0].slice(0, 250),

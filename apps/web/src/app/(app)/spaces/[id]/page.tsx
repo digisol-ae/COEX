@@ -107,6 +107,7 @@ export default async function SpacePage({
       </div>
 
       <Board
+        referenceNow={new Date().toISOString()}
         spaceId={id}
         columns={columns}
         folders={folders.map((row) => ({

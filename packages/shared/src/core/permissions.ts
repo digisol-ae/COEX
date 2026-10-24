@@ -41,6 +41,8 @@ export const PERMISSIONS = [
   'task.read.all',
   'timesheet.read.all',
   'task.manage',
+  'teams.tasks.read.others',
+  'teams.tasks.assign.others',
   'desk.read.all',
   'ticket.read.own',
   'ticket.read.all',
@@ -52,6 +54,8 @@ export type Permission = (typeof PERMISSIONS)[number];
 const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   platform_admin: PERMISSIONS,
   tenant_admin: [
+    'teams.tasks.read.others',
+    'teams.tasks.assign.others',
     'tenant.read',
     'tenant.manage',
     'user.read',
