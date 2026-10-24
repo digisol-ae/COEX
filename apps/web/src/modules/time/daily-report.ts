@@ -87,7 +87,7 @@ export function agentEmail(
         'Please keep it up.',
         '',
         'Kind regards,',
-        'COEX',
+        'Worktello',
       ].join('\n'),
     };
   }
@@ -103,7 +103,7 @@ export function agentEmail(
         'We trust you, and an honest log of your day is all we ask. You are doing important work and we want it to be seen.',
         '',
         'Thank you,',
-        'COEX',
+        'Worktello',
       ].join('\n'),
     };
   }
@@ -118,7 +118,7 @@ export function agentEmail(
       'We would like to encourage you to start a timer on the task or ticket you are on, or add your time at the end of the day. Please be honest about your hours, because that is what makes the record fair for everyone.',
       '',
       'Thank you for your help,',
-      'COEX',
+      'Worktello',
     ].join('\n'),
   };
 }

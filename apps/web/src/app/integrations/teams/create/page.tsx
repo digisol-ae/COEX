@@ -1,7 +1,7 @@
 import { TeamsCreateForm } from './create-form';
 
 export const metadata = {
-  title: 'Create COEX task',
+  title: 'Create Worktello task',
   robots: { index: false, follow: false },
   referrer: 'no-referrer' as const,
 };

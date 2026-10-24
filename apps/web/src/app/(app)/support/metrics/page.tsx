@@ -11,7 +11,7 @@ import { Card, CardSection, EmptyState, PageHeader } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
 import { MetricsFilters } from './filters';
 
-export const metadata = { title: 'Desk report · COEX' };
+export const metadata = { title: 'Desk report · Worktello' };
 
 /**
  * How the desk is doing.

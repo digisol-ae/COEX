@@ -24,7 +24,7 @@ import { PipelineBoard, type BoardColumn } from './board';
 import { MoveButton } from './move-button';
 import { OpportunityPanel } from './opportunity-panel';
 
-export const metadata = { title: 'Opportunities · COEX' };
+export const metadata = { title: 'Opportunities · Worktello' };
 
 const STATUS_LABEL: Record<OpportunitySummary['status'], string> = {
   open: 'Open',

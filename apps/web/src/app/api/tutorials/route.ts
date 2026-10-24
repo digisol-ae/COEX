@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   if (!user) return Response.json({ error: 'Sign in first.' }, { status: 401 });
   if (!hasTrustedRequestOrigin(request))
     return Response.json(
-      { error: 'This request could not be verified. Refresh COEX and try again.' },
+      { error: 'This request could not be verified. Refresh Worktello and try again.' },
       { status: 403 },
     );
   try {

@@ -23,7 +23,7 @@ import { DraggableTicketRow, ResetTicketOrderButton } from './draggable-ticket-r
 import { NewTicketPanel } from './new-ticket-panel';
 import { AgentControl, PriorityControl, TicketRowActions } from './ticket-row-actions';
 
-export const metadata = { title: 'Tickets · COEX' };
+export const metadata = { title: 'Tickets · Worktello' };
 
 /**
  * The ticket list.

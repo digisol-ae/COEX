@@ -62,7 +62,10 @@ export async function withTeamsTabActor<T>(
   try {
     oid = await verifyTeamsTabToken(token, settings);
   } catch {
-    throw new TeamsTabError(401, 'Your Teams sign-in could not be verified. Reopen COEX in Teams.');
+    throw new TeamsTabError(
+      401,
+      'Your Teams sign-in could not be verified. Reopen Worktello in Teams.',
+    );
   }
   await connectToDatabase();
   const [actors, tenant] = await Promise.all([
@@ -87,7 +90,7 @@ export async function withTeamsTabActor<T>(
   )
     throw new TeamsTabError(
       403,
-      'Sign in to COEX with Microsoft to link your staff account, or ask your administrator to check task access.',
+      'Sign in to Worktello with Microsoft to link your staff account, or ask your administrator to check task access.',
     );
   return runWithContext(
     {

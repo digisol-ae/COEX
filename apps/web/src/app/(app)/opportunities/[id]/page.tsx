@@ -15,7 +15,7 @@ import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { suggestedEndDate } from '@/modules/crm/services/contract.service';
 import { MoveButton } from '../move-button';
 
-export const metadata = { title: 'Opportunity · COEX' };
+export const metadata = { title: 'Opportunity · Worktello' };
 
 const STATUS_TONE = { open: 'warn', won: 'ok', lost: 'alert' } as const;
 

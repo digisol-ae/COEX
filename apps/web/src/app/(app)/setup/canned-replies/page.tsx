@@ -5,7 +5,7 @@ import { standardSenderLabel } from '@/modules/core/services/email.service';
 import { PageHeader } from '@/components/ui';
 import { CannedReplyList } from './reply-list';
 
-export const metadata = { title: 'Saved replies · COEX' };
+export const metadata = { title: 'Saved replies · Worktello' };
 
 export default async function CannedRepliesPage() {
   const actor = await requirePermission('ticket.manage');

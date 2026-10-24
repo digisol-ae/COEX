@@ -40,15 +40,15 @@ export function AuthShell({
   return (
     <main className="flex min-h-screen">
       <section className="relative hidden w-1/2 flex-col justify-between bg-[image:var(--gradient-rail)] p-12 lg:flex">
-        <BrandLogo className="h-14 w-56 max-w-full" priority />
+        <BrandLogo inverse className="h-14 w-56 max-w-full" priority />
 
         <div>
           <h2 className="max-w-md text-3xl leading-tight font-bold text-[var(--color-rail-ink)]">
             One place for customers, work and support.
           </h2>
           <p className="mt-4 max-w-md text-[var(--color-rail-ink-muted)]">
-            COEX, short for Co-existence. Tasks, timesheets, tickets and the client history behind
-            them, without four systems that disagree.
+            Worktello brings together tasks, timesheets, tickets and the client history behind them,
+            without four systems that disagree.
           </p>
         </div>
 

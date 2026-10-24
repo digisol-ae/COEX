@@ -2,9 +2,9 @@ import Link from 'next/link';
 import { LegalPage } from '@/components/legal-page';
 
 export const metadata = {
-  title: 'Terms of Use | COEX',
+  title: 'Terms of Use | Worktello',
   description:
-    'Terms for authorised use of the COEX business platform and Microsoft Teams integration.',
+    'Terms for authorised use of the Worktello business platform and Microsoft Teams integration.',
 };
 
 export default function TermsPage() {
@@ -13,10 +13,10 @@ export default function TermsPage() {
       <section>
         <h2>1. About these terms</h2>
         <p>
-          These terms govern authorised use of COEX, operated by Digisol LLC-FZ (DigiSol), including
-          its customer portal and Microsoft Teams integration when enabled. Use the service only if
-          you are authorised by the organisation responsible for your workspace and agree to these
-          terms. If you do not agree, do not use it and contact your administrator.
+          These terms govern authorised use of Worktello, operated by Digisol LLC-FZ (DigiSol),
+          including its customer portal and Microsoft Teams integration when enabled. Use the
+          service only if you are authorised by the organisation responsible for your workspace and
+          agree to these terms. If you do not agree, do not use it and contact your administrator.
         </p>
         <p>
           A separate written agreement between DigiSol and your organisation takes precedence where
@@ -28,20 +28,20 @@ export default function TermsPage() {
       <section>
         <h2>2. Accounts and permitted use</h2>
         <p>
-          COEX is a business platform for authorised staff and customer contacts. Access depends on
-          your account status and assigned permissions. Protect your credentials, use your own
-          account, sign out on shared devices and promptly report suspected unauthorised access.
-          Workspace administrators are responsible for reviewing access and removing it when no
-          longer needed.
+          Worktello is a business platform for authorised staff and customer contacts. Access
+          depends on your account status and assigned permissions. Protect your credentials, use
+          your own account, sign out on shared devices and promptly report suspected unauthorised
+          access. Workspace administrators are responsible for reviewing access and removing it when
+          no longer needed.
         </p>
       </section>
       <section>
         <h2>3. Your information and responsibilities</h2>
         <p>
-          You and your organisation retain the rights you hold in information submitted to COEX. You
-          authorise DigiSol and its service providers to store, process, transmit and back up that
-          information as needed to operate, secure and support the service and meet applicable
-          obligations.
+          You and your organisation retain the rights you hold in information submitted to
+          Worktello. You authorise DigiSol and its service providers to store, process, transmit and
+          back up that information as needed to operate, secure and support the service and meet
+          applicable obligations.
         </p>
         <p>
           Submit only information you are entitled to use and share. Check its accuracy and choose
@@ -54,16 +54,16 @@ export default function TermsPage() {
       <section>
         <h2>4. Microsoft Teams and other integrations</h2>
         <p>
-          The Teams action creates a COEX task only after you submit its form. Review the title,
-          description, destination, assignee and due date before creating it. A task’s COEX audience
-          may differ from the source Teams conversation. The original message link does not grant
-          access to that conversation or change Microsoft permissions.
+          The Teams action creates a Worktello task only after you submit its form. Review the
+          title, description, destination, assignee and due date before creating it. A task’s
+          Worktello audience may differ from the source Teams conversation. The original message
+          link does not grant access to that conversation or change Microsoft permissions.
         </p>
         <p>
-          Removing an integration does not remove information already saved in COEX. External
+          Removing an integration does not remove information already saved in Worktello. External
           services are governed by their providers’ terms and may change or become unavailable. A
-          task-creation error can occur after a task has been saved; check COEX before opening a new
-          form to avoid duplicates.
+          task-creation error can occur after a task has been saved; check Worktello before opening
+          a new form to avoid duplicates.
         </p>
       </section>
       <section>

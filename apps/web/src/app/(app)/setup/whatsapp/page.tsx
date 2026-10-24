@@ -5,7 +5,7 @@ import { recentChannelMessages } from '@/modules/channels/services/channel-messa
 import { listQueues } from '@/modules/tickets/services/queue.service';
 import { WhatsAppSettingsForm } from './whatsapp-settings-form';
 
-export const metadata = { title: 'WhatsApp · COEX' };
+export const metadata = { title: 'WhatsApp · Worktello' };
 
 export default async function WhatsAppSettingsPage() {
   const actor = await requirePermission('tenant.manage');

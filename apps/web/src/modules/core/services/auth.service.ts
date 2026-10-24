@@ -102,11 +102,14 @@ export async function signInWithEntra(input: {
       return {
         ok: false,
         error:
-          'Your Microsoft account is not a registered COEX account. Ask an administrator for access.',
+          'Your Microsoft account is not a registered Worktello account. Ask an administrator for access.',
       };
     user = matches[0];
     if (user.entraObjectId && user.entraObjectId !== input.entraObjectId)
-      return { ok: false, error: 'This COEX account is linked to another Microsoft identity.' };
+      return {
+        ok: false,
+        error: 'This Worktello account is linked to another Microsoft identity.',
+      };
     await UserModel.updateOne({ _id: user._id }, { $set: { entraObjectId: input.entraObjectId } });
   }
   if (user.status !== 'active')

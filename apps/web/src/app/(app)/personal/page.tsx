@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/ui';
 import { PersonalTaskPanel } from '../tasks/personal-task-panel';
 import { TaskList } from '../tasks/task-list';
 
-export const metadata = { title: 'Personal · COEX' };
+export const metadata = { title: 'Personal · Worktello' };
 
 /** A person's own captured work. This is deliberately private from every other account. */
 export default async function PersonalPage() {

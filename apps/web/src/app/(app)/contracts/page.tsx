@@ -16,7 +16,7 @@ import { archiveContractAction, renewContractAction, setContractStatusAction } f
 import { ContractEmailButton } from './contract-email-button';
 import { ContractPanel } from './contract-panel';
 
-export const metadata = { title: 'Contracts · COEX' };
+export const metadata = { title: 'Contracts · Worktello' };
 
 const STATUS_LABEL: Record<ContractSummary['status'], string> = {
   draft: 'Draft',

@@ -8,7 +8,7 @@ import { SpacesTable } from './spaces-table';
 import { ArchivedSpaces } from './archived-spaces';
 import { listUsers } from '@/modules/core/services/user.service';
 
-export const metadata = { title: 'Spaces · COEX' };
+export const metadata = { title: 'Spaces · Worktello' };
 
 /**
  * Four levels: space, folder, task, subtask.

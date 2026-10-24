@@ -108,7 +108,7 @@ describe('tutorial writes behind a reverse proxy', () => {
     );
     expect(response.status).toBe(403);
     expect(scope.run).not.toHaveBeenCalled();
-    expect((await response.json()).error).toContain('Refresh COEX');
+    expect((await response.json()).error).toContain('Refresh Worktello');
   });
   it('continues accepting same-origin local preview writes', async () => {
     vi.stubEnv('COEX_APP_URL', 'https://coex.digisol.ae');

@@ -162,8 +162,8 @@ export function TutorialManager({ initialTutorial }: { initialTutorial: Tutorial
             </div>
             <p className="mt-3 text-xs text-[var(--color-ink-muted)]">
               Shows once per user for each publication, on their next visit or within 30 seconds
-              while COEX is open. Users can close, minimize and watch again. Playback starts when
-              they press Play.
+              while Worktello is open. Users can close, minimize and watch again. Playback starts
+              when they press Play.
             </p>
           </CardSection>
         </Card>

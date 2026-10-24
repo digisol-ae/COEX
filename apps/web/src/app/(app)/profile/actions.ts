@@ -40,7 +40,7 @@ export async function emailPasswordLinkAction(): Promise<ProfileFormState> {
   }
   if (result === 'email_off') {
     return {
-      error: 'COEX cannot send email yet. Ask an administrator to set it up in Setup, Email.',
+      error: 'Worktello cannot send email yet. Ask an administrator to set it up in Setup, Email.',
     };
   }
   return { error: 'Could not send the link.' };

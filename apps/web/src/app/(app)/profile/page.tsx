@@ -3,7 +3,7 @@ import { PageHeader } from '@/components/ui';
 import { getMyProfile } from '@/modules/core/services/user.service';
 import { PasswordLink, ProfileForm } from './profile-forms';
 
-export const metadata = { title: 'My profile · COEX' };
+export const metadata = { title: 'My profile · Worktello' };
 
 export default async function ProfilePage() {
   const user = await requireUser();

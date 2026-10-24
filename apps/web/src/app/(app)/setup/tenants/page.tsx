@@ -3,7 +3,7 @@ import { listTenants } from '@/modules/core/services/tenant.service';
 import { Badge, Card, PageHeader, Table, Td, Th } from '@/components/ui';
 import { CreateTenantPanel } from './create-tenant-panel';
 
-export const metadata = { title: 'Tenants · COEX' };
+export const metadata = { title: 'Tenants · Worktello' };
 
 /**
  * Platform administration. Creating a second tenant here, and seeing that its data never appears

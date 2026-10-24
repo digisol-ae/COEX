@@ -12,7 +12,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ tena
   return handleChannelCall(request, tenant, async (_body, auth) => {
     if (auth.delivery !== 'pull') {
       return Response.json(
-        { error: 'This tenant is set to "COEX sends"; there is nothing to collect.' },
+        { error: 'This tenant is set to "Worktello sends"; there is nothing to collect.' },
         { status: 409 },
       );
     }

@@ -5,7 +5,7 @@ import { getEmailSettings } from '@/modules/core/services/email.service';
 import { listQueues } from '@/modules/tickets/services/queue.service';
 import { EmailSettingsForm } from './email-settings-form';
 
-export const metadata = { title: 'Email · COEX' };
+export const metadata = { title: 'Email · Worktello' };
 
 export default async function EmailSettingsPage() {
   const actor = await requirePermission('tenant.manage');
@@ -18,7 +18,7 @@ export default async function EmailSettingsPage() {
     <div className="mx-auto max-w-3xl">
       <PageHeader
         title="Email"
-        description="The support mailbox COEX reads, the account it sends from, what customers receive and which alerts staff get."
+        description="The support mailbox Worktello reads, the account it sends from, what customers receive and which alerts staff get."
       />
       <SettingsDrawer
         title="Email settings"

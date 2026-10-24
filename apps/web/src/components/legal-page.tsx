@@ -11,7 +11,7 @@ export function LegalPage({ title, children }: { title: string; children: ReactN
           <BrandLogo className="h-9 w-auto" priority />
           <h1 className="mt-3 text-3xl font-bold">{title}</h1>
           <p className="mt-3 text-sm text-[var(--color-ink-muted)]">
-            Effective date: 22 October 2026 · Last updated: 22 October 2026
+            Effective date: 22 October 2026 · Last updated: 24 October 2026
           </p>
           <nav aria-label="Policy pages" className="mt-5 flex flex-wrap gap-x-5 gap-y-3 text-sm">
             <Link className="underline underline-offset-4" href="/privacy">
@@ -26,7 +26,7 @@ export function LegalPage({ title, children }: { title: string; children: ReactN
           {children}
         </div>
         <footer className="border-t border-[var(--color-line-strong)] pt-5 text-sm text-[var(--color-ink-muted)]">
-          Digisol LLC-FZ · COEX business platform
+          Digisol LLC-FZ · Worktello business platform
         </footer>
       </article>
     </main>

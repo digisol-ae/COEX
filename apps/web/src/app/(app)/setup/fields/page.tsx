@@ -4,7 +4,7 @@ import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components
 import { NewFieldPanel } from './new-field-panel';
 import { FieldToggle } from './field-toggle';
 
-export const metadata = { title: 'Custom fields · COEX' };
+export const metadata = { title: 'Custom fields · Worktello' };
 
 const ENTITY_LABEL: Record<string, string> = {
   organisation: 'Customer',

@@ -14,8 +14,8 @@ export function ForgotForm() {
     return (
       <div className="mt-8 space-y-4">
         <Notice tone="ok">
-          If that address has a COEX account, a link is on its way. It works once, for 30 minutes.
-          Check your junk folder if it does not arrive in a few minutes.
+          If that address has a Worktello account, a link is on its way. It works once, for 30
+          minutes. Check your junk folder if it does not arrive in a few minutes.
         </Notice>
         <BackToSignIn />
       </div>

@@ -4,7 +4,7 @@ import { asUser, requireUser } from '@/lib/session';
 import { portalIdentity } from '@/modules/portal/service';
 import { PageHeader, Notice } from '@/components/ui';
 import { PortalProfileForm } from './form';
-export const metadata = { title: 'My profile · COEX' };
+export const metadata = { title: 'My profile · Worktello' };
 export default async function Page() {
   const user = await requireUser();
   if (user.role !== 'client_contact') redirect('/dashboard');

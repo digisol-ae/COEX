@@ -4,7 +4,7 @@ import { getCurrentTenant } from '@/modules/core/services/tenant.service';
 import { PageHeader } from '@/components/ui';
 import { TenantSettingsForm } from './settings-form';
 
-export const metadata = { title: 'Tenant settings · COEX' };
+export const metadata = { title: 'Tenant settings · Worktello' };
 
 /** Minutes from midnight to the 09:00 form a time input expects. */
 function toTimeInput(minutes: number): string {

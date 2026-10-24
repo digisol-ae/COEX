@@ -648,3 +648,145 @@ html[data-theme='dark'] {
 .coex-filters label {
   max-width: 100%;
 }
+
+/* A quiet left-to-right handoff, only while a route's server content is pending. */
+.worktello-loading {
+  display: flex;
+  min-height: min(60vh, 30rem);
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  padding: 3rem 1.5rem;
+  color: var(--color-ink);
+}
+.worktello-loading-mark {
+  position: relative;
+  display: block;
+  width: 5.5rem;
+  aspect-ratio: 591 / 309;
+}
+.worktello-loading-fold {
+  position: absolute;
+  inset: 0;
+  background: #ee3e51;
+  -webkit-mask: url('/brand/worktello-symbol.png') center / contain no-repeat;
+  mask: url('/brand/worktello-symbol.png') center / contain no-repeat;
+  clip-path: polygon(0% 0%, 30.457% 0%, 31.303% 35.599%, 47.377% 66.99%, 50.761% 100%, 0% 100%);
+  opacity: 0.25;
+  animation: worktello-handoff 1.8s linear infinite;
+}
+.worktello-loading-fold:nth-child(2) {
+  clip-path: polygon(
+    30.457% 0%,
+    68.528% 0%,
+    69.374% 40.453%,
+    67.682% 35.599%,
+    73.604% 51.78%,
+    76.988% 64.725%,
+    88.832% 66.343%,
+    88.832% 100%,
+    50.761% 100%,
+    47.377% 66.99%,
+    31.303% 35.599%
+  );
+  animation-delay: 0.6s;
+}
+.worktello-loading-fold:nth-child(3) {
+  clip-path: polygon(
+    68.528% 0%,
+    100% 0%,
+    100% 100%,
+    88.832% 100%,
+    88.832% 66.343%,
+    76.988% 64.725%,
+    73.604% 51.78%,
+    67.682% 35.599%,
+    69.374% 40.453%
+  );
+  animation-delay: 1.2s;
+}
+.worktello-loading-name {
+  display: block;
+  width: 8rem;
+  aspect-ratio: 1402 / 259;
+  background: currentColor;
+  -webkit-mask: url('/brand/worktello-lettering.png') center / contain no-repeat;
+  mask: url('/brand/worktello-lettering.png') center / contain no-repeat;
+}
+.worktello-loading-label {
+  color: var(--color-ink-muted);
+  font-size: 0.8125rem;
+}
+@keyframes worktello-handoff {
+  0%,
+  28% {
+    opacity: 1;
+  }
+  33.333%,
+  100% {
+    opacity: 0.25;
+  }
+}
+.worktello-loading--build .worktello-loading-fold {
+  animation: worktello-build-left 2.4s linear infinite;
+  opacity: 0;
+}
+.worktello-loading--build .worktello-loading-fold:nth-child(2) {
+  animation-name: worktello-build-middle;
+  animation-delay: 0s;
+}
+.worktello-loading--build .worktello-loading-fold:nth-child(3) {
+  animation-name: worktello-build-right;
+  animation-delay: 0s;
+}
+@keyframes worktello-build-left {
+  0%,
+  5% {
+    opacity: 0;
+  }
+  12%,
+  82% {
+    opacity: 1;
+  }
+  92%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes worktello-build-middle {
+  0%,
+  28% {
+    opacity: 0;
+  }
+  35%,
+  82% {
+    opacity: 1;
+  }
+  92%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes worktello-build-right {
+  0%,
+  51% {
+    opacity: 0;
+  }
+  58%,
+  82% {
+    opacity: 1;
+  }
+  92%,
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .worktello-loading-fold,
+  .worktello-loading--build .worktello-loading-fold {
+    animation: none;
+    opacity: 1;
+  }
+}

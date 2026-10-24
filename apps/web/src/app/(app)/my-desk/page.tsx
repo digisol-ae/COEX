@@ -16,7 +16,7 @@ import { TaskList } from '../tasks/task-list';
 import { MyDeskTabs } from './my-desk-tabs';
 import { TeamHistory } from './team-history';
 
-export const metadata = { title: 'My desk · COEX' };
+export const metadata = { title: 'My desk · Worktello' };
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
 /** A calendar date key some days earlier; noon UTC keeps the arithmetic off any day boundary. */

@@ -5,7 +5,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { CreateUserPanel } from './create-user-panel';
 import { RoleSelect, StatusButton, ResetPasswordButton, AccessEditor } from './row-actions';
 
-export const metadata = { title: 'Users · COEX' };
+export const metadata = { title: 'Users · Worktello' };
 
 export default async function UsersPage() {
   const actor = await requirePermission('user.manage');

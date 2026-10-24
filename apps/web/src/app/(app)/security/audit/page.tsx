@@ -4,7 +4,7 @@ import { getContext } from '@/lib/tenant-context';
 import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 
-export const metadata = { title: 'Audit log · COEX' };
+export const metadata = { title: 'Audit log · Worktello' };
 
 /** Alarming actions are the only ones that carry colour, so the page reads calmly at a glance. */
 const ALERT_ACTIONS = new Set(['auth.sign_in_failed', 'user.suspended', 'user.password_reset']);

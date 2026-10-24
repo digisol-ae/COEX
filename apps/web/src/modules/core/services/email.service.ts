@@ -669,9 +669,13 @@ export async function alertStaff(
     kind,
     to: user.email,
     subject,
-    text: [`Hello ${user.name},`, '', ...lines, '', 'This is an automatic message from COEX.'].join(
-      '\n',
-    ),
+    text: [
+      `Hello ${user.name},`,
+      '',
+      ...lines,
+      '',
+      'This is an automatic message from Worktello.',
+    ].join('\n'),
   });
 }
 
@@ -998,8 +1002,8 @@ export async function sendTestEmail(role: SenderRole = 'standard'): Promise<stri
     await transport.sendMail({
       from: identity.from,
       to: user.email,
-      subject: `COEX test email (${label} sender)`,
-      text: `This is a test of the ${label} sender from COEX, Setup, Email. If you can read it, it works.`,
+      subject: `Worktello test email (${label} sender)`,
+      text: `This is a test of the ${label} sender from Worktello, Setup, Email. If you can read it, it works.`,
     });
     await EmailSettingsModel.updateOne(
       { _id: settings._id },

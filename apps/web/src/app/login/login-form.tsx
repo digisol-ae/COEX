@@ -24,7 +24,7 @@ export function LoginForm({
       {entraError ? (
         <Notice tone="alert">
           {entraError === 'account'
-            ? 'Your Microsoft account is not authorised for COEX.'
+            ? 'Your Microsoft account is not authorised for Worktello.'
             : entraError === 'not-configured'
               ? 'Microsoft sign-in is not configured yet.'
               : 'Microsoft sign-in was not completed. Please try again.'}

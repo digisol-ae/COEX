@@ -12,7 +12,7 @@ import { Badge, Card, CardSection, Notice, PageHeader, Table, Td, Th } from '@/c
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { setPeriodInvoicedAction } from '../actions';
 
-export const metadata = { title: 'Contract · COEX' };
+export const metadata = { title: 'Contract · Worktello' };
 
 const STATUS_TONE = {
   draft: 'neutral',

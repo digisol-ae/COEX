@@ -6,7 +6,7 @@ import { daysOfWeek, formatMinutes, startOfWeek, toDateKey } from '@coex/shared/
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
 
-export const metadata = { title: 'All timesheets · COEX' };
+export const metadata = { title: 'All timesheets · Worktello' };
 
 /**
  * Every active person's week, side by side.

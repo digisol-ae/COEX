@@ -3,7 +3,7 @@ import { getSignedInUser } from '@/lib/session';
 import { LoginEntry } from './login-entry';
 import { isEntraConfigured } from '@/modules/core/services/entra.service';
 
-export const metadata = { title: 'Sign in to COEX' };
+export const metadata = { title: 'Sign in to Worktello' };
 
 export default async function LoginPage({
   searchParams,

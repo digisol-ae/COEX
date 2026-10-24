@@ -101,7 +101,7 @@ export function WhatsAppSettingsForm({
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
                   label="Provider"
-                  hint="Test mode sends nothing outside COEX, for trying the flow."
+                  hint="Test mode sends nothing outside Worktello, for trying the flow."
                 >
                   <Select
                     name="provider"
@@ -121,8 +121,8 @@ export function WhatsAppSettingsForm({
                     value={delivery}
                     onChange={(event) => setDelivery(event.target.value as 'push' | 'pull')}
                   >
-                    <option value="push">COEX sends through the XVERSE API</option>
-                    <option value="pull">XVERSE collects from COEX</option>
+                    <option value="push">Worktello sends through the XVERSE API</option>
+                    <option value="pull">XVERSE collects from Worktello</option>
                   </Select>
                 </Field>
               </div>

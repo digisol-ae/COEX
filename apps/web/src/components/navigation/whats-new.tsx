@@ -99,7 +99,7 @@ export function WhatsNew({ seen }: { seen: string | null }) {
               What&apos;s new
             </h2>
             <p className="mt-0.5 text-sm text-[var(--color-ink-muted)]">
-              Everything that changed in COEX, newest first.
+              Everything that changed in Worktello, newest first.
             </p>
           </div>
           <button

@@ -31,7 +31,7 @@ const button =
   'rounded-lg border border-[var(--color-line-strong)] px-3 py-2 text-sm disabled:opacity-50';
 const control = 'rounded-lg border border-[var(--color-line-strong)] bg-[var(--color-surface)] p-2';
 const message = (error: unknown) =>
-  error instanceof Error ? error.message : 'Unable to load COEX. Try reopening it in Teams.';
+  error instanceof Error ? error.message : 'Unable to load Worktello. Try reopening it in Teams.';
 
 export function TeamsWorkspace() {
   const [ready, setReady] = useState(false);
@@ -70,7 +70,7 @@ export function TeamsWorkspace() {
         if (!cancelled) setReady(true);
       } catch {
         if (!cancelled) {
-          setError('Open this screen from the COEX app inside Microsoft Teams.');
+          setError('Open this screen from the Worktello app inside Microsoft Teams.');
           setLoading(false);
         }
       }
@@ -108,7 +108,7 @@ export function TeamsWorkspace() {
     try {
       await teams.app.openLink(window.location.origin + path);
     } catch {
-      setError('Unable to open COEX. Open coex.digisol.ae in your browser.');
+      setError('Unable to open Worktello. Open coex.digisol.ae in your browser.');
     }
   }
   const filtered = tasks.filter((task) =>
@@ -142,7 +142,7 @@ export function TeamsWorkspace() {
             Create task
           </button>
           <button className={button} onClick={() => void external('/tasks?mine=1')}>
-            Open full COEX ↗
+            Open full Worktello ↗
           </button>
         </div>
       </header>
@@ -222,7 +222,7 @@ export function TeamsWorkspace() {
                         className={button + ' mt-2'}
                         onClick={() => void external('/tasks/' + detail.task.id)}
                       >
-                        {comment.attachments.length} attachment(s) — open in COEX ↗
+                        {comment.attachments.length} attachment(s) — open in Worktello ↗
                       </button>
                     )}
                   </li>
