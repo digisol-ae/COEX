@@ -96,6 +96,7 @@ export const GROUPS: NavigationGroup[] = [
       { href: '/setup/canned-replies', label: 'Saved replies', permission: 'ticket.manage' },
       { href: '/setup/tenant', label: 'Tenant settings', permission: 'tenant.manage' },
       { href: '/setup/fields', label: 'Custom fields', permission: 'tenant.manage' },
+      { href: '/setup/data-transfer', label: 'Import and export', permission: 'tenant.manage' },
       { href: '/setup/tenants', label: 'Tenants', permission: 'tenant.create' },
     ],
   },

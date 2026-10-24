@@ -1,3 +1,4 @@
+import { TeamsShare } from '@/components/tasks/teams-share';
 import { TaskAddTime } from '@/modules/time/components/ticket-add-time';
 import { FactBadge } from '@/components/ui/fact-badge';
 import { DetailPopup } from '@/components/ui/detail-popup';
@@ -142,6 +143,12 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
           }
         />
       </div>
+
+      <TeamsShare
+        task={{ id, number: task.number, title: task.title, status: task.status }}
+        source={task.sourceTeamsMessageUrl}
+        description={task.description}
+      />
 
       <div className="mb-2">
         <TaskOriginSummary

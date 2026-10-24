@@ -1,4 +1,5 @@
 'use client';
+import { TeamsShare } from './teams-share';
 import { TaskFilesDrawer } from '@/app/(app)/tasks/[id]/task-files-drawer';
 import { TicketAttachmentPicker } from '@/components/ui/ticket-attachment-picker';
 import { AttachmentItem } from '@/app/(app)/support/tickets/[id]/attachment-item';
@@ -373,6 +374,12 @@ export function TaskPanel({
             )}
           </div>
 
+          <TeamsShare
+            key={task.id}
+            task={task}
+            source={task.sourceTeamsMessageUrl}
+            description={detail?.description}
+          />
           <section>
             <h3 className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
               Description

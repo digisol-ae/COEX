@@ -14,6 +14,25 @@ const mocks = vi.hoisted(() => ({
   receipt: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
+  patch: vi.fn(),
+  allowed: vi.fn(),
+  running: vi.fn(),
+  start: vi.fn(),
+  stop: vi.fn(),
+  addTime: vi.fn(),
+  editTime: vi.fn(),
+  entry: vi.fn(),
+  entries: vi.fn(),
+}));
+vi.mock('@/modules/time/services/time.service', () => ({
+  getRunningTimer: mocks.running,
+  startTimer: mocks.start,
+  stopTimer: mocks.stop,
+  addManualEntry: mocks.addTime,
+  updateEntry: mocks.editTime,
+}));
+vi.mock('@coex/shared/time/models/time-entry.model', () => ({
+  TimeEntryModel: { findOne: mocks.entry, find: mocks.entries },
 }));
 vi.mock('@/lib/db', () => ({ connectToDatabase: vi.fn() }));
 vi.mock('@/modules/integrations/teams/tab-auth', () => ({ verifyTeamsTabToken: mocks.verify }));
@@ -28,6 +47,8 @@ vi.mock('@/modules/tasks/services/task.service', () => ({
   addTaskComment: mocks.comment,
   setMySubtaskDone: mocks.done,
   createTask: mocks.create,
+  patchTask: mocks.patch,
+  assignableUserIdsForTask: mocks.allowed,
 }));
 vi.mock('@/modules/integrations/teams/teams.service', () => ({
   teamsConfig: () => ({
@@ -58,15 +79,27 @@ const create = {
 beforeEach(() => {
   vi.resetAllMocks();
   mocks.verify.mockResolvedValue('verified-oid');
-  mocks.users.mockReturnValue({
-    limit: vi.fn().mockResolvedValue([
-      {
-        _id: new Types.ObjectId(actorId),
-        tenantId: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-        role: 'tenant_admin',
-      },
-    ]),
-  });
+  mocks.users.mockImplementation((query) =>
+    query.entraObjectId
+      ? {
+          limit: vi.fn().mockResolvedValue([
+            {
+              _id: new Types.ObjectId(actorId),
+              tenantId: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
+              role: 'tenant_admin',
+            },
+          ]),
+        }
+      : {
+          sort: () => ({ select: async () => [{ _id: actorId, name: 'Agent' }] }),
+          select: async () => (query._id?.$in ?? []).map((id: string) => ({ _id: id })),
+        },
+  );
+  mocks.running.mockResolvedValue(null);
+  mocks.entries.mockReturnValue({ sort: () => ({ limit: async () => [] }) });
+  mocks.task.mockResolvedValue({ _id: taskId, assigneeIds: [actorId], spaceId, folderId: null });
+  mocks.comments.mockResolvedValue([]);
+  mocks.allowed.mockResolvedValue(null);
   mocks.tenant.mockResolvedValue({ modules: { tasks: true } });
   mocks.form.mockResolvedValue({
     actorId,
@@ -144,4 +177,164 @@ it('does not retry an uncertain task write', async () => {
   mocks.receipt.mockResolvedValue({ taskId: null });
   await expect(writeTeamsTab('token', create)).rejects.toMatchObject({ status: 409 });
   expect(mocks.create).not.toHaveBeenCalled();
+});
+
+function ordinary() {
+  mocks.users.mockImplementation((query) =>
+    query.entraObjectId
+      ? {
+          limit: async () => [
+            {
+              _id: new Types.ObjectId(actorId),
+              tenantId: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
+              role: 'agent',
+            },
+          ],
+        }
+      : { sort: () => ({ select: async () => [] }) },
+  );
+}
+it('denies agent filters and direct detail access without elevated view permission', async () => {
+  ordinary();
+  await expect(readTeamsTab('token', { action: 'list', agents: taskId })).rejects.toMatchObject({
+    status: 403,
+  });
+  mocks.task.mockResolvedValue({ _id: taskId, assigneeIds: [spaceId] });
+  await expect(readTeamsTab('token', { action: 'detail', taskId })).rejects.toMatchObject({
+    status: 404,
+  });
+  expect(mocks.comments).not.toHaveBeenCalled();
+});
+it('filters multiple agents through the existing privacy-scoped task service', async () => {
+  await readTeamsTab('token', { action: 'list', agents: actorId + ',' + taskId });
+  expect(mocks.list).toHaveBeenCalledWith({ assigneeIds: [actorId, taskId], personalWork: 'all' });
+});
+it('denies assignment and forged multi-agent creation without assignment permission', async () => {
+  ordinary();
+  await expect(
+    writeTeamsTab('token', { action: 'assign', taskId, assigneeIds: [actorId, spaceId] }),
+  ).rejects.toMatchObject({ status: 403 });
+  await expect(
+    writeTeamsTab('token', { ...create, assigneeIds: [actorId, spaceId] }),
+  ).rejects.toMatchObject({ status: 403 });
+  expect(mocks.patch).not.toHaveBeenCalled();
+  expect(mocks.reserve).not.toHaveBeenCalled();
+});
+it('validates and deduplicates reassignment without replacing unrelated task fields', async () => {
+  await writeTeamsTab('token', { action: 'assign', taskId, assigneeIds: [actorId, actorId] });
+  expect(mocks.patch).toHaveBeenCalledWith(taskId, { assigneeIds: [actorId] });
+  mocks.allowed.mockResolvedValue([]);
+  await expect(
+    writeTeamsTab('token', { action: 'assign', taskId, assigneeIds: [actorId] }),
+  ).rejects.toMatchObject({ status: 403 });
+});
+it('keeps timer start/stop tied to the authenticated actor and never accepts an entry to stop', async () => {
+  await writeTeamsTab('token', { action: 'timerStart', taskId, userId: spaceId });
+  expect(mocks.start).toHaveBeenCalledWith(taskId);
+  await writeTeamsTab('token', { action: 'timerStop', entryId: taskId, userId: spaceId });
+  expect(mocks.stop).toHaveBeenCalledWith();
+});
+it('rejects another agent’s time entry even for elevated actors', async () => {
+  mocks.entry.mockResolvedValue(null);
+  await expect(
+    writeTeamsTab('token', {
+      action: 'timeEdit',
+      taskId,
+      entryId: spaceId,
+      workDate: '2026-10-24',
+      duration: 30,
+      reason: 'Correction',
+      mayEditOthers: true,
+    }),
+  ).rejects.toMatchObject({ status: 404 });
+  expect(mocks.entry).toHaveBeenCalledWith(
+    expect.objectContaining({ userId: expect.anything(), taskId }),
+  );
+  expect(mocks.editTime).not.toHaveBeenCalled();
+});
+it('edits own time with a reason and forces cross-user editing off', async () => {
+  mocks.entry.mockResolvedValue({ _id: spaceId });
+  await writeTeamsTab('token', {
+    action: 'timeEdit',
+    taskId,
+    entryId: spaceId,
+    workDate: '2026-10-24',
+    duration: 30,
+    reason: 'Correction',
+    mayEditOthers: true,
+  });
+  expect(mocks.editTime).toHaveBeenCalledWith(
+    spaceId,
+    expect.objectContaining({ mayEditOthers: false, reason: 'Correction' }),
+  );
+  await expect(
+    writeTeamsTab('token', {
+      action: 'timeEdit',
+      taskId,
+      entryId: spaceId,
+      workDate: '2026-10-24',
+      duration: 30,
+      reason: '',
+    }),
+  ).rejects.toMatchObject({ status: 400 });
+});
+
+it('honours selective grants and explicit denials independently', async () => {
+  const configure = (permissionGrants: string[], permissionDenials: string[] = []) =>
+    mocks.users.mockImplementation((query) =>
+      query.entraObjectId
+        ? {
+            limit: async () => [
+              {
+                _id: new Types.ObjectId(actorId),
+                tenantId: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
+                role: 'agent',
+                permissionGrants,
+                permissionDenials,
+              },
+            ],
+          }
+        : { sort: () => ({ select: async () => [] }), select: async () => [{ _id: actorId }] },
+    );
+  configure(['teams.tasks.read.others']);
+  await readTeamsTab('token', { action: 'list', agents: spaceId });
+  await expect(
+    writeTeamsTab('token', { action: 'assign', taskId, assigneeIds: [actorId] }),
+  ).rejects.toMatchObject({ status: 403 });
+  configure(['teams.tasks.assign.others']);
+  await writeTeamsTab('token', { action: 'assign', taskId, assigneeIds: [actorId] });
+  await expect(readTeamsTab('token', { action: 'list', agents: spaceId })).rejects.toMatchObject({
+    status: 403,
+  });
+  configure(['teams.tasks.read.others'], ['teams.tasks.read.others']);
+  await expect(readTeamsTab('token', { action: 'list', agents: spaceId })).rejects.toMatchObject({
+    status: 403,
+  });
+});
+it('passes own manual time only and returns actionable locked-week errors', async () => {
+  await writeTeamsTab('token', {
+    action: 'timeAdd',
+    taskId,
+    workDate: '2026-10-24',
+    duration: 45,
+    userId: spaceId,
+  });
+  expect(mocks.addTime).toHaveBeenCalledWith(expect.not.objectContaining({ userId: spaceId }));
+  mocks.addTime.mockRejectedValue(
+    new Error('That week is locked, so the entry cannot be changed.'),
+  );
+  await expect(
+    writeTeamsTab('token', { action: 'timeAdd', taskId, workDate: '2026-10-24', duration: 45 }),
+  ).rejects.toMatchObject({ status: 400, message: expect.stringContaining('locked') });
+});
+it('returns only own saved time when viewing another agent’s task', async () => {
+  mocks.task.mockResolvedValue({ _id: taskId, assigneeIds: [spaceId], spaceId });
+  await readTeamsTab('token', { action: 'detail', taskId });
+  expect(mocks.entries).toHaveBeenCalledWith(
+    expect.objectContaining({
+      tenantId: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
+      userId: new Types.ObjectId(actorId),
+      taskId,
+    }),
+  );
 });

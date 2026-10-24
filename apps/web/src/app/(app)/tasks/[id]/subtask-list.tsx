@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useOptimistic, useState, useTransition } from 'react';
 import { Button, Card, CardSection, EmptyState, Input, Notice } from '@/components/ui';
 import { addSubtaskAction, setSubtaskAssigneeAction, toggleSubtaskAction } from '../actions';
 
@@ -16,7 +16,14 @@ export function SubtaskList({
   users: { id: string; name: string }[];
   canManage: boolean;
 }) {
-  const done = subtasks.filter((subtask) => subtask.done).length;
+  const [visibleSubtasks, setOptimisticDone] = useOptimistic(
+    subtasks,
+    (current, change: { id: string; done: boolean }) =>
+      current.map((subtask) =>
+        subtask.id === change.id ? { ...subtask, done: change.done } : subtask,
+      ),
+  );
+  const done = visibleSubtasks.filter((subtask) => subtask.done).length;
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -30,28 +37,32 @@ export function SubtaskList({
           <EmptyState message="No subtasks. Add them if the task is worth breaking down." />
         ) : (
           <ul className="space-y-2">
-            {subtasks.map((subtask) => (
+            {visibleSubtasks.map((subtask) => (
               <li key={subtask.id} className="flex items-center gap-2">
-                <form
-                  action={async (formData) => {
-                    setError(null);
-                    try {
-                      const result = await toggleSubtaskAction(formData);
-                      if (result.error) setError(result.error);
-                    } catch {
-                      setError('Could not update this subtask. Please try again.');
-                    }
-                  }}
-                  className="flex flex-1 items-center gap-2"
-                >
-                  <input type="hidden" name="taskId" value={taskId} />
-                  <input type="hidden" name="subtaskId" value={subtask.id} />
-                  <input type="hidden" name="done" value={String(subtask.done)} />
+                <div className="flex flex-1 items-center gap-2">
                   <input
                     type="checkbox"
+                    aria-label={`Complete ${subtask.title}`}
                     checked={subtask.done}
                     disabled={!canManage || pending}
-                    onChange={(event) => event.currentTarget.form?.requestSubmit()}
+                    onChange={(event) => {
+                      const nextDone = event.currentTarget.checked;
+                      startTransition(async () => {
+                        setError(null);
+                        setOptimisticDone({ id: subtask.id, done: nextDone });
+                        const formData = new FormData();
+                        formData.set('taskId', taskId);
+                        formData.set('subtaskId', subtask.id);
+                        // The legacy action accepts the previous state and toggles it.
+                        formData.set('done', String(!nextDone));
+                        try {
+                          const result = await toggleSubtaskAction(formData);
+                          if (result.error) setError(result.error);
+                        } catch {
+                          setError('Could not update this subtask. Please try again.');
+                        }
+                      });
+                    }}
                   />
                   <span
                     className={
@@ -62,7 +73,7 @@ export function SubtaskList({
                   >
                     {subtask.title}
                   </span>
-                </form>
+                </div>
 
                 {canManage ? (
                   <select

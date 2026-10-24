@@ -1,5 +1,10 @@
 # Worktello (formerly COEX) — AI Handoff
 
+## Completed-work release authorized — 25 October 2026
+
+Owner requested completed-work deployment end to end. Current release record: `ai/RELEASE-2026-10-25.md`; it supersedes earlier local-only and approval-pending release statements. Existing completed Teams timer controls are included from the later 24 October QA, without starting a new feature. Preserve unrelated `projects/`. Production is pending until the release record contains verified cutover evidence.
+
+
 ## Worktello rebrand committed by Claude — 24 October 2026
 
 ChatGPT stopped before committing. Claude finished the task: branding committed alone as `f58985e` on branch `claude/worktello-rebrand` (from main `d491c0d`), pushed, PR opened for owner review. Staged snapshot verified in a clean install: typecheck, `eslint apps packages --max-warnings=0`, CI prettier globs, 298 unit tests (the earlier 342 included uncommitted WIP tests) and production build all passed. Signed-out pages (login, privacy, forgot password) render Worktello titles with no visible COEX; desktop 1440px and 390px dark mobile login and loader preview visually checked.

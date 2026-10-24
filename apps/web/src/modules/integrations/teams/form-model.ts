@@ -1,6 +1,9 @@
 import type { loadTeamsForm } from './teams.service';
 
-export type TeamsFormData = Awaited<ReturnType<typeof loadTeamsForm>>;
+export type TeamsFormData = Omit<Awaited<ReturnType<typeof loadTeamsForm>>, 'canAssignOthers'> & {
+  canAssignOthers?: boolean;
+  canViewOthers?: boolean;
+};
 
 export function formChoices(data: TeamsFormData, spaceId: string, folderId: string) {
   const space = data.spaces.find((s) => s.id === spaceId);

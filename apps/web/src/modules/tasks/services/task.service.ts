@@ -1,3 +1,4 @@
+import { taskTeamsSource, teamsMessageLink } from '@coex/shared/tasks/teams-sharing';
 import { fileStorage } from '@/lib/storage';
 import { storeTaskImages, type IncomingFile } from '@/modules/tickets/services/attachment.service';
 import { Types } from 'mongoose';
@@ -66,6 +67,7 @@ export interface TaskSummary {
   subtaskCount: number;
   subtasksDone: number;
   subtasks: { id: string; title: string; done: boolean; assigneeId: string | null }[];
+  sourceTeamsMessageUrl?: string | null;
   documentCount: number;
   documentLinks: { id: string; title: string; url: string }[];
   /** The signed-in person's own logged time on this task, not everyone's added together. */
@@ -246,6 +248,7 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   const now = new Date();
 
   return found.map((task) => ({
+    sourceTeamsMessageUrl: taskTeamsSource(task.sourceTeamsMessageUrl, task.description),
     id: String(task._id),
     number: task.number,
     title: task.title,
@@ -704,6 +707,7 @@ export interface CreateTaskInput {
   status?: string;
   /** Set when support escalates a ticket, so work updates on the task can reach that ticket. */
   sourceTicketId?: string | null;
+  sourceTeamsMessageUrl?: string | null;
 }
 
 /**
@@ -815,6 +819,7 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     sortOrder: Date.now(),
     organisationId: toOptionalObjectId(input.organisationId ?? space.organisationId),
     sourceTicketId: toOptionalObjectId(input.sourceTicketId),
+    sourceTeamsMessageUrl: teamsMessageLink(input.sourceTeamsMessageUrl),
     isClosed: firstColumn?.isClosed ?? false,
     lastActivityAt: new Date(),
     createdById: getContext().userId,

@@ -94,6 +94,7 @@ export function Board({
   canManage,
   initialView,
   runningTaskId,
+  referenceNow,
 }: {
   spaceId: string;
   columns: { name: string; isClosed: boolean }[];
@@ -106,6 +107,7 @@ export function Board({
   canManage: boolean;
   initialView: SpaceView;
   runningTaskId: string | null;
+  referenceNow: string;
 }) {
   const [view, setView] = useState<SpaceView>(initialView);
   const [adding, setAdding] = useState(false);
@@ -461,7 +463,15 @@ export function Board({
         </Card>
       ) : null}
 
-      {view === 'gantt' ? <Gantt tasks={visible} /> : null}
+      {view === 'gantt' ? (
+        <Gantt
+          tasks={visible}
+          spaceId={spaceId}
+          canManage={canManage}
+          referenceNow={referenceNow}
+          onOpen={handlers.onOpen}
+        />
+      ) : null}
 
       {view === 'board' ? (
         // A phone cannot show four columns at once, so the board scrolls sideways rather than

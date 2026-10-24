@@ -11,6 +11,7 @@ import Replies from './canned-replies/page';
 import Tenant from './tenant/page';
 import Fields from './fields/page';
 import Tenants from './tenants/page';
+import DataTransfer from './data-transfer/page';
 const PAGES = {
   queues: Queues,
   tutorials: Tutorials,
@@ -21,6 +22,7 @@ const PAGES = {
   tenant: Tenant,
   fields: Fields,
   tenants: Tenants,
+  'data-transfer': DataTransfer,
 };
 export async function setupTabs() {
   const user = await requireStaffUser();

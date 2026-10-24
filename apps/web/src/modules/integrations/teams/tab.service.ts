@@ -1,7 +1,7 @@
 import { Schema, model, models } from 'mongoose';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { TenantModel } from '@coex/shared/core/models/tenant.model';
-import { permissionsFor, type Role } from '@coex/shared/core/permissions';
+import { permissionsFor, type Permission, type Role } from '@coex/shared/core/permissions';
 import { connectToDatabase } from '@/lib/db';
 import { runWithContext } from '@/lib/tenant-context';
 import {
@@ -11,12 +11,25 @@ import {
   addTaskComment,
   setMySubtaskDone,
   createTask,
+  patchTask,
+  assignableUserIdsForTask,
 } from '@/modules/tasks/services/task.service';
 import { loadTeamsForm, teamsConfig } from './teams.service';
 import { signDraft, taskFieldsSchema } from './teams-protocol';
 import { formChoices } from './form-model';
 import { verifyTeamsTabToken } from './tab-auth';
 import { z } from 'zod';
+import { taskTeamsSource } from '@coex/shared/tasks/teams-sharing';
+import { toDateKey } from '@coex/shared/time/week';
+import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
+import { getContext } from '@/lib/tenant-context';
+import {
+  getRunningTimer,
+  startTimer,
+  stopTimer,
+  addManualEntry,
+  updateEntry,
+} from '@/modules/time/services/time.service';
 
 export class TeamsTabError extends Error {
   constructor(
@@ -40,21 +53,54 @@ const id = z.string().regex(/^[a-f\d]{24}$/i);
 const readSchema = z.object({
   action: z.enum(['list', 'detail', 'form']),
   taskId: id.optional(),
+  agents: z.string().max(1300).optional(),
   work: z.enum(['active', 'done', 'all']).default('active'),
 });
+const assignees = z
+  .array(id)
+  .max(50)
+  .transform((ids) => [...new Set(ids)]);
+const day = z.iso.date();
+const duration = z.number().int().min(1).max(1440);
 const writeSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('assign'), taskId: id, assigneeIds: assignees }),
+  z.object({ action: z.literal('timerStart'), taskId: id }),
+  z.object({ action: z.literal('timerStop') }),
+  z.object({
+    action: z.literal('timeAdd'),
+    taskId: id,
+    workDate: day,
+    duration,
+    note: z.string().max(2000).optional(),
+    billable: z.boolean().default(false),
+  }),
+  z.object({
+    action: z.literal('timeEdit'),
+    taskId: id,
+    entryId: id,
+    workDate: day,
+    duration,
+    note: z.string().max(2000).optional(),
+    billable: z.boolean().default(false),
+    reason: z.string().trim().min(1).max(500),
+  }),
   z.object({ action: z.literal('comment'), taskId: id, body: z.string().trim().min(1).max(4000) }),
   z.object({ action: z.literal('personalDone'), taskId: id, done: z.boolean() }),
   z.object({
     action: z.literal('create'),
     requestId: z.uuid(),
     fields: z.record(z.string(), z.unknown()),
+    assigneeIds: assignees.optional(),
   }),
 ]);
 
 export async function withTeamsTabActor<T>(
   token: string,
-  work: (actorId: string, settings: NonNullable<ReturnType<typeof teamsConfig>>) => Promise<T>,
+  work: (
+    actorId: string,
+    settings: NonNullable<ReturnType<typeof teamsConfig>>,
+    permissions: Set<Permission>,
+  ) => Promise<T>,
 ) {
   const settings = teamsConfig();
   if (!settings) throw new TeamsTabError(503, 'Teams access is not configured.');
@@ -98,7 +144,16 @@ export async function withTeamsTabActor<T>(
       userId: actor._id,
       isPlatformAdmin: actor.role === 'platform_admin',
     },
-    () => work(String(actor._id), settings),
+    () =>
+      work(
+        String(actor._id),
+        settings,
+        permissionsFor({
+          role: actor.role as Role,
+          permissionGrants: actor.permissionGrants,
+          permissionDenials: actor.permissionDenials,
+        }),
+      ),
   );
 }
 
@@ -118,17 +173,50 @@ async function choices(actorId: string, settings: NonNullable<ReturnType<typeof 
 export async function readTeamsTab(token: string, raw: unknown) {
   const parsed = readSchema.safeParse(raw);
   if (!parsed.success) throw new TeamsTabError(400, 'Choose a valid task or filter.');
-  return withTeamsTabActor(token, async (actorId, settings) => {
+  return withTeamsTabActor(token, async (actorId, settings, permissions) => {
     const input = parsed.data;
-    if (input.action === 'form') return choices(actorId, settings);
-    if (input.action === 'list')
+    if (input.action === 'form')
       return {
-        tasks: await listTasks({ assigneeId: actorId, personalWork: input.work }),
+        ...(await choices(actorId, settings)),
+        canAssignOthers: permissions.has('teams.tasks.assign.others'),
+        canViewOthers: permissions.has('teams.tasks.read.others'),
+      };
+    if (input.action === 'list') {
+      const selected = input.agents ? assignees.safeParse(input.agents.split(',')) : null;
+      if (selected && !selected.success) throw new TeamsTabError(400, 'Choose valid agents.');
+      const agentIds = selected?.success ? selected.data : [actorId];
+      if (
+        agentIds.some((agent) => agent !== actorId) &&
+        !permissions.has('teams.tasks.read.others')
+      )
+        throw new TeamsTabError(403, 'You are not allowed to view other agents’ tasks in Teams.');
+      const own = agentIds.length === 1 && agentIds[0] === actorId;
+      const people = permissions.has('teams.tasks.read.others')
+        ? await UserModel.find({
+            tenantId: settings.tenantId,
+            status: 'active',
+            deletedAt: null,
+            role: { $ne: 'client_contact' },
+          })
+            .sort({ name: 1 })
+            .select('_id name')
+        : [];
+      return {
+        tasks: await listTasks(
+          own
+            ? { assigneeId: actorId, personalWork: input.work }
+            : { assigneeIds: agentIds, personalWork: 'all' },
+        ),
+        actorId,
+        people: people.map((p) => ({ id: String(p._id), name: p.name })),
+        canViewOthers: permissions.has('teams.tasks.read.others'),
+        canAssignOthers: permissions.has('teams.tasks.assign.others'),
+        runningTimer: await getRunningTimer(),
         appUrl: settings.url,
       };
+    }
     if (!input.taskId) throw new TeamsTabError(400, 'Choose a task.');
-    const task = await getTask(input.taskId);
-    if (!task) throw new TeamsTabError(404, 'This task is unavailable or your access changed.');
+    const task = await accessibleTask(input.taskId, actorId, permissions);
     const comments = await listTaskComments(input.taskId);
     return {
       task: {
@@ -137,8 +225,37 @@ export async function readTeamsTab(token: string, raw: unknown) {
         title: task.title,
         description: task.description,
         status: task.status,
+        assigneeIds: task.assigneeIds.map(String),
+        sourceTeamsMessageUrl: taskTeamsSource(task.sourceTeamsMessageUrl, task.description),
       },
       comments: comments.reverse(),
+      canAssignOthers: permissions.has('teams.tasks.assign.others'),
+      assignmentPeople: permissions.has('teams.tasks.assign.others')
+        ? formChoices(
+            await choices(actorId, settings),
+            String(task.spaceId),
+            task.folderId ? String(task.folderId) : '',
+          ).people
+        : [],
+      runningTimer: await getRunningTimer(),
+      timeEntries: (
+        await TimeEntryModel.find({
+          tenantId: getContext().tenantId,
+          userId: getContext().userId,
+          taskId: task._id,
+          deletedAt: null,
+          running: false,
+        })
+          .sort({ workDate: -1 })
+          .limit(100)
+      ).map((entry) => ({
+        id: String(entry._id),
+        workDate: toDateKey(entry.workDate),
+        minutes: entry.minutes,
+        note: entry.note ?? '',
+        billable: entry.billable,
+        locked: !!entry.lockedAt,
+      })),
       appUrl: settings.url,
     };
   });
@@ -147,8 +264,41 @@ export async function readTeamsTab(token: string, raw: unknown) {
 export async function writeTeamsTab(token: string, raw: unknown) {
   const parsed = writeSchema.safeParse(raw);
   if (!parsed.success) throw new TeamsTabError(400, 'Check the form and try again.');
-  return withTeamsTabActor(token, async (actorId, settings) => {
+  return withTeamsTabActor(token, async (actorId, settings, permissions) => {
     const input = parsed.data;
+    if (input.action === 'timerStop') {
+      await stopTimer();
+      return { ok: true };
+    }
+    if ('taskId' in input) await accessibleTask(input.taskId, actorId, permissions);
+    if (input.action === 'timerStart') {
+      await timeMutation(() => startTimer(input.taskId));
+      return { ok: true };
+    }
+    if (input.action === 'timeAdd') {
+      await timeMutation(() => addManualEntry(input));
+      return { ok: true };
+    }
+    if (input.action === 'timeEdit') {
+      const entry = await TimeEntryModel.findOne({
+        _id: input.entryId,
+        tenantId: getContext().tenantId,
+        userId: getContext().userId,
+        taskId: input.taskId,
+        deletedAt: null,
+      });
+      if (!entry) throw new TeamsTabError(404, 'Your time entry is unavailable.');
+      await timeMutation(() => updateEntry(input.entryId, { ...input, mayEditOthers: false }));
+      return { ok: true };
+    }
+    if (input.action === 'assign') {
+      if (!permissions.has('teams.tasks.assign.others'))
+        throw new TeamsTabError(403, 'You are not allowed to assign agents in Teams.');
+      const task = await accessibleTask(input.taskId, actorId, permissions);
+      await validateAssignees(input.assigneeIds, settings, task);
+      await patchTask(input.taskId, { assigneeIds: input.assigneeIds });
+      return { ok: true };
+    }
     if (input.action === 'comment') {
       await addTaskComment(input.taskId, input.body);
       return { ok: true };
@@ -180,8 +330,18 @@ export async function writeTeamsTab(token: string, raw: unknown) {
       (folderId && !data.folders.some((f) => f.id === folderId && f.spaceId === spaceId))
     )
       throw new TeamsTabError(403, 'That space or folder is no longer available.');
-    const assignee = values.assignee ?? actorId;
-    if (assignee && !formChoices(data, spaceId, folderId).people.some((p) => p.id === assignee))
+    const selectedAssignees =
+      input.assigneeIds ?? (values.assignee === '' ? [] : [values.assignee ?? actorId]);
+    if (
+      (!selectedAssignees.length || selectedAssignees.some((id) => id !== actorId)) &&
+      !permissions.has('teams.tasks.assign.others')
+    )
+      throw new TeamsTabError(403, 'You may only assign tasks to yourself in Teams.');
+    if (
+      selectedAssignees.some(
+        (assignee) => !formChoices(data, spaceId, folderId).people.some((p) => p.id === assignee),
+      )
+    )
       throw new TeamsTabError(403, 'Choose an assignee who can access this destination.');
     const receiptId = `${settings.tenantId}:${actorId}:${input.requestId}`;
     try {
@@ -200,11 +360,56 @@ export async function writeTeamsTab(token: string, raw: unknown) {
       folderId: folderId || null,
       title: values.title,
       description: values.description,
-      assigneeIds: assignee ? [assignee] : [],
+      assigneeIds: selectedAssignees,
       priority: values.priority,
       endAt: values.dueDate ? `${values.dueDate}T${values.dueTime || '00:00'}` : null,
     });
     await Receipts.updateOne({ _id: receiptId }, { $set: { taskId } });
     return { taskId };
   });
+}
+
+async function accessibleTask(taskId: string, actorId: string, permissions: Set<Permission>) {
+  const task = await getTask(taskId);
+  if (
+    !task ||
+    (!permissions.has('teams.tasks.read.others') &&
+      !task.assigneeIds.some((id) => String(id) === actorId))
+  )
+    throw new TeamsTabError(404, 'This task is unavailable or your access changed.');
+  return task;
+}
+async function validateAssignees(
+  ids: string[],
+  settings: NonNullable<ReturnType<typeof teamsConfig>>,
+  task: { spaceId: unknown; folderId?: unknown },
+) {
+  const people = await UserModel.find({
+    tenantId: settings.tenantId,
+    _id: { $in: ids },
+    status: 'active',
+    deletedAt: null,
+    role: { $ne: 'client_contact' },
+  }).select('_id');
+  const allowed = await assignableUserIdsForTask({
+    spaceId: String(task.spaceId),
+    folderId: task.folderId ? String(task.folderId) : null,
+  });
+  if (people.length !== ids.length || (allowed && ids.some((id) => !allowed.includes(id))))
+    throw new TeamsTabError(403, 'Choose active agents who can access this destination.');
+}
+
+async function timeMutation(work: () => Promise<void>) {
+  try {
+    await work();
+  } catch (cause) {
+    if (
+      cause instanceof Error &&
+      /week.*locked|locked.*week|Stop the timer before editing|Say why you are changing|Enter how long/i.test(
+        cause.message,
+      )
+    )
+      throw new TeamsTabError(400, cause.message);
+    throw cause;
+  }
 }
