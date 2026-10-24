@@ -1,5 +1,7 @@
 # Full-page subtask checkbox fix — 24 October 2026
 
+> Release update 25 October 2026: completed implementation shipped in application 4701314. Historical local-only/pending statements below are superseded by `ai/RELEASE-2026-10-25.md`; QA limitations remain explicit there. Teams catalog 1.2.0 and real Teams web SSO/list reads verified; no production write-flow acceptance claimed.
+
 The controlled checkbox previously submitted a form without updating its local checked state. Reproduced on the isolated Docker Done task: the server returned a completed count of 1 of 1 while the checkbox still displayed unchecked. Reload showed the saved completion.
 
 The full-page list now applies an optimistic checkbox and count update inside a transition, disables further toggles during the save, and retains the existing error notice and automatic optimistic rollback. The action receives the intended state through its existing previous-state contract. No server permission or closed-task policy was changed: the existing subtask service already permits updates on Done tasks.

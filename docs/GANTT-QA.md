@@ -1,5 +1,7 @@
 # Interactive Gantt handover
 
+> Release update 25 October 2026: completed implementation shipped in application 4701314. Historical local-only/pending statements below are superseded by `ai/RELEASE-2026-10-25.md`; QA limitations remain explicit there. Teams catalog 1.2.0 and real Teams web SSO/list reads verified; no production write-flow acceptance claimed.
+
 Completed locally on 23–24 October 2026. Production deployment is explicitly deferred until the user requests it in the morning. No Git commit, push, or production deployment was performed.
 
 ## Implemented

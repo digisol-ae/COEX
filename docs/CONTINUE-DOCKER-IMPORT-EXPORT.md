@@ -1,5 +1,7 @@
 # COEX Docker import/export handoff
 
+> Release update 25 October 2026: completed implementation shipped in application 4701314. Historical local-only/pending statements below are superseded by `ai/RELEASE-2026-10-25.md`; QA limitations remain explicit there. Teams catalog 1.2.0 and real Teams web SSO/list reads verified; no production write-flow acceptance claimed.
+
 Completed after the requested restart on 23 October 2026.
 
 Docker and COEX are running on localhost:3110. Old host servers on 3104, 3106
