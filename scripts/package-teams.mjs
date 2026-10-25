@@ -1,3 +1,4 @@
+import { copilotPackage } from './lib/copilot-package.mjs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -15,11 +16,19 @@ if (privacyUrl.protocol !== 'https:' || termsUrl.protocol !== 'https:')
   throw new Error('Provide real HTTPS COEX_TEAMS_PRIVACY_URL and COEX_TEAMS_TERMS_URL pages.');
 const output = resolve(process.argv[2] ?? '/private/tmp/coex-teams-package');
 await mkdir(output, { recursive: true });
+const copilot = process.env.COEX_COPILOT_AUTH_CONFIG_ID
+  ? copilotPackage({
+      baseUrl: baseUrl.origin,
+      appId,
+      tenantId: process.env.COEX_TEAMS_TENANT_ID,
+      authConfigId: process.env.COEX_COPILOT_AUTH_CONFIG_ID,
+    })
+  : null;
 const manifest = {
   $schema:
-    'https://developer.microsoft.com/en-us/json-schemas/teams/v1.17/MicrosoftTeams.schema.json',
-  manifestVersion: '1.17',
-  version: '1.2.0',
+    'https://developer.microsoft.com/en-us/json-schemas/teams/v1.19/MicrosoftTeams.schema.json',
+  manifestVersion: '1.19',
+  version: copilot ? '1.3.0' : '1.2.0',
   id: appId,
   developer: {
     name: 'Digisol LLC-FZ',
@@ -60,8 +69,18 @@ const manifest = {
       ],
     },
   ],
+  ...(copilot
+    ? {
+        copilotAgents: {
+          declarativeAgents: [{ id: 'worktelloTasks', file: 'copilot-agent.json' }],
+        },
+      }
+    : {}),
   validDomains: [baseUrl.hostname],
 };
+if (copilot)
+  for (const [name, data] of Object.entries(copilot))
+    await writeFile(resolve(output, name), JSON.stringify(data, null, 2) + '\n');
 await writeFile(resolve(output, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 const icon = await readFile(
   new URL('../apps/web/public/brand/worktello-monogram.svg', import.meta.url),
@@ -90,7 +109,9 @@ const result = spawnSync(
   [
     '-j',
     resolve(output, 'worktello-teams.zip'),
-    ...['manifest.json', 'color.png', 'outline.png'].map((file) => resolve(output, file)),
+    ...['manifest.json', 'color.png', 'outline.png', ...Object.keys(copilot ?? {})].map((file) =>
+      resolve(output, file),
+    ),
   ],
   { stdio: 'inherit' },
 );

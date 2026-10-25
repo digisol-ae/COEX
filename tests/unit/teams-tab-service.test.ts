@@ -35,7 +35,10 @@ vi.mock('@coex/shared/time/models/time-entry.model', () => ({
   TimeEntryModel: { findOne: mocks.entry, find: mocks.entries },
 }));
 vi.mock('@/lib/db', () => ({ connectToDatabase: vi.fn() }));
-vi.mock('@/modules/integrations/teams/tab-auth', () => ({ verifyTeamsTabToken: mocks.verify }));
+vi.mock('@/modules/integrations/teams/tab-auth', () => ({
+  verifyTeamsTabToken: mocks.verify,
+  COPILOT_CLIENT_IDS: ['ab3be6b7-f5df-413d-ac2d-abf1e3fd9c0b'],
+}));
 vi.mock('@coex/shared/core/models/user.model', () => ({ UserModel: { find: mocks.users } }));
 vi.mock('@coex/shared/core/models/tenant.model', () => ({
   TenantModel: { findOne: mocks.tenant },
@@ -335,6 +338,23 @@ it('returns only own saved time when viewing another agent’s task', async () =
       tenantId: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
       userId: new Types.ObjectId(actorId),
       taskId,
+    }),
+  );
+});
+
+it('routes Copilot creation through current permission checks and existing receipt with visible source', async () => {
+  await writeTeamsTab(
+    'copilot-token',
+    { ...create, fields: { ...create.fields, description: 'Task details' } },
+    'copilot',
+  );
+  expect(mocks.verify).toHaveBeenCalledWith('copilot-token', expect.anything(), undefined, [
+    'ab3be6b7-f5df-413d-ac2d-abf1e3fd9c0b',
+  ]);
+  expect(mocks.create).toHaveBeenCalledWith(
+    expect.objectContaining({
+      description: 'Task details\n\nCreated via Copilot',
+      assigneeIds: [actorId],
     }),
   );
 });
