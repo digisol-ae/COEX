@@ -1,5 +1,14 @@
 # Worktello (formerly COEX) — Current AI Task
 
+## Section-aware header search live — 25 October 2026
+
+PR #53 merged as 9d8e10ef66c3e026c7622ba743ff48018f4c152b. Compiled application tree33ef43d (b9f32d7 only preserves generated manual formatting). Active green coex-app-green id17/PID356977, port3002, /srv/coex/releases/section-search-20261025; both canonical Apache proxies target3002 and PM2 is saved. Patched Node22.23.4 verified for launcher and actual Node descendants. Blue coex-app id16/PID352576 on3001 remains the immediate rollback; osTicket3003 also remains. Workers10/11/12 retain the same PIDs and zero restarts.
+
+PR and merged-main CI passed, 402 unit tests, workspace types/lint/format and server production build passed. Twenty HTTPS switch samples returned200. In a separate authenticated browser tab: Tickets header returned only ticket suggestions including resolved/closed history, Enter applied the query to the existing list and header; a lower-list query update appeared in the header; Customers changed to Search customers with Customer name hint. Existing lower search/filter component is unchanged. Original user tab preserved; no business records/messages modified. Private UI evidence: exports/osticket_db/section-search-live.png. Native mobile/touch and every CRM write flow were not exercised.
+
+Rollback: verify http://127.0.0.1:3001/login returns200, restore http-before.conf and https-before.conf from /srv/coex/shared/backups/section-search-20261025 into canonical Apache vhosts, configtest and graceful reload. Keep data/workers intact. That private directory contains the PM2/environment snapshot and must never be published. Documentation-only follow-up requires no runtime restart.
+
+
 ## Expanded ticket search live — 25 October 2026
 
 PR #51 merged as 584458b3f70da069151df3a3544e4740fa355eb7; compiled application tree b679117. Active blue coex-app id16/PID352576 on3001, /srv/coex/releases/ticket-search-20261025. Both canonical Apache proxies target3001; PM2 saved. Patched Node22.23.4 verified for the launcher and actual Node descendants. Previous osTicket release id15/PID344722 remains available on3003 as rollback; green3002 and workers10/11/12 unchanged (same PIDs, zero restarts).
