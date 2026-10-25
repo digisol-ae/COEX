@@ -584,6 +584,10 @@ window.WORKTELLO_MANUAL = {
       "intro": "Use a public reply for customer communication and an internal note for staff-only discussion.",
       "steps": [
         {
+          "title": "Search across ticket history",
+          "text": "Search by ticket number, subject, customer/contact name, email, phone, initial description, replies, staff notes, tags or attachment filename. Search includes resolved and closed tickets; other selected filters still apply. All words must match somewhere on the ticket. Put a phrase in quotes to keep it together. Phone separators and local/international formatting are handled; four-digit partial numbers are supported. Use Clear search to return to the active list."
+        },
+        {
           "title": "Find the ticket",
           "text": "Open Support → Tickets. Filter by the available queue, assignment and status controls. Select the subject for preview or full detail."
         },

@@ -4,6 +4,7 @@ Each resolution records its symptom, confirmed cause, scoped fix, verification a
 
 | Date           | Resolution                                                                        | Status                                                                       |
 | -------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 25 Oct 2026    | [Expanded ticket search](2026-10-25-ticket-search.md)                             | Implemented; production verification in progress                             |
 | 25 Oct 2026    | [osTicket history and customer activation](2026-10-25-osticket-migration.md)      | Live; migration counts and staff UI verified; real-inbox activation untested |
 | 25 Oct 2026    | [Guided imports, match review and contacts](2026-10-25-import-review.md)          | Deployed with PR49; guided-import UI acceptance remains separately scoped    |
 | 25 Oct 2026    | [Outlook iframe refused to connect](2026-10-25-outlook-web.md)                    | Deployed; real Outlook web reads verified                                    |

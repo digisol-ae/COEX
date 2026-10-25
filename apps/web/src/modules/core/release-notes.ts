@@ -18,6 +18,21 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-25-ticket-search',
+    date: '25 October 2026',
+    title: 'Find support tickets by more than their subject',
+    sections: [
+      {
+        heading: 'Search your support history',
+        items: [
+          'Search customer/contact names, emails, phone numbers, descriptions, replies, notes, tags and attachment names, as well as ticket numbers and subjects.',
+          'Search includes resolved and closed tickets. Other filters still apply. Use several words to narrow results or put an exact phrase in quotes.',
+          'Phone searches accept local, international and formatted numbers. Customer portal searches remain limited to their own public conversations.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-25-osticket',
     date: '25 October 2026',
     title: 'Your support history in Worktello',
