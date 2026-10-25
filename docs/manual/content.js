@@ -864,7 +864,7 @@ window.WORKTELLO_MANUAL = {
       "steps": [
         {
           "title": "Use the provided account",
-          "text": "Select Customer at sign-in and use your support account. There is no public self-signup that claims access by email alone."
+          "text": "Select Customer at sign-in. Imported customers choose First time here? Activate your account, verify the emailed six-digit code and set a password. Codes expire after ten minutes; request another after ten minutes. Existing accounts keep their usual sign-in."
         },
         {
           "title": "Find your ticket",
@@ -885,7 +885,8 @@ window.WORKTELLO_MANUAL = {
       ],
       "notes": [
         "Customers cannot see internal staff notes, private task discussions, staff timers or another contact’s tickets.",
-        "Do not put passwords, verification codes or unnecessary personal/medical documents in a support request. Customer account provisioning and live email delivery are separate administrator checks."
+        "Do not put passwords, verification codes or unnecessary personal/medical documents in a support request. Customer account provisioning and live email delivery are separate administrator checks.",
+        "Customer-unassigned imported contacts can read and reply to their existing own tickets. Contact support for customer assignment before raising a new ticket. Previous helpdesk attachment files are deferred."
       ],
       "sources": [
         [
@@ -897,7 +898,12 @@ window.WORKTELLO_MANUAL = {
           "../CUSTOMER-PORTAL.md"
         ]
       ],
-      "images": [],
+      "images": [
+        [
+          "osticket-activation-local.png",
+          "Local isolated activation UI • invalid-code handling verified • 25 October 2026. SMTP delivery is separate."
+        ]
+      ],
       "related": [
         "login",
         "files",
@@ -1115,50 +1121,46 @@ window.WORKTELLO_MANUAL = {
       "roles": [
         "Admin"
       ],
-      "intro": "Use Setup → Import and export. Imports create new records and skip recognized matches; they do not overwrite existing records.",
+      "intro": "Use Setup → Import and export. The next version adds guided examples, explicit match decisions and contact imports. It is not yet deployed; the current live version still has the earlier create-and-skip flow.",
       "steps": [
         {
-          "title": "Check permissions and order",
-          "text": "You need administrator/module access. Start with customers and products before linked contracts, tasks and tickets."
-        },
-        {
           "title": "Choose a record type",
-          "text": "Select Tasks, Tickets, Customers, Leads, Products or Contracts."
+          "text": "Tasks, Tickets, Customers, Contacts, Leads, Products and Contracts are supported by the next version. Contacts use customer permissions."
         },
         {
-          "title": "Download its template",
-          "text": "Use Download template and keep its case-sensitive headings. Prepare up to 500 records and 2 MB per import."
+          "title": "Prepare the template",
+          "text": "Read the formatting instructions, download two example rows, delete both examples and retain headings. Example markers block accidental imports."
         },
         {
-          "title": "Preview the exact file",
-          "text": "Upload and Preview import. Correct every invalid row first. A changed/expired preview requires another preview; approval lasts 15 minutes."
+          "title": "Link contacts to customers",
+          "text": "Import customers first. Use an exact unique customer name or customerId from the customer export. If both are filled they must agree. isPrimary accepts true or false; contact imports do not create portal logins."
         },
         {
-          "title": "Review and import",
-          "text": "Read the ready/skipped/invalid results. Confirm only the intended creates. Existing numbering, assignment and alert rules still apply."
+          "title": "Review every match",
+          "text": "The preview shows the matching record or CSV row and reason. Choose Skip, or for customers/contacts Create separately or Update a specific existing match. A shared email may belong to different branches. Blank update fields preserve existing values."
         },
         {
-          "title": "Review the outcome",
-          "text": "Check created/skipped/failed results. A runtime failure can leave a partial import; retry skips recognized matches already created."
+          "title": "Preview decisions and confirm",
+          "text": "Preview again after changing choices. Review create/update/skip totals before confirming. Changed matching records invalidate the preview; two rows cannot update the same destination."
         },
         {
-          "title": "Export core records",
-          "text": "Use Export CSV for accessible core records, up to 10,000. Treat downloaded business data as private."
+          "title": "Review results and export",
+          "text": "Download the review report and inspect created/updated/skipped/failed outcomes. Retry only failed rows with new review. Export core records separately; this is not a complete backup."
         }
       ],
       "notes": [
-        "Attachments, conversations, custom fields, contacts and detailed product/contract configuration are excluded. This is not a complete backup/restore or assignment round trip.",
-        "Exported _id/_number/_status/_owner/_assignees/_folder metadata is for reference and ignored on import. Private task boundaries remain enforced.",
-        "All six modules passed isolated database and synthetic browser QA. A production task template download was verified; no real production import/export of business records was performed for this manual."
+        "Implementation pending deployment. Local database/unit checks are described in the resolution; browser UI permission was declined, so no new UI acceptance is claimed.",
+        "Attachments, conversations, custom fields, portal accounts and detailed product/contract configuration remain excluded.",
+        "The existing screenshot shows the earlier live interface; it is historical evidence, not the new match-review controls."
       ],
       "sources": [
         [
-          "Blank task template",
-          "downloads/tasks-template.csv"
-        ],
-        [
           "Transfer technical guide",
           "../DATA-TRANSFER.md"
+        ],
+        [
+          "Import review resolution",
+          "../resolutions/2026-10-25-import-review.md"
         ]
       ],
       "images": [
@@ -1173,7 +1175,7 @@ window.WORKTELLO_MANUAL = {
         "contracts",
         "setup"
       ],
-      "status": "Production template read; isolated writes verified"
+      "status": "Next version implemented; deployment and UI acceptance pending"
     },
     {
       "id": "access",
@@ -1408,6 +1410,17 @@ window.WORKTELLO_MANUAL = {
       "fix": "Install verified Node 22.23.4 side by side and activate explicit interpreters for web and one-at-a-time workers.",
       "verification": "Actual parent/descendant executables under five PM2 entries verified. Host-global Node/PM2 daemon replacement was not claimed.",
       "record": "../resolutions/2026-10-25-node-runtime.md"
+    },
+    {
+      "id": "import-review",
+      "title": "Guided import templates and contact match review",
+      "date": "25 Oct 2026",
+      "status": "Implemented; deployment and UI acceptance pending",
+      "symptom": "Blank templates did not explain formats, possible matches were skipped, and contacts had no CSV transfer.",
+      "cause": "Templates contained only headings; duplicate checks returned a boolean and contact transfer was absent.",
+      "fix": "Two marked examples per template, formatting guidance, explicit match decisions and customer-linked contact import/export.",
+      "verification": "384 unit tests, workspace types/lint/format, 75-page production build and isolated database integration passed. Local browser UI permission was declined. No new production write or deployment for this change.",
+      "record": "../resolutions/2026-10-25-import-review.md"
     }
   ]
 };

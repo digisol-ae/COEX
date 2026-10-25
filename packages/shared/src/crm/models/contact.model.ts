@@ -14,7 +14,7 @@ const contactSchema = new Schema(
     organisationId: {
       type: Schema.Types.ObjectId,
       ref: 'Organisation',
-      required: true,
+      default: null,
       index: true,
     },
     locationId: { type: Schema.Types.ObjectId, ref: 'Location', default: null },

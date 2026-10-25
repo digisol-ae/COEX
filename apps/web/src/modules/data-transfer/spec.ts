@@ -1,8 +1,10 @@
 import { z } from 'zod';
+import { COUNTRIES, normaliseMobile } from '@coex/shared/crm/phone';
 export const ENTITIES = [
   'tasks',
   'tickets',
   'customers',
+  'contacts',
   'leads',
   'products',
   'contracts',
@@ -70,6 +72,22 @@ export const schemas = {
       .default('AE'),
     notes: text,
   }),
+  contacts: z.object({
+    customer: text,
+    customerId: text.refine(
+      (v) => !v || /^[a-fA-F0-9]{24}$/.test(v),
+      'Use the customer ID from a customer export',
+    ),
+    name: name.max(120),
+    title: text,
+    email,
+    mobile: text,
+    country: z
+      .string()
+      .regex(/^[A-Z]{2}$/)
+      .default('AE'),
+    isPrimary: z.enum(['true', 'false']).default('false'),
+  }),
   leads: z.object({
     name,
     company: text,
@@ -107,6 +125,7 @@ export const schemas = {
   }),
 };
 export const metadataColumns = [
+  '_example',
   '_id',
   '_number',
   '_status',
@@ -116,6 +135,7 @@ export const metadataColumns = [
 ] as const;
 export const columns = (entity: Entity): string[] => Object.keys(schemas[entity].shape);
 export function validateRow(entity: Entity, raw: Record<string, string>) {
+  if (raw._example) throw new Error('Remove the example rows before importing your records.');
   const allowed = [...columns(entity), ...metadataColumns];
   const unknown = Object.keys(raw).filter((key) => !allowed.includes(key));
   if (unknown.length) throw new Error('Unknown columns: ' + unknown.join(', '));
@@ -125,6 +145,22 @@ export function validateRow(entity: Entity, raw: Record<string, string>) {
   const result = schemas[entity].safeParse(values);
   if (!result.success)
     throw new Error(result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '));
+  if (entity === 'contacts') {
+    const d = result.data as z.infer<typeof schemas.contacts>;
+    if (!d.customer && !d.customerId)
+      throw new Error('customer: Enter a customer name or customerId.');
+    if (d.mobile) {
+      if (
+        !d.mobile.startsWith('+') &&
+        !d.mobile.startsWith('00') &&
+        !COUNTRIES.some((c) => c.code === d.country)
+      )
+        throw new Error('Use an international mobile number for this country.');
+      const normalized = normaliseMobile(d.mobile, d.country);
+      if (!normalized || !/^\+[1-9]\d{6,14}$/.test(normalized))
+        throw new Error('mobile: Use a valid international or local mobile number.');
+    }
+  }
   if (entity === 'contracts') {
     const d = result.data as z.infer<typeof schemas.contracts>;
     if (d.endDate < d.startDate) throw new Error('endDate must be on or after startDate');

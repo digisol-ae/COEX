@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { AuthShell } from './auth-shell';
 import { LoginForm } from './login-form';
 
@@ -44,7 +45,9 @@ export function LoginEntry({
       <LoginForm entraEnabled={entraEnabled && !customer} entraError={entraError} />
       {customer ? (
         <p className="mt-4 text-center text-sm text-[var(--color-ink-muted)]">
-          Use the customer account provided by your support team.
+          <Link href="/activate" className="font-semibold underline">
+            First time here? Activate your account
+          </Link>
         </p>
       ) : null}
     </AuthShell>

@@ -8,7 +8,10 @@ import { recordAudit } from '@/modules/core/services/audit.service';
 import { createTask, listTasks } from '@/modules/tasks/services/task.service';
 import { listSpaces } from '@/modules/tasks/services/space.service';
 import { createTicket } from '@/modules/tickets/services/ticket.service';
-import { createOrganisation } from '@/modules/crm/services/organisation.service';
+import {
+  createOrganisation,
+  updateOrganisation,
+} from '@/modules/crm/services/organisation.service';
 import {
   createLead,
   findLeadDuplicates,
@@ -17,6 +20,10 @@ import {
 import { createProduct } from '@/modules/crm/services/product.service';
 import { createContract } from '@/modules/crm/services/contract.service';
 import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
+import { createContact, updateContact } from '@/modules/crm/services/contact.service';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
+import { normaliseCompany } from '@coex/shared/crm/lead-rules';
+import { normaliseMobile } from '@coex/shared/crm/phone';
 import { ProductModel } from '@coex/shared/crm/models/product.model';
 import { ContractModel } from '@coex/shared/crm/models/contract.model';
 import { LeadModel } from '@coex/shared/crm/models/lead.model';
@@ -33,6 +40,7 @@ const permissions: Record<Entity, { read: Permission; write: Permission }> = {
   tasks: { read: 'task.read.all', write: 'task.manage' },
   tickets: { read: 'ticket.read.all', write: 'ticket.manage' },
   customers: { read: 'customer.read', write: 'customer.manage' },
+  contacts: { read: 'customer.read', write: 'customer.manage' },
   leads: { read: 'lead.read.all', write: 'lead.manage' },
   products: { read: 'products.read', write: 'products.manage' },
   contracts: { read: 'contract.read', write: 'contract.manage' },
@@ -49,7 +57,15 @@ export async function assertTransferAccess(entity: Entity, write = false) {
 }
 const match = (value: string) =>
   new RegExp('^' + value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
-async function customerId(name: string) {
+async function customerId(name: string, preferredId?: string) {
+  if (preferredId) {
+    const customer = await repository(OrganisationModel).findById(preferredId);
+    if (!customer || (name && !same(customer.name, name)))
+      throw new Error(
+        'customerId must refer to an accessible customer and agree with customer when both are supplied.',
+      );
+    return String(customer._id);
+  }
   if (!name) return undefined;
   const found = await repository(OrganisationModel)
     .find({ name: match(name) })
@@ -60,12 +76,47 @@ async function customerId(name: string) {
     );
   return String(found[0]._id);
 }
+export interface TransferMatch {
+  id: string;
+  label: string;
+  reason: string;
+  record?: number;
+  revision?: string;
+  values?: Record<string, string>;
+}
+export interface TransferDecision {
+  action: 'skip' | 'create' | 'update';
+  targetId?: string;
+}
+export type TransferDecisions = Record<string, TransferDecision>;
 interface Prepared {
   key: string;
+  identities?: string[];
   label: string;
-  exists: () => Promise<boolean>;
+  matches: () => Promise<TransferMatch[]>;
   create: () => Promise<string>;
+  update?: (id: string) => Promise<void>;
 }
+function describeRecord(
+  record: { _id: unknown; updatedAt?: Date },
+  label: string,
+  reason: string,
+  values?: Record<string, string>,
+): TransferMatch {
+  return {
+    id: String(record._id),
+    label,
+    reason,
+    revision: record.updatedAt?.toISOString(),
+    values,
+  };
+}
+const same = (a: string | null | undefined, b: string) =>
+  !!b && a?.toLowerCase() === b.toLowerCase();
+const nonEmpty = (raw: Record<string, string>) =>
+  Object.fromEntries(Object.entries(raw).filter(([k, v]) => !k.startsWith('_') && v !== ''));
+const displayValues = (record: object, keys: string[]) =>
+  Object.fromEntries(keys.map((k) => [k, String((record as Record<string, unknown>)[k] ?? '')]));
 async function prepare(entity: Entity, raw: Record<string, string>): Promise<Prepared> {
   const input = validateRow(entity, raw);
   switch (entity) {
@@ -73,12 +124,109 @@ async function prepare(entity: Entity, raw: Record<string, string>): Promise<Pre
       const d = schemas.customers.parse(input);
       return {
         key: d.email.toLowerCase() || d.name.toLowerCase(),
+        identities: [
+          'name:' + d.name.toLowerCase(),
+          ...(d.email ? ['email:' + d.email.toLowerCase()] : []),
+        ],
         label: d.name,
-        exists: async () =>
-          !!(await repository(OrganisationModel).findOne({
-            $or: [{ name: match(d.name) }, ...(d.email ? [{ email: match(d.email) }] : [])],
-          })),
+        matches: async () =>
+          (
+            await repository(OrganisationModel)
+              .find({
+                $or: [{ name: match(d.name) }, ...(d.email ? [{ email: match(d.email) }] : [])],
+              })
+              .sort({ _id: 1 })
+          ).map((r) =>
+            describeRecord(
+              r,
+              r.name,
+              [same(r.name, d.name) ? 'same name' : '', same(r.email, d.email) ? 'same email' : '']
+                .filter(Boolean)
+                .join(' and '),
+              displayValues(r, columns('customers')),
+            ),
+          ),
         create: () => createOrganisation(d),
+        update: async (id) => {
+          const before = await repository(OrganisationModel).findById(id);
+          if (!before) throw new Error('Customer no longer exists. Preview again.');
+          const fields = schemas.customers.parse({
+            ...displayValues(before, columns('customers')),
+            ...nonEmpty(raw),
+          });
+          await updateOrganisation(id, fields);
+        },
+      };
+    }
+    case 'contacts': {
+      const d = schemas.contacts.parse(input);
+      const organisationId = (await customerId(d.customer, d.customerId))!;
+      const customerName = (await repository(OrganisationModel).findById(organisationId))!.name;
+      const mobile = normaliseMobile(d.mobile, d.country);
+      const fields = {
+        organisationId,
+        name: d.name,
+        title: d.title,
+        email: d.email,
+        mobile: d.mobile,
+        country: d.country,
+        isPrimary: d.isPrimary === 'true',
+      };
+      return {
+        key: `${organisationId}|${d.name.toLowerCase()}`,
+        identities: [
+          `${organisationId}|name:${d.name.toLowerCase()}`,
+          ...(d.email ? [`${organisationId}|email:${d.email.toLowerCase()}`] : []),
+          ...(mobile ? [`${organisationId}|mobile:${mobile}`] : []),
+        ],
+        label: `${d.name} (${customerName})`,
+        matches: async () =>
+          (
+            await repository(ContactModel)
+              .find({
+                organisationId,
+                $or: [
+                  { name: match(d.name) },
+                  ...(d.email ? [{ email: match(d.email) }] : []),
+                  ...(mobile ? [{ mobile }] : []),
+                ],
+              })
+              .sort({ _id: 1 })
+          ).map((r) =>
+            describeRecord(
+              r,
+              `${r.name} (${customerName})`,
+              [
+                same(r.name, d.name) ? 'same name' : '',
+                same(r.email, d.email) ? 'same email' : '',
+                mobile && r.mobile === mobile ? 'same mobile' : '',
+              ]
+                .filter(Boolean)
+                .join(' and '),
+              {
+                ...displayValues(r, columns('contacts')),
+                customer: customerName,
+                customerId: organisationId,
+              },
+            ),
+          ),
+        create: () => createContact(fields),
+        update: async (id) => {
+          const before = await repository(ContactModel).findOne({ _id: id, organisationId });
+          if (!before)
+            throw new Error('Contact no longer exists under this customer. Preview again.');
+          const merged = schemas.contacts.parse({
+            ...displayValues(before, columns('contacts')),
+            customer: customerName,
+            country: d.country,
+            ...nonEmpty(raw),
+          });
+          await updateContact(id, {
+            ...merged,
+            organisationId,
+            isPrimary: merged.isPrimary === 'true',
+          });
+        },
       };
     }
     case 'products': {
@@ -86,8 +234,10 @@ async function prepare(entity: Entity, raw: Record<string, string>): Promise<Pre
       return {
         key: d.code.toUpperCase(),
         label: d.name,
-        exists: async () =>
-          !!(await repository(ProductModel).findOne({ code: d.code.toUpperCase() })),
+        matches: async () =>
+          (
+            await repository(ProductModel).find({ code: d.code.toUpperCase() }).sort({ _id: 1 })
+          ).map((r) => describeRecord(r, r.name, 'same product code: ' + r.code)),
         create: () => createProduct(d),
       };
     }
@@ -97,12 +247,28 @@ async function prepare(entity: Entity, raw: Record<string, string>): Promise<Pre
         throw new Error('source must match a configured lead source, or be blank.');
       return {
         key: d.email.toLowerCase() || `${d.name}|${d.company}`.toLowerCase(),
+        identities: [
+          `name/company:${d.name.toLowerCase()}|${d.company.toLowerCase()}`,
+          ...(d.email ? ['email:' + d.email.toLowerCase()] : []),
+          ...(d.mobile ? ['mobile:' + normaliseMobile(d.mobile, d.mobileCountry)] : []),
+          ...(normaliseCompany(d.company) ? ['company:' + normaliseCompany(d.company)] : []),
+        ],
         label: d.name,
-        exists: async () =>
-          !!(await repository(LeadModel).findOne({
-            name: match(d.name),
-            company: d.company || null,
-          })) || (await findLeadDuplicates(d)).length > 0,
+        matches: async () => {
+          const exact = await repository(LeadModel)
+            .find({ name: match(d.name), company: d.company || null })
+            .sort({ _id: 1 });
+          const matches = exact.map((r) => describeRecord(r, r.name, 'same name and company'));
+          for (const r of await findLeadDuplicates(d)) {
+            if (!matches.some((m) => m.id === r.id))
+              matches.push({
+                id: r.id,
+                label: r.label,
+                reason: `${r.kind}: ${r.reasons.join(', ')}`,
+              });
+          }
+          return matches.sort((a, b) => a.id.localeCompare(b.id));
+        },
         create: () => createLead(d),
       };
     }
@@ -118,8 +284,12 @@ async function prepare(entity: Entity, raw: Record<string, string>): Promise<Pre
       return {
         key: `${spaceId}|${d.title}`.toLowerCase(),
         label: d.title,
-        exists: async () =>
-          !!(await repository(TaskModel).findOne({ spaceId, title: match(d.title) })),
+        matches: async () =>
+          (
+            await repository(TaskModel)
+              .find({ spaceId, title: match(d.title) })
+              .sort({ _id: 1 })
+          ).map((r) => describeRecord(r, r.title, 'same Space and title')),
         create: () =>
           createTask({
             title: d.title,
@@ -145,8 +315,12 @@ async function prepare(entity: Entity, raw: Record<string, string>): Promise<Pre
       return {
         key: `${queueId}|${d.subject}`.toLowerCase(),
         label: d.subject,
-        exists: async () =>
-          !!(await repository(TicketModel).findOne({ queueId, subject: match(d.subject) })),
+        matches: async () =>
+          (
+            await repository(TicketModel)
+              .find({ queueId, subject: match(d.subject) })
+              .sort({ _id: 1 })
+          ).map((r) => describeRecord(r, r.subject, 'same queue and subject')),
         create: async () =>
           (
             await createTicket({
@@ -186,13 +360,17 @@ async function prepare(entity: Entity, raw: Record<string, string>): Promise<Pre
       return {
         key: `${organisationId}|${d.title}|${d.startDate}|${d.endDate}`.toLowerCase(),
         label: d.title,
-        exists: async () =>
-          !!(await repository(ContractModel).findOne({
-            organisationId,
-            title: match(d.title),
-            startDate: d.startDate,
-            endDate: d.endDate,
-          })),
+        matches: async () =>
+          (
+            await repository(ContractModel)
+              .find({
+                organisationId,
+                title: match(d.title),
+                startDate: d.startDate,
+                endDate: d.endDate,
+              })
+              .sort({ _id: 1 })
+          ).map((r) => describeRecord(r, r.title, 'same customer, title and dates')),
         create: () =>
           createContract({
             ...fields,
@@ -206,7 +384,10 @@ async function prepare(entity: Entity, raw: Record<string, string>): Promise<Pre
 export interface TransferRow {
   record: number;
   label: string;
-  status: 'ready' | 'duplicate' | 'invalid' | 'created' | 'failed';
+  status: 'ready' | 'duplicate' | 'invalid' | 'created' | 'updated' | 'skipped' | 'failed';
+  matches?: TransferMatch[];
+  incoming?: Record<string, string>;
+  decision?: TransferDecision;
   message: string;
 }
 export interface TransferResult {
@@ -215,13 +396,20 @@ export interface TransferResult {
   error?: string;
   committed?: boolean;
 }
-function signature(entity: Entity, csv: string, timestamp: string) {
+function signature(entity: Entity, csv: string, timestamp: string, review: string) {
   const secret = process.env.AUTH_SECRET;
   if (!secret) throw new Error('Set AUTH_SECRET before using imports.');
   const context = getContext();
   return createHmac('sha256', secret)
     .update(
-      JSON.stringify([String(context.tenantId), String(context.userId), entity, timestamp, csv]),
+      JSON.stringify([
+        String(context.tenantId),
+        String(context.userId),
+        entity,
+        timestamp,
+        csv,
+        review,
+      ]),
     )
     .digest('hex');
 }
@@ -229,40 +417,74 @@ export async function transfer(
   entity: Entity,
   csv: string,
   proof?: string,
+  decisions: TransferDecisions = {},
 ): Promise<TransferResult> {
   await assertTransferAccess(entity, true);
   await connectToDatabase();
   const parsed = parseCsv(csv); // Enforce size and record limits before hashing or writing.
-  if (proof) {
-    const [stamp, mac] = proof.split('.');
-    if (
-      !/^\d+$/.test(stamp ?? '') ||
-      !/^[a-f0-9]{64}$/.test(mac ?? '') ||
-      Date.now() - Number(stamp) > 15 * 60 * 1000 ||
-      Number(stamp) > Date.now()
-    )
-      throw new Error('Preview expired. Preview the file again.');
-    if (
-      !timingSafeEqual(Buffer.from(mac, 'hex'), Buffer.from(signature(entity, csv, stamp), 'hex'))
-    )
-      throw new Error('File changed. Preview it again.');
-  }
+  // The proof is checked after recomputing matches, so it also binds the reviewed destinations.
   const prepared: (Prepared | null)[] = [],
-    rows: TransferRow[] = [],
-    seen = new Set<string>();
+    rows: TransferRow[] = [];
+  const seen = new Map<string, { record: number; label: string }[]>();
+  const updateTargets = new Set<string>();
   for (let i = 0; i < parsed.length; i++) {
     try {
       const item = await prepare(entity, parsed[i]);
-      const duplicate = seen.has(item.key) || (await item.exists());
-      seen.add(item.key);
-      prepared.push(duplicate ? null : item);
+      const matches = await item.matches();
+      for (const identity of item.identities ?? [item.key]) {
+        for (const prior of seen.get(identity) ?? []) {
+          const id = `row:${prior.record}`;
+          const reason = item.identities
+            ? (identity.split(':')[0].split('|').at(-1) ?? 'matching field')
+            : 'matching key';
+          const existing = matches.find((m) => m.id === id);
+          if (existing) {
+            if (!existing.reason.includes(reason)) existing.reason += ' and ' + reason;
+          } else
+            matches.push({
+              id,
+              label: prior.label,
+              record: prior.record,
+              reason: 'same ' + reason + ' in this file',
+            });
+        }
+        seen.set(identity, [...(seen.get(identity) ?? []), { record: i + 1, label: item.label }]);
+      }
+      const decision = decisions[String(i + 1)];
+      if (decision && !['skip', 'create', 'update'].includes(decision.action))
+        throw new Error('Choose a valid match decision.');
+      if (decision?.action === 'create' && entity !== 'customers' && entity !== 'contacts')
+        throw new Error(
+          'Separate creation is only supported for customers and contacts. Change the matching fields and preview again.',
+        );
+      if (decision?.action === 'update') {
+        if (
+          !item.update ||
+          !decision.targetId ||
+          !matches.some((m) => !m.record && m.id === decision.targetId)
+        )
+          throw new Error('Choose an existing matching customer or contact to update.');
+        if (updateTargets.has(decision.targetId))
+          throw new Error(
+            'Multiple rows cannot update the same record in one import. Combine them and preview again.',
+          );
+        updateTargets.add(decision.targetId);
+      }
+      prepared.push(item);
       rows.push({
         record: i + 1,
         label: item.label,
-        status: duplicate ? 'duplicate' : 'ready',
-        message: duplicate
-          ? 'Skipped: matching record already exists or is repeated in this file.'
-          : 'Ready to create',
+        matches,
+        incoming: nonEmpty(parsed[i]),
+        decision,
+        status: matches.length ? 'duplicate' : 'ready',
+        message: matches.length
+          ? decision
+            ? `Selected: ${decision.action}${decision.targetId ? ' ' + matches.find((m) => m.id === decision.targetId)?.label : ''}. Review and preview before importing.`
+            : 'Review required: choose what to do with these matches.'
+          : decision?.action === 'skip'
+            ? 'Selected: skip'
+            : 'Ready to create',
       });
     } catch (e) {
       prepared.push(null);
@@ -274,12 +496,41 @@ export async function transfer(
       });
     }
   }
+  if (Object.keys(decisions).some((k) => !/^[1-9]\d*$/.test(k) || Number(k) > parsed.length))
+    throw new Error('Invalid row decision. Preview again.');
   if (rows.some((r) => r.status === 'invalid'))
     return { rows, error: 'Fix the invalid records and preview again. Nothing was imported.' };
+  const review = JSON.stringify(
+    rows.map((r, i) => [r.record, prepared[i]?.key, r.matches, r.decision ?? null]),
+  );
+  const unresolved = rows.some((r) => r.matches?.length && !r.decision);
   if (!proof) {
+    if (unresolved)
+      return {
+        rows,
+        error:
+          'Review every matching row and choose an action, then preview again. Nothing was imported.',
+      };
     const stamp = String(Date.now());
-    return { rows, proof: stamp + '.' + signature(entity, csv, stamp) };
+    return { rows, proof: stamp + '.' + signature(entity, csv, stamp, review) };
   }
+  const [stamp, mac, extra] = proof.split('.');
+  if (
+    extra ||
+    !/^\d+$/.test(stamp ?? '') ||
+    !/^[a-f0-9]{64}$/.test(mac ?? '') ||
+    Date.now() - Number(stamp) > 15 * 60 * 1000 ||
+    Number(stamp) > Date.now()
+  )
+    throw new Error('Preview expired. Preview the file again.');
+  if (
+    unresolved ||
+    !timingSafeEqual(
+      Buffer.from(mac, 'hex'),
+      Buffer.from(signature(entity, csv, stamp, review), 'hex'),
+    )
+  )
+    throw new Error('File, decisions or matching records changed. Preview again before importing.');
   const context = getContext();
   const lockId = `${context.tenantId}:${entity}`,
     lockToken = randomUUID();
@@ -298,22 +549,35 @@ export async function transfer(
     throw error;
   }
   try {
-    // Recheck each duplicate immediately before creating. Existing records are never updated.
+    const createdInBatch = new Set<string>();
+    // Recheck within the tenant lock. A new match is returned for review, never silently skipped.
     for (let i = 0; i < prepared.length; i++) {
       const item = prepared[i];
       if (!item) continue;
+      const decision = rows[i].decision;
       try {
-        if (await item.exists()) {
-          rows[i].status = 'duplicate';
-          rows[i].message = 'Skipped: matching record now exists.';
+        if (decision?.action === 'skip') {
+          rows[i].status = 'skipped';
+          rows[i].message = 'Skipped by your decision';
           continue;
         }
-        await item.create();
-        rows[i].status = 'created';
-        rows[i].message = 'Created';
+        const current = (await item.matches()).filter((m) => !createdInBatch.has(m.id));
+        const reviewed = rows[i].matches?.filter((m) => !m.record) ?? [];
+        if (JSON.stringify(current) !== JSON.stringify(reviewed))
+          throw new Error('Matching records changed. Preview this row again.');
+        if (decision?.action === 'update') {
+          await item.update!(decision.targetId!);
+          rows[i].status = 'updated';
+          rows[i].message = 'Updated selected record; blank CSV fields preserved existing values';
+        } else {
+          createdInBatch.add(await item.create());
+          rows[i].status = 'created';
+          rows[i].message =
+            decision?.action === 'create' ? 'Created separately by your decision' : 'Created';
+        }
       } catch (e) {
         rows[i].status = 'failed';
-        rows[i].message = e instanceof Error ? e.message : 'Could not create record';
+        rows[i].message = e instanceof Error ? e.message : 'Could not save record';
       }
     }
     await recordAudit({
@@ -322,7 +586,9 @@ export async function transfer(
       after: {
         entity,
         created: rows.filter((r) => r.status === 'created').length,
-        skipped: rows.filter((r) => r.status === 'duplicate').length,
+        skipped: rows.filter((r) => r.status === 'skipped').length,
+        updated: rows.filter((r) => r.status === 'updated').length,
+        decisions: rows.filter((r) => r.decision).map((r) => ({ record: r.record, ...r.decision })),
         failed: rows.filter((r) => r.status === 'failed').length,
       },
     });
@@ -353,6 +619,20 @@ export async function exportRecords(entity: Entity): Promise<string> {
         address: d.address,
         country: d.country,
         notes: d.notes,
+      }));
+      break;
+    case 'contacts':
+      rows = (await repository(ContactModel).find().limit(10001)).map((d) => ({
+        _id: d._id,
+        _status: d.status,
+        customer: names.get(String(d.organisationId)),
+        customerId: String(d.organisationId),
+        name: d.name,
+        title: d.title,
+        email: d.email,
+        mobile: d.mobile,
+        country: '',
+        isPrimary: String(d.isPrimary),
       }));
       break;
     case 'leads':

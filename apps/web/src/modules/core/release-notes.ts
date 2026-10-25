@@ -18,6 +18,36 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-25-osticket',
+    date: '25 October 2026',
+    title: 'Your support history in Worktello',
+    sections: [
+      {
+        heading: 'Support accounts and history',
+        items: [
+          'Imported customers can choose First time here? at sign-in, verify their email code and set a password.',
+          'Your previous support conversations are available on your linked tickets. Attachments from the previous helpdesk will be connected later.',
+          'If customer assignment is pending, you can follow your existing tickets. Contact support to link your customer before raising a new ticket.',
+        ],
+      },
+    ],
+  },
+  {
+    id: '2026-10-25-import-review',
+    date: '25 October 2026',
+    title: 'Clearer imports and customer contacts',
+    sections: [
+      {
+        heading: 'Import with a preview',
+        items: [
+          'Every CSV template now includes two marked examples, with required fields and formatting instructions beside the download. Remove example rows before uploading your records.',
+          'Review possible matches and their reasons before importing. Choose to skip each match; for customers and contacts, you can also create a separate record or update a selected existing record. Blank update fields preserve existing values.',
+          'Import and export customer contacts. Link each contact to a customer by its unique name or customer ID, review primary-contact choices, and download the import review report.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-25-planning-and-teams',
     date: '25 October 2026',
     title: 'Planning, Teams and data transfer',

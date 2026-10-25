@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseCsv, toCsv } from '../../apps/web/src/modules/data-transfer/csv';
-import { validateRow } from '../../apps/web/src/modules/data-transfer/spec';
+import { ENTITIES, validateRow } from '../../apps/web/src/modules/data-transfer/spec';
 describe('CSV transfer files', () => {
   it('reads BOM, quoted commas, escaped quotes and multiline notes', () => {
     expect(
@@ -71,5 +71,47 @@ describe('import validation', () => {
         endDate: '2026-01-01',
       }),
     ).toThrow();
+  });
+});
+
+import { examples, templateCsv } from '../../apps/web/src/modules/data-transfer/templates';
+
+describe('guided import templates', () => {
+  it.each(ENTITIES)('%s includes two valid examples, blocked until removed', (entity) => {
+    const rows = parseCsv(templateCsv(entity));
+    expect(rows).toHaveLength(2);
+    for (const row of rows)
+      expect(() => validateRow(entity, row)).toThrow('Remove the example rows');
+    for (const row of examples[entity]) expect(() => validateRow(entity, row)).not.toThrow();
+  });
+  it('requires a customer for contacts and explicit boolean strings', () => {
+    expect(() => validateRow('contacts', { name: 'Person' })).toThrow('customer');
+    expect(() =>
+      validateRow('contacts', { name: 'Person', customer: 'Clinic', isPrimary: 'yes' }),
+    ).toThrow('isPrimary');
+  });
+});
+
+describe('contact import identifiers and phone validation', () => {
+  it('accepts customerId for repeated customer names', () => {
+    expect(
+      validateRow('contacts', { customerId: '1234567890abcdef12345678', name: 'Person' }),
+    ).toMatchObject({ customer: '', name: 'Person' });
+  });
+  it('rejects malformed IDs and unusable mobile numbers', () => {
+    expect(() => validateRow('contacts', { customerId: 'other', name: 'Person' })).toThrow(
+      'customerId',
+    );
+    expect(() =>
+      validateRow('contacts', { customer: 'Clinic', name: 'Person', mobile: 'abc' }),
+    ).toThrow('mobile');
+    expect(() =>
+      validateRow('contacts', {
+        customer: 'Clinic',
+        name: 'Person',
+        mobile: '123456789',
+        country: 'ZZ',
+      }),
+    ).toThrow('international mobile');
   });
 });

@@ -1,6 +1,6 @@
 import { asUser, getSignedInUser } from '@/lib/session';
-import { columns, isEntity } from '@/modules/data-transfer/spec';
-import { toCsv } from '@/modules/data-transfer/csv';
+import { isEntity } from '@/modules/data-transfer/spec';
+import { templateCsv } from '@/modules/data-transfer/templates';
 import { assertTransferAccess, exportRecords } from '@/modules/data-transfer/service';
 export async function GET(request: Request, { params }: { params: Promise<{ entity: string }> }) {
   const actor = await getSignedInUser();
@@ -12,7 +12,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ enti
   try {
     const csv = await asUser(actor, async () => {
       await assertTransferAccess(entity, template);
-      return template ? toCsv(columns(entity), []) : exportRecords(entity);
+      return template ? templateCsv(entity) : exportRecords(entity);
     });
     return new Response(csv, {
       headers: {

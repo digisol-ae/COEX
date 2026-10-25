@@ -33,7 +33,7 @@ export async function portalIdentity() {
     deletedAt: null,
   });
   if (
-    !user?.organisationId ||
+    !user ||
     !permissionsFor({
       role: 'client_contact',
       permissionGrants: user.permissionGrants,
@@ -63,6 +63,11 @@ export async function portalIdentity() {
     throw new Error(
       'Portal access is not linked to an active customer contact. Please contact support.',
     );
+  if (!user.organisationId) {
+    if (!user.legacySourceId?.startsWith('osticket:') || contact.organisationId)
+      throw new Error('Customer assignment is pending. Please contact support.');
+    return { user, contact, organisation: { _id: null, name: 'Customer assignment pending' } };
+  }
   const organisation = await OrganisationModel.findOne({
     _id: user.organisationId,
     tenantId,
@@ -192,6 +197,10 @@ export async function raisePortalTicket(input: {
   files?: IncomingFile[];
 }) {
   const { identity } = await ownScope();
+  if (!identity.organisation._id)
+    throw new Error(
+      'Please contact support to link your customer account before raising a new ticket.',
+    );
   validateText(input.subject, input.body);
   validateFiles(input.files ?? []);
   const queue = await QueueModel.findOne({
