@@ -4,7 +4,7 @@ export function copilotPackage({ baseUrl, appId, tenantId, authConfigId }) {
   if (
     ![appId, tenantId].every((id) => guid.test(id ?? '')) ||
     !authConfigId ||
-    !/^[\w-]{1,200}$/.test(authConfigId)
+    !/^[A-Za-z0-9_+\/=-]{1,400}$/.test(authConfigId)
   )
     throw new Error('Provide real public app, tenant and Copilot auth registration IDs.');
   const properties = {

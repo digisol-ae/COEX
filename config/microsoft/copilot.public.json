@@ -1,0 +1,10 @@
+{
+  "appId": "0ee8f3f6-879a-4cf0-95d0-9321696f4473",
+  "tenantId": "3788e905-c187-4e8b-bafb-84b7e0ec3f1c",
+  "authConfigId": "Mzc4OGU5MDUtYzE4Ny00ZThiLWJhZmItODRiN2UwZWMzZjFjIyMxMTY2ZGUzOC05MjgzLTQ1OGEtOGQzOS1kZjI1OTMzM2Q2NTU=",
+  "applicationIdUri": "api://auth-1166de38-9283-458a-8d39-df259333d655/0ee8f3f6-879a-4cf0-95d0-9321696f4473",
+  "baseUrl": "https://coex.digisol.ae/api/integrations/copilot",
+  "scope": "api://coex.digisol.ae/0ee8f3f6-879a-4cf0-95d0-9321696f4473/access_as_user",
+  "clientId": "ab3be6b7-f5df-413d-ac2d-abf1e3fd9c0b",
+  "redirectUri": "https://teams.microsoft.com/api/platform/v1.0/oAuthConsentRedirect"
+}
