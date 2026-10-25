@@ -1,0 +1,7 @@
+# Header search follows the current section — 25 October 2026
+
+The main header formerly offered tasks, spaces, customers and tickets together on every screen. It now labels and scopes results to the current record section: tickets, tasks, spaces, customers, products, contracts, leads or opportunities. Dashboard retains the existing cross-section search. Timesheet/My desk/Personal use task lookup; setup/security/profile have no unrelated business-record search. No new permissions are granted. Existing service tenant, owner and deletion checks remain, and API scope is explicitly validated.
+
+Ticket header search uses the same expanded search service as the list. Enter or Show matching tickets applies the query to the ticket list, including resolved/closed history and preserving selected queue/agent/status/priority filters. Selecting a specific suggestion opens that ticket. The header reflects the list's applied query; reopening preloads it. Both existing lower search and all list filters are retained, per the owner's final clarification. Empty header submission clears the ticket query. Cmd/Ctrl+K, focus handling, portal positioning and mobile trigger selection remain.
+
+Validation: 402 tests passed, including API section exclusion, unauthorized/anonymous/customer denial, assigned-only ticket visibility and invalid scopes. Workspace types and lint passed. Production build/CI and live acceptance are recorded after release. Product results anchor to existing rows; leads open the existing filtered list rather than inventing unsupported detail routes.

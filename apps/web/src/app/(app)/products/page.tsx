@@ -47,6 +47,7 @@ export default async function ProductsPage() {
               {products.map((product) => (
                 <tr
                   key={product.id}
+                  id={`product-${product.id}`}
                   data-sort-values={JSON.stringify([
                     product.name,
                     product.code,
