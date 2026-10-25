@@ -790,3 +790,11 @@ html[data-theme='dark'] {
     opacity: 1;
   }
 }
+
+/* Use the app theme rather than the operating-system dark preference. */
+.digisol-sidebar-logo {
+  filter: brightness(0);
+}
+html[data-theme='dark'] .digisol-sidebar-logo {
+  filter: brightness(0) invert(1);
+}
