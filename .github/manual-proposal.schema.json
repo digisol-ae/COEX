@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["summary", "updates", "resolutions"],
+  "properties": {
+    "summary": {"type":"string","maxLength":2000},
+    "updates": {"type":"array","maxItems":12,"items":{"type":"object","additionalProperties":false,"required":["id","title","group","roles","intro","steps","notes","evidencePaths"],"properties":{
+      "id":{"type":"string","pattern":"^[a-z][a-z0-9-]{0,60}$"},
+      "title":{"type":"string","maxLength":150},
+      "group":{"type":"string","maxLength":80},
+      "roles":{"type":"array","minItems":1,"items":{"type":"string","enum":["Agent","Admin","Customer"]}},
+      "intro":{"type":"string","maxLength":2000},
+      "steps":{"type":"array","minItems":1,"maxItems":12,"items":{"type":"object","additionalProperties":false,"required":["title","text"],"properties":{"title":{"type":"string","maxLength":150},"text":{"type":"string","maxLength":2000}}}},
+      "notes":{"type":"array","maxItems":8,"items":{"type":"string","maxLength":1000}},
+      "evidencePaths":{"type":"array","minItems":1,"maxItems":8,"items":{"type":"string","maxLength":250}}
+    }}},
+    "resolutions":{"type":"array","maxItems":8,"items":{"type":"object","additionalProperties":false,"required":["id","title","symptom","cause","fix","verification","evidencePaths"],"properties":{
+      "id":{"type":"string","pattern":"^[a-z][a-z0-9-]{0,60}$"},"title":{"type":"string","maxLength":150},
+      "symptom":{"type":"string","maxLength":1500},"cause":{"type":"string","maxLength":1500},"fix":{"type":"string","maxLength":2000},"verification":{"type":"string","maxLength":2000},
+      "evidencePaths":{"type":"array","minItems":1,"maxItems":8,"items":{"type":"string","maxLength":250}}
+    }}}
+  }
+}

@@ -1,0 +1,184 @@
+name: Midnight manual maintenance
+on:
+  schedule:
+    # 19:00 UTC = 00:00 Asia/Karachi. GitHub can delay scheduled starts.
+    - cron: '0 19 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Validation packages existing guides without an AI/API call.'
+        type: choice
+        options: [validation, full]
+        default: validation
+concurrency:
+  group: nightly-documentation
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      source: ${{ steps.state.outputs.source }}
+      ai_ready: ${{ steps.state.outputs.ai_ready }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Test manual boundaries
+        run: python3 scripts/test-manual-cloud.py
+      - name: Inspect prerequisites without exposing a key
+        id: state
+        env:
+          HAS_API_KEY: ${{ secrets.OPENAI_API_KEY != '' }}
+          AI_ENABLED: ${{ vars.MANUAL_AI_ENABLED }}
+          MODE: ${{ inputs.mode || 'full' }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "source=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          python3 scripts/manual-cloud.py evidence
+          source_changed=$(python3 - <<'PYCODE'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('outputs/manual/evidence.json').read_text())
+          material=[p for p in data['changedFiles'].splitlines() if p.startswith(('apps/','packages/','ai/RELEASE-','docs/resolutions/')) and not p.startswith('docs/resolutions/drafts/')]
+          print(str(bool(material)).lower())
+          PYCODE
+          )
+          pending=$(gh pr list --head codex/nightly-manuals --state open --json number --jq 'length')
+          if [[ "$HAS_API_KEY" == true && "$AI_ENABLED" == true && "$MODE" == full && "$pending" == 0 && "$source_changed" == true ]]; then
+            echo 'ai_ready=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'ai_ready=false' >> "$GITHUB_OUTPUT"
+            echo '::notice::AI drafting skipped: validation mode, missing API setup, or an existing draft awaiting review. Existing manual packaging will still run.'
+          fi
+  draft:
+    needs: prepare
+    if: needs.prepare.outputs.ai_ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      proposal: ${{ steps.codex.outputs.final-message }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.prepare.outputs.source }}
+          fetch-depth: 0
+          persist-credentials: false
+      - run: python3 scripts/manual-cloud.py evidence
+      # Last step: no later command inherits state from the AI process.
+      - name: Propose documentation only
+        id: codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: .github/codex/prompts/nightly-manual.md
+          sandbox: read-only
+          safety-strategy: drop-sudo
+          codex-args: '["--ephemeral", "--output-schema", ".github/manual-proposal.schema.json"]'
+  package:
+    needs: [prepare, draft]
+    if: always() && needs.prepare.result == 'success' && (needs.draft.result == 'success' || needs.draft.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.result.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.prepare.outputs.source }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Apply only validated documentation data
+        if: needs.draft.result == 'success'
+        env:
+          MANUAL_PROPOSAL_JSON: ${{ needs.draft.outputs.proposal }}
+        run: python3 scripts/manual-cloud.py apply
+      - name: Validate and package
+        id: result
+        env:
+          AI_RESULT: ${{ needs.draft.result }}
+          SOURCE_COMMIT: ${{ needs.prepare.outputs.source }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/manual-cloud.py evidence
+          python3 scripts/manual-cloud.py validate
+          python3 scripts/package-manual.py --output outputs/manual/Worktello-Manual-cloud.zip
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          summary=Path('outputs/manual/proposal-summary.json')
+          changed=json.loads(summary.read_text())['changed'] if summary.exists() else False
+          status={'sourceCommit':os.environ['SOURCE_COMMIT'],'aiDraft':os.environ['AI_RESULT'],'packaging':'validated','reviewRequired':changed,'note':'AI writing is not accepted until a real authenticated draft run succeeds; packaging-only runs do not verify AI.'}
+          Path('outputs/manual/cloud-status.json').write_text(json.dumps(status,indent=2)+'\n')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out: out.write(f'changed={str(changed).lower()}\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: worktello-manual-${{ github.run_id }}
+          path: |
+            outputs/manual/Worktello-Manual-cloud.zip
+            outputs/manual/cloud-status.json
+            outputs/manual/evidence.json
+            outputs/manual/proposal-summary.json
+          retention-days: 90
+          if-no-files-found: error
+  review:
+    needs: [prepare, draft, package]
+    if: needs.package.outputs.changed == 'true' && needs.draft.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.prepare.outputs.source }}
+          fetch-depth: 0
+      - name: Rebuild the checked documentation patch on a clean checkout
+        env:
+          MANUAL_PROPOSAL_JSON: ${{ needs.draft.outputs.proposal }}
+        run: |
+          set -e
+          python3 scripts/manual-cloud.py apply
+          python3 scripts/manual-cloud.py validate
+          python3 scripts/package-manual.py --output /tmp/worktello-manual-review.zip
+      - name: Publish a documentation-only review branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh pr list --head codex/nightly-manuals --state open --json number --jq 'length')" = 0
+          git switch -c codex/nightly-manuals
+          git add docs/manual/content.json docs/manual/content.js docs/manual/automation-state.json
+          if test -d docs/resolutions/drafts; then git add docs/resolutions/drafts; fi
+          python3 - <<'PY'
+          import subprocess
+          names=subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines()
+          allowed={'docs/manual/content.json','docs/manual/content.js','docs/manual/automation-state.json'}
+          if any(n not in allowed and not (n.startswith('docs/resolutions/drafts/') and n.endswith('.md')) for n in names): raise SystemExit('Non-documentation change rejected')
+          PY
+          git diff --cached --check
+          git config user.name 'Worktello documentation bot'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Prepare nightly documentation draft for review'
+          git fetch origin codex/nightly-manuals || true
+          git push --force-with-lease origin HEAD:refs/heads/codex/nightly-manuals
+          printf 'AI documentation draft; review required. No production interaction was performed. Validated portable snapshot: %s\n' "$RUN_URL" > /tmp/manual-review-body.md
+          gh pr create --base main --head codex/nightly-manuals --title 'Review nightly Worktello documentation draft' --body-file /tmp/manual-review-body.md
