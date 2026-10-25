@@ -1,5 +1,14 @@
 # Worktello (formerly COEX) — Current AI Task
 
+## DigiSol sidebar logo live — 25 October 2026
+
+Expanded desktop/mobile menu headers use the existing DigiSol artwork; narrow rail keeps Worktello W. PR55 merge6567610 and theme correction PR56 merge eeb0c6c1094de8d2656910f2d156836a02d89a93; compiled final application tree6a82d01. Active blue coex-app id18/PID362319 on3001 in /srv/coex/releases/digisol-sidebar-20261025. Canonical Apache proxies target3001; PM2 saved. Explicit Node22.23.4 verified for actual Node descendants. Green17/PID356977 on3002 remains rollback. Workers10/11/12 retain their PIDs and zero restarts.
+
+PR and merged-main CI passed, 402 tests, workspace types and focused lint/format passed; server build passed. Twenty final HTTPS samples returned200. Visual QA caught OS/app theme mismatch in the first candidate; traffic returned to green, then correction rebuilt and passed fresh CI before final switch. Final CSS uses html data-theme rather than prefers-color-scheme. Authenticated live screenshot verifies DigiSol and retained W in app dark theme; black default/light and app-dark inverse compiled CSS rules verified. A separate light-theme visual interaction and native mobile menu were not exercised. Original user tab preserved. Private screenshot: exports/osticket_db/digisol-sidebar-live.png.
+
+Rollback: verify3002/login healthy, restore http-before.conf and https-before.conf from /srv/coex/shared/backups/digisol-sidebar-20261025 to canonical vhosts, apache configtest and graceful reload. Preserve database/workers. Private PM2 environment snapshots must not be published. Documentation-only updates need no restart.
+
+
 ## Section-aware header search live — 25 October 2026
 
 PR #53 merged as 9d8e10ef66c3e026c7622ba743ff48018f4c152b. Compiled application tree33ef43d (b9f32d7 only preserves generated manual formatting). Active green coex-app-green id17/PID356977, port3002, /srv/coex/releases/section-search-20261025; both canonical Apache proxies target3002 and PM2 is saved. Patched Node22.23.4 verified for launcher and actual Node descendants. Blue coex-app id16/PID352576 on3001 remains the immediate rollback; osTicket3003 also remains. Workers10/11/12 retain the same PIDs and zero restarts.
