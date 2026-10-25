@@ -219,7 +219,7 @@ async function main() {
       requesterEmail: emails.get(t.user_id),
       requesterName: sourceUsers.find((u) => u.id === t.user_id)?.name,
       assigneeId: staffMap.get(t.staff_id) ?? null,
-      channel: t.source === 'Email' ? 'email' : 'agent',
+      channel: t.source === 'Email' ? 'email' : t.source === 'Web' ? 'portal' : 'agent',
       resolvedAt: status.name.toLowerCase() === 'resolved' ? date(t.closed) : null,
       closedAt: status.name.toLowerCase() === 'closed' ? date(t.closed) : null,
       firstResponseDueAt: null,
@@ -228,6 +228,8 @@ async function main() {
       resolutionBreached: false,
       customFields: {
         osticketSourceId: t.ticket_id,
+        osticketSourceChannel: t.source,
+        osticketSourceUserId: t.user_id,
         osticketOriginalNumber: t.number,
         osticketOriginalStatus: status.name,
         osticketStaffId: t.staff_id,

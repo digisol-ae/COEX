@@ -902,6 +902,10 @@ window.WORKTELLO_MANUAL = {
         [
           "osticket-activation-local.png",
           "Local isolated activation UI • invalid-code handling verified • 25 October 2026. SMTP delivery is separate."
+        ],
+        [
+          "osticket-activation-production.png",
+          "Production activation page • 25 October 2026. Page rendering verified; real inbox delivery and customer password entry not exercised."
         ]
       ],
       "related": [
