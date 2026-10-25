@@ -1,5 +1,13 @@
 # COEX live deployment
 
+## Expanded ticket search live — 25 October 2026
+
+PR #51 merged as 584458b3f70da069151df3a3544e4740fa355eb7; compiled application tree b679117. Active blue coex-app id16/PID352576 on3001, /srv/coex/releases/ticket-search-20261025. Both canonical Apache proxies target3001; PM2 saved. Patched Node22.23.4 verified for the launcher and actual Node descendants. Previous osTicket release id15/PID344722 remains available on3003 as rollback; green3002 and workers10/11/12 unchanged (same PIDs, zero restarts).
+
+PR/main CI passed, 390 unit tests, workspace types/lint and local/server builds passed. Disposable Docker integration verified field coverage, phone formats, phrases, filters and tenant/assignment/portal privacy. Read-only production queries matched expected migrated tickets by number, contact name/email, phone and conversation keyword. Authenticated separate browser tab verified customer/contact matches with resolved/closed results, exact phrase submission, and Clear search returning an empty input/Open scope. Original user tab preserved. Twenty HTTPS switch samples returned200. No business record or email mutation used for acceptance.
+
+Rollback: verify http://127.0.0.1:3003/login returns200, restore http-before.conf and https-before.conf from /srv/coex/shared/backups/ticket-search-20261025 into the canonical Apache vhosts, configtest and graceful reload. Preserve database and workers. Private PM2/environment snapshot is in the same directory; never publish it. Source snapshot/attachment limitations of the earlier migration remain unchanged. Phone acceptance used read-only service queries; mobile-device visual QA was not exercised.
+
 ## osTicket migration live — 25 October 2026
 
 Application PR #49 merged as d82a5bff0181baf44bed02a442b3ab0cf0f801c7; compiled application tree is 6404f99. Active candidate is coex-app-osticket, PM2 id15, port3003, /srv/coex/releases/osticket-20261025. Both canonical Apache proxies now target3003. Blue3001 and green3002 remain warm rollback releases; three workers were not restarted. Explicit patched Node22.23.4 interpreter is used. Do not infer active application revision from the older /srv/coex/app checkout.
@@ -12,11 +20,9 @@ Private backup: /srv/coex/shared/backups/osticket-migration-20261025/before-impo
 
 Rollback app: verify3001 login200, restore apache-http-before.conf and apache-https-before.conf from the private run directory, apachectl configtest and graceful reload. Preserve database while assessing rollback; never automatically restore over concurrent user work. New accounts remain invited until the user initiates OTP and chooses a password.
 
-
 ## Microsoft 365 workspace live; Copilot actions unaccepted — 25 October 2026
 
 Application76cac60 (PR46) is live on blue3001: coex-app id14/PID329947, /srv/coex/releases/copilot-pilot-20261025. Green13/PID318054 on3002 is warm fallback; workers10/11/12 unchanged. CI/local/server checks passed,40/40 HTTPS200. Catalog1.3.0 and real Microsoft365 SSO/list verified. Copilot agent loads but action tools are unavailable; pilot account lacks Copilot add-on. No live task/time/email mutation. All owner-approved Entra additions persisted; no paid license/billing enabled. Exact evidence, rollback and remaining acceptance: ai/RELEASE-2026-10-25-COPILOT.md. Local checkout is now /Volumes/sd-mac/Developer/DigiSol/worktello. Cloud manual AI needs a separate configured API key; packaging-only acceptance must not be called AI-writing acceptance.
-
 
 ## Outlook web fixed; local interactive manual added — 25 October 2026
 
@@ -26,13 +32,11 @@ Active green `coex-app-green` id 13 / PID 318054 on 3002, `/srv/coex/releases/ou
 
 Manual: `docs/manual/index.html` (27 chapters, searchable role guides, reading checklists, image zoom and print option), canonical content.json, generated offline content.js, CSS/JS, actual safe screenshots/provenance and QA limits. Seven documented resolutions indexed in `docs/resolutions/README.md`; each future resolution must update the dated record, manual and local screenshot evidence. Portable package: `outputs/manual/Worktello-Manual-2026-10-25.zip`. Source/assets remain organized in the local SSD checkout and GitHub; secrets/private environments/backups/business exports are excluded. Manual is a repository/local artifact, not a newly public production route. Desktop/mobile/write-flow and physical-print limits are explicit in `docs/manual/QA.md`.
 
-
 ## Completed-work release deployed — 25 October 2026
 
 Application `4701314` (PR #42; branding #40 and Node #41 included) is live at https://coex.digisol.ae. Fresh 342 unit tests, types/lint/format, Docker CSV/Gantt integration, local/server 75-page builds and PR/main CI passed. Active blue `coex-app` id 9 / PID 302605 on 3001; green id 8 / PID 303896 on 3002 remains fallback. Three workers now run in `/srv/coex/releases/worktello-20261025` (mail 10, desk-close 11, channels 12), not the original checkout. All five application process trees verified Node 22.23.4; PM2 saved. 40/40 switch health samples succeeded ; 20 old tenant sessions expired, zero old unexpired remain, later login preserved.
 
 Existing Teams catalog app updated to Worktello 1.2.0 and verified after reload. Real Teams web SSO/list reads and ordinary web Microsoft sign-in passed; full role/device/write pilot remains. What's new contains user-facing planning/Teams/data-transfer features plus generic maintenance counts, no branding announcement. Full backup, PIDs, CI, limitations and rollback: `ai/RELEASE-2026-10-25.md`; operating guide: `deploy/ZERO-DOWNTIME.md`. This entry supersedes earlier pending/local-only statements. Do not repeat expiry/restart for docs-only sync. Unrelated `projects/` preserved.
-
 
 ## Teams personal workspace deployed — 23 October 2026 (installation/pilot pending)
 
@@ -40,13 +44,11 @@ PR #38 merged as `6dfcf1509c46b1963c0e8de886adfe58c6ba004e`; PR CI 39902606641 a
 
 Active green coex-app-green id8 / PID214898, port3002, /srv/coex/releases/teams-tab-20261023. Blue coex-app id7 / PID184237, port3001, /srv/coex/releases/entra-redirect-20261022 remains warm fallback. Three workers unchanged. Native server build passed (73 pages), public tab/dialog/login/policies healthy, anonymous/invalid-token API 401; 40/40 switch samples 200. Tenant-scoped release session expiry: 7 old sessions revoked at 2026-10-23T05:23:38Z, zero matching old sessions remain. Full evidence: ai/RELEASE-2026-10-23-TEAMS-TAB.md; setup/file map: docs/TEAMS-PERSONAL-TAB.md. Docs-only sync needs no restart or further expiry. Supersedes earlier not-deployed entries. Unrelated projects/ preserved.
 
-
 ## Microsoft redirect and DigiSol attribution deployed — 22 October 2026
 
 PR #36 merged as `f266afe451f3881ffd6ef707b121b0deba0a705f`; PR CI run 39806601526 and merged-main run 39807108288 passed. Microsoft callback redirects now use configured public origin instead of internal listener. Login/recovery shell shows “Powered by DigiSol” above the actual high-resolution DigiSol logo, on desktop and mobile/tablet. Legal company remains Digisol LLC-FZ in policies. No branding announcement; existing maintenance entry remains generic 3 bug fixes / 1 improvement.
 
 Local and isolated server production builds passed (71 pages); 8 redirect regressions passed; six viewport/DPR combinations (320/768/1440, 1x/2x) showed one loaded 96px DigiSol logo and no overflow. Small-screen gutters accommodate the existing security widget without changing verification behavior. Live cancelled Microsoft callback returns the public HTTPS login URL. No actual Microsoft interactive sign-in performed; success/session-cookie coverage is mocked. See `ai/RELEASE-2026-10-22-ENTRA-FOOTER.md` for deployment evidence and limitations. This supersedes prepared entries and older slot mappings; projects/ preserved.
-
 
 ## Tutorial maintenance release deployed — 22 October 2026
 
@@ -55,7 +57,6 @@ PR #34 merged as `92525ae237c3e46723bc2461db91ccf05b1968a6` (feature `9af3896`, 
 **Active web: `coex-app-green` id 6 / PID 181724, port 3002, `/srv/coex/releases/tutorial-origin-20261022`.** Warm fallback: `coex-app` id 5 / PID 165915, port 3001, `/srv/coex/releases/teams-email-6a41d1f`. Exactly three workers remain unchanged in `/srv/coex/app`; five intentional PM2 entries saved. Successful graceful switch observed 40/40 HTTPS 200 responses. Owner permits brief maintenance interruption if necessary; none observed in the monitored window.
 
 Owner-requested release logout: 23 pre-cutoff COEX tenant sessions revoked after healthy cutover; **0 pre-cutoff unexpired sessions remain**. Later logins are excluded by fixed creation cutoff. Existing auth guards return users to sign-in on their next protected navigation/request; no immediate client redirect or unsent-draft preservation claim. No account/password changes, real tutorial publication, test task or test email. Public pages healthy, tutorial metadata without auth rejected 401. Full artifacts, remaining signed-in save/playback acceptance and operating paths: `ai/RELEASE-2026-10-22-TUTORIAL-ORIGIN.md` and `deploy/ZERO-DOWNTIME.md`. Supersedes preceding local/pending and blue-active entries; later docs-only pull needs no restart. Unrelated projects/ preserved.
-
 
 ## Teams self-assignment email fix deployed — 22 October 2026
 
@@ -67,7 +68,6 @@ Focused 14 Teams unit tests, fresh web TypeScript/ESLint and isolated real queue
 
 Isolated build, preserved static chunks/action encryption compatibility, candidate health checks, then graceful Apache switch: all 40 monitor requests returned 200; no observed outage in that window. Proxy backup `/srv/coex/shared/apache-before-teams-email-20261022102033`; monitor `/tmp/coex-teams-email-switch-20261022102033.log`. Public login/privacy/terms/Teams dialog 200; unsigned Teams invoke 401. No DB/schema/configuration-secret change. This supersedes prior green-active and pending entries. A later docs-only pull requires no rebuild/restart. Current operating/rollback guide: `deploy/ZERO-DOWNTIME.md`; unrelated `projects/` untouched.
 
-
 ## Responsive logo release live — 22 October 2026
 
 PR #30 merged as `a5d5356f4d903556df8cf01217e38d64c49c9de9` (feature `bb66964`). PR CI https://github.com/digisol-ae/COEX/actions/runs/39729739615 and main CI https://github.com/digisol-ae/COEX/actions/runs/39730246182 passed. Server isolated native build passed (71 pages). Transparent 1496×328 wordmark and 512×512 monogram generated from source SVGs; shared responsive sizes and theme-aware dot retained. No What’s new logo entry; unrelated `projects/` excluded.
@@ -77,7 +77,6 @@ PR #30 merged as `a5d5356f4d903556df8cf01217e38d64c49c9de9` (feature `bb66964`).
 Built separately while the original app served users, retained old hashed static chunks and privately reused its server-action encryption key. Candidate pages/assets checked before graceful Apache switch. All 40 HTTPS monitor samples returned 200; no observed outage in that window and no existing process restart. Previous COEX vhost content backed up under `/srv/coex/shared/apache-before-logo-20261022095700`; monitor `/tmp/coex-logo-switch-20261022095700.log`. Canonical sites-available configs and standard enabled symlinks synchronized; Apache config test passed. No DB/schema change, new secret, live test task or external message.
 
 Shared-component fixture AND live public login passed 320/390/768/1024/1440px at DPR1/2, with no horizontal overflow. Mobile light/dark fixture and live 320px login screenshots inspected. This verifies logo/public-page responsiveness, not every authenticated screen; Windows Edge-specific visual acceptance remains owner-side. Evidence in `/private/tmp/coex-logo-quality/` (`results.json`, `live-results.json`, responsive/live-login PNGs). `.tsx` renders the shared logo; `.mjs` regenerates PNG/icon assets; `.md` records handover. Operational follow-up and rollback: `deploy/ZERO-DOWNTIME.md`. This entry supersedes earlier local-only and single-web-process notes; a subsequent docs-only pull needs no rebuild/restart.
-
 
 ## Single-screen Teams and COEX branding deployed — 22 October 2026
 
@@ -128,7 +127,6 @@ Automatic approval review rejected the proposed broad mixed-worktree commit as i
 ## Local continuation snapshot —21 Oct2026
 
 See [compact context](../ai/CONTEXT-2026-10-21.md) for local changes through21 October. Documentation consolidation did not deploy or refresh remote/server state. Do not infer any production revision from local build results; verify current remote SHA/workers/HTTPS before an explicitly authorised release.
-
 
 ## Local addition — 19 Oct 2026
 
@@ -225,6 +223,7 @@ Live at `dd037e6` since 1 Oct 2026 (PR #2, Team history; PR #1 before it). Pendi
   identify the tested feature bundle. Temporary QA env copy removed; real env files untouched.
 
 ## Release ready; deployment blocked — 1 Oct 2026
+
 - John authorized commit, push and deployment of the current local bundle, followed by Mac
   shutdown after verification. Local build/types/lint/format, database and browser QA pass.
 - VPS revision/process status remains unverified. Codex SSH was refused because macOS denied
@@ -236,12 +235,14 @@ Live at `dd037e6` since 1 Oct 2026 (PR #2, Team history; PR #1 before it). Pendi
   Verify the exact deployed SHA, all processes and public HTTPS before shutting down the Mac.
 
 ## Local release preparation — 1 Oct 2026
+
 - Desk-close scheduling/retry and lint defects fixed locally; TypeScript, 69 unit tests and
   production build pass. Full database QA last passed on 30 Sep before these fixes.
 - Worker changes are uncommitted; deployment remains unverified. No server access in this
   continuation. Continue local QA; deployment is not part of the current work.
 
 ## Verification — 30 Sep 2026
+
 - Public login responds HTTP 200.
 - GitHub main is 0f5e858. VPS HEAD and pm2 process state could not be checked because macOS
   denied access to the SSH key. Do not assume the uncommitted desk-close worker is deployed.
@@ -253,10 +254,12 @@ the live box uses pm2 (not systemd) and a single app dir (not releases/current).
 Follow this file for the live server; DEPLOY.md is the original design only.
 
 ## Deploy history
+
 - 19 Sep 2026: first deploy, fresh seed (after the Spaces change, so no `migrate:spaces` needed).
 - 22 Sep 2026: Batch A redeployed; accepted by John in testing.
 
 ## Server
+
 - Contabo VPS, host `zabbix-server`, IP 194.163.137.54, Ubuntu 24.04, 6 vCPU / 12 GB.
 - SSH (verified 21 Oct): `ssh -i ~/.ssh/contabo.pem digisol@194.163.137.54`
   (this key is Raheel's, shared; rotate to John's own key later.)
@@ -265,29 +268,34 @@ Follow this file for the live server; DEPLOY.md is the original design only.
   Always `sudo apache2ctl configtest` before `sudo systemctl reload apache2` (never restart).
 
 ## COEX
-- Live: https://coex.digisol.ae  (Let's Encrypt cert via certbot --apache, auto HTTP->HTTPS).
-- Code: /srv/coex/app  (git clone of digisol-ae/COEX, main).
+
+- Live: https://coex.digisol.ae (Let's Encrypt cert via certbot --apache, auto HTTP->HTTPS).
+- Code: /srv/coex/app (git clone of digisol-ae/COEX, main).
 - Process: pm2 app `coex-app`, runs as user `digisol`, `next start` on port 3001.
   pm2 resurrects on reboot (pm2 startup + pm2 save done).
 - Apache vhost: /etc/apache2/sites-available/coex.conf -> ProxyPass to localhost:3001.
 - Env: /srv/coex/app/.env
-    MONGODB_URI=mongodb://<user>:<password>@<host>/coex
-    STORAGE_DIR=/srv/coex/shared/storage
-    NODE_ENV=production
+  MONGODB_URI=mongodb://<user>:<password>@<host>/coex
+  STORAGE_DIR=/srv/coex/shared/storage
+  NODE_ENV=production
 - Uploads: /srv/coex/shared/storage (owned by digisol).
 
 ## Database
+
 - MongoDB 8.0, local only (bound 127.0.0.1), auth ENABLED.
 - db `coex`, app user `coex_app` (readWrite). Node 22.23.2.
 
 ## Admin
+
 - ali@digisol.ae (password set at seed; changeable in-app).
 
 ## Backups
+
 - Nightly 2am cron (user digisol) -> /srv/coex/shared/backups via deploy/backup.sh
   (mongodump + tar of storage, 14-day retention). Copy off-box periodically.
 
 ## Email worker (from 24 Sep 2026)
+
 - Fourth pm2 process `coex-channels` (from M6.1): `pm2 start npm --name coex-channels -- run channels:worker`,
   then `pm2 save`. Sends the WhatsApp outbox in test mode or XVERSE Case A.
 - Third pm2 process `coex-desk-close`: `pm2 start npm --name coex-desk-close -- run desk:worker`,
@@ -308,15 +316,16 @@ fails it goes back to the previous commit and restarts, and says so. Run it outs
 It does not take a backup (the 2am cron does); run `deploy/backup.sh` first before anything risky.
 
 ## Redeploy after a git push to main
+
     cd /srv/coex/app && git pull --ff-only && npm ci && npm run build
     pm2 restart coex-app coex-mail coex-desk-close --update-env && pm2 save
 
 ## Watch out for
+
 - 183 pending apt updates; patch during a quiet hour before the test ends.
 - Rotate off Raheel's SSH key.
 - Run `npm run migrate:spaces` ONLY against a database written before the Spaces change;
   a fresh seed does not need it.
-
 
 ## Cutover to apps/web (12 Oct 2026, revamp Phase 1d)
 
@@ -330,18 +339,18 @@ commands, port and Apache are unchanged. Do this once, outside office hours, and
    settings do not stay in your terminal: `(cd /srv/coex/app && set -a && . ./.env && set +a && bash deploy/backup.sh)`.
 2. Pull, install and build. The old root `.next` stays untouched until you delete it, so the running
    site keeps serving while this runs:
-       cd /srv/coex/app && git status --short          # must be empty
-       git pull --ff-only && npm ci && npm run build
+   cd /srv/coex/app && git status --short # must be empty
+   git pull --ff-only && npm ci && npm run build
    Run this in a fresh terminal. A terminal that has loaded `.env` has `NODE_ENV=production`, and then
    `npm ci` leaves out the build tools (Tailwind and others) and the build fails with "Cannot find
    module '@tailwindcss/postcss'". If you see that, open a new terminal and run it again.
 3. Restart the workers as usual (they run from `apps/api`):
-       pm2 restart coex-mail coex-desk-close coex-channels --update-env
+   pm2 restart coex-mail coex-desk-close coex-channels --update-env
 4. Recreate the web process. If `pm2 describe` showed the script as `npm` with `start` in its args, a
    plain `pm2 restart coex-app --update-env` is enough (root `npm start -- -p 3001` still forwards the
    flag). In every other case (for example the script is `next` or `node_modules/.bin/next`):
-       pm2 delete coex-app
-       cd /srv/coex/app && PORT=3001 pm2 start npm --name coex-app -- start
+   pm2 delete coex-app
+   cd /srv/coex/app && PORT=3001 pm2 start npm --name coex-app -- start
    then `pm2 save` and `pm2 status` (exactly one each of coex-app, coex-mail, coex-desk-close and
    coex-channels).
 5. Check: `curl -sI https://coex.digisol.ae/login` returns 200, sign in, open Tickets and Tasks, and

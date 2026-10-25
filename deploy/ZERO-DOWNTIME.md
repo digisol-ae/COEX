@@ -1,5 +1,13 @@
 # COEX isolated web rollout — current operating state
 
+## Expanded ticket search live — 25 October 2026
+
+PR #51 merged as 584458b3f70da069151df3a3544e4740fa355eb7; compiled application tree b679117. Active blue coex-app id16/PID352576 on3001, /srv/coex/releases/ticket-search-20261025. Both canonical Apache proxies target3001; PM2 saved. Patched Node22.23.4 verified for the launcher and actual Node descendants. Previous osTicket release id15/PID344722 remains available on3003 as rollback; green3002 and workers10/11/12 unchanged (same PIDs, zero restarts).
+
+PR/main CI passed, 390 unit tests, workspace types/lint and local/server builds passed. Disposable Docker integration verified field coverage, phone formats, phrases, filters and tenant/assignment/portal privacy. Read-only production queries matched expected migrated tickets by number, contact name/email, phone and conversation keyword. Authenticated separate browser tab verified customer/contact matches with resolved/closed results, exact phrase submission, and Clear search returning an empty input/Open scope. Original user tab preserved. Twenty HTTPS switch samples returned200. No business record or email mutation used for acceptance.
+
+Rollback: verify http://127.0.0.1:3003/login returns200, restore http-before.conf and https-before.conf from /srv/coex/shared/backups/ticket-search-20261025 into the canonical Apache vhosts, configtest and graceful reload. Preserve database and workers. Private PM2/environment snapshot is in the same directory; never publish it. Source snapshot/attachment limitations of the earlier migration remain unchanged. Phone acceptance used read-only service queries; mobile-device visual QA was not exercised.
+
 ## Outlook web fixed; local interactive manual added — 25 October 2026
 
 Application `d547d25` (PR #44) is live. Exact Outlook web embedding hosts and Microsoft client were added while retaining signed-token, tenant, scope and staff checks. Owner explicitly approved Entra preauthorization at action time; persisted state verified. All 348 tests, types/lint/format, local/server 75-page builds and PR/main CI passed. Real Outlook web SSO/list/detail and blank create-form rendering passed; fresh Teams web SSO/list/create-form reads also passed. No production task/time/message/assignment/import mutation for the demonstration.
@@ -10,7 +18,6 @@ Manual: `docs/manual/index.html` (27 chapters, searchable role guides, reading c
 
 Current rollback is **green 3002 → blue 3001**. First verify blue login200; restore `/srv/coex/shared/apache-before-outlook-20261025054347/` canonical configs (or change only both ProxyPass/ProxyPassReverse mappings3002→3001), configtest and graceful reload. Blue does not include the Outlook fix. Keep workers untouched. Backup archives: coex-2026-10-25-0537.archive.gz and files-2026-10-25-0537.tar.gz, integrity checked. Monitor `/tmp/coex-outlook-switch-20261025054347.log`. Earlier mapping instructions below are historical. Docs/manual-only sync requires no build/restart or second session expiry.
 
-
 ## Completed-work release deployed — 25 October 2026
 
 Application `4701314` (PR #42; branding #40 and Node #41 included) is live at https://coex.digisol.ae. Fresh 342 unit tests, types/lint/format, Docker CSV/Gantt integration, local/server 75-page builds and PR/main CI passed. Active blue `coex-app` id 9 / PID 302605 on 3001; green id 8 / PID 303896 on 3002 remains fallback. Three workers now run in `/srv/coex/releases/worktello-20261025` (mail 10, desk-close 11, channels 12), not the original checkout. All five application process trees verified Node 22.23.4; PM2 saved. 40/40 switch health samples succeeded ; 20 old tenant sessions expired, zero old unexpired remain, later login preserved.
@@ -18,7 +25,6 @@ Application `4701314` (PR #42; branding #40 and Node #41 included) is live at ht
 Existing Teams catalog app updated to Worktello 1.2.0 and verified after reload. Real Teams web SSO/list reads and ordinary web Microsoft sign-in passed; full role/device/write pilot remains. What's new contains user-facing planning/Teams/data-transfer features plus generic maintenance counts, no branding announcement. Full backup, PIDs, CI, limitations and rollback: `ai/RELEASE-2026-10-25.md`; operating guide: `deploy/ZERO-DOWNTIME.md`. This entry supersedes earlier pending/local-only statements. Do not repeat expiry/restart for docs-only sync. Unrelated `projects/` preserved.
 
 Current rollback is **blue 3001 → green 3002**, after checking green login 200. Restore `/srv/coex/shared/apache-before-worktello-20261024231458/` canonical configs, configtest and graceful reload. Workers are now in the new release; the earlier “workers unchanged in /srv/coex/app” instructions below are historical. For a runtime patch, controlled one-at-a-time worker migration is necessary; a normal web-only release should leave workers alone. `/usr/bin/node` and PM2 daemon remain separate from explicit 22.23.4 application interpreters. Never change cwd with `pm2 startOrRestart` and assume it worked; verify pm_cwd/script and actual descendant executables. PM2 delete/start using a private preserved environment was required here.
-
 
 ## Active slots after Teams personal tab — 23 October 2026
 
