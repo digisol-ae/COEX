@@ -1,5 +1,14 @@
 # Worktello (formerly COEX)
 
+## Outlook web fixed; local interactive manual added — 25 October 2026
+
+Application `d547d25` (PR #44) is live. Exact Outlook web embedding hosts and Microsoft client were added while retaining signed-token, tenant, scope and staff checks. Owner explicitly approved Entra preauthorization at action time; persisted state verified. All 348 tests, types/lint/format, local/server 75-page builds and PR/main CI passed. Real Outlook web SSO/list/detail and blank create-form rendering passed; fresh Teams web SSO/list/create-form reads also passed. No production task/time/message/assignment/import mutation for the demonstration.
+
+Active green `coex-app-green` id 13 / PID 318054 on 3002, `/srv/coex/releases/outlook-web-20261025`; blue id 9 / PID 302605 on 3001 remains fallback. Workers 10/11/12 remain unchanged in `/srv/coex/releases/worktello-20261025`. All five Node process trees 22.23.4 verified. 40/40 switch samples succeeded; 1 old tenant session revoked at 2026-10-25T01:43:47Z, zero old unexpired remain and one later login preserved. Full scope/backup/rollback/evidence: `docs/resolutions/2026-10-25-outlook-web.md`.
+
+Manual: `docs/manual/index.html` (27 chapters, searchable role guides, reading checklists, image zoom and print option), canonical content.json, generated offline content.js, CSS/JS, actual safe screenshots/provenance and QA limits. Seven documented resolutions indexed in `docs/resolutions/README.md`; each future resolution must update the dated record, manual and local screenshot evidence. Portable package: `outputs/manual/Worktello-Manual-2026-10-25.zip`. Source/assets remain organized in the local SSD checkout and GitHub; secrets/private environments/backups/business exports are excluded. Manual is a repository/local artifact, not a newly public production route. Desktop/mobile/write-flow and physical-print limits are explicit in `docs/manual/QA.md`.
+
+
 ## Completed-work release deployed — 25 October 2026
 
 Application `4701314` (PR #42; branding #40 and Node #41 included) is live at https://coex.digisol.ae. Fresh 342 unit tests, types/lint/format, Docker CSV/Gantt integration, local/server 75-page builds and PR/main CI passed. Active blue `coex-app` id 9 / PID 302605 on 3001; green id 8 / PID 303896 on 3002 remains fallback. Three workers now run in `/srv/coex/releases/worktello-20261025` (mail 10, desk-close 11, channels 12), not the original checkout. All five application process trees verified Node 22.23.4; PM2 saved. 40/40 switch health samples succeeded ; 20 old tenant sessions expired, zero old unexpired remain, later login preserved.
