@@ -88,7 +88,12 @@ async function main() {
       throw new Error('Ambiguous existing identity: source ' + u.id);
     const existing = matches[0];
     const staff = existing && existing.role !== 'client_contact';
-    const ec = existingContacts.filter((x) => x.email?.toLowerCase() === email);
+    const emailContacts = existingContacts.filter((x) => x.email?.toLowerCase() === email);
+    const sourceContact = emailContacts.find(
+      (x) =>
+        Number((x.customFields as unknown as Record<string, unknown>)?.osticketUserId) === u.id,
+    );
+    const ec = sourceContact ? [sourceContact] : emailContacts;
     const candidates = [
       ...new Set([
         ...ec.map((x) => String(x.organisationId)).filter((x) => x !== 'null'),
@@ -98,15 +103,17 @@ async function main() {
     // Existing identity links are authoritative; domain/name similarity never grants access.
     const linkedOrg = existing?.organisationId ? String(existing.organisationId) : null;
     const proposed = !staff && candidates.length === 1 ? candidates[0] : null;
-    const chosen = linkedOrg ?? proposed;
+    const chosen =
+      existing?.legacySourceId === 'osticket:' + u.id ? linkedOrg : (linkedOrg ?? proposed);
     const org =
       chosen && customers.some((c) => String(c._id) === chosen)
         ? new mongoose.Types.ObjectId(chosen)
         : null;
     if (ec.length > 1) throw new Error('Multiple CRM contacts require review: source ' + u.id);
     const uid = existing ? existing._id : id('user', u.id);
-    const cid = ec.length === 1 ? ec[0]._id : id('contact', u.id);
-    if (ec[0]?.userId && String(ec[0].userId) !== String(uid))
+    const reuseContact = ec.length === 1 && (staff || String(ec[0].organisationId) === String(org));
+    const cid = reuseContact ? ec[0]._id : id('contact', u.id);
+    if (reuseContact && ec[0]?.userId && String(ec[0].userId) !== String(uid))
       throw new Error('Contact already linked to another identity: ' + u.id);
     userIds.set(u.id, uid);
     contactIds.set(u.id, cid);
@@ -126,7 +133,7 @@ async function main() {
         createdAt: date(u.created),
         updatedAt: date(u.updated, u.created),
       });
-    if (!ec.length)
+    if (!reuseContact)
       preparedContacts.push({
         _id: cid,
         tenantId,
