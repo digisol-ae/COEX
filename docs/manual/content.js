@@ -94,12 +94,7 @@ window.WORKTELLO_MANUAL = {
           "../CUSTOMER-PORTAL.md"
         ]
       ],
-      "images": [
-        [
-          "staff-sign-in.png",
-          "Actual production staff sign-in • blank credentials • 25 October 2026"
-        ]
-      ],
+      "images": [],
       "related": [
         "profile",
         "portal"
@@ -280,12 +275,7 @@ window.WORKTELLO_MANUAL = {
           "https://coex.digisol.ae/tasks"
         ]
       ],
-      "images": [
-        [
-          "outlook-create.png",
-          "Task form inside production Outlook • same staff task concepts • blank and not submitted • 25 October 2026"
-        ]
-      ],
+      "images": [],
       "related": [
         "subtasks",
         "updates",
@@ -437,10 +427,6 @@ window.WORKTELLO_MANUAL = {
         [
           "gantt-synthetic-qa.jpg",
           "Actual timeline screen • isolated synthetic Docker QA • 24 October 2026"
-        ],
-        [
-          "gantt-unscheduled-synthetic-qa.jpg",
-          "Actual all-unscheduled Space • isolated synthetic Docker QA • 23 October 2026"
         ]
       ],
       "related": [
@@ -911,12 +897,7 @@ window.WORKTELLO_MANUAL = {
           "../CUSTOMER-PORTAL.md"
         ]
       ],
-      "images": [
-        [
-          "customer-sign-in.png",
-          "Actual production customer sign-in • blank credentials • portal write flows not repeated • 25 October 2026"
-        ]
-      ],
+      "images": [],
       "related": [
         "login",
         "files",
@@ -973,16 +954,7 @@ window.WORKTELLO_MANUAL = {
           "../TEAMS-PERSONAL-TAB.md"
         ]
       ],
-      "images": [
-        [
-          "teams-create.png",
-          "Actual production Teams web create form after Outlook fix • blank and not submitted • 25 October 2026"
-        ],
-        [
-          "teams-catalog.png",
-          "Existing organization catalog app • published 1.2.0 • actual Admin Center capture, 25 October 2026"
-        ]
-      ],
+      "images": [],
       "related": [
         "outlook",
         "sharing",
@@ -1039,14 +1011,6 @@ window.WORKTELLO_MANUAL = {
         [
           "outlook-after.png",
           "After fix • actual production Outlook web workspace • deliberate no-match search hides business records • 25 October 2026"
-        ],
-        [
-          "outlook-create.png",
-          "Actual production Outlook create form • blank and not submitted • 25 October 2026"
-        ],
-        [
-          "outlook-before.png",
-          "Before fix • actual Outlook web iframe refused to connect • 25 October 2026"
         ]
       ],
       "related": [
@@ -1136,12 +1100,7 @@ window.WORKTELLO_MANUAL = {
           "../SETUP-WORKSPACE.md"
         ]
       ],
-      "images": [
-        [
-          "import-export.png",
-          "Actual production Setup → Import and export • no file uploaded or business export downloaded • 25 October 2026"
-        ]
-      ],
+      "images": [],
       "related": [
         "transfer",
         "access",

@@ -33,3 +33,7 @@ python3 scripts/package-manual.py
 Preview: http://localhost:3188/docs/manual/ . The preview binds only to 127.0.0.1, disables directory listings and serves only handbook assets/referenced Markdown; environment/Git/private source paths are rejected. Stop the preview with Ctrl+C. The ZIP is generated under outputs/manual and contains an integrity manifest, handbook assets and selected linked documentation; it does not include app environments, database backups or business exports.
 
 When updating, advance the version/date in content.json, refresh screenshot provenance and run the packaging script again. QA.md records actual checks and device/print limits; do not replace these with assumed passes.
+
+## Screenshot policy (owner preference)
+
+Keep the manual text-first. Use a screenshot only when it resolves a complex visual decision: timeline manipulation, CSV transfer rules or integration troubleshooting. Current guide has three selected figures across 27 chapters. Do not add screenshots to simple sign-in/navigation/forms. Keep additional safe captures under assets/archive as evidence, not inline reading content; provenance remains in assets/manifest.json.
