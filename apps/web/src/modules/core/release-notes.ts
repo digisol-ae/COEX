@@ -43,7 +43,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
           'Imports create new records and skip recognised duplicates; they do not update existing records. Attachments and chat history are not transferred.',
         ],
       },
-      { heading: 'Maintenance', items: ['2 bug fixes and 1 improvement.'] },
+      { heading: 'Maintenance', items: ['3 bug fixes and 1 improvement.'] },
     ],
   },
   {

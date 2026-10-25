@@ -55,7 +55,9 @@ const button =
   'rounded-lg border border-[var(--color-line-strong)] px-3 py-2 text-sm disabled:opacity-50';
 const control = 'rounded-lg border border-[var(--color-line-strong)] bg-[var(--color-surface)] p-2';
 const message = (error: unknown) =>
-  error instanceof Error ? error.message : 'Unable to load Worktello. Try reopening it in Teams.';
+  error instanceof Error
+    ? error.message
+    : 'Unable to load Worktello. Try reopening it in Microsoft Teams or Outlook.';
 
 export function TeamsWorkspace() {
   const [access, setAccess] = useState<Access | null>(null);

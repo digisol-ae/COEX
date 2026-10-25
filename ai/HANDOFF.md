@@ -1,5 +1,10 @@
 # Worktello (formerly COEX) — AI Handoff
 
+## Outlook web compatibility and manual — 25 October 2026
+
+Owner authorized diagnosis, resolution and action after Outlook iframe refused to connect. Exact Outlook web ancestors/client added; tenant/user/token guards retained. Owner explicitly confirmed Entra preauthorization at action time; saved client verified. Code checks passed; web-only rollout and real Outlook acceptance pending. `docs/OUTLOOK-WEB.md` is the resolution record. Owner also requests a simple interactive HTML manual with actual screenshots and a resolution history; build this after the fix, preserve privacy and identify unverified flows. Do not send production email/task/time mutations for demonstration. Unrelated projects/ preserved.
+
+
 ## Completed-work release deployed — 25 October 2026
 
 Application `4701314` (PR #42; branding #40 and Node #41 included) is live at https://coex.digisol.ae. Fresh 342 unit tests, types/lint/format, Docker CSV/Gantt integration, local/server 75-page builds and PR/main CI passed. Active blue `coex-app` id 9 / PID 302605 on 3001; green id 8 / PID 303896 on 3002 remains fallback. Three workers now run in `/srv/coex/releases/worktello-20261025` (mail 10, desk-close 11, channels 12), not the original checkout. All five application process trees verified Node 22.23.4; PM2 saved. 40/40 switch health samples succeeded ; 20 old tenant sessions expired, zero old unexpired remain, later login preserved.

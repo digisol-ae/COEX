@@ -3,13 +3,15 @@ import { createRemoteJWKSet, jwtVerify, type JWTVerifyGetKey } from 'jose';
 export const TEAMS_CLIENT_IDS = [
   '1fec8e78-bce4-4aaf-ab1b-5451cc387264',
   '5e3ce6c0-2b1f-4285-8d4b-75ee78787346',
+  // Outlook web only; desktop/mobile clients need separate rollout and acceptance.
+  'bc59ab01-8403-45c6-8796-ac3ef710b3e3',
 ];
 const guid = /^[a-f\d]{8}-(?:[a-f\d]{4}-){3}[a-f\d]{12}$/i;
 const keys = createRemoteJWKSet(
   new URL('https://login.microsoftonline.com/common/discovery/v2.0/keys'),
 );
 
-/** Only v2 delegated tokens for OUR API, issued to an approved Teams client. Never trust context/email. */
+/** Only v2 delegated tokens for OUR API, issued to an explicitly approved Teams/Outlook web client. Never trust context/email. */
 export async function verifyTeamsTabToken(
   token: string,
   settings: { appId: string; microsoftTenant: string },

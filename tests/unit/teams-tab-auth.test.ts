@@ -30,8 +30,8 @@ async function token(overrides: Record<string, unknown> = {}) {
     .sign(pair.privateKey);
 }
 describe('Teams personal tab identity', () => {
-  it('accepts a signed delegated token for this app and tenant', async () => {
-    expect(await verifyTeamsTabToken(await token(), settings, keys)).toBe(oid);
+  it.each(TEAMS_CLIENT_IDS)('accepts an approved Microsoft host client %s', async (azp) => {
+    expect(await verifyTeamsTabToken(await token({ azp }), settings, keys)).toBe(oid);
   });
   it.each([
     { tid: 'another-tenant' },
@@ -39,6 +39,9 @@ describe('Teams personal tab identity', () => {
     { oid: 'email@example.com' },
     { scp: 'User.Read' },
     { azp: 'untrusted-client' },
+    { azp: '27922004-5251-4030-b22d-91ecd9a37ea4' }, // Outlook mobile is not enabled.
+    { azp: 'd3590ed6-52b3-4102-aeff-aad2292ab01c' }, // Outlook desktop is not enabled.
+    { azp: '4765445b-32c6-49b0-83e6-1d93765276ca' }, // M365 web is not enabled.
     { scp: undefined },
   ])('rejects mismatched claims %j', async (claims) => {
     await expect(verifyTeamsTabToken(await token(claims), settings, keys)).rejects.toThrow();

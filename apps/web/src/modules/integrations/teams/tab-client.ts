@@ -9,7 +9,7 @@ export async function teamsTabRequest<T>(
     token = await teams.authentication.getAuthToken();
   } catch {
     throw new Error(
-      'Microsoft sign-in for Worktello is unavailable. Reopen Worktello in Teams; if this continues, ask your administrator to check Teams access.',
+      'Microsoft sign-in for Worktello is unavailable. Reopen Worktello in Microsoft Teams or Outlook; if this continues, ask your administrator to check app access.',
     );
   }
   const response = await fetch(`/api/integrations/teams/app${data ? '' : '?' + action}`, {
