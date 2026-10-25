@@ -1,0 +1,90 @@
+{
+  "updated": "2026-10-25",
+  "privacy": "Blank, filtered or synthetic screens; no credentials/tokens/private customer documents.",
+  "assets": [
+    {
+      "file": "customer-sign-in.png",
+      "date": "2026-10-25",
+      "source": "Production browser capture",
+      "limitations": "Screen appearance only; no production business mutation.",
+      "sha256": "2204447250de69a1f208639714189fd2780a281605693b1ec0c010a8f33fc0bf"
+    },
+    {
+      "file": "gantt-synthetic-qa.jpg",
+      "date": "2026-10-24",
+      "source": "Actual application in isolated Docker QA with synthetic records",
+      "limitations": "Local synthetic QA; not a fresh production/mobile screenshot.",
+      "sha256": "126873a6778aea64eac49c7487089cf272747db6befb97e05a0607ab6a4e370e"
+    },
+    {
+      "file": "gantt-unscheduled-synthetic-qa.jpg",
+      "date": "2026-10-23",
+      "source": "Actual application in isolated Docker QA with synthetic records",
+      "limitations": "Local synthetic QA; not a fresh production/mobile screenshot.",
+      "sha256": "13dddc8f9515d6a4844b3b2bc21f331976a9a64b29f2156eb91298d2be4ef344"
+    },
+    {
+      "file": "import-export.png",
+      "date": "2026-10-25",
+      "source": "Production browser capture",
+      "limitations": "Screen appearance only; no production business mutation.",
+      "sha256": "fd12d146a0fe9a833bda8791a7c5e0c4b1b4c2d284df038a992e5b8db7d21fd0"
+    },
+    {
+      "file": "outlook-after.png",
+      "date": "2026-10-25",
+      "source": "Production browser capture",
+      "limitations": "Screen appearance only; no production business mutation.",
+      "sha256": "fb169bd40136c02f08866e64c5a5f3fd0c98412601933c9e196fd2139a960bb5"
+    },
+    {
+      "file": "outlook-before.png",
+      "date": "2026-10-25",
+      "source": "Production browser capture",
+      "limitations": "Before-fix failure evidence; retained as history, not current app status.",
+      "sha256": "7a47495582e289c189e98b6bb48a1ed3eb84ec305e54f6d0c1fc6b0730396c9e"
+    },
+    {
+      "file": "outlook-create.png",
+      "date": "2026-10-25",
+      "source": "Production browser capture",
+      "limitations": "Screen appearance only; no production business mutation.",
+      "sha256": "7c23b994e758035c01ba08efa34b47e50b2c4431b3c935440d7730634d5e540d"
+    },
+    {
+      "file": "staff-sign-in.png",
+      "date": "2026-10-25",
+      "source": "Production browser capture",
+      "limitations": "Screen appearance only; no production business mutation.",
+      "sha256": "214f91be1ad57f4eeb5e3548f9226610b6747142878f5540c5b12bf64e8b59f3"
+    },
+    {
+      "file": "teams-catalog.png",
+      "date": "2026-10-25",
+      "source": "Microsoft Teams Admin Center, existing organization catalog app",
+      "limitations": "Published version read; does not prove every host/device capability.",
+      "sha256": "b67ae9aa891034ac31d63db2883e0435947ea13a813e957c7bf76b715276ed81"
+    },
+    {
+      "file": "worktello-symbol.png",
+      "date": "2026-10-25",
+      "source": "Approved repository brand artwork",
+      "limitations": "Brand asset, not a screenshot.",
+      "sha256": "f58958c9584417ab148d4c29e293cb634724e5d2fe9f3bd822358800eddeafa2"
+    },
+    {
+      "file": "teams-create.png",
+      "date": "2026-10-25",
+      "source": "Actual production Teams web blank create form",
+      "limitations": "No task created, no private record contents shown.",
+      "sha256": "80a6070a1a310d4bfe521002b3563c0caf877fa838312237cf6a9d74e37b5ebb"
+    },
+    {
+      "file": "manual-preview.png",
+      "date": "2026-10-25",
+      "source": "Local interactive manual browser preview",
+      "limitations": "Manual UI screenshot, not a production app transaction.",
+      "sha256": "0e8341554044402e3ce59849880fdb0c0e86fb04adecc7a594117c0ba77aa8b4"
+    }
+  ]
+}
