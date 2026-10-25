@@ -19,11 +19,11 @@ The owner explicitly approved each browser save: Microsoft 365 web client on exi
 
 ## Live acceptance and remaining blocker
 
-Existing Teams catalog app updated to Worktello1.3.0; published version verified. Real Microsoft365 web SSO and My Tasks list now work; a safe filtered view is saved locally. Outlook was reloaded for regression. No production task, email, timer, assignment or update mutation was sent by this pilot.
+Existing Teams catalog app updated to Worktello1.3.0; published version verified. Real Microsoft365 web SSO and My Tasks list now work; a safe filtered view is saved locally. Fresh Outlook regression also loaded the authenticated My Tasks list. No production task, email, timer, assignment or update mutation was sent by this pilot.
 
 The new Copilot agent ID ends `.worktelloTasks` and reads its updated instructions. Both a task-preview request and an explicit GetWorktelloOptions diagnostic reported the tools unavailable. No authenticated Copilot API call reached Apache during the observed checks; only an anonymous401 health probe was logged. The pilot account has Business Basic and no Microsoft365 Copilot add-on; the product list showed no Copilot subscription. This is a licensing/capability prerequisite to resolve for the next pilot, not proof that every package/tenant issue is excluded. Do not claim Copilot task creation works until an entitled account loads actions and completes preview/confirmation/create acceptance.
 
-Microsoft guidance: https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/faq#what-licenses-do-i-need-to-purchase-to-develop-declarative-agents-or-custom-engine-agents . A one-user licensed pilot was offered; no purchase, license assignment or paid consumption was enabled. Native developer mode was used for diagnostics and should be disabled on the temporary test chat after investigation.
+Microsoft guidance: https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/faq#what-licenses-do-i-need-to-purchase-to-develop-declarative-agents-or-custom-engine-agents . A one-user licensed pilot was offered; no purchase, license assignment or paid consumption was enabled. Native developer mode was used for diagnostics and then disabled; the chat confirmed it was off.
 
 ## Manual and cloud follow-up
 
