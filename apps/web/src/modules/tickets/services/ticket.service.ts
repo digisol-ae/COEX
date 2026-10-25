@@ -1,3 +1,5 @@
+import { ticketSearchClauses } from './search-filter.service';
+import { permissionsFor, type Role } from '@coex/shared/core/permissions';
 import { normaliseCc } from '@coex/shared/tickets/collaborators';
 import {
   alertStaff,
@@ -542,11 +544,7 @@ export async function listTickets(filter: TicketFilter = {}): Promise<TicketSumm
     query.$or = [{ firstResponseBreached: true }, { resolutionBreached: true }];
   }
 
-  if (filter.search?.trim()) {
-    const term = filter.search.trim();
-    const pattern = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-    query.$and = [{ $or: [{ number: pattern }, { subject: pattern }] }];
-  }
+  if (filter.search?.trim()) query.$and = await ticketSearchClauses(filter.search);
 
   const found = await tickets()
     .find(query)
@@ -1033,9 +1031,22 @@ export async function unlinkTickets(ticketId: string, otherId: string): Promise<
 export async function searchTickets(term: string, excludeId?: string): Promise<TicketSummary[]> {
   if (!term.trim()) return [];
 
-  const found = await listTickets({ search: term, limit: 10 });
-
-  return found.filter((ticket) => ticket.id !== excludeId);
+  const { tenantId, userId, isPlatformAdmin } = getContext();
+  const actor = await UserModel.findOne({
+    _id: userId,
+    status: 'active',
+    deletedAt: null,
+    ...(isPlatformAdmin ? {} : { tenantId }),
+  });
+  if (!actor || actor.role === 'client_contact') return [];
+  const permissions = permissionsFor({ ...actor.toObject(), role: actor.role as Role });
+  if (!permissions.has('ticket.read.own')) return [];
+  const found = await listTickets({
+    search: term,
+    assigneeId: permissions.has('ticket.read.all') ? undefined : String(actor._id),
+    limit: 11,
+  });
+  return found.filter((ticket) => ticket.id !== excludeId).slice(0, 10);
 }
 
 /** A line in the conversation that nobody typed: a merge, an escalation, a status change. */

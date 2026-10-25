@@ -50,7 +50,7 @@ export default async function TicketsPage({
   const params = await searchParams;
 
   const seesEverything = actor.permissions.includes('ticket.read.all');
-  const scope = params.scope ?? (seesEverything ? 'open' : 'mine');
+  const scope = params.scope ?? (params.search?.trim() ? 'all' : seesEverything ? 'open' : 'mine');
 
   const {
     tickets: matchingTickets,

@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
-import { Input, Select } from '@/components/ui';
+import { Button, Input, Select } from '@/components/ui';
 import { STATUS_LABELS } from '@/modules/tickets/labels';
 
 /** Colored workload counts double as list filters; URLs remain bookmarkable. */
@@ -69,6 +69,19 @@ export function TicketFilters({
   return (
     <div className="coex-filters space-y-1.5" aria-label="Ticket filters">
       <div className="flex flex-wrap gap-2" aria-label="Ticket analytics">
+        <button
+          type="button"
+          aria-pressed={scope === 'all' && !status}
+          onClick={() => apply({ scope: 'all', status: '' })}
+          className={clsx(
+            'rounded-[var(--radius-control)] border px-3 py-2 text-sm font-medium',
+            scope === 'all' && !status
+              ? 'border-[var(--color-action)] text-[var(--color-action)]'
+              : 'border-transparent',
+          )}
+        >
+          All statuses
+        </button>
         {SCOPES.map((option) => {
           const selected =
             scope === option.id ||
@@ -100,15 +113,30 @@ export function TicketFilters({
         onSubmit={(event) => {
           event.preventDefault();
           const data = new FormData(event.currentTarget);
-          apply({ search: String(data.get('search') ?? '') });
+          const term = String(data.get('search') ?? '').trim();
+          apply({ search: term, scope: term ? 'all' : 'open' });
         }}
       >
         <Input
+          key={search}
           name="search"
           defaultValue={search}
-          placeholder="Number or subject"
-          className="max-w-56"
+          placeholder="Keyword, customer, contact, email or phone"
+          aria-label="Search tickets"
+          maxLength={120}
+          className="min-w-0 flex-1 basis-72 max-w-xl"
         />
+
+        <Button type="submit">Search</Button>
+        {search ? (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => apply({ search: '', scope: 'open' })}
+          >
+            Clear search
+          </Button>
+        ) : null}
 
         <Select
           defaultValue={queue}
@@ -145,7 +173,7 @@ export function TicketFilters({
           onChange={(event) =>
             apply({
               status: event.currentTarget.value,
-              scope: event.currentTarget.value ? 'all' : 'open',
+              scope: event.currentTarget.value || search ? 'all' : 'open',
             })
           }
           className="max-w-48"
@@ -172,6 +200,11 @@ export function TicketFilters({
           <option value="low">Low</option>
         </Select>
       </form>
+      <p className="text-xs text-[var(--color-ink-subtle)]">
+        Search ticket number, subject, description, replies, notes, customer/contact, email, phone,
+        tags or attachment names. All words must match; use &quot;quotes&quot; for a phrase. Search
+        includes resolved and closed tickets; selected filters still apply.
+      </p>
     </div>
   );
 }

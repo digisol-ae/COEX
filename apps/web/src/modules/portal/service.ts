@@ -1,3 +1,4 @@
+import { ticketSearchClauses } from '@/modules/tickets/services/search-filter.service';
 import { permissionsFor } from '@coex/shared/core/permissions';
 import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import { Types, type QueryFilter } from 'mongoose';
@@ -97,17 +98,7 @@ export async function portalTickets(search = '', page = 1, status = '') {
   const safePage = Math.max(1, Number.isSafeInteger(page) ? page : 1);
   const query: QueryFilter<Ticket> = {
     ...filter,
-    ...(search.trim()
-      ? {
-          subject: {
-            $regex: search
-              .trim()
-              .slice(0, 100)
-              .replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-            $options: 'i',
-          },
-        }
-      : {}),
+    ...(search.trim() ? { $and: await ticketSearchClauses(search, true) } : {}),
     ...(status === 'closed'
       ? { status: { $in: ['resolved', 'closed'] } }
       : status === 'open'
