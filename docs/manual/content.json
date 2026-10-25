@@ -585,7 +585,7 @@
       "steps": [
         {
           "title": "Search across ticket history",
-          "text": "Search by ticket number, subject, customer/contact name, email, phone, initial description, replies, staff notes, tags or attachment filename. Search includes resolved and closed tickets; other selected filters still apply. All words must match somewhere on the ticket. Put a phrase in quotes to keep it together. Phone separators and local/international formatting are handled; four-digit partial numbers are supported. Use Clear search to return to the active list."
+          "text": "The header search follows the current section. In Tickets, use the header or the existing list search: Enter or Show matching tickets filters this same list and preserves queue, agent, status and priority filters. The header reflects the applied list query. Search by ticket number, subject, customer/contact name, email, phone, initial description, replies, staff notes, tags or attachment filename. Search includes resolved and closed tickets; other selected filters still apply. All words must match somewhere on the ticket. Put a phrase in quotes to keep it together. Phone separators and local/international formatting are handled; four-digit partial numbers are supported. Use Clear search to return to the active list."
         },
         {
           "title": "Find the ticket",

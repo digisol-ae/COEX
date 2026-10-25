@@ -3,6 +3,11 @@ import { listTasks } from '@/modules/tasks/services/task.service';
 import { listOrganisations } from '@/modules/crm/services/organisation.service';
 import { listSpaces } from '@/modules/tasks/services/space.service';
 import { searchTickets } from '@/modules/tickets/services/ticket.service';
+import { SEARCH_SCOPES, type SearchScope } from '@/components/navigation/search-context';
+import { listProducts } from '@/modules/crm/services/product.service';
+import { listContracts } from '@/modules/crm/services/contract.service';
+import { listLeads } from '@/modules/crm/services/lead.service';
+import { listOpportunities } from '@/modules/crm/services/opportunity.service';
 import { STATUS_LABELS } from '@/modules/tickets/labels';
 
 /**
@@ -21,7 +26,12 @@ export async function GET(request: Request) {
     return Response.json({ error: 'Sign in first.' }, { status: 401 });
   }
 
-  const query = new URL(request.url).searchParams.get('q')?.trim().toLowerCase() ?? '';
+  const params = new URL(request.url).searchParams;
+  const scope = params.get('scope') ?? 'all';
+  if (!(SEARCH_SCOPES as readonly string[]).includes(scope))
+    return Response.json({ error: 'Unknown search section.' }, { status: 400 });
+  const includes = (section: SearchScope) => scope === section || scope === 'all';
+  const query = params.get('q')?.trim().slice(0, 120).toLowerCase() ?? '';
 
   if (query.length < 2) {
     return Response.json({ results: [] });
@@ -30,7 +40,7 @@ export async function GET(request: Request) {
   const results = await asUser(user, async () => {
     const found: { type: string; label: string; detail: string; href: string }[] = [];
 
-    if (user.permissions.includes('task.read.own')) {
+    if (includes('tasks') && user.permissions.includes('task.read.own')) {
       const tasks = await listTasks({
         assigneeId: user.permissions.includes('task.read.all') ? undefined : user.id,
         includeClosed: true,
@@ -48,7 +58,7 @@ export async function GET(request: Request) {
       }
     }
 
-    if (user.permissions.includes('task.read.all')) {
+    if (includes('spaces') && user.permissions.includes('task.read.all')) {
       const spaces = await listSpaces();
 
       for (const space of spaces) {
@@ -63,7 +73,7 @@ export async function GET(request: Request) {
       }
     }
 
-    if (user.permissions.includes('ticket.read.own')) {
+    if (includes('tickets') && user.permissions.includes('ticket.read.own')) {
       const seesEveryTicket = user.permissions.includes('ticket.read.all');
       const tickets = await searchTickets(query);
 
@@ -79,7 +89,7 @@ export async function GET(request: Request) {
       }
     }
 
-    if (user.permissions.includes('customer.read')) {
+    if (includes('customers') && user.permissions.includes('customer.read')) {
       const customers = await listOrganisations({ search: query });
 
       for (const customer of customers) {
@@ -92,6 +102,55 @@ export async function GET(request: Request) {
       }
     }
 
+    // These services retain their existing tenant, deletion and owner checks.
+    if (scope === 'products' && user.permissions.includes('products.read')) {
+      for (const item of await listProducts(true)) {
+        if (
+          [item.name, item.code, item.description].some((text) =>
+            text?.toLowerCase().includes(query),
+          )
+        )
+          found.push({
+            type: 'Product',
+            label: item.name,
+            detail: item.code,
+            href: `/products#product-${item.id}`,
+          });
+      }
+    }
+    if (scope === 'contracts' && user.permissions.includes('contract.read')) {
+      for (const item of await listContracts()) {
+        if (
+          [item.title, item.number, item.organisationName].some((text) =>
+            text.toLowerCase().includes(query),
+          )
+        )
+          found.push({
+            type: 'Contract',
+            label: item.title,
+            detail: `${item.number} · ${item.organisationName}`,
+            href: `/contracts/${item.id}`,
+          });
+      }
+    }
+    if (scope === 'leads' && user.permissions.includes('lead.read')) {
+      for (const item of await listLeads({ search: query }))
+        found.push({
+          type: 'Lead',
+          label: item.name,
+          detail: item.number,
+          href: `/leads?q=${encodeURIComponent(item.number)}`,
+        });
+    }
+    if (scope === 'opportunities' && user.permissions.includes('opportunity.read')) {
+      for (const item of await listOpportunities({ search: query }))
+        found.push({
+          type: 'Opportunity',
+          label: item.title,
+          detail: item.number,
+          href: `/opportunities/${item.id}`,
+        });
+    }
     return found.slice(0, 20);
   });
 

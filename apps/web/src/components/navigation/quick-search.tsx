@@ -1,7 +1,8 @@
 'use client';
 import { DeskTaskButton } from '@/components/tasks/desk-task-button';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { searchContext } from './search-context';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
@@ -22,6 +23,18 @@ interface Result {
 }
 
 export function QuickSearch() {
+  const pathname = usePathname();
+  const context = searchContext(pathname);
+  return context ? <SectionSearch key={context.scope} context={context} /> : null;
+}
+
+function SectionSearch({ context }: { context: NonNullable<ReturnType<typeof searchContext>> }) {
+  const params = useSearchParams();
+  const pathname = usePathname();
+  const currentSearch =
+    context.scope === 'tickets' && pathname === '/support/tickets'
+      ? (params.get('search') ?? '')
+      : '';
   const router = useRouter();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -42,23 +55,64 @@ export function QuickSearch() {
     sequence.current++;
   }, []);
 
+  const search = useCallback(
+    (text: string) => {
+      setQuery(text);
+      setActive(0);
+      setResults([]);
+      setError('');
+      requestRef.current?.abort();
+      const current = ++sequence.current;
+      setLoading(text.trim().length >= 2);
+
+      if (timerRef.current) clearTimeout(timerRef.current);
+
+      if (text.trim().length < 2) {
+        setResults([]);
+        return;
+      }
+
+      // A short delay so a fast typist sends one request rather than one per keystroke.
+      timerRef.current = setTimeout(async () => {
+        try {
+          const controller = new AbortController();
+          requestRef.current = controller;
+          const response = await fetch(
+            `/api/search?scope=${context.scope}&q=${encodeURIComponent(text.trim())}`,
+            {
+              signal: controller.signal,
+            },
+          );
+          if (!response.ok) throw new Error('Search is unavailable. Please try again.');
+          const data = (await response.json()) as { results?: Result[] };
+          if (current !== sequence.current) return;
+          setResults(data.results ?? []);
+          setActive(0);
+        } catch {
+          if (current === sequence.current) {
+            setResults([]);
+            setError('Search is unavailable. Please try again.');
+          }
+        } finally {
+          if (current === sequence.current) setLoading(false);
+        }
+      }, 180);
+    },
+    [context.scope],
+  );
+
   const openSearch = useCallback(() => {
-    setQuery('');
-    setResults([]);
-    setLoading(false);
-    setError('');
+    search(currentSearch);
     setActive(0);
     setOpen(true);
-  }, []);
+  }, [currentSearch, search]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
         const visible = [
-          ...document.querySelectorAll<HTMLButtonElement>(
-            'button[aria-label="Search tasks, spaces, customers"]',
-          ),
+          ...document.querySelectorAll<HTMLButtonElement>('button[data-section-search]'),
         ].filter((button) => button.getBoundingClientRect().width > 0);
         if (visible.at(-1) === triggerRef.current) openSearch();
       }
@@ -97,46 +151,6 @@ export function QuickSearch() {
     };
   }, [open, cancelSearch]);
 
-  function search(text: string) {
-    setQuery(text);
-    setActive(0);
-    setResults([]);
-    setError('');
-    requestRef.current?.abort();
-    const current = ++sequence.current;
-    setLoading(text.trim().length >= 2);
-
-    if (timerRef.current) clearTimeout(timerRef.current);
-
-    if (text.trim().length < 2) {
-      setResults([]);
-      return;
-    }
-
-    // A short delay so a fast typist sends one request rather than one per keystroke.
-    timerRef.current = setTimeout(async () => {
-      try {
-        const controller = new AbortController();
-        requestRef.current = controller;
-        const response = await fetch(`/api/search?q=${encodeURIComponent(text.trim())}`, {
-          signal: controller.signal,
-        });
-        if (!response.ok) throw new Error('Search is unavailable. Please try again.');
-        const data = (await response.json()) as { results?: Result[] };
-        if (current !== sequence.current) return;
-        setResults(data.results ?? []);
-        setActive(0);
-      } catch {
-        if (current === sequence.current) {
-          setResults([]);
-          setError('Search is unavailable. Please try again.');
-        }
-      } finally {
-        if (current === sequence.current) setLoading(false);
-      }
-    }, 180);
-  }
-
   function choose(result: Result | undefined) {
     if (!result) return;
 
@@ -145,12 +159,23 @@ export function QuickSearch() {
     router.push(result.href);
   }
 
+  function showTickets() {
+    const next = new URLSearchParams(pathname === '/support/tickets' ? params.toString() : '');
+    const term = query.trim();
+    if (term) next.set('search', term);
+    else next.delete('search');
+    next.set('scope', term ? 'all' : 'open');
+    setOpen(false);
+    router.push(`/support/tickets?${next.toString()}`);
+  }
+
   return (
     <>
       <button
         ref={triggerRef}
         type="button"
-        aria-label="Search tasks, spaces, customers"
+        aria-label={context.label}
+        data-section-search
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={openSearch}
@@ -168,7 +193,7 @@ export function QuickSearch() {
           <path d="m9.5 9.5 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
         <span className="min-w-0 flex-1 truncate whitespace-nowrap text-left">
-          Search tasks, spaces, customers
+          {currentSearch ? `${context.label}: ${currentSearch}` : context.label}
         </span>
         <kbd className="hidden shrink-0 rounded border border-[var(--color-line)] px-1.5 py-0.5 text-[10px] sm:inline">
           ⌘K
@@ -215,7 +240,7 @@ export function QuickSearch() {
                 }}
               >
                 <label className="sr-only" htmlFor="quick-search-query">
-                  Search tasks, spaces and customers
+                  {context.label}
                 </label>
                 <input
                   ref={inputRef}
@@ -235,13 +260,25 @@ export function QuickSearch() {
                     }
                     if (event.key === 'Enter') {
                       event.preventDefault();
-                      choose(results[active]);
+                      if (context.scope === 'tickets') showTickets();
+                      else choose(results[active]);
                     }
                   }}
-                  placeholder="Search tasks, spaces, customers…"
+                  placeholder={context.hint}
+                  maxLength={120}
                   className="min-w-0 w-full shrink-0 border-b border-[var(--color-line)] px-4 py-3 text-sm outline-none"
                 />
 
+                <p className="px-4 py-2 text-xs text-[var(--color-ink-subtle)]">{context.hint}</p>
+                {context.scope === 'tickets' ? (
+                  <button
+                    type="button"
+                    onClick={showTickets}
+                    className="border-y border-[var(--color-line)] px-4 py-2 text-left text-sm font-medium"
+                  >
+                    {query.trim() ? 'Show matching tickets' : 'Clear ticket search'}
+                  </button>
+                ) : null}
                 <div className="min-h-0 max-h-72 overflow-y-auto" aria-live="polite">
                   {query.trim().length < 2 ? (
                     <p className="px-4 py-3 text-center text-sm text-[var(--color-ink-subtle)]">
