@@ -20,3 +20,7 @@ The advertised viewport override did not change the actual IAB viewport (measure
 A complete module guide does not mean every business transaction was freshly tested. Existing service/database QA is linked with its original date and scope. Screenshot captions/provenance prevent a screen render or mocked/isolated test from being represented as a production write/delivery test.
 
 Owner requested fewer screenshots after review: inline guide reduced to three figures for timeline planning, CSV import/export and Outlook troubleshooting. Simple login/navigation/create-form captures moved to assets/archive; retained locally/versioned for evidence, not displayed as extra reader steps.
+
+## Midnight maintenance — 26 October 2026
+
+Reviewed merged main through 0539bad and existing dated release/resolution evidence. Updated generic section-search guidance, corrected deployed import status while retaining its UI acceptance limits, added Microsoft 365 web guidance with Copilot explicitly unverified, and indexed existing migration/search/sidebar resolution records. No screenshots added. No fresh browser/device/print or production write acceptance was performed for this documentation run. Original application work and private exports remain excluded. Package, link, hash and publication checks are recorded in the midnight checkpoint.
