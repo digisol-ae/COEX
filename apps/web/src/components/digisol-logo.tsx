@@ -10,7 +10,7 @@ export function DigisolLogo({ priority = false }: { priority?: boolean }) {
       height={1240}
       priority={priority}
       unoptimized
-      className="block h-10 w-44 max-w-full shrink-0 object-contain brightness-0 dark:invert"
+      className="digisol-sidebar-logo block h-10 w-44 max-w-full shrink-0 object-contain"
     />
   );
 }
