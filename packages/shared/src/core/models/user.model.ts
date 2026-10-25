@@ -32,6 +32,7 @@ const userSchema = new Schema(
       default: 'active',
       index: true,
     },
+    legacySourceId: { type: String, default: null },
     lastSignedInAt: { type: Date, default: null },
 
     /**

@@ -864,7 +864,7 @@ window.WORKTELLO_MANUAL = {
       "steps": [
         {
           "title": "Use the provided account",
-          "text": "Select Customer at sign-in and use your support account. There is no public self-signup that claims access by email alone."
+          "text": "Select Customer at sign-in. Imported customers choose First time here? Activate your account, verify the emailed six-digit code and set a password. Codes expire after ten minutes; request another after ten minutes. Existing accounts keep their usual sign-in."
         },
         {
           "title": "Find your ticket",
@@ -885,7 +885,8 @@ window.WORKTELLO_MANUAL = {
       ],
       "notes": [
         "Customers cannot see internal staff notes, private task discussions, staff timers or another contact’s tickets.",
-        "Do not put passwords, verification codes or unnecessary personal/medical documents in a support request. Customer account provisioning and live email delivery are separate administrator checks."
+        "Do not put passwords, verification codes or unnecessary personal/medical documents in a support request. Customer account provisioning and live email delivery are separate administrator checks.",
+        "Customer-unassigned imported contacts can read and reply to their existing own tickets. Contact support for customer assignment before raising a new ticket. Previous helpdesk attachment files are deferred."
       ],
       "sources": [
         [
@@ -897,7 +898,12 @@ window.WORKTELLO_MANUAL = {
           "../CUSTOMER-PORTAL.md"
         ]
       ],
-      "images": [],
+      "images": [
+        [
+          "osticket-activation-local.png",
+          "Local isolated activation UI • invalid-code handling verified • 25 October 2026. SMTP delivery is separate."
+        ]
+      ],
       "related": [
         "login",
         "files",

@@ -18,6 +18,21 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-25-osticket',
+    date: '25 October 2026',
+    title: 'Your support history in Worktello',
+    sections: [
+      {
+        heading: 'Support accounts and history',
+        items: [
+          'Imported customers can choose First time here? at sign-in, verify their email code and set a password.',
+          'Your previous support conversations are available on your linked tickets. Attachments from the previous helpdesk will be connected later.',
+          'If customer assignment is pending, you can follow your existing tickets. Contact support to link your customer before raising a new ticket.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-25-import-review',
     date: '25 October 2026',
     title: 'Clearer imports and customer contacts',
