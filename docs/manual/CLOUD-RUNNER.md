@@ -31,6 +31,14 @@ Run `python3 scripts/sync-manual.py` from the current local project to download 
 - `scripts/sync-manual.py`: downloads and safely extracts local copies.
 - `scripts/test-manual-cloud.py`: checks boundaries using temporary local files only.
 
-The operator adds the run URL and actual results here after validation. Missing credentials, failed publication and unverified live workflows must remain explicit.
+## Verified setup: 25 October 2026
+
+[Cloud validation run 40172904381](https://github.com/digisol-ae/COEX/actions/runs/40172904381) succeeded against source `af1b05becc47b04f611d5104de1493b926c44d6e`: ten boundary tests passed, the manual validated, and a portable ZIP was uploaded. AI draft and review jobs were skipped, as intended. The artifact was downloaded through `sync-manual.py`; every packaged file hash and archive path passed verification before extraction.
+
+Verified local snapshot: `/Volumes/sd-mac/Developer/DigiSol/worktello/outputs/manual/cloud/run-40172904381/site/docs/manual/index.html`. The ZIP and cloud status are alongside `site/`. A second sync preserves the existing snapshot.
+
+Remaining prerequisites for AI writing: an owner-provided `OPENAI_API_KEY` secret, `MANUAL_AI_ENABLED=true`, and permission for GitHub Actions to create pull requests. The repository currently reports `can_approve_pull_request_reviews=false`; the owner must enable the corresponding Actions workflow setting before the draft publication acceptance test. No permission expansion or paid service was enabled. The local midnight writer remains active with its corrected `worktello` path. The completed one-time setup reminder was removed; the cloud midnight packaging schedule is installed.
+
+No production restart, business-data change or additional logout was performed for this cloud setup. Automatic new documentation and AI review publication remain unverified until an authenticated full run succeeds.
 
 References: [Codex GitHub Action](https://learn.chatgpt.com/docs/github-action), [GitHub schedule behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
