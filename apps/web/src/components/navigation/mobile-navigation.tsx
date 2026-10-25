@@ -1,6 +1,7 @@
 'use client';
 
 import { BrandLogo } from '@/components/brand-logo';
+import { DigisolLogo } from '@/components/digisol-logo';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -125,7 +126,7 @@ export function MobileNavigation({
                       aria-label={`${tenantName} home`}
                       title={tenantName}
                     >
-                      <BrandLogo className="h-10 w-44 max-w-full" />
+                      <DigisolLogo />
                     </Link>
 
                     <button
