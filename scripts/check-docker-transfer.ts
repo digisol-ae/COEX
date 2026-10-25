@@ -32,6 +32,11 @@ async function main() {
     { tenantId: actor.tenantId, userId: actor._id, isPlatformAdmin: true },
     async () => {
       const samples: Record<Entity, Record<string, string>> = {
+        contacts: {
+          customer: 'Docker QA Import Customer',
+          name: 'Docker QA Contact',
+          email: 'docker-contact@example.test',
+        },
         customers: { name: 'Docker QA Import Customer', email: 'docker-import@example.test' },
         products: { name: 'Docker QA Import Product', code: 'DOCKER-QA-IMPORT', price: '99.95' },
         leads: { name: 'Docker QA Import Lead', email: 'docker-lead@example.test' },
@@ -65,11 +70,12 @@ async function main() {
       samples.tasks.title += ' ' + tag;
       samples.tickets.subject += ' ' + tag;
       samples.contracts.title += ' ' + tag;
-      for (const entity of ['tasks', 'tickets', 'contracts'] as const)
+      for (const entity of ['tasks', 'tickets', 'contracts', 'contacts'] as const)
         samples[entity].customer = samples.customers.name;
       samples.contracts.productCodes = samples.products.code;
       const modelNames = {
         customers: 'Organisation',
+        contacts: 'Contact',
         products: 'Product',
         leads: 'Lead',
         tasks: 'Task',
@@ -82,6 +88,7 @@ async function main() {
           .countDocuments({ tenantId: actor.tenantId, deletedAt: null });
       for (const entity of [
         'customers',
+        'contacts',
         'products',
         'leads',
         'tasks',
@@ -104,7 +111,10 @@ async function main() {
         await assert.rejects(() => transfer(entity, csv, '0.' + '0'.repeat(64)), /expired/);
         const again = await transfer(entity, csv);
         assert.equal(again.rows[0].status, 'duplicate');
-        const replay = await transfer(entity, csv, again.proof);
+        assert(!again.proof);
+        const decisions = { '1': { action: 'skip' as const } };
+        const reviewed = await transfer(entity, csv, undefined, decisions);
+        const replay = await transfer(entity, csv, reviewed.proof, decisions);
         assert(replay.committed);
         assert.equal(await count(entity), before + 1);
         const exported = parseCsv(await exportRecords(entity));
@@ -140,7 +150,15 @@ async function main() {
       );
       const repeatedPreview = await transfer('customers', repeated);
       assert.equal(repeatedPreview.rows[1].status, 'duplicate');
-      const repeatedResult = await transfer('customers', repeated, repeatedPreview.proof);
+      assert(!repeatedPreview.proof);
+      const repeatedDecisions = { '2': { action: 'skip' as const } };
+      const reviewedRepeat = await transfer('customers', repeated, undefined, repeatedDecisions);
+      const repeatedResult = await transfer(
+        'customers',
+        repeated,
+        reviewedRepeat.proof,
+        repeatedDecisions,
+      );
       assert.equal(repeatedResult.rows.filter((r) => r.status === 'created').length, 1);
       // An administrator must still not export another person's personal tasks.
       const privateSpace = await SpaceModel.create({

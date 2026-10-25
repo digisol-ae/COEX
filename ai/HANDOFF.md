@@ -1,3 +1,7 @@
+## 25 October 2026 — guided imports and contacts (draft)
+
+Branch `codex/import-review-contacts`: seven templates with protected sample rows and formatting guidance; explicit match review with skip, customer/contact separate-create and targeted update; customer-linked contact import/export and review reports. Blank update fields preserved. 55 unit files/384 tests, workspace types/lint/format and local 75-page build passed; disposable Docker integration passed including tenant/portal protection, customer IDs and parent-name reuse proof invalidation. Browser permission at localhost:3111 was declined; no alternate UI workaround, no deployment or new live business writes. Do not call UI/live acceptance complete. Full record: `docs/resolutions/2026-10-25-import-review.md`. Prior 111-created/13-skipped customer import is separate; skipped rows need owner decisions. Private exports and unrelated projects/outputs remain untracked and excluded.
+
 # Worktello (formerly COEX) — AI Handoff
 
 ## Microsoft 365 workspace live; Copilot actions unaccepted — 25 October 2026

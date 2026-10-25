@@ -18,6 +18,21 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-25-import-review',
+    date: '25 October 2026',
+    title: 'Clearer imports and customer contacts',
+    sections: [
+      {
+        heading: 'Import with a preview',
+        items: [
+          'Every CSV template now includes two marked examples, with required fields and formatting instructions beside the download. Remove example rows before uploading your records.',
+          'Review possible matches and their reasons before importing. Choose to skip each match; for customers and contacts, you can also create a separate record or update a selected existing record. Blank update fields preserve existing values.',
+          'Import and export customer contacts. Link each contact to a customer by its unique name or customer ID, review primary-contact choices, and download the import review report.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-25-planning-and-teams',
     date: '25 October 2026',
     title: 'Planning, Teams and data transfer',

@@ -1,93 +1,32 @@
 # Import and export
 
-> Release update 25 October 2026: completed implementation shipped in application 4701314. Historical local-only/pending statements below are superseded by `ai/RELEASE-2026-10-25.md`; QA limitations remain explicit there. Teams catalog 1.2.0 and real Teams web SSO/list reads verified; no production write-flow acceptance claimed.
+## Guided templates, contact import and match review — 25 October 2026
 
-Open **Setup → Import and export**. Staff need `tenant.manage` and the module's
-read permission; imports also require its manage permission. Tasks and tickets
-require read-all, and leads require lead.read.all. Customer-facing accounts
-cannot use these endpoints. Task exports retain the existing private Space and
-Folder visibility rules, including personal work privacy.
+Implementation on `codex/import-review-contacts`; production deployment is not yet completed. The previous live version silently skipped matches and did not support contacts. The live AUTH_SECRET configuration issue was fixed separately, with 111 customer creations and 13 matches skipped in that earlier authorized import. Those 13 require business review; they are not automatically re-imported by this change.
 
-## First version
+Open **Setup → Import and export**. Staff need `tenant.manage` plus the module read and manage permissions. Contacts use customer permissions. Customer-facing accounts cannot transfer records. Task exports retain private Space/Folder boundaries.
 
-CSV templates, preview, create-only import, per-record results and CSV export are
-available for tasks, tickets, customers, leads, products and contracts.
+1. Choose Tasks, Tickets, Customers, Contacts, Leads, Products or Contracts.
+2. Download the template. Every file has two marked examples and the page lists required fields, allowed values, date/amount/country/URL formats and matching rules. Delete both example rows; retain headings. Any non-empty `_example` cell blocks that row and the entire import preview. Empty marker columns are accepted.
+3. Import customers before contacts; customers/products before linked contracts/tasks/tickets. For contacts use `customer` (one exact customer name) or `customerId` (the `_id` from a customer export). If both are supplied they must agree. IDs remain tenant-scoped. Repeated customer names need an ID.
+4. Upload and preview. No records are changed during preview. Invalid rows block the entire import. Each possible match identifies the existing record or previous CSV row, the matching fields, and (for customers/contacts) existing/incoming values.
+5. Decide every match. **Skip** is explicit. Customers/contacts additionally offer **Create separately** and **Update a specific existing matching record**. Shared email addresses do not prove two businesses are the same. File-only matches cannot be updated: combine rows or choose skip/separate creation. Other modules support explicit skip; change their matching fields to create a different record. Product codes stay unique.
+6. Update changes non-empty CSV fields and preserves blank existing fields; it does not move a contact between customers. `false` explicitly clears primary status. A primary contact becomes the customer's default reply recipient and demotes other primaries. Portal-linked emails cannot be changed through imports. Importing contacts does not provision portal users.
+7. Preview again after changing decisions. The signed 15-minute proof binds the file, tenant, account, record type, choices and match snapshots. Changing a destination/value/decision invalidates the old proof. Two rows cannot update the same existing record in one import. Review the create/update/skip totals, then confirm.
+8. Read created/updated/skipped/failed results; download the review report. Runtime errors may leave a partial import. Retry only failed rows, with a fresh preview and explicit match decisions. No whole-file transaction or exactly-once retry guarantee is claimed.
 
-- Import up to 500 records / 2 MB; export up to 10,000 core records.
-- Template headings are case-sensitive. Unknown headings are rejected; exported
-  `_id`, `_number`, `_status`, `_owner`, `_assignees`, `_folder` columns are reference
-  information only and are ignored on import.
-- Import customers and products before records that refer to them. Customer,
-  Space and queue names must resolve uniquely in the current tenant. Contract
-  products use codes separated by `|`.
-- Preview validates the entire file before issuing a signed, 15-minute approval
-  token bound to the exact file, tenant, account and module. Invalid rows block
-  the whole import. Commit repeats validation and duplicate checks.
-- Import creates records through the existing services, preserving numbering,
-  audit and alert rules. It does not overwrite existing records. All imports for
-  one tenant/module are serialized by a database lock. A crashed run's lock
-  expires after 30 minutes.
-- Each result identifies created, skipped or failed records. A runtime failure
-  can leave a partial import; retry skips matches already created. No database
-  transaction across the whole file is claimed.
-- Imports use each module's normal initial state: tasks in the first column and
-  unassigned, tickets New with the queue's assignment rules, leads New owned by
-  the importer, contracts Draft, customers/products active.
-- Exports contain the core template fields plus reference metadata. They exclude
-  attachments, conversation history, custom fields, contract service lines,
-  detailed pricing rules, linked contacts and product parent/service-model
-  configuration. These details remain editable through their existing forms.
-- Exports neutralize spreadsheet formulas and are served privately without
-  caching. Import mutations and exports are recorded in the audit log.
+Limits: 500 rows / 2 MB per import, 10,000 core records per export. Template headings are case-sensitive. Unknown columns fail validation. Exported `_id`, `_number`, `_status`, `_owner`, `_assignees`, `_folder` metadata is read-only. Contacts export customer names and IDs, name/title/email/mobile/primary status. Notes, portal accounts, locations and custom fields are not included in contact import/export.
 
-## Docker verification — 23 October 2026
+Imports use the normal services, permissions, tenant scoping, numbering/audit and alert rules. A tenant/module database lock serializes imports; crashed locks expire after 30 minutes. Matching records are rechecked before writes. New/changed matches fail the affected row for renewed review rather than silently skipping it. All business exports/reports are private; spreadsheet formulas are neutralized.
 
-The old host COEX servers on 3104, 3106 and 3107 were stopped. Docker remains on
-localhost:3110 with its existing isolated `coex_docker_local` database.
+Tasks start unassigned in the first column, tickets New, leads New with importer ownership, contracts Draft, customers/products/contacts active. Exports omit attachments, conversation history, custom fields and detailed service/pricing configuration. This is not a complete backup/restore format.
 
-`scripts/seed-docker-demo.ts` creates 10 idempotent, labelled synthetic tasks and
-10 tickets, a Docker QA Space, support queue and test customer. It refuses to run
-outside the expected Docker container/database. Integration and browser checks
-also add labelled Docker QA records, so totals may exceed 10.
+## Verification
 
-Verification commands (repository root):
+- Full unit suite: 55 files / 384 tests passed. Workspace types, lint, CI formatting and 75-page production build passed.
+- Disposable local Docker database only: `scripts/check-import-review.ts` verifies all seven example files, preview no-write, shared-email review, skip/separate/update, file/name duplicates, blank preservation, stale/tampered proof rejection, tenant isolation, contact customer/mobile matching, export, ambiguous references, primary demotion and portal email protection.
+- `scripts/check-docker-transfer.ts` was updated for explicit skip decisions and contacts; its historical shared Docker fixtures were not used for this change.
+- Local UI browser QA was declined by the browser permission gate. Do not claim desktop/mobile interaction or production acceptance from service tests.
+- No new business import or update was made on production for this implementation.
 
-```sh
-sh scripts/docker-local.sh exec -T web npx tsx scripts/seed-docker-demo.ts
-sh scripts/docker-local.sh exec -T web npx vitest run tests/unit/data-transfer.test.ts tests/unit/data-transfer-access.test.ts
-sh scripts/docker-local.sh exec -T web npx tsx scripts/check-docker-transfer.ts
-sh scripts/docker-local.sh exec -T web npm run typecheck
-```
-
-Coverage includes CSV quoting/multiline/BOM, size and count limits, spreadsheet
-formula protection, schema/date/amount validation, module permissions, all six
-module imports/exports, duplicate replay, invalid references, preview tampering,
-a concurrent-import lock and cross-tenant reference isolation. Browser QA covers
-upload → preview (one duplicate skipped) → import (one customer created) → CSV
-download with that customer verified in the downloaded file. An unauthenticated
-CSV export returned HTTP 401.
-
-Artifacts and synthetic browser fixture are under
-`/Volumes/sd-mac/Developer/Docker/{logs,exports,fixtures}`. This is local work;
-no commit, push or production deployment is included.
-
-## Verification completed after restart
-
-- Full optimized production build completed successfully in Docker (including
-  TypeScript and route generation). Root TypeScript and focused lint also passed.
-- 24 focused tests passed: 13 CSV/schema, 7 permission, 4 navigation tests.
-- The integration script now uses unique synthetic records to verify actual
-  creation on every run, preview no-write, exact count increases, duplicate
-  replay, invalid mixed files, repeated rows, expired/tampered preview proofs,
-  concurrent-import lock, cross-tenant references, real-account permission
-  denials, other-person personal task privacy and internal ticket-note privacy.
-- Browser import/create, export and template download passed for all six
-  modules. Downloaded CSV contents included the newly imported records. Invalid
-  task priority blocked import; the customer duplicate was skipped.
-- Browser console had no errors and there was no document horizontal overflow
-  at the inspected desktop viewport (1265 px). No mobile-device QA is claimed.
-- The original 10 labelled demo tasks and 10 labelled demo tickets persist;
-  additional labelled QA records are retained for inspection.
-
-Final build log: `coex-transfer-production-build-resume.log` in the external
-Docker/logs folder. Final browser image: `coex-import-export-final.jpg`.
+Production prerequisite: a private non-empty AUTH_SECRET must be available to the running web app. Check an authenticated live preview after deployment; HTTP 200 at login does not validate import configuration.
