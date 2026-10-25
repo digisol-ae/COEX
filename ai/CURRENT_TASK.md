@@ -1,5 +1,13 @@
 # Worktello (formerly COEX) — Current AI Task
 
+## Expanded ticket search live — 25 October 2026
+
+PR #51 merged as 584458b3f70da069151df3a3544e4740fa355eb7; compiled application tree b679117. Active blue coex-app id16/PID352576 on3001, /srv/coex/releases/ticket-search-20261025. Both canonical Apache proxies target3001; PM2 saved. Patched Node22.23.4 verified for the launcher and actual Node descendants. Previous osTicket release id15/PID344722 remains available on3003 as rollback; green3002 and workers10/11/12 unchanged (same PIDs, zero restarts).
+
+PR/main CI passed, 390 unit tests, workspace types/lint and local/server builds passed. Disposable Docker integration verified field coverage, phone formats, phrases, filters and tenant/assignment/portal privacy. Read-only production queries matched expected migrated tickets by number, contact name/email, phone and conversation keyword. Authenticated separate browser tab verified customer/contact matches with resolved/closed results, exact phrase submission, and Clear search returning an empty input/Open scope. Original user tab preserved. Twenty HTTPS switch samples returned200. No business record or email mutation used for acceptance.
+
+Rollback: verify http://127.0.0.1:3003/login returns200, restore http-before.conf and https-before.conf from /srv/coex/shared/backups/ticket-search-20261025 into the canonical Apache vhosts, configtest and graceful reload. Preserve database and workers. Private PM2/environment snapshot is in the same directory; never publish it. Source snapshot/attachment limitations of the earlier migration remain unchanged. Phone acceptance used read-only service queries; mobile-device visual QA was not exercised.
+
 ## osTicket migration live — 25 October 2026
 
 Application PR #49 merged as d82a5bff0181baf44bed02a442b3ab0cf0f801c7; compiled application tree is 6404f99. Active candidate is coex-app-osticket, PM2 id15, port3003, /srv/coex/releases/osticket-20261025. Both canonical Apache proxies now target3003. Blue3001 and green3002 remain warm rollback releases; three workers were not restarted. Explicit patched Node22.23.4 interpreter is used. Do not infer active application revision from the older /srv/coex/app checkout.
@@ -12,11 +20,9 @@ Private backup: /srv/coex/shared/backups/osticket-migration-20261025/before-impo
 
 Rollback app: verify3001 login200, restore apache-http-before.conf and apache-https-before.conf from the private run directory, apachectl configtest and graceful reload. Preserve database while assessing rollback; never automatically restore over concurrent user work. New accounts remain invited until the user initiates OTP and chooses a password.
 
-
 ## Microsoft 365 workspace live; Copilot actions unaccepted — 25 October 2026
 
 Application76cac60 (PR46) is live on blue3001: coex-app id14/PID329947, /srv/coex/releases/copilot-pilot-20261025. Green13/PID318054 on3002 is warm fallback; workers10/11/12 unchanged. CI/local/server checks passed,40/40 HTTPS200. Catalog1.3.0 and real Microsoft365 SSO/list verified. Copilot agent loads but action tools are unavailable; pilot account lacks Copilot add-on. No live task/time/email mutation. All owner-approved Entra additions persisted; no paid license/billing enabled. Exact evidence, rollback and remaining acceptance: ai/RELEASE-2026-10-25-COPILOT.md. Local checkout is now /Volumes/sd-mac/Developer/DigiSol/worktello. Cloud manual AI needs a separate configured API key; packaging-only acceptance must not be called AI-writing acceptance.
-
 
 ## Outlook web fixed; local interactive manual added — 25 October 2026
 
@@ -26,11 +32,9 @@ Active green `coex-app-green` id 13 / PID 318054 on 3002, `/srv/coex/releases/ou
 
 Manual: `docs/manual/index.html` (27 chapters, searchable role guides, reading checklists, image zoom and print option), canonical content.json, generated offline content.js, CSS/JS, actual safe screenshots/provenance and QA limits. Seven documented resolutions indexed in `docs/resolutions/README.md`; each future resolution must update the dated record, manual and local screenshot evidence. Portable package: `outputs/manual/Worktello-Manual-2026-10-25.zip`. Source/assets remain organized in the local SSD checkout and GitHub; secrets/private environments/backups/business exports are excluded. Manual is a repository/local artifact, not a newly public production route. Desktop/mobile/write-flow and physical-print limits are explicit in `docs/manual/QA.md`.
 
-
 ## Outlook web compatibility and manual — 25 October 2026
 
 Owner authorized diagnosis, resolution and action after Outlook iframe refused to connect. Exact Outlook web ancestors/client added; tenant/user/token guards retained. Owner explicitly confirmed Entra preauthorization at action time; saved client verified. Code checks passed; web-only rollout and real Outlook acceptance pending. `docs/OUTLOOK-WEB.md` is the resolution record. Owner also requests a simple interactive HTML manual with actual screenshots and a resolution history; build this after the fix, preserve privacy and identify unverified flows. Do not send production email/task/time mutations for demonstration. Unrelated projects/ preserved.
-
 
 ## Completed-work release deployed — 25 October 2026
 
@@ -38,11 +42,9 @@ Application `4701314` (PR #42; branding #40 and Node #41 included) is live at ht
 
 Existing Teams catalog app updated to Worktello 1.2.0 and verified after reload. Real Teams web SSO/list reads and ordinary web Microsoft sign-in passed; full role/device/write pilot remains. What's new contains user-facing planning/Teams/data-transfer features plus generic maintenance counts, no branding announcement. Full backup, PIDs, CI, limitations and rollback: `ai/RELEASE-2026-10-25.md`; operating guide: `deploy/ZERO-DOWNTIME.md`. This entry supersedes earlier pending/local-only statements. Do not repeat expiry/restart for docs-only sync. Unrelated `projects/` preserved.
 
-
 ## Completed-work release authorized — 25 October 2026
 
 Owner requested completed-work deployment end to end. Current release record: `ai/RELEASE-2026-10-25.md`; it supersedes earlier local-only and approval-pending release statements. Existing completed Teams timer controls are included from the later 24 October QA, without starting a new feature. Preserve unrelated `projects/`. Production is pending until the release record contains verified cutover evidence.
-
 
 ## Worktello rebrand committed by Claude — 24 October 2026
 
@@ -62,11 +64,9 @@ Current local Docker app at http://localhost:3110 has the rebrand and loader; it
 
 Evidence: the preceding rebrand passed 342 unit tests and a 75-page isolated build; loader changes passed focused ESLint, web TypeScript and formatting/diff checks. Browser access to localhost was declined during loader verification; animation and route-transition visual acceptance remain owner-reviewed, not independently browser-verified. No real task/email or Teams app installation was performed. Read `docs/BRANDING.md` and `docs/brand/animations/README.md` for asset locations and reuse.
 
-
 ## Loading animation variants — 24 October 2026
 
 Owner requested whole-bar highlighting instead of rectangular slices, plus a second build-up version. WorktelloLoader supports `variant="highlight"` (default, one complete diagonal ribbon bright at a time) and `variant="build"` (left appears, middle joins, right joins; all hold then reset). Polygon masks follow the W ribbon boundaries. Reduced-motion shows the complete static W in both variants. Native route fallback keeps version 1 until the owner selects otherwise. Both standalone previews offer version, theme and pause/play controls: docs/brand/worktello-loading-preview.html and docs/brand/worktello-loading-build-preview.html. No artificial page delay, commit, push or production deployment. Browser visual QA remains unavailable after the prior origin denial; no bypass attempted.
-
 
 ## Worktello local preview and loading animation — 24 October 2026
 
@@ -78,7 +78,6 @@ Existing local Docker web/API rebuilt and running at http://localhost:3110; Mong
 
 Browser access to localhost:3110 was declined by the origin approval gate. No alternate browser or network workaround attempted. Current local UI, animation playback, reduced-motion behavior and real route-transition visibility therefore remain visually unverified in this continuation. Standalone `docs/brand/worktello-loading-preview.html` embeds the same artwork/CSS and provides light/dark and pause/play controls for owner review. No production deployment, push or commit.
 
-
 ## Worktello rebrand — 24 October 2026 (local implementation)
 
 Owner selected Worktello and the coral folded W with subtle handoff/palm negative space. Domain/DNS remains with the owner. Public-web screening is preliminary, not trademark clearance; a historical third-party Worktello mention was found, not verified as a software business. No legal-availability claim.
@@ -87,18 +86,15 @@ Shared BrandLogo now uses the approved generated raster symbol and lettering wit
 
 The checkout already contains unrelated uncommitted Gantt, Teams, data-transfer and task changes, which must be preserved. No commit, push or deployment performed by this rebrand task. Verification: all workspace type checks, focused ESLint and 51 unit files / 342 tests passed; isolated final production Webpack build passed (75 pages). Desktop and 390px mobile visual checks, light/dark logo and 16/36/64px icon checks passed; mobile document width remained 390px. Preview copy used a signed-out session stub only for visual QA, then actual session sources were restored for the production build. No authenticated acceptance, real email/task creation or Teams install claimed. Packaging smoke test used a synthetic app ID in /private/tmp and must not be installed. SVG exports embed the approved raster masters; they are not traced vector artwork.
 
-
 ## Teams personal workspace deployed — 23 October 2026 (installation/pilot pending)
 
 PR #38 merged as `6dfcf1509c46b1963c0e8de886adfe58c6ba004e`; PR CI 39902606641 and main CI 39905072621 passed. Teams My Tasks, detail/latest updates, text posting, personal completion filters and creator-default create are now served at /integrations/teams/app. Existing message action preserved. Owner reports correct COEX Teams registration URI/scope, both preauthorized Teams clients and v2 token setting saved; real Microsoft SSO and Teams desktop/web/mobile pilot still pending. Updated package 1.1.0 is in Downloads. No What's new announcement until available to users.
 
 Active green coex-app-green id8 / PID214898, port3002, /srv/coex/releases/teams-tab-20261023. Blue coex-app id7 / PID184237, port3001, /srv/coex/releases/entra-redirect-20261022 remains warm fallback. Three workers unchanged. Native server build passed (73 pages), public tab/dialog/login/policies healthy, anonymous/invalid-token API 401; 40/40 switch samples 200. Tenant-scoped release session expiry: 7 old sessions revoked at 2026-10-23T05:23:38Z, zero matching old sessions remain. Full evidence: ai/RELEASE-2026-10-23-TEAMS-TAB.md; setup/file map: docs/TEAMS-PERSONAL-TAB.md. Docs-only sync needs no restart or further expiry. Supersedes earlier not-deployed entries. Unrelated projects/ preserved.
 
-
 ## Teams personal workspace — 23 October 2026 (implementation/QA, not deployed)
 
 Owner approved starting COEX inside Teams. Branch codex/teams-personal-tab adds personal My Tasks, detail/latest-first updates, text posting, personal-completion filters and creator-default single-screen create. Existing message action retained. Header-bearer Teams SSO uses server-side Microsoft signature/app/tenant/scope/client verification and active linked staff permissions; no third-party cookie dependency. Permanent request receipts prevent duplicate task creation. Attachments/full editing currently open normal COEX. No live Teams SSO/pilot, real task or email claimed. Existing Entra API URI confirmation requested from owner; registration/consent and package1.1.0 installation remain external prerequisites. Detailed setup/file map/security/testing: docs/TEAMS-PERSONAL-TAB.md. Branding and existing ordinary browser login unchanged; no What's new announcement before availability. Preserve projects/.
-
 
 ## Microsoft redirect and DigiSol attribution deployed — 22 October 2026
 
@@ -106,18 +102,15 @@ PR #36 merged as `f266afe451f3881ffd6ef707b121b0deba0a705f`; PR CI run 398066015
 
 Local and isolated server production builds passed (71 pages); 8 redirect regressions passed; six viewport/DPR combinations (320/768/1440, 1x/2x) showed one loaded 96px DigiSol logo and no overflow. Small-screen gutters accommodate the existing security widget without changing verification behavior. Live cancelled Microsoft callback returns the public HTTPS login URL. No actual Microsoft interactive sign-in performed; success/session-cookie coverage is mocked. See `ai/RELEASE-2026-10-22-ENTRA-FOOTER.md` for deployment evidence and limitations. This supersedes prepared entries and older slot mappings; projects/ preserved.
 
-
 ## Login operator attribution — 22 October 2026 (prepared)
 
 Owner requested replacing visible Digisol LLC-FZ on the signed-out shell with “Powered by DigiSol” and the actual DigiSol logo beneath it. AuthShell now shows this footer on desktop rail and below legal links on mobile/tablet, reusing transparent high-resolution public/brand/logo-long.png (3671×1240) at 96px proportional width. Company legal identity remains unchanged in policies. This extends to shared password recovery/reset screens. Branding excluded from What's new as previously requested; existing generic count is 3 bug fixes / 1 improvement for the maintenance work. Local/production build and visual verification pending; Microsoft redirect fix remains in the same reviewed release.
-
 
 ## Microsoft callback public redirect — 22 October 2026 (prepared)
 
 Owner reported Continue with Microsoft landing on http://localhost:3002/dashboard after production sign-in. Root cause: callback success and error redirects used Request.url, which is the internal proxy listener. Shared entraReturnUrl now uses configured AUTH_URL / COEX_APP_URL origin for dashboard and login redirects, including not-configured failure. State/PKCE/nonce/token verification, account linking, session cookies and Microsoft registration/secrets unchanged. Cross-origin destination inputs rejected; local configured preview port remains supported.
 
 Eight focused callback/start regressions passed: public success/session cookie, account denial, validation error, cancellation, local 3106, blank AUTH_URL fallback, not-configured error, external destination denial. Focused ESLint and fresh web TypeScript passed. No real Microsoft sign-in performed by automation. What's new remains generic and the existing maintenance count advances to “3 bug fixes and 1 improvement”; same acknowledgement ID, no new feature popup. Deployment pending; preserve projects/ and previous release state until live verification.
-
 
 ## Tutorial maintenance release deployed — 22 October 2026
 
@@ -127,13 +120,11 @@ PR #34 merged as `92525ae237c3e46723bc2461db91ccf05b1968a6` (feature `9af3896`, 
 
 Owner-requested release logout: 23 pre-cutoff COEX tenant sessions revoked after healthy cutover; **0 pre-cutoff unexpired sessions remain**. Later logins are excluded by fixed creation cutoff. Existing auth guards return users to sign-in on their next protected navigation/request; no immediate client redirect or unsent-draft preservation claim. No account/password changes, real tutorial publication, test task or test email. Public pages healthy, tutorial metadata without auth rejected 401. Full artifacts, remaining signed-in save/playback acceptance and operating paths: `ai/RELEASE-2026-10-22-TUTORIAL-ORIGIN.md` and `deploy/ZERO-DOWNTIME.md`. Supersedes preceding local/pending and blue-active entries; later docs-only pull needs no restart. Unrelated projects/ preserved.
 
-
 ## Release communication and sign-in policy — 22 October 2026
 
 Owner authorised rollout, permits a brief maintenance interruption if needed, and requested ending existing logins smoothly when users are signed in. Preflight found 23 unexpired sessions in this COEX tenant, 3 seen in the last 15 minutes. At successful cutover, revoke only this tenant's previously issued, unrevoked/unexpired sessions using the existing revokedAt mechanism and a fixed release cutoff; new logins after that cutoff remain valid. Already authorised in-flight work can finish; existing auth checks return users to sign-in on their next protected navigation/refresh. No session token contents or user identities are printed. This is operational session expiry, not a new client-side idle/draft preservation feature; do not claim immediate browser logout or saved unsent text.
 
 What's new gets only the owner-requested generic summary “2 bug fixes and 1 improvement.” Detailed descriptions belong only to user-facing new features/UI changes; internal/backend/security/rollout details stay in developer Markdown. Count rationale for handover only: tutorial origin guard and undesired self-email override corrected; clearer tutorial errors are the improvement. This new maintenance entry supersedes the Teams entry as the latest acknowledgement, without rewriting history. Production rollout remains pending until verified.
-
 
 ## Tutorial link save and requested email behavior — 22 October 2026 (local only)
 
@@ -145,7 +136,6 @@ Route regression tests exercise the supplied video ID through authenticated draf
 
 Owner clarified self-assignment emails should remain suppressed. Locally restored Teams/task creation service and associated tests to pre-override behavior (from 078f03c): emails go to another selected assignee, not the creator assigning themselves. This clarification supersedes preceding self-confirmation decision. Current production still runs the earlier deployed override until the explicitly deferred next rollout; do not describe the local reversal or tutorial fix as deployed. Preserve unrelated projects/.
 
-
 ## Teams self-assignment email fix deployed — 22 October 2026
 
 PR #32 merged as `530e19225b6839dd9c7446999418b07c3a5ac446` (feature `6a41d1f`). PR CI https://github.com/digisol-ae/COEX/actions/runs/39732776761 and main CI https://github.com/digisol-ae/COEX/actions/runs/39733067549 passed. Fresh local Webpack and isolated server native builds passed (71 pages). Existing self-action email suppression caused the creator-default Teams task to queue no email; Teams now opts into initial self-assignment confirmation through the shared service. Normal web behavior and tenant email switches retained; receipt retries cannot create another task/email. No backfill or real test email sent.
@@ -156,7 +146,6 @@ Focused 14 Teams unit tests, fresh web TypeScript/ESLint and isolated real queue
 
 Isolated build, preserved static chunks/action encryption compatibility, candidate health checks, then graceful Apache switch: all 40 monitor requests returned 200; no observed outage in that window. Proxy backup `/srv/coex/shared/apache-before-teams-email-20261022102033`; monitor `/tmp/coex-teams-email-switch-20261022102033.log`. Public login/privacy/terms/Teams dialog 200; unsigned Teams invoke 401. No DB/schema/configuration-secret change. This supersedes prior green-active and pending entries. A later docs-only pull requires no rebuild/restart. Current operating/rollback guide: `deploy/ZERO-DOWNTIME.md`; unrelated `projects/` untouched.
 
-
 ## Teams self-assignment email correction — 22 October 2026 (prepared)
 
 Production read-only diagnosis: Teams task DGS-T-472 was self-assigned and had no assignment outbox row. Earlier Teams task DGS-T-470 was assigned to another person and its email was sent; outbound and task-assignment settings are enabled. Root cause is existing `alertStaff` self-action suppression combined with the new creator-default assignee, not a disabled worker or SMTP outage.
@@ -164,7 +153,6 @@ Production read-only diagnosis: Teams task DGS-T-472 was self-assigned and had n
 Teams now calls the shared `createTask` with trusted service option `{ notifySelf: true }`; this forwards the existing `evenIfSelf` email option for initial assignee alerts. Ordinary web creation/assignment keeps self-action suppression. Existing outbound/taskAssigned settings still apply; no separate send path, changes to private destination checks, automatic backfill or duplicate-receipt replay. A retry still returns the existing task without another creation/email.
 
 Validation: 14 Teams service unit tests, focused ESLint and fresh web TypeScript passed. Real queue regression passed (1 selected / 51 skipped), checking ordinary self-assignment queues nothing, explicit external confirmation queues exactly one pending task_assigned email to the creator with task URL, and both tenant switches suppress later mail. Shared Atlas test run hit its 500-collection infrastructure limit; protected server MongoDB required auth. Final regression ran against a separate temporary loopback MongoDB on 27019, forced `coex_test_tasks` database, no production credentials or mail worker. Temporary MongoDB stopped afterwards. No real email/task created during QA. Source files: teams.service.ts selects the confirmation behavior; task.service.ts shares existing queue logic; tests/database/tasks.test.ts verifies persisted outbox behavior. Production rollout pending, using the isolated/graceful process in deploy/ZERO-DOWNTIME.md.
-
 
 ## Responsive logo release live — 22 October 2026
 
@@ -176,7 +164,6 @@ Built separately while the original app served users, retained old hashed static
 
 Shared-component fixture AND live public login passed 320/390/768/1024/1440px at DPR1/2, with no horizontal overflow. Mobile light/dark fixture and live 320px login screenshots inspected. This verifies logo/public-page responsiveness, not every authenticated screen; Windows Edge-specific visual acceptance remains owner-side. Evidence in `/private/tmp/coex-logo-quality/` (`results.json`, `live-results.json`, responsive/live-login PNGs). `.tsx` renders the shared logo; `.mjs` regenerates PNG/icon assets; `.md` records handover. Operational follow-up and rollback: `deploy/ZERO-DOWNTIME.md`. This entry supersedes earlier local-only and single-web-process notes; a subsequent docs-only pull needs no rebuild/restart.
 
-
 ## Responsive logo rendering follow-up — 22 October 2026 (prepared locally)
 
 Owner reported rough production lettering on Windows Edge and requested mobile/tablet/all-screen optimization without taking the application down. Shared wordmark now uses a transparent 1496×328 PNG derived losslessly from the editable SVG; the dot remains vector and theme-aware. Monogram uses a transparent 512×512 PNG. Source artwork/proportions retained; lettering uses the existing application brand token. Regenerate with `node scripts/generate-brand-icons.mjs`. No branding entry in What’s new.
@@ -184,7 +171,6 @@ Owner reported rough production lettering on Windows Edge and requested mobile/t
 Focused ESLint and fresh web TypeScript passed. Isolated Chrome shared-component fixture checked 320/390/768/1024/1440 CSS-pixel viewports at DPR 1 and 2 (10 combinations), with stable proportions, loaded monograms and no horizontal overflow. 320px light/dark screenshot inspected. Evidence: `/private/tmp/coex-logo-quality/results.json` and `responsive-*.png`. This is logo/component QA, not authenticated full-application or Windows Edge visual acceptance; original Edge-specific rasterization was not reproduced on this Mac.
 
 Production rollout must build in an isolated release directory, start a candidate on another loopback port, retain old static chunks and server-action encryption key privately, then health-check before graceful Apache proxy switching. Keep the existing app available for rollback; do not run the in-place `deploy/release.sh` for this no-downtime release. Existing mail/desk/channel workers must not be duplicated or restarted for a logo-only change. No production mutation yet for this follow-up; this paragraph is preparation evidence, not a deployment claim.
-
 
 ## Single-screen Teams and COEX branding deployed — 22 October 2026
 
