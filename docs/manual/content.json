@@ -1,6 +1,6 @@
 {
-  "version": "2026.10.25",
-  "updated": "25 October 2026",
+  "version": "2026.10.26",
+  "updated": "26 October 2026",
   "title": "Worktello field guide",
   "chapters": [
     {
@@ -194,19 +194,19 @@
         "Agent",
         "Admin"
       ],
-      "intro": "Use the search in the application header, or Cmd+K on Mac / Ctrl+K on Windows.",
+      "intro": "Header search follows the section you are using. Open it from the header, or press Cmd+K on Mac / Ctrl+K on Windows.",
       "steps": [
         {
           "title": "Open search",
-          "text": "Select Search tasks, spaces, customers in the header. The popup opens beside the visible search control."
+          "text": "Select the section-labelled search control: tickets, tasks, spaces, customers, products, contracts, leads or opportunities. Dashboard keeps cross-section search. Setup, security and profile do not offer unrelated business-record search."
         },
         {
           "title": "Enter at least two letters",
-          "text": "Search by a useful title, customer/Space name or task number. Wait for Searching to finish before choosing a result."
+          "text": "Enter a useful record title, name or number. Wait for Searching to finish. Suggestions follow this section and your existing record permissions."
         },
         {
           "title": "Open a result",
-          "text": "Use the pointer or keyboard to choose a visible result. Your existing access permissions still apply."
+          "text": "Choose a specific suggestion to open it. In Tickets, Enter or Show matching tickets applies the query to the ticket list; the existing list search and queue, agent, status and priority filters remain available."
         },
         {
           "title": "Close without leaving",
@@ -214,13 +214,17 @@
         }
       ],
       "notes": [
-        "The popup was corrected to render above the page header. Earlier local QA covered 390, 700, 768 and desktop widths; physical touch/keyboard testing remains separate.",
-        "Production search returned an existing permitted task on 25 October."
+        "The ticket header reflects the applied list query. Empty header submission clears that query; search includes resolved/closed history while retaining selected filters.",
+        "Tickets and Customers context switching were verified in the production browser on 25 October. Other section scoping has service/unit coverage; native mobile/touch acceptance remains separate."
       ],
       "sources": [
         [
           "Search QA record",
           "../SEARCH-QA.md"
+        ],
+        [
+          "Section-aware search resolution",
+          "../resolutions/2026-10-25-section-search.md"
         ]
       ],
       "images": [],
@@ -228,7 +232,7 @@
         "tasks",
         "spaces"
       ],
-      "status": "Production search read verified"
+      "status": "Production Tickets/Customers search reads verified"
     },
     {
       "id": "tasks",
@@ -1035,6 +1039,47 @@
       "status": "Real Outlook web SSO and detail read verified"
     },
     {
+      "id": "microsoft365",
+      "title": "Use Worktello inside Microsoft 365",
+      "group": "Connected apps",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "Microsoft 365 web can open your Worktello personal workspace using your linked organization identity. Normal Worktello permissions still apply.",
+      "steps": [
+        {
+          "title": "Open the organization app",
+          "text": "From Microsoft 365 web, open the available organization apps and select Worktello. Availability depends on your organization app settings."
+        },
+        {
+          "title": "Use the personal workspace",
+          "text": "Wait for sign-in, then use My Tasks, task search and the form-based Create task controls. Review assignment, dates and destination before saving."
+        },
+        {
+          "title": "Distinguish the workspace from Copilot chat",
+          "text": "Opening the workspace does not prove that Copilot can create tasks conversationally. The current conversational pilot has not completed live preview, confirmation and creation acceptance."
+        }
+      ],
+      "notes": [
+        "Production Microsoft 365 web sign-in and My Tasks rendering were verified on 25 October. No task, message, assignment or time entry was written for this acceptance check.",
+        "The pilot account had Business Basic without a Copilot add-on. Copilot reported unavailable action tools; licensing/capability prerequisites remain to be resolved and the full action flow must then be tested. No paid purchase was made."
+      ],
+      "sources": [
+        [
+          "Microsoft host release and acceptance record",
+          "../../ai/RELEASE-2026-10-25-COPILOT.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "teams",
+        "outlook",
+        "tasks"
+      ],
+      "status": "Real Microsoft 365 web SSO/list verified; Copilot creation unverified"
+    },
+    {
       "id": "sharing",
       "title": "Share a task link to Teams",
       "group": "Connected apps",
@@ -1129,11 +1174,11 @@
       "roles": [
         "Admin"
       ],
-      "intro": "Use Setup → Import and export. The next version adds guided examples, explicit match decisions and contact imports. It is not yet deployed; the current live version still has the earlier create-and-skip flow.",
+      "intro": "Use Setup → Import and export for guided examples, explicit match decisions and contact imports. This code was deployed with the 25 October release; the newer guided controls still require separate browser interaction acceptance.",
       "steps": [
         {
           "title": "Choose a record type",
-          "text": "Tasks, Tickets, Customers, Contacts, Leads, Products and Contracts are supported by the next version. Contacts use customer permissions."
+          "text": "Choose Tasks, Tickets, Customers, Contacts, Leads, Products or Contracts. Contacts use customer permissions."
         },
         {
           "title": "Prepare the template",
@@ -1157,7 +1202,7 @@
         }
       ],
       "notes": [
-        "Implementation pending deployment. Local database/unit checks are described in the resolution; browser UI permission was declined, so no new UI acceptance is claimed.",
+        "Deployed with PR49. Isolated database/unit checks passed; the guided import browser interaction and mobile acceptance remain unverified. Do not treat a migration or older import as proof of this new review interface.",
         "Attachments, conversations, custom fields, portal accounts and detailed product/contract configuration remain excluded.",
         "The existing screenshot shows the earlier live interface; it is historical evidence, not the new match-review controls."
       ],
@@ -1174,7 +1219,7 @@
       "images": [
         [
           "import-export.png",
-          "Actual production Setup → Import and export • no file uploaded or business export downloaded • 25 October 2026"
+          "Historical production Import and export screen before guided match-review controls • no uploaded business file • 25 October 2026"
         ]
       ],
       "related": [
@@ -1183,7 +1228,7 @@
         "contracts",
         "setup"
       ],
-      "status": "Next version implemented; deployment and UI acceptance pending"
+      "status": "Deployed; guided-import UI acceptance pending"
     },
     {
       "id": "access",
@@ -1423,12 +1468,56 @@
       "id": "import-review",
       "title": "Guided import templates and contact match review",
       "date": "25 Oct 2026",
-      "status": "Implemented; deployment and UI acceptance pending",
+      "status": "Deployed with PR49; guided-import UI acceptance pending",
       "symptom": "Blank templates did not explain formats, possible matches were skipped, and contacts had no CSV transfer.",
       "cause": "Templates contained only headings; duplicate checks returned a boolean and contact transfer was absent.",
       "fix": "Two marked examples per template, formatting guidance, explicit match decisions and customer-linked contact import/export.",
-      "verification": "384 unit tests, workspace types/lint/format, 75-page production build and isolated database integration passed. Local browser UI permission was declined. No new production write or deployment for this change.",
+      "verification": "384 unit tests, workspace checks and disposable database integration passed. Code was deployed with PR49; guided-import browser interaction and mobile acceptance remain unverified.",
       "record": "../resolutions/2026-10-25-import-review.md"
+    },
+    {
+      "id": "osticket-migration",
+      "title": "Historical tickets and imported customer activation",
+      "date": "25 Oct 2026",
+      "symptom": "Legacy support history needed migration without exposing staff notes or changing staff credentials.",
+      "cause": "The previous helpdesk history and customer accounts were outside Worktello.",
+      "fix": "Imported the verified source snapshot; added emailed-code activation and own-ticket access for imported customer-unassigned contacts.",
+      "verification": "Live history reconciliation and staff ticket/activation-page reads passed. Real customer inbox delivery and password activation remain untested; attachment payloads and continuous sync remain deferred.",
+      "status": "Live history verified; real-inbox activation untested",
+      "record": "../resolutions/2026-10-25-osticket-migration.md"
+    },
+    {
+      "id": "ticket-search",
+      "title": "Search customer details and full ticket conversations",
+      "date": "25 Oct 2026",
+      "symptom": "Ticket number/subject lookup missed customer contact details and historical conversation text.",
+      "cause": "Search covered too few fields and the default open scope hid resolved/closed history.",
+      "fix": "Expanded authorized search across customer/contact details, public conversations and staff-only fields where permitted; retained selected filters.",
+      "verification": "390 tests and isolated field/privacy integration passed; authenticated production history search and Clear search were verified. Phone service checks do not prove native mobile UI acceptance.",
+      "status": "Live authenticated history search verified",
+      "record": "../resolutions/2026-10-25-ticket-search.md"
+    },
+    {
+      "id": "section-search",
+      "title": "Header search follows the current section",
+      "date": "25 Oct 2026",
+      "symptom": "A header search returned mixed record types regardless of the active screen.",
+      "cause": "The header used a cross-section lookup without the requested context.",
+      "fix": "Scoped header suggestions by section and synchronized ticket header/list queries while retaining existing filters.",
+      "verification": "402 tests and production Tickets/Customers reads passed. Native mobile/touch and every CRM flow were not exercised.",
+      "status": "Live Tickets/Customers context verified",
+      "record": "../resolutions/2026-10-25-section-search.md"
+    },
+    {
+      "id": "digisol-sidebar",
+      "title": "DigiSol sidebar identity and theme contrast",
+      "date": "25 Oct 2026",
+      "symptom": "The expanded sidebar needed the DigiSol identity with readable contrast in the application theme.",
+      "cause": "The initial logo contrast followed the operating-system theme rather than the application theme.",
+      "fix": "Reused the approved artwork; DigiSol appears in expanded menus and Worktello W remains in the narrow rail. Contrast now follows the application theme.",
+      "verification": "Production dark-theme screenshot and compiled light/dark rules were verified after corrected rollout. Separate light-theme interaction and native mobile menu remain untested.",
+      "status": "Live dark-theme identity verified; device limits retained",
+      "record": "../resolutions/2026-10-25-digisol-sidebar.md"
     }
   ]
 }

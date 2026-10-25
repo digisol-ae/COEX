@@ -1,6 +1,6 @@
 # Worktello interactive manual
 
-Open `index.html` in a browser. For the full portable package, extract `outputs/manual/Worktello-Manual-2026-10-25.zip` and open START-HERE.html; the package preserves linked technical records too. No install, external fonts, CDN or application secrets are required. Keep this folder together when copying it; screenshots and styles use relative paths. Live application links use the existing HTTPS production hostname and require the reader's own account.
+Open `index.html` in a browser. For the full portable package, extract `outputs/manual/Worktello-Manual-2026-10-26.zip` and open START-HERE.html; the package preserves linked technical records too. No install, external fonts, CDN or application secrets are required. Keep this folder together when copying it; screenshots and styles use relative paths. Live application links use the existing HTTPS production hostname and require the reader's own account.
 
 - `index.html`: accessible navigation and reading shell.
 - `manual.css`: desktop/mobile/print layout.
@@ -36,4 +36,4 @@ When updating, advance the version/date in content.json, refresh screenshot prov
 
 ## Screenshot policy (owner preference)
 
-Keep the manual text-first. Use a screenshot only when it resolves a complex visual decision: timeline manipulation, CSV transfer rules or integration troubleshooting. Current guide has three selected figures across 27 chapters. Do not add screenshots to simple sign-in/navigation/forms. Keep additional safe captures under assets/archive as evidence, not inline reading content; provenance remains in assets/manifest.json.
+Keep the manual text-first. Use a screenshot only when it resolves a complex visual decision: timeline manipulation, CSV transfer rules or integration troubleshooting. Current guide has a small set of figures reserved for complex topics. Do not add screenshots to simple sign-in/navigation/forms. Keep additional safe captures under assets/archive as evidence, not inline reading content; provenance remains in assets/manifest.json.
