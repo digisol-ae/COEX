@@ -1,5 +1,10 @@
 # Worktello (formerly COEX) — AI Handoff
 
+## Microsoft 365 workspace live; Copilot actions unaccepted — 25 October 2026
+
+Application76cac60 (PR46) is live on blue3001: coex-app id14/PID329947, /srv/coex/releases/copilot-pilot-20261025. Green13/PID318054 on3002 is warm fallback; workers10/11/12 unchanged. CI/local/server checks passed,40/40 HTTPS200. Catalog1.3.0 and real Microsoft365 SSO/list verified. Copilot agent loads but action tools are unavailable; pilot account lacks Copilot add-on. No live task/time/email mutation. All owner-approved Entra additions persisted; no paid license/billing enabled. Exact evidence, rollback and remaining acceptance: ai/RELEASE-2026-10-25-COPILOT.md. Local checkout is now /Volumes/sd-mac/Developer/DigiSol/worktello. Cloud manual AI needs a separate configured API key; packaging-only acceptance must not be called AI-writing acceptance.
+
+
 ## Outlook web fixed; local interactive manual added — 25 October 2026
 
 Application `d547d25` (PR #44) is live. Exact Outlook web embedding hosts and Microsoft client were added while retaining signed-token, tenant, scope and staff checks. Owner explicitly approved Entra preauthorization at action time; persisted state verified. All 348 tests, types/lint/format, local/server 75-page builds and PR/main CI passed. Real Outlook web SSO/list/detail and blank create-form rendering passed; fresh Teams web SSO/list/create-form reads also passed. No production task/time/message/assignment/import mutation for the demonstration.
