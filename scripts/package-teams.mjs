@@ -6,7 +6,9 @@ import sharp from 'sharp';
 
 // Only public registration values are used; never put a secret in a Teams app package.
 const appId = process.env.COEX_TEAMS_APP_ID;
-const baseUrl = new URL(process.env.COEX_APP_URL ?? 'https://coex.digisol.ae');
+const baseUrl = new URL(process.env.COEX_APP_URL ?? 'https://worktello.com');
+// Copilot's OAuth registration is bound to the host it was registered with; keep it there until re-registered.
+const copilotBaseUrl = new URL(process.env.COEX_COPILOT_BASE_URL ?? baseUrl.origin);
 const privacyUrl = new URL(process.env.COEX_TEAMS_PRIVACY_URL ?? '/privacy', baseUrl.origin);
 const termsUrl = new URL(process.env.COEX_TEAMS_TERMS_URL ?? '/terms', baseUrl.origin);
 if (!appId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(appId))
@@ -18,7 +20,7 @@ const output = resolve(process.argv[2] ?? '/private/tmp/coex-teams-package');
 await mkdir(output, { recursive: true });
 const copilot = process.env.COEX_COPILOT_AUTH_CONFIG_ID
   ? copilotPackage({
-      baseUrl: baseUrl.origin,
+      baseUrl: copilotBaseUrl.origin,
       appId,
       tenantId: process.env.COEX_TEAMS_TENANT_ID,
       authConfigId: process.env.COEX_COPILOT_AUTH_CONFIG_ID,
@@ -28,7 +30,7 @@ const manifest = {
   $schema:
     'https://developer.microsoft.com/en-us/json-schemas/teams/v1.19/MicrosoftTeams.schema.json',
   manifestVersion: '1.19',
-  version: copilot ? '1.3.0' : '1.2.0',
+  version: copilot ? '1.4.0' : '1.2.1',
   id: appId,
   developer: {
     name: 'Digisol LLC-FZ',
@@ -76,7 +78,7 @@ const manifest = {
         },
       }
     : {}),
-  validDomains: [baseUrl.hostname],
+  validDomains: [...new Set([baseUrl.hostname, copilotBaseUrl.hostname])],
 };
 if (copilot)
   for (const [name, data] of Object.entries(copilot))
