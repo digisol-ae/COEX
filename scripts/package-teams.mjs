@@ -30,7 +30,7 @@ const manifest = {
   $schema:
     'https://developer.microsoft.com/en-us/json-schemas/teams/v1.19/MicrosoftTeams.schema.json',
   manifestVersion: '1.19',
-  version: copilot ? '1.4.0' : '1.2.1',
+  version: copilot ? '1.4.1' : '1.2.2',
   id: appId,
   developer: {
     name: 'Digisol LLC-FZ',

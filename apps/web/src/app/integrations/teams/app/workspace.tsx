@@ -149,7 +149,7 @@ export function TeamsWorkspace() {
     try {
       await teams.app.openLink(window.location.origin + path);
     } catch {
-      setError('Unable to open Worktello. Open coex.digisol.ae in your browser.');
+      setError('Unable to open Worktello. Open worktello.com in your browser.');
     }
   }
   const filtered = tasks.filter((task) =>
