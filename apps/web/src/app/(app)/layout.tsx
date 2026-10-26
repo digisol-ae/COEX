@@ -20,7 +20,7 @@ import { BackButton } from '@/components/navigation/back-button';
 import { UserMenu } from '@/components/navigation/user-menu';
 import { ThemeMenu } from '@/components/navigation/theme-menu';
 import { WhatsNew } from '@/components/navigation/whats-new';
-import { LATEST_RELEASE_ID } from '@/modules/core/release-notes';
+import { getPublishedReleases } from '@/modules/core/services/release-content.service';
 import { orderGroups, visibleGroups } from '@/components/navigation/navigation';
 import { getNavigationOrder } from '@/modules/core/services/user.service';
 import { ToastProvider } from '@/components/ui/toast';
@@ -72,6 +72,8 @@ export default async function AppLayout({
         : undefined,
     },
   }));
+
+  const news = await asUser(user, getPublishedReleases);
 
   const groups = orderGroups(visibleGroups(user.permissions), order);
 
@@ -133,7 +135,7 @@ export default async function AppLayout({
                 name={user.name}
                 email={user.email}
                 tenantName={user.tenantName}
-                newsUnseen={user.releaseNotesSeen !== LATEST_RELEASE_ID}
+                newsUnseen={Boolean(news.latestId && user.releaseNotesSeen !== news.latestId)}
               />
             </header>
 
@@ -143,7 +145,12 @@ export default async function AppLayout({
             </main>
 
             {setupModal}
-            <WhatsNew seen={user.releaseNotesSeen} />
+            <WhatsNew
+              key={news.latestId}
+              seen={user.releaseNotesSeen}
+              releases={news.releases}
+              latestId={news.latestId}
+            />
 
             <FloatingTutorial />
             <GlobalTooltip />

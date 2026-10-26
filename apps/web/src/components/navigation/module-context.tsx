@@ -27,6 +27,7 @@ const PAGES: Record<string, string> = {
   '/setup': 'Setup',
   '/setup/queues': 'Setup · Queues',
   '/setup/email': 'Setup · Email',
+  '/setup/whats-new': 'Setup · What’s New Management',
   '/setup/pipeline': 'Setup · Pipeline',
   '/setup/whatsapp': 'Setup · WhatsApp',
   '/setup/canned-replies': 'Setup · Saved replies',

@@ -18,6 +18,19 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-26-whats-new',
+    date: '26 October 2026',
+    title: 'Updates organised by date and topic',
+    sections: [
+      {
+        heading: 'What’s new',
+        items: [
+          'All updates from the same day now appear under one date. Expand a date to see its main topics, then expand a topic to read its paragraphs. Collapse either level to keep the list compact.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-25-ticket-search',
     date: '25 October 2026',
     title: 'Find support tickets by more than their subject',
