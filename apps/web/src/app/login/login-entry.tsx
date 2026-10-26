@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { AuthShell } from './auth-shell';
 import { LoginForm } from './login-form';
+import { CustomerWelcome } from './customer-welcome';
 
 export function LoginEntry({
   entraEnabled,
@@ -42,6 +43,7 @@ export function LoginEntry({
         </div>
       }
     >
+      {customer ? <CustomerWelcome /> : null}
       <LoginForm
         customer={customer}
         entraEnabled={entraEnabled && !customer}
