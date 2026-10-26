@@ -1,5 +1,18 @@
 # COEX isolated web rollout — current operating state
 
+## Migrated customer login live — 26 October 2026
+
+PR59 merged as cf36b4fa613e7d38311c705296ecfcdcc5fbbe27; compiled application tree cb603ad. Active green coex-app-green id19/PID383390 on3002 in /srv/coex/releases/customer-auth-20261026. Both canonical Apache proxies target3002; PM2 saved. Node22.23.4 verified for actual launcher/Node descendants. Blue coex-app id18/PID362319 on3001 remains application rollback. Workers10/11/12 retain PIDs303634/303723/303820 and zero restarts.
+
+The25October private source export contains17 customer account hashes:14 confirmed,3 pending. One confirmed source identity is an existing staff account and is preserved. Dry-run found13 eligible imported customer accounts; exactly13 were updated with their source bcrypt hashes/optional username and activated. Repeat dry-run foundzero eligible/zero imported and13 preserved. All12 current staff credential/status/Entra fingerprints are unchanged. No customer plaintext password was recovered, guessed or sent. No other user password was overwritten.
+
+405 unit tests, workspace types/lint/format, PR/main CI and server production build passed. Final snapshot passed disposable Docker integration with synthetic customers: legacy email/username verification and Argon2 upgrade, OTP rate/expiry/attempt/concurrent-claim/replay boundaries, passwordless invited activation, active/invited reset and invalidation, staff/account/tenant denial. Twenty live email-login health samples returned200. Separate in-app browser verified the email-code and Forgot-password forms; anonymous HTTPS login HTML exposes email/osTicket-username, OTP link and Forgot-password link. Missing reset token is refused. Original authenticated user tab/session preserved. Admin SMTP connection/authentication and AUTH_SECRET configuration were verified without sending a message. Real customer inbox receipt and real customer password entry are untested; no bulk/test customer mail was sent.
+
+Private backup: /srv/coex/shared/backups/customer-auth-20261026/before-auth.archive.gz (gzip and mongorestore dry-run passed), targeted account snapshot and staff fingerprint in the same private directory. Verified local backup copy is exports/osticket_db/customer-auth-before-20261026.archive.gz in the primary checkout. Source credentials remain private, never in Git. Production import/repeat results are aggregate-only JSON files there. Screenshot: docs/manual/assets/customer-email-login-20261026.png (blank production form).
+
+Application rollback: verify3001/login, restore http-before.conf/https-before.conf from that private backup directory to canonical vhosts, configtest and graceful reload. Preserve data/workers. The older application cannot verify imported bcrypt or provide the new OTP route; do not automatically restore the database or overwrite a customer's later password change. Assess the targeted snapshot/lastSignedInAt/current hash before any separately scoped account rollback. Documentation-only sync requires no restart.
+
+
 ## DigiSol sidebar logo live — 25 October 2026
 
 Expanded desktop/mobile menu headers use the existing DigiSol artwork; narrow rail keeps Worktello W. PR55 merge6567610 and theme correction PR56 merge eeb0c6c1094de8d2656910f2d156836a02d89a93; compiled final application tree6a82d01. Active blue coex-app id18/PID362319 on3001 in /srv/coex/releases/digisol-sidebar-20261025. Canonical Apache proxies target3001; PM2 saved. Explicit Node22.23.4 verified for actual Node descendants. Green17/PID356977 on3002 remains rollback. Workers10/11/12 retain their PIDs and zero restarts.

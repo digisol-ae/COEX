@@ -4,6 +4,7 @@ Each resolution records its symptom, confirmed cause, scoped fix, verification a
 
 | Date           | Resolution                                                                        | Status                                                                       |
 | -------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 26 Oct 2026 | [Migrated customer passwords, email OTP and recovery](2026-10-26-customer-login.md) | Live; 13 passwords imported, isolated auth tests passed; real inbox delivery untested |
 | 25 Oct 2026 | [DigiSol sidebar logo](2026-10-25-digisol-sidebar.md) | Live; DigiSol/W visible and app-theme contrast corrected |
 | 25 Oct 2026 | [Section-aware header search](2026-10-25-section-search.md) | Live; ticket header/list alignment and customer context verified |
 | 25 Oct 2026    | [Expanded ticket search](2026-10-25-ticket-search.md)                             | Live; field/privacy integration and authenticated history search verified    |
