@@ -4,7 +4,8 @@ import { useEffect, useState, useSyncExternalStore, useTransition } from 'react'
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui';
-import { LATEST_RELEASE_ID, RELEASE_NOTES } from '@/modules/core/release-notes';
+import { groupReleaseTopicsByDate } from '@/modules/core/release-groups';
+import type { ReleaseNote } from '@/modules/core/release-notes';
 import { acknowledgeReleaseNotesAction } from '@/app/(app)/preferences/actions';
 
 /*
@@ -21,9 +22,9 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
-function dismissedThisSession(): boolean {
+function dismissedThisSession(latestId: string | null): boolean {
   try {
-    return window.sessionStorage.getItem(DISMISSED_KEY) === LATEST_RELEASE_ID;
+    return window.sessionStorage.getItem(DISMISSED_KEY) === latestId;
   } catch {
     return false;
   }
@@ -39,42 +40,65 @@ export function openWhatsNew(): void {
   notify();
 }
 
-function close() {
+function dismiss(latestId: string | null) {
   openedByHand = false;
   try {
-    window.sessionStorage.setItem(DISMISSED_KEY, LATEST_RELEASE_ID);
+    if (latestId) window.sessionStorage.setItem(DISMISSED_KEY, latestId);
   } catch {
     // Without storage it may open again on the next page; harmless.
   }
   notify();
 }
 
-export function WhatsNew({ seen }: { seen: string | null }) {
+export function WhatsNew({
+  seen,
+  releases,
+  latestId,
+}: {
+  seen: string | null;
+  releases: ReleaseNote[];
+  latestId: string | null;
+}) {
   const router = useRouter();
-  const unseen = seen !== LATEST_RELEASE_ID;
+  const unseen = Boolean(latestId && seen !== latestId);
+  function close() {
+    dismiss(latestId);
+  }
   const open = useSyncExternalStore(
     subscribe,
-    () => openedByHand || (unseen && !dismissedThisSession()),
+    () => openedByHand || (unseen && !dismissedThisSession(latestId)),
     () => false,
   );
   const [understood, setUnderstood] = useState(false);
   const [saving, startTransition] = useTransition();
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
+      if (event.key === 'Escape') dismiss(latestId);
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
+  }, [open, latestId]);
 
   if (!open) return null;
 
   function done() {
-    if (unseen && understood) {
+    if (unseen && understood && latestId) {
+      setError('');
       startTransition(async () => {
-        await acknowledgeReleaseNotesAction();
+        try {
+          const result = await acknowledgeReleaseNotesAction(latestId);
+          if (result.error) {
+            setError(result.error);
+            router.refresh();
+            return;
+          }
+        } catch {
+          setError('Could not save. Please try again.');
+          return;
+        }
         close();
         // The avatar's dot goes once the account knows.
         router.refresh();
@@ -112,49 +136,71 @@ export function WhatsNew({ seen }: { seen: string | null }) {
           </button>
         </header>
 
-        <div className="flex-1 space-y-7 overflow-y-auto px-6 py-5">
-          {RELEASE_NOTES.map((release, index) => (
-            <article key={release.id}>
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                  {release.date}
-                </p>
-                {index === 0 && unseen ? (
-                  <span className="rounded-full bg-[var(--color-brand-red)] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase">
+        <div className="flex-1 overflow-y-auto px-6 py-3">
+          {groupReleaseTopicsByDate(releases, (release) => release.date).map((day, dayIndex) => (
+            <details
+              key={day.date}
+              open={dayIndex === 0}
+              className="group/day border-b border-[var(--color-line)] last:border-0"
+            >
+              <summary className="flex cursor-pointer list-none items-center gap-2 py-4 text-[var(--color-ink)] [&::-webkit-details-marker]:hidden">
+                <span
+                  aria-hidden="true"
+                  className="text-base transition-transform group-open/day:rotate-90"
+                >
+                  ›
+                </span>
+                <span className="text-sm font-semibold">{day.date}</span>
+                <span className="text-xs text-[var(--color-ink-subtle)]">
+                  {day.topics.length} {day.topics.length === 1 ? 'topic' : 'topics'}
+                </span>
+                {dayIndex === 0 && unseen && (
+                  <span className="rounded-full bg-[var(--color-brand-red)] px-2 py-0.5 text-[10px] font-semibold text-white">
                     New
                   </span>
-                ) : null}
-              </div>
-              <h3 className="mt-1 text-base font-semibold text-[var(--color-ink)]">
-                {release.title}
-              </h3>
-              <div className="mt-3 space-y-3">
-                {release.sections.map((section) => (
-                  <section key={section.heading}>
-                    <h4 className="text-sm font-semibold text-[var(--color-ink)]">
-                      {section.heading}
-                    </h4>
-                    <ul className="mt-1 space-y-1.5">
-                      {section.items.map((item) => (
-                        <li
-                          key={item}
-                          className="flex gap-2 text-sm leading-relaxed text-[var(--color-ink-muted)]"
-                        >
-                          <span
-                            aria-hidden="true"
-                            className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-brand-red)]/70"
-                          />
-                          <span>{item}</span>
-                        </li>
+                )}
+              </summary>
+              <div className="pb-3 pl-4">
+                {day.topics.map((release) => (
+                  <details key={release.id} className="group/topic">
+                    <summary className="flex cursor-pointer list-none items-start gap-2 py-2 text-sm font-semibold leading-relaxed text-[var(--color-ink)] [&::-webkit-details-marker]:hidden">
+                      <span
+                        aria-hidden="true"
+                        className="shrink-0 transition-transform group-open/topic:rotate-90"
+                      >
+                        ›
+                      </span>
+                      <span>{release.title}</span>
+                    </summary>
+                    <div className="space-y-3 pb-4 pl-4 pt-1">
+                      {release.sections.map((section, sectionIndex) => (
+                        <section key={sectionIndex}>
+                          <h4 className="text-sm font-semibold text-[var(--color-ink)]">
+                            {section.heading}
+                          </h4>
+                          <div className="mt-1 space-y-2">
+                            {section.items.map((item, itemIndex) => (
+                              <p
+                                key={itemIndex}
+                                className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-ink-muted)]"
+                              >
+                                {item}
+                              </p>
+                            ))}
+                          </div>
+                        </section>
                       ))}
-                    </ul>
-                  </section>
+                    </div>
+                  </details>
                 ))}
               </div>
-            </article>
+            </details>
           ))}
         </div>
 
+        {!releases.length && (
+          <p className="px-6 text-sm text-[var(--color-ink-muted)]">No published updates yet.</p>
+        )}
         <footer className="border-t border-[var(--color-line)] px-6 py-4">
           {unseen ? (
             <label className="mb-3 flex items-start gap-2.5 text-sm">
@@ -177,6 +223,11 @@ export function WhatsNew({ seen }: { seen: string | null }) {
           ) : (
             <p className="mb-3 text-xs text-[var(--color-ink-subtle)]">
               You are up to date. This opens by itself again when something new arrives.
+            </p>
+          )}
+          {error && (
+            <p role="alert" className="mb-3 text-sm text-red-600">
+              {error}
             </p>
           )}
           <Button type="button" className="w-full" disabled={saving} onClick={done}>

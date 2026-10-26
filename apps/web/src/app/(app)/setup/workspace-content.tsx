@@ -12,7 +12,9 @@ import Tenant from './tenant/page';
 import Fields from './fields/page';
 import Tenants from './tenants/page';
 import DataTransfer from './data-transfer/page';
+import WhatsNewManagement from './whats-new/page';
 const PAGES = {
+  'whats-new': WhatsNewManagement,
   queues: Queues,
   tutorials: Tutorials,
   email: Email,

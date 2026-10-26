@@ -90,6 +90,7 @@ export const GROUPS: NavigationGroup[] = [
     items: [
       { href: '/setup/queues', label: 'Queues', permission: 'tenant.manage' },
       { href: '/setup/tutorials', label: 'Tutorials', permission: 'tenant.manage' },
+      { href: '/setup/whats-new', label: 'What’s New Management', permission: 'tenant.manage' },
       { href: '/setup/email', label: 'Email', permission: 'tenant.manage' },
       { href: '/setup/pipeline', label: 'Pipeline', permission: 'pipeline.manage' },
       { href: '/setup/whatsapp', label: 'WhatsApp', permission: 'tenant.manage' },
