@@ -1,5 +1,13 @@
 # Worktello (formerly COEX) — Current AI Task
 
+## Contract drafting live — 26 October 2026 (Claude)
+
+PR64 merged as 9abb6d6 (includes PR63 What's new management, which ChatGPT had prepared at /srv/coex/releases/whats-new-20261026 on port 3004 but never built/started; that directory is unused). Active green coex-app-green id21/PID393163 on 3002 in /srv/coex/releases/contracts-20261026 (git archive of 9abb6d6, RELEASE.json present). Both canonical Apache vhosts target 3002; configtest OK, graceful reload, PM2 saved. Node 22.23.4 runtime verified for the listener. Blue coex-app id20/PID385274 on 3001 (customer-welcome) remains immediate rollback; old green id19 (customer-auth) was replaced. Workers 10/11/12 and osTicket 15 untouched, zero restarts. Same NEXT_SERVER_ACTIONS_ENCRYPTION_KEY and COEX_COPILOT_ENABLED as blue; old static assets copied without overwrite.
+
+Checks: PR CI pass, clean-install typecheck/lint/prettier/418 unit tests/build, server build OK, candidate /login /contracts/templates /privacy 200, 20+ public HTTPS /login samples 200. No new errors in green log after start. New collections (agreement templates/drafts) are additive; no data migration. Authenticated UI walkthrough of contract drafting on production not performed. No session expiry performed.
+
+Backup: /srv/coex/shared/backups/contracts-20261026/before-release.archive.gz (gzip test OK), http-before.conf, https-before.conf, pm2-before.json (private). Rollback: verify 3001/login 200, restore both vhost backups (or map 3002→3001), configtest, graceful reload. Keep data/workers.
+
 ## Contract drafting committed by Claude — 26 October 2026
 
 ChatGPT's local contract templates/agreement drafting work (25 Oct, was uncommitted on `codex/digisol-sidebar`) moved to branch `claude/contract-drafting` from main `da78b6e` and committed as one feature commit. Superseded What's new WIP copies (already merged in PR #63) were removed from the working tree; full pre-move backup in `outputs/backup/` (tarball + patch). Release note added at top as `2026-10-26-contract-drafting`. Clean-install checks passed: workspace typecheck, `eslint apps packages scripts tests --max-warnings=0`, CI prettier globs, 62 files / 418 unit tests, production build (routes /contracts/templates and /contracts/[id]/draft). Database tests (`tests/database/agreement-drafting.test.ts`) not re-run here (no MongoDB available); ChatGPT's earlier isolated run passed. `docs/contracts_templates/` holds real customer contracts and is intentionally NOT committed.
