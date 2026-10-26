@@ -42,7 +42,11 @@ export function LoginEntry({
         </div>
       }
     >
-      <LoginForm entraEnabled={entraEnabled && !customer} entraError={entraError} />
+      <LoginForm
+        customer={customer}
+        entraEnabled={entraEnabled && !customer}
+        entraError={entraError}
+      />
       {customer ? (
         <p className="mt-4 text-center text-sm text-[var(--color-ink-muted)]">
           <Link href="/activate" className="font-semibold underline">

@@ -3,6 +3,9 @@ import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { hashPassword } from '@/lib/password';
 import { runWithContext } from '@/lib/tenant-context';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { LoginOtpModel } from '@coex/shared/core/models/login-otp.model';
+import { ActivationModel } from '@coex/shared/core/models/activation.model';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { PasswordResetModel } from '@coex/shared/core/models/password-reset.model';
 import { passwordProblem } from '@coex/shared/core/password-policy';
@@ -85,12 +88,23 @@ export type ResetRequestResult = 'sent' | 'email_off' | 'too_many' | 'no_account
  */
 export async function requestPasswordReset(email: string): Promise<ResetRequestResult> {
   await connectToDatabase();
-  const user = await UserModel.findOne({
+  const matches = await UserModel.find({
     email: email.trim().toLowerCase(),
-    status: 'active',
     deletedAt: null,
-  }).select('tenantId name email');
-  if (!user) return 'no_account';
+  }).limit(2);
+  const user = matches.length === 1 ? matches[0] : null;
+  if (
+    !user ||
+    (user.status !== 'active' &&
+      !(
+        user.role === 'client_contact' &&
+        user.status === 'invited' &&
+        user.mustChangePassword &&
+        user.legacySourceId?.startsWith('osticket:')
+      ))
+  )
+    return 'no_account';
+  if (!(await TenantModel.exists({ _id: user.tenantId, status: 'active' }))) return 'no_account';
 
   const context = { tenantId: user.tenantId, userId: user._id, isPlatformAdmin: false };
   return runWithContext(context, async () => {
@@ -155,23 +169,57 @@ export async function resetPasswordWithToken(token: string, password: string): P
   });
   if (!reset) throw new Error('This link has expired or was already used. Ask for a new one.');
 
-  const user = await UserModel.findOne({ _id: reset.userId, status: 'active', deletedAt: null });
-  if (!user) throw new Error('This account is not active.');
+  const user = await UserModel.findOne({
+    _id: reset.userId,
+    tenantId: reset.tenantId,
+    deletedAt: null,
+  });
+  if (
+    !user ||
+    (user.status !== 'active' &&
+      !(
+        user.role === 'client_contact' &&
+        user.status === 'invited' &&
+        user.mustChangePassword &&
+        user.legacySourceId?.startsWith('osticket:')
+      ))
+  )
+    throw new Error('This account is not active.');
+  if (!(await TenantModel.exists({ _id: user.tenantId, status: 'active' })))
+    throw new Error('This account is not active.');
 
   const problem = passwordProblem(password, { email: user.email, name: user.name });
   if (problem) throw new Error(problem);
 
   // Claim the link first, so two tabs racing with the same link cannot both use it.
   const claimed = await PasswordResetModel.updateOne(
-    { _id: reset._id, usedAt: null },
+    { _id: reset._id, usedAt: null, expiresAt: { $gt: new Date() } },
     { $set: { usedAt: new Date() } },
   );
   if (claimed.modifiedCount !== 1) throw new Error('This link was already used.');
 
-  await UserModel.updateOne(
-    { _id: user._id },
-    { $set: { passwordHash: await hashPassword(password), mustChangePassword: false } },
+  const changed = await UserModel.updateOne(
+    { _id: user._id, status: user.status, updatedAt: user.updatedAt, deletedAt: null },
+    {
+      $set: {
+        passwordHash: await hashPassword(password),
+        mustChangePassword: false,
+        status: 'active',
+      },
+    },
   );
+  if (changed.modifiedCount !== 1) throw new Error('Account changed. Ask for a new reset link.');
+  await Promise.all([
+    LoginOtpModel.updateMany({ userId: user._id, usedAt: null }, { $set: { usedAt: new Date() } }),
+    ActivationModel.updateMany(
+      { userId: user._id, usedAt: null },
+      { $set: { usedAt: new Date() } },
+    ),
+    PasswordResetModel.updateMany(
+      { userId: user._id, usedAt: null },
+      { $set: { usedAt: new Date() } },
+    ),
+  ]);
   await revokeAllSessionsForUser(user._id);
 
   await runWithContext({ tenantId: user.tenantId, userId: user._id, isPlatformAdmin: false }, () =>
