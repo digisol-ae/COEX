@@ -1,5 +1,13 @@
 # COEX live deployment
 
+## Contract drafting live — 26 October 2026 (Claude)
+
+PR64 merged as 9abb6d6 (includes PR63 What's new management, which ChatGPT had prepared at /srv/coex/releases/whats-new-20261026 on port 3004 but never built/started; that directory is unused). Active green coex-app-green id21/PID393163 on 3002 in /srv/coex/releases/contracts-20261026 (git archive of 9abb6d6, RELEASE.json present). Both canonical Apache vhosts target 3002; configtest OK, graceful reload, PM2 saved. Node 22.23.4 runtime verified for the listener. Blue coex-app id20/PID385274 on 3001 (customer-welcome) remains immediate rollback; old green id19 (customer-auth) was replaced. Workers 10/11/12 and osTicket 15 untouched, zero restarts. Same NEXT_SERVER_ACTIONS_ENCRYPTION_KEY and COEX_COPILOT_ENABLED as blue; old static assets copied without overwrite.
+
+Checks: PR CI pass, clean-install typecheck/lint/prettier/418 unit tests/build, server build OK, candidate /login /contracts/templates /privacy 200, 20+ public HTTPS /login samples 200. No new errors in green log after start. New collections (agreement templates/drafts) are additive; no data migration. Authenticated UI walkthrough of contract drafting on production not performed. No session expiry performed.
+
+Backup: /srv/coex/shared/backups/contracts-20261026/before-release.archive.gz (gzip test OK), http-before.conf, https-before.conf, pm2-before.json (private). Rollback: verify 3001/login 200, restore both vhost backups (or map 3002→3001), configtest, graceful reload. Keep data/workers.
+
 ## Customer migration welcome live — 26 October 2026
 
 PR61 merged as7831dd68278972d267043f6c2b8cae9587e63a6e; compiled application tree7272806. Active blue coex-app id20/PID385274 on3001 in /srv/coex/releases/customer-welcome-20261026. Both canonical Apache proxies target3001, PM2 saved, Node22.23.4 verified for actual Node descendants. Green coex-app-green id19/PID383390 on3002 remains immediate rollback and retains customer credential/OTP support. Workers10/11/12 retain PIDs303634/303723/303820 and zero restarts. No database, password, account/session or mail mutation is part of this release.
