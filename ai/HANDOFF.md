@@ -4,6 +4,12 @@ Branch `codex/import-review-contacts`: seven templates with protected sample row
 
 # Worktello (formerly COEX) — AI Handoff
 
+## Footer release live; support.digisolteam.com moved page — 26 October 2026 (Claude)
+
+PR67 merged as fb2e9d1 (tree = 7e32b8b): sign-in footer "Powered by" + smaller DigiSol logo + © Digisol LLC-FZ; Teams error text points to worktello.com; Teams package 1.4.1 published in Teams admin center (1.4.0 upload had failed). Active green coex-app-green on 3002 in /srv/coex/releases/footer-20261026 (COEX_APP_URL=https://worktello.com); all four vhosts (worktello*, coex*) target 3002. Blue coex-app on 3001 (contracts-20261026, worktello URL) is rollback. Workers untouched.
+
+support.digisolteam.com now serves a static "DigiSol Support has moved to Worktello" page from /var/www/support-moved (every path → index.html; button to worktello.com/login; Powered by DigiSol footer). Source: outputs/backup/deploy/support-moved/ (local). coex.digisol.ae redirects to worktello.com except /api/integrations/, /integrations/, /_next/ (kept for Teams clients and Copilot). Copilot re-registration intentionally dropped by owner.
+
 ## Moved to worktello.com — 26 October 2026 (Claude)
 
 Canonical app URL is https://worktello.com (Hostinger DNS A @ → 194.163.137.54; www → apex 301; Let's Encrypt cert worktello.com + www). COEX_APP_URL=https://worktello.com in /srv/coex/releases/contracts-20261026/.env and workers' /srv/coex/releases/worktello-20261025/.env. Web coex-app id on 3001 restarted from the contracts release with the new URL; all Apache vhosts (worktello*, coex*) proxy to 3001. Green 3002 still holds the old in-memory URL as rollback. Workers restarted once each. coex.digisol.ae 301-redirects everything to worktello.com except /api/integrations/ (Copilot OAuth registration is still bound to coex.digisol.ae; re-register it in Teams Developer Portal, then drop the exception and COEX_COPILOT_BASE_URL). support.digisolteam.com: Hostinger DNS A → 194.163.137.54, AAAA removed, Let's Encrypt cert, 301 to worktello.com/login (old Hostinger osTicket no longer reachable by that name). Azure Bot coex-teams messaging endpoint → https://worktello.com/api/integrations/teams/messages. Teams admin center: Worktello 1.4.0 published (org app updated, same app ID). Vhost files: worktello.conf, worktello-le-ssl.conf, coex*.conf, support-redirect*.conf — future slot switches must update the worktello vhosts (canonical) as well as coex.
