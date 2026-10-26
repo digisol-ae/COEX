@@ -61,7 +61,7 @@ window.WORKTELLO_MANUAL = {
       "steps": [
         {
           "title": "Open sign-in",
-          "text": "Open the production sign-in page. Select Agent for staff access or Customer for the support portal."
+          "text": "Open the production sign-in page. Select Agent for staff access or Customer for the support portal. Customers moving from the previous portal see a friendly welcome with existing-login guidance and direct links to email-code sign-in and password reset."
         },
         {
           "title": "Choose a method",
@@ -94,7 +94,12 @@ window.WORKTELLO_MANUAL = {
           "../CUSTOMER-PORTAL.md"
         ]
       ],
-      "images": [],
+      "images": [
+        [
+          "customer-welcome-20261026.png",
+          "Production customer welcome panel on email-code sign-in • 26 October 2026. Same panel appears in Customer sign-in; no credentials submitted."
+        ]
+      ],
       "related": [
         "profile",
         "portal"
