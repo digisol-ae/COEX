@@ -18,6 +18,21 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-26-contract-drafting',
+    date: '26 October 2026',
+    title: 'Prepare customer agreements from reusable templates',
+    sections: [
+      {
+        heading: 'Contract templates and drafting',
+        items: [
+          'Start with IT Basic, IT Standard, IT Comprehensive or R4 annual support subscription agreements. Create, duplicate and edit additional templates without a fixed template limit.',
+          'Open a contract and choose Draft agreement to populate customer details, dates, products and charges. Complete additional fields, edit the full agreement and mark it reviewed before printing or saving a PDF.',
+          'Saved agreements keep their wording when a template changes. Internal review notes highlight sample clauses that need attention; signed documents remain linked through Microsoft 365.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-26-whats-new',
     date: '26 October 2026',
     title: 'Updates organised by date and topic',

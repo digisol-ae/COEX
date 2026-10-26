@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { LiveRefresh } from '@/components/ui/live-refresh';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
@@ -73,6 +74,9 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
           action={
             <div className="flex items-center gap-3">
               <LiveRefresh />
+              <Link className="text-sm font-medium underline" href={`/contracts/${id}/draft`}>
+                Draft agreement
+              </Link>
               <Badge tone={STATUS_TONE[contract.status]}>{STATUS_LABEL[contract.status]}</Badge>
             </div>
           }

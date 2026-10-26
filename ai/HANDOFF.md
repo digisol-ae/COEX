@@ -4,6 +4,12 @@ Branch `codex/import-review-contacts`: seven templates with protected sample row
 
 # Worktello (formerly COEX) — AI Handoff
 
+## Contract drafting committed by Claude — 26 October 2026
+
+ChatGPT's local contract templates/agreement drafting work (25 Oct, was uncommitted on `codex/digisol-sidebar`) moved to branch `claude/contract-drafting` from main `da78b6e` and committed as one feature commit. Superseded What's new WIP copies (already merged in PR #63) were removed from the working tree; full pre-move backup in `outputs/backup/` (tarball + patch). Release note added at top as `2026-10-26-contract-drafting`. Clean-install checks passed: workspace typecheck, `eslint apps packages scripts tests --max-warnings=0`, CI prettier globs, 62 files / 418 unit tests, production build (routes /contracts/templates and /contracts/[id]/draft). Database tests (`tests/database/agreement-drafting.test.ts`) not re-run here (no MongoDB available); ChatGPT's earlier isolated run passed. `docs/contracts_templates/` holds real customer contracts and is intentionally NOT committed.
+
+Not done: push (owner pushes), PR, merge, deploy. Owner must review flagged clauses (IT 15% price-review cap vs 5–10% annexure; R4 90-day vs two-month termination) before customer use.
+
 ## Microsoft 365 workspace live; Copilot actions unaccepted — 25 October 2026
 
 Application76cac60 (PR46) is live on blue3001: coex-app id14/PID329947, /srv/coex/releases/copilot-pilot-20261025. Green13/PID318054 on3002 is warm fallback; workers10/11/12 unchanged. CI/local/server checks passed,40/40 HTTPS200. Catalog1.3.0 and real Microsoft365 SSO/list verified. Copilot agent loads but action tools are unavailable; pilot account lacks Copilot add-on. No live task/time/email mutation. All owner-approved Entra additions persisted; no paid license/billing enabled. Exact evidence, rollback and remaining acceptance: ai/RELEASE-2026-10-25-COPILOT.md. Local checkout is now /Volumes/sd-mac/Developer/DigiSol/worktello. Cloud manual AI needs a separate configured API key; packaging-only acceptance must not be called AI-writing acceptance.
