@@ -24,3 +24,7 @@ Owner requested fewer screenshots after review: inline guide reduced to three fi
 ## Midnight maintenance — 26 October 2026
 
 Reviewed merged main through 0539bad and existing dated release/resolution evidence. Updated generic section-search guidance, corrected deployed import status while retaining its UI acceptance limits, added Microsoft 365 web guidance with Copilot explicitly unverified, and indexed existing migration/search/sidebar resolution records. No screenshots added. No fresh browser/device/print or production write acceptance was performed for this documentation run. Original application work and private exports remain excluded. Package, link, hash and publication checks are recorded in the midnight checkpoint.
+
+## 26 October customer login update
+
+Customer password compatibility, email-code sign-in and reset instructions updated. Blank production email-code and Forgot-password forms read in a separate in-app browser tab; original staff session preserved. Thirteen eligible customer hashes imported, zero repeat overwrites and all12 staff fingerprints preserved. Authentication integration is synthetic/isolated; real inbox delivery/customer password entry remains untested. See ../resolutions/2026-10-26-customer-login.md for runtime, CI, backup and rollback evidence.

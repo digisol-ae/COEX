@@ -65,7 +65,7 @@ window.WORKTELLO_MANUAL = {
         },
         {
           "title": "Choose a method",
-          "text": "Staff can use Continue with Microsoft when their Microsoft identity is linked. Otherwise use the email and password supplied by your administrator."
+          "text": "Staff can use Continue with Microsoft when their Microsoft identity is linked. Customers can use a preserved osTicket password with their registered email or mapped username, choose Sign in with an email code for passwordless access, or use Forgot your password to set a new one."
         },
         {
           "title": "Remember carefully",
@@ -73,7 +73,7 @@ window.WORKTELLO_MANUAL = {
         },
         {
           "title": "Recover a password",
-          "text": "Use Forgot your password and follow the reset message. Never share a password, reset link, verification code or session token in a ticket."
+          "text": "Use Forgot your password and follow the one-time reset message to choose a new password. This also works for eligible invited imported customers. Reset ends old sessions and invalidates outstanding sign-in/recovery codes. Never share a password, reset link, verification code or session token in a ticket."
         },
         {
           "title": "Sign out",
@@ -872,7 +872,7 @@ window.WORKTELLO_MANUAL = {
       "steps": [
         {
           "title": "Use the provided account",
-          "text": "Select Customer at sign-in. Imported customers choose First time here? Activate your account, verify the emailed six-digit code and set a password. Codes expire after ten minutes; request another after ten minutes. Existing accounts keep their usual sign-in."
+          "text": "Select Customer at sign-in. Eligible imported accounts keep their osTicket password and mapped username. For passwordless access choose Sign in with an email code and verify the code sent to your registered email. It works once, expires after ten minutes and allows five guesses; request another after ten minutes. Forgot your password sends a reset link and also activates an eligible invited imported account. The original activation-then-password route remains available."
         },
         {
           "title": "Find your ticket",
@@ -914,6 +914,10 @@ window.WORKTELLO_MANUAL = {
         [
           "osticket-activation-production.png",
           "Production activation page • 25 October 2026. Page rendering verified; real inbox delivery and customer password entry not exercised."
+        ],
+        [
+          "customer-email-login-20261026.png",
+          "Production customer email-code form • 26 October 2026. Form rendering verified; real customer inbox receipt not exercised."
         ]
       ],
       "related": [
