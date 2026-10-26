@@ -1,3 +1,4 @@
+import { compare } from 'bcryptjs';
 import { hash, verify } from '@node-rs/argon2';
 
 /**
@@ -16,6 +17,20 @@ const ARGON2_OPTIONS = {
 
 export function hashPassword(plain: string): Promise<string> {
   return hash(plain, ARGON2_OPTIONS);
+}
+
+/** Only the bounded bcrypt variants exported by osTicket are accepted. */
+export function isLegacyPasswordHash(value: string): boolean {
+  return /^\$2[aby]\$(0[4-9]|1[0-4])\$[./A-Za-z0-9]{53}$/.test(value);
+}
+
+export async function verifyLegacyPassword(plain: string, value: string): Promise<boolean> {
+  if (!isLegacyPasswordHash(value) || plain.length > 128) return false;
+  try {
+    return await compare(plain, value);
+  } catch {
+    return false;
+  }
 }
 
 export async function verifyPassword(plain: string, passwordHash: string): Promise<boolean> {

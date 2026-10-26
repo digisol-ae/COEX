@@ -33,6 +33,8 @@ const userSchema = new Schema(
       index: true,
     },
     legacySourceId: { type: String, default: null },
+    /** Optional source login alias, never exposed in ordinary account reads. */
+    legacyUsername: { type: String, default: null, select: false },
     lastSignedInAt: { type: Date, default: null },
 
     /**

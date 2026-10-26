@@ -10,9 +10,11 @@ import { loginAction, type LoginState } from './actions';
 const initialState: LoginState = {};
 
 export function LoginForm({
+  customer = false,
   entraEnabled = false,
   entraError,
 }: {
+  customer?: boolean;
   entraEnabled?: boolean;
   entraError?: string;
 }) {
@@ -44,8 +46,14 @@ export function LoginForm({
           </div>
         </>
       ) : null}
-      <Field label="Email address">
-        <Input name="email" type="email" autoComplete="username" required />
+      <Field label={customer ? 'Email address or osTicket username' : 'Email address'}>
+        <Input
+          name="email"
+          type={customer ? 'text' : 'email'}
+          maxLength={254}
+          autoComplete="username"
+          required
+        />
       </Field>
 
       <Field label="Password">
@@ -80,6 +88,13 @@ export function LoginForm({
         {pending ? 'Signing in' : 'Sign in'}
       </Button>
 
+      {customer ? (
+        <p className="text-center text-sm">
+          <Link href="/email-login" className="font-semibold underline">
+            Sign in with an email code
+          </Link>
+        </p>
+      ) : null}
       <p className="text-center text-sm">
         <Link
           href="/forgot-password"

@@ -1,5 +1,10 @@
 import { connectToDatabase } from '@/lib/db';
-import { verifyPassword } from '@/lib/password';
+import {
+  hashPassword,
+  verifyPassword,
+  verifyLegacyPassword,
+  isLegacyPasswordHash,
+} from '@/lib/password';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import { createSession, revokeSession } from './session.service';
@@ -34,13 +39,35 @@ export async function signInWithPassword(input: {
 
   const email = input.email.trim().toLowerCase();
 
-  const user = await UserModel.findOne({ email, deletedAt: null }).select('+passwordHash');
+  if (!email || email.length > 254 || input.password.length > 128)
+    return { ok: false, error: GENERIC_FAILURE };
+  const matches = await UserModel.find({
+    deletedAt: null,
+    $or: [
+      { email },
+      { role: 'client_contact', legacySourceId: /^osticket:/, legacyUsername: email },
+    ],
+  })
+    .select('+passwordHash')
+    .limit(2);
+  const user = matches.length === 1 ? matches[0] : null;
 
   if (!user || !user.passwordHash) {
     return { ok: false, error: GENERIC_FAILURE };
   }
 
-  const passwordMatches = await verifyPassword(input.password, user.passwordHash);
+  if (
+    user.status !== 'active' ||
+    !(await TenantModel.exists({ _id: user.tenantId, status: 'active' }))
+  )
+    return { ok: false, error: GENERIC_FAILURE };
+  const legacy =
+    user.role === 'client_contact' &&
+    user.legacySourceId?.startsWith('osticket:') &&
+    isLegacyPasswordHash(user.passwordHash);
+  const passwordMatches = legacy
+    ? await verifyLegacyPassword(input.password, user.passwordHash)
+    : await verifyPassword(input.password, user.passwordHash);
 
   if (!passwordMatches) {
     await recordUnauthenticatedAudit(user.tenantId, {
@@ -52,6 +79,15 @@ export async function signInWithPassword(input: {
     });
 
     return { ok: false, error: GENERIC_FAILURE };
+  }
+
+  if (legacy) {
+    // Replace rather than retain a fallback: password reset can never revive an old password.
+    const upgraded = await UserModel.updateOne(
+      { _id: user._id, passwordHash: user.passwordHash, status: 'active', deletedAt: null },
+      { $set: { passwordHash: await hashPassword(input.password), mustChangePassword: false } },
+    );
+    if (upgraded.modifiedCount !== 1) return { ok: false, error: GENERIC_FAILURE };
   }
 
   if (user.status !== 'active') {
