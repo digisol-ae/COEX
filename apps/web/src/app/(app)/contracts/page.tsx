@@ -125,6 +125,9 @@ export default async function ContractsPage({
         action={
           <div className="flex items-center gap-3">
             <LiveRefresh />
+            <Link className="text-sm font-medium underline" href="/contracts/templates">
+              Contract templates
+            </Link>
             {editable ? (
               <ContractPanel
                 organisations={customers}
