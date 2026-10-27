@@ -1,6 +1,6 @@
 window.WORKTELLO_MANUAL = {
-  "version": "2026.10.26",
-  "updated": "26 October 2026",
+  "version": "2026.10.27",
+  "updated": "27 October 2026",
   "title": "Worktello field guide",
   "chapters": [
     {
@@ -87,7 +87,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open sign-in",
-          "https://coex.digisol.ae/login"
+          "https://worktello.com/login"
         ],
         [
           "Customer access record",
@@ -180,7 +180,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open My Desk",
-          "https://coex.digisol.ae/my-desk"
+          "https://worktello.com/my-desk"
         ]
       ],
       "images": [],
@@ -281,7 +281,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open Tasks",
-          "https://coex.digisol.ae/tasks"
+          "https://worktello.com/tasks"
         ]
       ],
       "images": [],
@@ -376,7 +376,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open Spaces",
-          "https://coex.digisol.ae/spaces"
+          "https://worktello.com/spaces"
         ]
       ],
       "images": [],
@@ -571,7 +571,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open My timesheet",
-          "https://coex.digisol.ae/time"
+          "https://worktello.com/time"
         ]
       ],
       "images": [],
@@ -628,7 +628,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open support tickets",
-          "https://coex.digisol.ae/support/tickets"
+          "https://worktello.com/support/tickets"
         ]
       ],
       "images": [],
@@ -673,7 +673,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open Customers",
-          "https://coex.digisol.ae/customers"
+          "https://worktello.com/customers"
         ],
         [
           "Portal access rules",
@@ -722,7 +722,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open Leads",
-          "https://coex.digisol.ae/leads"
+          "https://worktello.com/leads"
         ]
       ],
       "images": [],
@@ -766,7 +766,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open Opportunities",
-          "https://coex.digisol.ae/opportunities"
+          "https://worktello.com/opportunities"
         ]
       ],
       "images": [],
@@ -806,7 +806,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open Products",
-          "https://coex.digisol.ae/products"
+          "https://worktello.com/products"
         ]
       ],
       "images": [],
@@ -854,7 +854,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open Contracts",
-          "https://coex.digisol.ae/contracts"
+          "https://worktello.com/contracts"
         ]
       ],
       "images": [],
@@ -864,6 +864,50 @@ window.WORKTELLO_MANUAL = {
         "transfer"
       ],
       "status": "Documented workflow"
+    },
+    {
+      "id": "agreement-drafting",
+      "title": "Prepare a customer agreement",
+      "group": "Customer work",
+      "roles": [
+        "Admin",
+        "Agent"
+      ],
+      "intro": "Reusable templates prepare editable agreement text for a customer contract.",
+      "steps": [
+        {
+          "title": "Choose a template",
+          "text": "Open Contracts, then Contract templates. Create, duplicate or edit a template. Custom templates may be archived."
+        },
+        {
+          "title": "Populate an agreement",
+          "text": "Open a customer contract and Draft agreement. Select a matching template, then Populate agreement fields. Review customer details, dates, products and terms; complete additional fields before generating."
+        },
+        {
+          "title": "Review and save",
+          "text": "Edit the full text and save. Resolve placeholders before marking reviewed. Further edits clear review; template changes do not rewrite saved agreement snapshots."
+        },
+        {
+          "title": "Export and attach",
+          "text": "Print/save PDF or download text. Attach the signed document through the existing Microsoft 365 document link."
+        }
+      ],
+      "notes": [
+        "Internal review does not sign, activate, invoice or email the contract. Review starter clauses and conflicting source terms before customer use.",
+        "Isolated synthetic browser QA passed. Production authenticated drafting, OS PDF saving and physical signature acceptance remain unverified."
+      ],
+      "sources": [
+        [
+          "Agreement release record",
+          "../resolutions/2026-10-27-agreement-drafting.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "contracts",
+        "files"
+      ],
+      "status": "Released per 26 October handover; production walkthrough pending"
     },
     {
       "id": "portal",
@@ -904,7 +948,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open customer portal",
-          "https://coex.digisol.ae/portal"
+          "https://worktello.com/portal"
         ],
         [
           "Portal technical guide",
@@ -1147,7 +1191,7 @@ window.WORKTELLO_MANUAL = {
         },
         {
           "title": "Choose the setting",
-          "text": "Tabs include Queues, Tutorials, Email, Pipeline, WhatsApp, Saved replies, Tenant settings, Custom fields, Import and export and Tenants according to your rights."
+          "text": "Tabs include Queues, What’s new, Tutorials, Email, Pipeline, WhatsApp, Saved replies, Tenant settings, Custom fields, Import and export and Tenants according to your rights."
         },
         {
           "title": "Review before applying",
@@ -1175,6 +1219,44 @@ window.WORKTELLO_MANUAL = {
         "resolutions"
       ],
       "status": "Documented workflow"
+    },
+    {
+      "id": "release-publishing",
+      "title": "Manage What’s new by date and topic",
+      "group": "Administration",
+      "roles": [
+        "Admin"
+      ],
+      "intro": "Prepare tenant-scoped updates in Setup → What’s new. Topics sharing a release date appear together.",
+      "steps": [
+        {
+          "title": "Prepare a topic",
+          "text": "Choose Add topic, set Main topic and Release date, then edit sections and paragraphs. Use Save draft to retain private edits."
+        },
+        {
+          "title": "Preview and order",
+          "text": "Review the preview and move topics within their date. Expand a topic to manage its content."
+        },
+        {
+          "title": "Publish the selected topic",
+          "text": "Choose Publish or Publish changes on that topic. Sibling draft topics stay private. Unpublish hides only the selected topic."
+        }
+      ],
+      "notes": [
+        "Permissions and tenant boundaries apply to every save and publication.",
+        "PR63 merged and the PR64 release handover includes this feature. Earlier candidate port 3004 was unused; no fresh production publication is claimed."
+      ],
+      "sources": [
+        [
+          "Release publication record",
+          "../resolutions/2026-10-27-release-publishing.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "setup"
+      ],
+      "status": "Merged and included in recorded release"
     },
     {
       "id": "transfer",
@@ -1276,7 +1358,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open Users and roles",
-          "https://coex.digisol.ae/security/users"
+          "https://worktello.com/security/users"
         ]
       ],
       "images": [],
@@ -1371,7 +1453,7 @@ window.WORKTELLO_MANUAL = {
       ],
       "notes": [
         "The manual is a local/repository artifact; publishing it to a public application route is a separate decision.",
-        "Current production technical hostname and Microsoft identities remain COEX-compatible. Product naming does not imply a new domain or app identity."
+        "The canonical application URL is worktello.com. Historical COEX integration compatibility routes remain; use the dated domain record before changing Microsoft registrations."
       ],
       "sources": [
         [
@@ -1385,6 +1467,10 @@ window.WORKTELLO_MANUAL = {
         [
           "Manual maintenance guide",
           "README.md"
+        ],
+        [
+          "Domain transition record",
+          "../resolutions/2026-10-27-domain-transition.md"
         ]
       ],
       "images": [],
@@ -1527,6 +1613,39 @@ window.WORKTELLO_MANUAL = {
       "verification": "Production dark-theme screenshot and compiled light/dark rules were verified after corrected rollout. Separate light-theme interaction and native mobile menu remain untested.",
       "status": "Live dark-theme identity verified; device limits retained",
       "record": "../resolutions/2026-10-25-digisol-sidebar.md"
+    },
+    {
+      "id": "agreement-drafting",
+      "title": "Customer agreement templates and drafting",
+      "date": "27 Oct 2026",
+      "symptom": "Staff needed reusable agreements and editable customer-specific text.",
+      "cause": "Contract metadata alone did not provide versioned template snapshots and reviewable agreement text.",
+      "fix": "Added templates, populated draft snapshots, review and print/text export.",
+      "verification": "PR64 merge 9abb6d6; recorded CI/build and isolated QA passed. Production authenticated drafting remains untested.",
+      "status": "Released; production walkthrough pending",
+      "record": "../resolutions/2026-10-27-agreement-drafting.md"
+    },
+    {
+      "id": "release-publishing",
+      "title": "Independent What’s new topic publication",
+      "date": "27 Oct 2026",
+      "symptom": "Updates needed date grouping and independent topic publication.",
+      "cause": "Publishing a date must not expose sibling drafts.",
+      "fix": "Tenant-scoped drafts and per-topic publish/unpublish controls.",
+      "verification": "PR63 merge da78b6e; PR64 release handover includes the change. No new live publication performed.",
+      "status": "Merged; included in recorded release",
+      "record": "../resolutions/2026-10-27-release-publishing.md"
+    },
+    {
+      "id": "domain-transition",
+      "title": "Worktello domain and support moved page",
+      "date": "27 Oct 2026",
+      "symptom": "Customers needed a canonical Worktello address and guidance from the old portal.",
+      "cause": "Product and legacy support addresses needed coordinated routing.",
+      "fix": "Canonical worktello.com, legacy compatibility routes and static support moved page.",
+      "verification": "PR66 merge 99b2c01 and PR67 merge fb2e9d1; recorded release handover only, no fresh runtime check.",
+      "status": "Recorded live; runtime not rechecked",
+      "record": "../resolutions/2026-10-27-domain-transition.md"
     }
   ]
 };

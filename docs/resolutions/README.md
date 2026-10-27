@@ -20,3 +20,7 @@ Each resolution records its symptom, confirmed cause, scoped fix, verification a
 | 25 Oct 2026    | [Patched Node runtime activation](2026-10-25-node-runtime.md)                     | COEX application process trees verified                                      |
 
 Interactive user guide: `../manual/index.html#resolutions`. Secrets and raw private exports must never be included. The initial index covered seven documented resolutions; older release records remain in ai/ and deploy/. Every future fix should add its dated record and update this register.
+
+- [27 October review: Customer agreement templates and drafting](2026-10-27-agreement-drafting.md) — Released; production walkthrough pending.
+- [27 October review: Independent What’s new topic publication](2026-10-27-release-publishing.md) — Merged; included in recorded release.
+- [27 October review: Worktello domain and support moved page](2026-10-27-domain-transition.md) — Recorded live; runtime not rechecked.
