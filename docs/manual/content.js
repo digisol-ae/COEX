@@ -1,1430 +1,1734 @@
 window.WORKTELLO_MANUAL = {
-  version: '2026.10.29',
-  updated: '29 October 2026',
-  title: 'Worktello field guide',
-  chapters: [
+  "version": "2026.10.29",
+  "updated": "29 October 2026",
+  "title": "Worktello field guide",
+  "chapters": [
     {
-      id: 'start',
-      title: 'Start here',
-      group: 'Start here',
-      roles: ['Agent', 'Admin', 'Customer'],
-      intro:
-        'Choose your role, search for a job you need to do, and follow the short steps. This guide covers the current application; your permissions decide which controls appear.',
-      steps: [
-        {
-          title: 'Choose your view',
-          text: 'Use the role selector to narrow the guide. Agent is for daily staff work; Admin includes setup and access; Customer is for the support portal.',
-        },
-        {
-          title: 'Find a task',
-          text: 'Type a word such as attachment, timer, Outlook or import in Search this manual. Select a chapter from the results.',
-        },
-        {
-          title: 'Follow and check',
-          text: 'Tick a step after reading it. These ticks are saved in this browser only. They do not complete a real task or change Worktello.',
-        },
-        {
-          title: 'Inspect a screenshot',
-          text: 'Select an image to enlarge it. Read its evidence caption: production, isolated synthetic QA and an untested action are different things.',
-        },
-        {
-          title: 'Keep a local copy',
-          text: 'Keep this manual folder together. For a portable copy with linked technical records, use the generated ZIP and extract its complete folder tree. Live app links require internet and your own account.',
-        },
-        {
-          title: 'Show more records',
-          text: 'Lists initially show 10 top-level records. Use Show more to reveal the next batch while keeping earlier rows. Search and filters narrow the results; this display window does not mean every staff list fetches only 10 records from the server.',
-        },
+      "id": "start",
+      "title": "Start here",
+      "group": "Start here",
+      "roles": [
+        "Agent",
+        "Admin",
+        "Customer"
       ],
-      notes: [
-        'Updated 29 October 2026 from merged release evidence. Production workflow acceptance is stated separately from source review and local QA.',
-        'This is a complete module reference, not a claim that every workflow was freshly tested on every device. Chapters state their evidence limits.',
+      "intro": "Choose your role, search for a job you need to do, and follow the short steps. This guide covers the current application; your permissions decide which controls appear.",
+      "steps": [
+        {
+          "title": "Choose your view",
+          "text": "Use the role selector to narrow the guide. Agent is for daily staff work; Admin includes setup and access; Customer is for the support portal."
+        },
+        {
+          "title": "Find a task",
+          "text": "Type a word such as attachment, timer, Outlook or import in Search this manual. Select a chapter from the results."
+        },
+        {
+          "title": "Follow and check",
+          "text": "Tick a step after reading it. These ticks are saved in this browser only. They do not complete a real task or change Worktello."
+        },
+        {
+          "title": "Inspect a screenshot",
+          "text": "Select an image to enlarge it. Read its evidence caption: production, isolated synthetic QA and an untested action are different things."
+        },
+        {
+          "title": "Keep a local copy",
+          "text": "Keep this manual folder together. For a portable copy with linked technical records, use the generated ZIP and extract its complete folder tree. Live app links require internet and your own account."
+        },
+        {
+          "title": "Show more records",
+          "text": "Lists initially show 10 top-level records. Use Show more to reveal the next batch while keeping earlier rows. Search and filters narrow the results; this display window does not mean every staff list fetches only 10 records from the server."
+        }
       ],
-      sources: [['Feedback release evidence', '../../ai/RELEASE-2026-10-28-FEEDBACK.md']],
-      images: [],
-      related: ['login', 'daily', 'resolutions'],
-      status: 'Manual guide',
-    },
-    {
-      id: 'login',
-      title: 'Sign in and recover access',
-      group: 'Start here',
-      roles: ['Agent', 'Admin', 'Customer'],
-      intro:
-        'Use the account provided by your organization. Staff and customers use different views on the same sign-in page.',
-      steps: [
-        {
-          title: 'Open sign-in',
-          text: 'Open the production sign-in page. Select Agent for staff access or Customer for the support portal. Customers moving from the previous portal see a friendly welcome with existing-login guidance and direct links to email-code sign-in and password reset.',
-        },
-        {
-          title: 'Choose a method',
-          text: 'Staff can use Continue with Microsoft when their Microsoft identity is linked. Customers can use a preserved osTicket password with their registered email or mapped username, choose Sign in with an email code for passwordless access, or use Forgot your password to set a new one.',
-        },
-        {
-          title: 'Remember carefully',
-          text: 'Remember me on this PC keeps a password session for up to 60 days. Choose it only on a trusted personal computer.',
-        },
-        {
-          title: 'Recover a password',
-          text: 'Use Forgot your password and follow the one-time reset message to choose a new password. This also works for eligible invited imported customers. Reset ends old sessions and invalidates outstanding sign-in/recovery codes. Never share a password, reset link, verification code or session token in a ticket.',
-        },
-        {
-          title: 'Sign out',
-          text: 'Use your avatar menu and Sign out on a shared device. Administrators may expire old sessions during a release; sign in again when asked.',
-        },
+      "notes": [
+        "Updated 29 October 2026 from merged release evidence. Production workflow acceptance is stated separately from source review and local QA.",
+        "This is a complete module reference, not a claim that every workflow was freshly tested on every device. Chapters state their evidence limits."
       ],
-      notes: [
-        'A Microsoft account alone does not create Worktello access. The account must match an active staff identity.',
-        'Browser Microsoft sign-in to production was verified on 25 October. Customer portal interaction evidence comes from isolated synthetic QA.',
-      ],
-      sources: [
-        ['Open sign-in', 'https://worktello.com/login'],
-        ['Customer access record', '../CUSTOMER-PORTAL.md'],
-      ],
-      images: [
+      "sources": [
         [
-          'customer-welcome-20261026.png',
-          'Production customer welcome panel on email-code sign-in • 26 October 2026. Same panel appears in Customer sign-in; no credentials submitted.',
-        ],
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
+        ]
       ],
-      related: ['profile', 'portal'],
-      status: 'Production staff sign-in verified',
+      "images": [],
+      "related": [
+        "login",
+        "daily",
+        "resolutions"
+      ],
+      "status": "Manual guide"
     },
     {
-      id: 'profile',
-      title: 'Profile, theme and notifications',
-      group: 'Start here',
-      roles: ['Agent', 'Admin', 'Customer'],
-      intro:
-        'Use the avatar/account menu for your personal settings. Available options vary between staff and customer accounts.',
-      steps: [
-        {
-          title: 'Open your account menu',
-          text: 'Select your avatar at the top right. Review Edit profile, What’s new, notification and sign-out options that are available.',
-        },
-        {
-          title: 'Edit your profile',
-          text: 'Update your own name/job title in the provided profile form. Account identity/access changes may need an administrator.',
-        },
-        {
-          title: 'Choose your theme',
-          text: 'Use the theme control for the supported Light/Dark/Sunset choices.',
-        },
-        {
-          title: 'Enable notifications intentionally',
-          text: 'Use Browser notifications if you want them. Browser alerts work while the application is open in another tab; closed-browser push is not claimed.',
-        },
-        {
-          title: 'Review updates',
-          text: 'What’s new summarizes user-facing changes. Its acknowledgement applies to the current release, not every future update.',
-        },
+      "id": "login",
+      "title": "Sign in and recover access",
+      "group": "Start here",
+      "roles": [
+        "Agent",
+        "Admin",
+        "Customer"
       ],
-      notes: [],
-      sources: [],
-      images: [],
-      related: ['login', 'search'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'daily',
-      title: 'Your daily workspace',
-      group: 'Daily work',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'Dashboard is an overview. My Desk is the work you choose to focus on today. The Tasks list can include shared work that remains open for others.',
-      steps: [
+      "intro": "Use the account provided by your organization. Staff and customers use different views on the same sign-in page.",
+      "steps": [
         {
-          title: 'Review your work',
-          text: 'Open Dashboard to review assigned work, due dates and visible team indicators. A badge is a scoped count; it does not replace the filters on a list.',
+          "title": "Open sign-in",
+          "text": "Open the production sign-in page. Select Agent for staff access or Customer for the support portal. Customers moving from the previous portal see a friendly welcome with existing-login guidance and direct links to email-code sign-in and password reset."
         },
         {
-          title: 'Choose today’s focus',
-          text: 'Use Add to My Desk on a task you intend to work on. Open My Desk to focus on those selections.',
+          "title": "Choose a method",
+          "text": "Staff can use Continue with Microsoft when their Microsoft identity is linked. Customers can use a preserved osTicket password with their registered email or mapped username, choose Sign in with an email code for passwordless access, or use Forgot your password to set a new one."
         },
         {
-          title: 'Finish your commitment',
-          text: 'Use the available completion action when your work is finished. The office day closes automatically using the configured office timezone.',
+          "title": "Remember carefully",
+          "text": "Remember me on this PC keeps a password session for up to 60 days. Choose it only on a trusted personal computer."
         },
         {
-          title: 'Use the right completion',
-          text: 'My subtask done clears your personal active view of a shared task. It does not close the main task for everyone.',
+          "title": "Recover a password",
+          "text": "Use Forgot your password and follow the one-time reset message to choose a new password. This also works for eligible invited imported customers. Reset ends old sessions and invalidates outstanding sign-in/recovery codes. Never share a password, reset link, verification code or session token in a ticket."
         },
+        {
+          "title": "Sign out",
+          "text": "Use your avatar menu and Sign out on a shared device. Administrators may expire old sessions during a release; sign in again when asked."
+        }
       ],
-      notes: [
-        'A shared task can stay open while other assignees continue. Do not close the whole task simply to clear your own list.',
+      "notes": [
+        "A Microsoft account alone does not create Worktello access. The account must match an active staff identity.",
+        "Browser Microsoft sign-in to production was verified on 25 October. Customer portal interaction evidence comes from isolated synthetic QA."
       ],
-      sources: [['Open My Desk', 'https://worktello.com/my-desk']],
-      images: [],
-      related: ['tasks', 'subtasks', 'time'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'search',
-      title: 'Find work quickly',
-      group: 'Daily work',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'Header search follows the section you are using. Open it from the header, or press Cmd+K on Mac / Ctrl+K on Windows.',
-      steps: [
-        {
-          title: 'Open search',
-          text: 'Select the section-labelled search control: tickets, tasks, spaces, customers, products, contracts, leads or opportunities. Dashboard keeps cross-section search. Setup, security and profile do not offer unrelated business-record search.',
-        },
-        {
-          title: 'Enter at least two letters',
-          text: 'Enter a useful record title, name or number. Wait for Searching to finish. Suggestions follow this section and your existing record permissions.',
-        },
-        {
-          title: 'Open a result',
-          text: 'Choose a specific suggestion to open it. In Tickets, Enter or Show matching tickets applies the query to the ticket list; the existing list search and queue, agent, status and priority filters remain available.',
-        },
-        {
-          title: 'Close without leaving',
-          text: 'Press Escape or Close search. You return to the screen you were working on.',
-        },
-      ],
-      notes: [
-        'The ticket header reflects the applied list query. Empty header submission clears that query; search includes resolved/closed history while retaining selected filters.',
-        'Tickets and Customers context switching were verified in the production browser on 25 October. Other section scoping has service/unit coverage; native mobile/touch acceptance remains separate.',
-      ],
-      sources: [
-        ['Search QA record', '../SEARCH-QA.md'],
-        ['Section-aware search resolution', '../resolutions/2026-10-25-section-search.md'],
-      ],
-      images: [],
-      related: ['tasks', 'spaces'],
-      status: 'Production Tickets/Customers search reads verified',
-    },
-    {
-      id: 'tasks',
-      title: 'Create, find and update a task',
-      group: 'Daily work',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'A task belongs to Personal or an accessible Space. A Folder can organize work inside a Space.',
-      steps: [
-        {
-          title: 'Narrow the list',
-          text: 'Open Tasks and use the available owner, Space and personal-work filters. Search by title or task number when you already know the item.',
-        },
-        {
-          title: 'Create in the right place',
-          text: 'Choose Add task or the quick-create control. Select Personal or a Space, then the available Folder. Check the destination before writing private information.',
-        },
-        {
-          title: 'Set responsibility',
-          text: 'Enter a clear title and description. Choose assignees, priority, dates and an estimate when needed. Available people and actions follow your permissions.',
-        },
-        {
-          title: 'Review before saving',
-          text: 'Check who will receive the assignment and whether the Space/Folder is appropriate. Save once; do not create another task just because an email is delayed.',
-        },
-        {
-          title: 'Use preview or full page',
-          text: 'Select the task title to open its quick drawer, or use the full-page control for the complete conversation, attachments and history.',
-        },
-        {
-          title: 'Change status carefully',
-          text: 'Use the permitted status action when work moves forward. Closing the main task affects all assignees; use personal completion for just your subtask work.',
-        },
-      ],
-      notes: [
-        'Task creation may queue an assignment email for another person according to tenant email settings. Self-assignment mail remains intentionally suppressed.',
-        'This guide does not create production tasks as examples.',
-      ],
-      sources: [['Open Tasks', 'https://worktello.com/tasks']],
-      images: [],
-      related: ['subtasks', 'updates', 'files', 'sharing'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'subtasks',
-      title: 'Finish your subtask, keep shared work open',
-      group: 'Daily work',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'My subtask done is a personal focus control. The task can remain open for colleagues.',
-      steps: [
-        {
-          title: 'Complete the real subtask',
-          text: 'Open the task and mark your assigned subtask complete when its work is finished. Check the updated completion count.',
-        },
-        {
-          title: 'Clear your active view',
-          text: 'Choose My subtask done when you want the shared task removed from your active work/My Desk view.',
-        },
-        {
-          title: 'Find it later',
-          text: 'Use Mine → My subtask done or All my work, where available, to find personally completed shared work.',
-        },
-        {
-          title: 'Resume if needed',
-          text: 'Choose Resume my work when you want it active again. New or reopened assigned subtasks can bring the task back automatically.',
-        },
-      ],
-      notes: [
-        'Personal completion does not close the main task, complete another person’s subtask, or remove their access.',
-        'The controlled checkbox/count fix was verified with a synthetic record, reload and reversal; ordinary-account production mutations were not repeated.',
-      ],
-      sources: [['Checkbox QA', '../SUBTASK-CHECKBOX-QA.md']],
-      images: [],
-      related: ['daily', 'tasks', 'teams'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'spaces',
-      title: 'Spaces, Folders and board views',
-      group: 'Daily work',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'Use Spaces for shared work and Folders for organization. Personal work has its own visibility rules.',
-      steps: [
-        {
-          title: 'Open the right Space',
-          text: 'Select Spaces and open an accessible Space. Use a Folder when the Space is divided into work areas.',
-        },
-        {
-          title: 'Choose a view',
-          text: 'Use the board/list/timeline controls available on that Space. Filters narrow the visible records without moving or deleting them.',
-        },
-        {
-          title: 'Move work deliberately',
-          text: 'A status move changes the task’s workflow. Review the task and intended stage before dragging or saving a status change.',
-        },
-        {
-          title: 'Review completed work',
-          text: 'Done tasks can remain in the board’s Done column. Use the available visibility control to hide them if you need a clearer active view.',
-        },
-        {
-          title: 'Archive with care',
-          text: 'Administrators can archive a Space or Folder through settings. Read whether its tasks are archived too or retained in the Space; restore through the corresponding archived view.',
-        },
-      ],
-      notes: [
-        'Being an assignee does not bypass a private Space or Folder boundary.',
-        'Archiving and hiding are different operations. Do not archive shared work merely to clear your own list.',
-      ],
-      sources: [['Open Spaces', 'https://worktello.com/spaces']],
-      images: [],
-      related: ['gantt', 'tasks', 'subtasks'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'gantt',
-      title: 'Plan dates on the timeline',
-      group: 'Daily work',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'The Space timeline uses Dubai office time. Preview date changes first; save only when the intended schedule is clear.',
-      steps: [
-        {
-          title: 'Find the right scale',
-          text: 'Use Fit, Today, Week, Month or Quarter. Adjust zoom and the task-name column when the chart is crowded.',
-        },
-        {
-          title: 'Select one task',
-          text: 'Choose the task’s date control or bar. Closed tasks do not expose schedule editing; unscheduled tasks remain visible in their section.',
-        },
-        {
-          title: 'Preview a move or resize',
-          text: 'Move a bar to change its schedule, or resize an edge. Choose day, hour or half-hour snapping; keyboard equivalents are available.',
-        },
-        {
-          title: 'Check the exact dates',
-          text: 'Read the date preview in office time. An end before a start is invalid. Only one date preview is edited at a time.',
-        },
-        {
-          title: 'Save or discard',
-          text: 'Save writes the dates. Discard restores the displayed stored dates without a save. Reloading an unsaved preview keeps the original stored schedule.',
-        },
-        {
-          title: 'Undo a recent save',
-          text: 'Undo last save reverses the last save in this mounted chart, provided nobody has changed those dates. Undo does not survive a reload.',
-        },
-        {
-          title: 'Inspect subtasks',
-          text: 'Use Show subtasks and the expand/collapse controls. Dashed child bars inherit the parent schedule when the child lacks a complete window. Saving child dates does not move the parent; a derived envelope for an undated parent does not save parent dates.',
-        },
-        {
-          title: 'Download a PDF',
-          text: 'Use PDF to export the Gantt chart. Review the dates and visible hierarchy before sharing the downloaded file.',
-        },
-      ],
-      notes: [
-        'A stale/concurrent edit is rejected rather than silently overwriting someone else’s dates. Reload and review the current schedule before trying again.',
-        'Images below are actual application captures from isolated Docker QA with synthetic records, not production customer work. Physical touch and two-browser collision UI testing were not performed.',
-        'Subtask/PDF behavior is supported by merged source and recorded local QA in the 28 October release; authenticated production acceptance was not performed. The existing screenshot predates these additions.',
-        '28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime.',
-      ],
-      sources: [
-        ['Gantt QA', '../GANTT-QA.md'],
-        ['Feedback release evidence', '../../ai/RELEASE-2026-10-28-FEEDBACK.md'],
-      ],
-      images: [
+      "sources": [
         [
-          'gantt-synthetic-qa.jpg',
-          'Actual timeline screen • isolated synthetic Docker QA • 24 October 2026',
-        ],
-      ],
-      related: ['spaces', 'tasks'],
-      status: 'Service/database and synthetic UI verified',
-    },
-    {
-      id: 'updates',
-      title: 'Conversations, updates and mentions',
-      group: 'Daily work',
-      roles: ['Agent', 'Admin'],
-      intro: 'Keep progress with the task so colleagues can follow its history.',
-      steps: [
-        {
-          title: 'Open the conversation',
-          text: 'Use the full task page or quick drawer. The main reply/update box sits above the conversation.',
-        },
-        {
-          title: 'Choose the order',
-          text: 'Use Ascending or Descending where available. The drawer shows latest updates first; Show more reveals older threads.',
-        },
-        {
-          title: 'Write a useful update',
-          text: 'State what changed, any blocker and the next step. Use a mention only when that colleague needs to act or know.',
-        },
-        {
-          title: 'Attach evidence',
-          text: 'Paste, drop or choose supported files. Check the thumbnail/filename before posting; remove the wrong selection first.',
-        },
-        {
-          title: 'Post once and verify',
-          text: 'Review the saved thread before retrying. You can edit your own update where the control is available; edited notes are labelled.',
-        },
-      ],
-      notes: [
-        'Task updates linked to a support ticket stay internal and are not customer replies. To communicate with a customer, use the ticket’s public reply control.',
-        'A mention may trigger an email under existing rules. Do not send a test mention to a real colleague for a demonstration.',
-      ],
-      sources: [],
-      images: [],
-      related: ['files', 'tickets', 'teams'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'files',
-      title: 'Documents, images and attachments',
-      group: 'Daily work',
-      roles: ['Agent', 'Admin', 'Customer'],
-      intro:
-        'Use the attachment picker with an update/reply. A preview lets you check what will be posted.',
-      steps: [
-        {
-          title: 'Select the destination first',
-          text: 'Open the correct task, ticket or portal conversation before choosing files.',
-        },
-        {
-          title: 'Add files',
-          text: 'Paste an image, drop supported files, or use the attach/upload option provided beside the update or reply.',
-        },
-        {
-          title: 'Check the preview',
-          text: 'Confirm image thumbnails and filenames. Remove accidental selections before posting. An image-only update is supported where implemented.',
-        },
-        {
-          title: 'Find existing files',
-          text: 'On the full task page, open Documents & attachments on the right. It collects accessible task attachments so you do not need to scroll through every update.',
-        },
-        {
-          title: 'Open or download safely',
-          text: 'Use the saved thumbnail/filename to preview or download. Permissions are checked; an inaccessible attachment is not made public by its URL.',
-        },
-      ],
-      notes: [
-        'Image limit: 3 MB per image; message total: 10 MB. The customer portal also caps attachments at 10 files. Read any additional file-specific message shown by the picker.',
-        'The task quick drawer does not have a separate Documents tab. Production clipboard-to-post acceptance remains a separate check; no private files are uploaded by this manual.',
-      ],
-      sources: [],
-      images: [],
-      related: ['updates', 'tickets', 'portal'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'time',
-      title: 'Timers and manual time',
-      group: 'Daily work',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'Log the work you actually do. Your own time and other people’s totals are separate views.',
-      steps: [
-        {
-          title: 'Start on the right item',
-          text: 'Open the task or ticket and use its timer control. Starting a timer follows the application’s rule for stopping your previous running timer.',
-        },
-        {
-          title: 'Stop when finished',
-          text: 'Stop the timer at the end of the work. Review the saved entry in your timesheet.',
-        },
-        {
-          title: 'Add missed time manually',
-          text: 'Use Add time when you forgot the timer. Choose the correct date and duration, add a clear note and set Billable only when appropriate.',
-        },
-        {
-          title: 'Correct transparently',
-          text: 'Use the edit/remove action available to you and provide a reason. Locked weeks and running-entry rules still apply.',
-        },
-        {
-          title: 'Review the week',
-          text: 'Open My timesheet and check dates, notes and totals. Use permitted team reports for wider visibility; normal agents do not gain access to everyone’s time.',
-        },
-        {
-          title: 'Review latest recorded activity',
-          text: 'Team Activity can show staff latest activity with its exact timestamp and elapsed period. This reflects recorded work and running timers, not keyboard activity or online presence; No recorded activity means there is no matching work record.',
-        },
-      ],
-      notes: [
-        'Do not start a production timer merely to see the control: it can stop your existing timer.',
-        'App task times use Dubai office time. Read the displayed date/time before saving, especially when travelling.',
-        '28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime.',
-      ],
-      sources: [
-        ['Open My timesheet', 'https://worktello.com/time'],
-        ['Feedback release evidence', '../../ai/RELEASE-2026-10-28-FEEDBACK.md'],
-      ],
-      images: [],
-      related: ['teams', 'outlook', 'tasks'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'tickets',
-      title: 'Handle support tickets',
-      group: 'Customer work',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'Use a public reply for customer communication and an internal note for staff-only discussion.',
-      steps: [
-        {
-          title: 'Search across ticket history',
-          text: 'The header search follows the current section. In Tickets, use the header or the existing list search: Enter or Show matching tickets filters this same list and preserves queue, agent, status and priority filters. The header reflects the applied list query. Search by ticket number, subject, customer/contact name, email, phone, initial description, replies, staff notes, tags or attachment filename. Search includes resolved and closed tickets; other selected filters still apply. All words must match somewhere on the ticket. Put a phrase in quotes to keep it together. Phone separators and local/international formatting are handled; four-digit partial numbers are supported. Use Clear search to return to the active list.',
-        },
-        {
-          title: 'Find the ticket',
-          text: 'Open Support → Tickets. Filter by the available queue, assignment and status controls. Select the subject for preview or full detail.',
-        },
-        {
-          title: 'Check customer and sending identity',
-          text: 'Review the linked customer/contact, CC list and configured Reply to customer sender before sending.',
-        },
-        {
-          title: 'Read in the order you prefer',
-          text: 'Choose Ascending or Descending message order. Use Show more for older messages and Read more for long text.',
-        },
-        {
-          title: 'Choose public or internal',
-          text: 'Select the intended reply/note type explicitly. Customer messages have purple glow, agent replies green and internal notes red; color is only a visual aid.',
-        },
-        {
-          title: 'Attach and review',
-          text: 'Preview files/images and check the body and recipients. A public reply can send email; internal task notes remain private.',
-        },
-        {
-          title: 'Resolve or close correctly',
-          text: 'Choose a permitted status when support work is complete. A resolved/closed ticket stops its running timer under existing service rules.',
-        },
-      ],
-      notes: [
-        'The red internal-note style is not a substitute for checking the note/reply mode.',
-        'Tutorial link/permission failures and sending failures should be diagnosed before repeatedly resubmitting the same content.',
-      ],
-      sources: [['Open support tickets', 'https://worktello.com/support/tickets']],
-      images: [],
-      related: ['files', 'portal', 'resolutions'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'customers',
-      title: 'Customers and contacts',
-      group: 'Customer work',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'Keep company and contact information with the customer record. Available editing depends on your permissions.',
-      steps: [
-        {
-          title: 'Find before adding',
-          text: 'Open CRM → Customers and search for the company/contact. Avoid creating a second record for the same customer.',
-        },
-        {
-          title: 'Review the customer',
-          text: 'Open its detail to see permitted contacts, history, opportunities and contracts.',
-        },
-        {
-          title: 'Maintain contact information',
-          text: 'Add or update the appropriate contact through the available form. Check the email/mobile before using it in communication.',
-        },
-        {
-          title: 'Use portal access deliberately',
-          text: 'An authorized administrator can create a portal account for an eligible active contact. Share its one-time credentials securely; an invitation email is not automatically sent.',
-        },
-        {
-          title: 'Find contacts from tickets',
-          text: 'Inside Add Contact, choose Find from tickets. Search requesters or copied people, tick the intended people and review any move confirmation before adding them. Check the customer carefully to avoid linking someone to the wrong company.',
-        },
-      ],
-      notes: [
-        'Customer portal access is linked to the contact/company, not granted to anyone who knows an email address.',
-        'Existing customer exports contain core fields only, not every contact/document/history field.',
-        '28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime.',
-      ],
-      sources: [
-        ['Open Customers', 'https://worktello.com/customers'],
-        ['Portal access rules', '../CUSTOMER-PORTAL.md'],
-        ['Feedback release evidence', '../../ai/RELEASE-2026-10-28-FEEDBACK.md'],
-      ],
-      images: [],
-      related: ['leads', 'contracts', 'portal'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'leads',
-      title: 'Qualify and convert a lead',
-      group: 'Customer work',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'A lead records a possible customer before qualification. Conversion connects it to a customer and, optionally, an opportunity.',
-      steps: [
-        {
-          title: 'Record the lead',
-          text: 'Open CRM → Leads and use the permitted add form. Enter useful identity/contact/source and ownership information.',
-        },
-        {
-          title: 'Check duplicate warnings',
-          text: 'Review any match for email, mobile or company. A warning helps you avoid duplicates; do not ignore it without checking.',
-        },
-        {
-          title: 'Keep the stage current',
-          text: 'Mark work in progress or disqualify with a reason where appropriate. Reopen if the circumstances change.',
-        },
-        {
-          title: 'Convert when qualified',
-          text: 'Use Convert, choose a new or existing customer, and review the contact. Optionally create an opportunity and choose its salesperson.',
-        },
-      ],
-      notes: [
-        'Conversion is a business-record mutation; review the destination and owner before confirming.',
-        'The lead remains marked Converted with a customer link and retained history.',
-      ],
-      sources: [['Open Leads', 'https://worktello.com/leads']],
-      images: [],
-      related: ['customers', 'opportunities'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'opportunities',
-      title: 'Manage the sales pipeline',
-      group: 'Customer work',
-      roles: ['Agent', 'Admin'],
-      intro: 'An opportunity tracks a potential sale, its owner, stage, value and next action.',
-      steps: [
-        {
-          title: 'Create the deal',
-          text: 'Choose the customer/contact, owner, expected close date, value/currency, products and available quote reference.',
-        },
-        {
-          title: 'Set a next step',
-          text: 'Add a clear next action and date so the deal does not become an unexplained open record.',
-        },
-        {
-          title: 'Move through stages',
-          text: 'Use the list/board controls to move the deal. Read additional requirements when marking Won or Lost.',
-        },
-        {
-          title: 'Close accurately',
-          text: 'Give the required loss reason, or review the optional contract creation after winning. An offered contract remains a draft until activated.',
-        },
-      ],
-      notes: [
-        'Currencies are kept separate; a total in one currency is not automatically comparable with another.',
-        'Stage probabilities and loss reasons are administrator-managed. This chapter is a guide, not a fresh production sales mutation test.',
-      ],
-      sources: [['Open Opportunities', 'https://worktello.com/opportunities']],
-      images: [],
-      related: ['customers', 'contracts', 'setup'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'products',
-      title: 'Maintain the product list',
-      group: 'Customer work',
-      roles: ['Agent', 'Admin'],
-      intro: 'Products describe the things sold or covered by customer agreements.',
-      steps: [
-        {
-          title: 'Search for an existing product',
-          text: 'Open CRM → Products and find the item by its name/code before adding another.',
-        },
-        {
-          title: 'Use a consistent code',
-          text: 'Create or edit through the permitted form. Keep codes consistent when products are referenced in CSV imports or contracts.',
-        },
-        {
-          title: 'Review related agreements',
-          text: 'Check the intended product and pricing information before using it on a customer contract.',
-        },
-      ],
-      notes: [
-        'CSV transfer covers core product fields; detailed service models/parent configuration are not a complete round trip.',
-      ],
-      sources: [['Open Products', 'https://worktello.com/products']],
-      images: [],
-      related: ['contracts', 'transfer'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'contracts',
-      title: 'Manage contracts and renewals',
-      group: 'Customer work',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'Contracts keep agreement dates, products, billing information and renewal follow-up together.',
-      steps: [
-        {
-          title: 'Review the agreement',
-          text: 'Choose the customer, dates, amount/currency, billing interval, products and document link through the allowed form.',
-        },
-        {
-          title: 'Check before activation',
-          text: 'Review a draft before activating it. A renewal prepares the next term; activation can retire the prior contract.',
-        },
-        {
-          title: 'Follow expiry indicators',
-          text: 'Use Expiring/Expired and renewal filters. Customer warnings use configured thresholds; contract-owner email reminders depend on tenant settings.',
-        },
-        {
-          title: 'Record invoicing accurately',
-          text: 'Use Mark invoiced only after the invoice has actually been raised in the connected business process.',
-        },
-        {
-          title: 'Preview messages',
-          text: 'When using the contract email action, select recipients/template and review the message before sending.',
-        },
-        {
-          title: 'Enter a historic start date',
-          text: 'Existing agreements may start in 2025. Enter their actual start and end dates; the end must not precede the start.',
-        },
-      ],
-      notes: [
-        'A manual walkthrough does not send a renewal message, activate a contract or mark a real invoice.',
-        'Core CSV contract transfer excludes detailed service lines and is not a full contract backup.',
-        '28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime.',
-      ],
-      sources: [
-        ['Open Contracts', 'https://worktello.com/contracts'],
-        ['Feedback release evidence', '../../ai/RELEASE-2026-10-28-FEEDBACK.md'],
-      ],
-      images: [],
-      related: ['customers', 'products', 'transfer'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'agreement-drafting',
-      title: 'Prepare a customer agreement',
-      group: 'Customer work',
-      roles: ['Admin', 'Agent'],
-      intro: 'Reusable templates prepare editable agreement text for a customer contract.',
-      steps: [
-        {
-          title: 'Choose a template',
-          text: 'Open Contracts, then Contract templates. Create, duplicate or edit a template. Custom templates may be archived.',
-        },
-        {
-          title: 'Populate an agreement',
-          text: 'Open a customer contract and Draft agreement. Select a matching template, then Populate agreement fields. Review customer details, dates, products and terms; complete additional fields before generating.',
-        },
-        {
-          title: 'Review and save',
-          text: 'Edit the full text and save. Resolve placeholders before marking reviewed. Further edits clear review; template changes do not rewrite saved agreement snapshots.',
-        },
-        {
-          title: 'Export and attach',
-          text: 'Print/save PDF or download text. Attach the signed document through the existing Microsoft 365 document link.',
-        },
-      ],
-      notes: [
-        'Internal review does not sign, activate, invoice or email the contract. Review starter clauses and conflicting source terms before customer use.',
-        'Isolated synthetic browser QA passed. Production authenticated drafting, OS PDF saving and physical signature acceptance remain unverified.',
-      ],
-      sources: [['Agreement release record', '../resolutions/2026-10-27-agreement-drafting.md']],
-      images: [],
-      related: ['contracts', 'files'],
-      status: 'Released per 26 October handover; production walkthrough pending',
-    },
-    {
-      id: 'portal',
-      title: 'Customer support portal',
-      group: 'Customer work',
-      roles: ['Customer', 'Admin'],
-      intro:
-        'Customers can raise and follow their own support tickets. Staff and internal notes stay outside the customer view.',
-      steps: [
-        {
-          title: 'Use the provided account',
-          text: 'Select Customer at sign-in. Eligible imported accounts keep their osTicket password and mapped username. For passwordless access choose Sign in with an email code and verify the code sent to your registered email. It works once, expires after ten minutes and allows five guesses; request another after ten minutes. Forgot your password sends a reset link and also activates an eligible invited imported account. The original activation-then-password route remains available.',
-        },
-        {
-          title: 'Find your ticket',
-          text: 'Use My tickets, search and status filters. Only tickets linked to your permitted contact/company identity are listed.',
-        },
-        {
-          title: 'Raise a request',
-          text: 'Choose Raise ticket, enter a clear subject/message and attach relevant evidence. Review files before submitting.',
-        },
-        {
-          title: 'Reply on the conversation',
-          text: 'Open the ticket and send a public customer reply. Pending/resolved tickets may reopen on reply; closed or merged tickets ask for a new ticket.',
-        },
-        {
-          title: 'Maintain your profile',
-          text: 'Use the account menu for profile, password reset, browser notification opt-in and sign-out.',
-        },
-      ],
-      notes: [
-        'Customers cannot see internal staff notes, private task discussions, staff timers or another contact’s tickets.',
-        'Do not put passwords, verification codes or unnecessary personal/medical documents in a support request. Customer account provisioning and live email delivery are separate administrator checks.',
-        'Customer-unassigned imported contacts can read and reply to their existing own tickets. Contact support for customer assignment before raising a new ticket. Previous helpdesk attachment files are deferred.',
-      ],
-      sources: [
-        ['Open customer portal', 'https://worktello.com/portal'],
-        ['Portal technical guide', '../CUSTOMER-PORTAL.md'],
-      ],
-      images: [
-        [
-          'osticket-activation-local.png',
-          'Local isolated activation UI • invalid-code handling verified • 25 October 2026. SMTP delivery is separate.',
+          "Open sign-in",
+          "https://worktello.com/login"
         ],
         [
-          'osticket-activation-production.png',
-          'Production activation page • 25 October 2026. Page rendering verified; real inbox delivery and customer password entry not exercised.',
+          "Customer access record",
+          "../CUSTOMER-PORTAL.md"
+        ]
+      ],
+      "images": [
+        [
+          "customer-welcome-20261026.png",
+          "Production customer welcome panel on email-code sign-in • 26 October 2026. Same panel appears in Customer sign-in; no credentials submitted."
+        ]
+      ],
+      "related": [
+        "profile",
+        "portal"
+      ],
+      "status": "Production staff sign-in verified"
+    },
+    {
+      "id": "profile",
+      "title": "Profile, theme and notifications",
+      "group": "Start here",
+      "roles": [
+        "Agent",
+        "Admin",
+        "Customer"
+      ],
+      "intro": "Use the avatar/account menu for your personal settings. Available options vary between staff and customer accounts.",
+      "steps": [
+        {
+          "title": "Open your account menu",
+          "text": "Select your avatar at the top right. Review Edit profile, What’s new, notification and sign-out options that are available."
+        },
+        {
+          "title": "Edit your profile",
+          "text": "Update your own name/job title in the provided profile form. Account identity/access changes may need an administrator."
+        },
+        {
+          "title": "Choose your theme",
+          "text": "Use the theme control for the supported Light/Dark/Sunset choices."
+        },
+        {
+          "title": "Enable notifications intentionally",
+          "text": "Use Browser notifications if you want them. Browser alerts work while the application is open in another tab; closed-browser push is not claimed."
+        },
+        {
+          "title": "Review updates",
+          "text": "What’s new summarizes user-facing changes. Its acknowledgement applies to the current release, not every future update."
+        }
+      ],
+      "notes": [],
+      "sources": [],
+      "images": [],
+      "related": [
+        "login",
+        "search"
+      ],
+      "status": "Documented workflow"
+    },
+    {
+      "id": "daily",
+      "title": "Your daily workspace",
+      "group": "Daily work",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "Dashboard is an overview. My Desk is the work you choose to focus on today. The Tasks list can include shared work that remains open for others.",
+      "steps": [
+        {
+          "title": "Review your work",
+          "text": "Open Dashboard to review assigned work, due dates and visible team indicators. A badge is a scoped count; it does not replace the filters on a list."
+        },
+        {
+          "title": "Choose today’s focus",
+          "text": "Use Add to My Desk on a task you intend to work on. Open My Desk to focus on those selections."
+        },
+        {
+          "title": "Finish your commitment",
+          "text": "Use the available completion action when your work is finished. The office day closes automatically using the configured office timezone."
+        },
+        {
+          "title": "Use the right completion",
+          "text": "My subtask done clears your personal active view of a shared task. It does not close the main task for everyone."
+        }
+      ],
+      "notes": [
+        "A shared task can stay open while other assignees continue. Do not close the whole task simply to clear your own list."
+      ],
+      "sources": [
+        [
+          "Open My Desk",
+          "https://worktello.com/my-desk"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "tasks",
+        "subtasks",
+        "time"
+      ],
+      "status": "Documented workflow"
+    },
+    {
+      "id": "search",
+      "title": "Find work quickly",
+      "group": "Daily work",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "Header search follows the section you are using. Open it from the header, or press Cmd+K on Mac / Ctrl+K on Windows.",
+      "steps": [
+        {
+          "title": "Open search",
+          "text": "Select the section-labelled search control: tickets, tasks, spaces, customers, products, contracts, leads or opportunities. Dashboard keeps cross-section search. Setup, security and profile do not offer unrelated business-record search."
+        },
+        {
+          "title": "Enter at least two letters",
+          "text": "Enter a useful record title, name or number. Wait for Searching to finish. Suggestions follow this section and your existing record permissions."
+        },
+        {
+          "title": "Open a result",
+          "text": "Choose a specific suggestion to open it. In Tickets, Enter or Show matching tickets applies the query to the ticket list; the existing list search and queue, agent, status and priority filters remain available."
+        },
+        {
+          "title": "Close without leaving",
+          "text": "Press Escape or Close search. You return to the screen you were working on."
+        }
+      ],
+      "notes": [
+        "The ticket header reflects the applied list query. Empty header submission clears that query; search includes resolved/closed history while retaining selected filters.",
+        "Tickets and Customers context switching were verified in the production browser on 25 October. Other section scoping has service/unit coverage; native mobile/touch acceptance remains separate."
+      ],
+      "sources": [
+        [
+          "Search QA record",
+          "../SEARCH-QA.md"
         ],
         [
-          'customer-email-login-20261026.png',
-          'Production customer email-code form • 26 October 2026. Form rendering verified; real customer inbox receipt not exercised.',
-        ],
+          "Section-aware search resolution",
+          "../resolutions/2026-10-25-section-search.md"
+        ]
       ],
-      related: ['login', 'files', 'tickets'],
-      status: 'Documented workflow',
+      "images": [],
+      "related": [
+        "tasks",
+        "spaces"
+      ],
+      "status": "Production Tickets/Customers search reads verified"
     },
     {
-      id: 'teams',
-      title: 'Use Worktello inside Microsoft Teams',
-      group: 'Connected apps',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'The existing organization app opens a personal workspace with your accessible tasks. It uses your linked Microsoft staff identity.',
-      steps: [
-        {
-          title: 'Open the organization app',
-          text: 'In Teams, open Apps and choose Worktello from the organization’s available apps. If it is already pinned, select its rail icon.',
-        },
-        {
-          title: 'View your work',
-          text: 'Use My Tasks, Search tasks and the personal-work filter. With the separate view-others permission, select agents; shared tasks appear once.',
-        },
-        {
-          title: 'Read task detail',
-          text: 'Select a task to read updates, assignment and your time controls. Open full Worktello for attachments/full-page features.',
-        },
-        {
-          title: 'Use your time controls',
-          text: 'Start/stop your timer or add/edit your own time with a reason. These controls always act as the signed-in person, not a selected agent.',
-        },
-        {
-          title: 'Create or assign where allowed',
-          text: 'Use Create task to choose Space, Folder, assignees, dates and time in the form. Assigning other people needs its own permission; it does not grant private destination access.',
-        },
-        {
-          title: 'Create from a message',
-          text: 'Where the message action is available, use More actions → Create Worktello task and review the destination/content before saving.',
-        },
+      "id": "tasks",
+      "title": "Create, find and update a task",
+      "group": "Daily work",
+      "roles": [
+        "Agent",
+        "Admin"
       ],
-      notes: [
-        'Real Teams web SSO, list and task-detail rendering were verified. Production timer/time edits, posting, reassignment and creation were not mutated for the demonstration.',
-        'Desktop/mobile and ordinary-account device acceptance remain separate. Some capabilities, including task sharing, vary by host.',
+      "intro": "A task belongs to Personal or an accessible Space. A Folder can organize work inside a Space.",
+      "steps": [
+        {
+          "title": "Narrow the list",
+          "text": "Open Tasks and use the available owner, Space and personal-work filters. Search by title or task number when you already know the item."
+        },
+        {
+          "title": "Create in the right place",
+          "text": "Choose Add task or the quick-create control. Select Personal or a Space, then the available Folder. Check the destination before writing private information."
+        },
+        {
+          "title": "Set responsibility",
+          "text": "Enter a clear title and description. Choose assignees, priority, dates and an estimate when needed. Available people and actions follow your permissions."
+        },
+        {
+          "title": "Review before saving",
+          "text": "Check who will receive the assignment and whether the Space/Folder is appropriate. Save once; do not create another task just because an email is delayed."
+        },
+        {
+          "title": "Use preview or full page",
+          "text": "Select the task title to open its quick drawer, or use the full-page control for the complete conversation, attachments and history."
+        },
+        {
+          "title": "Change status carefully",
+          "text": "Use the permitted status action when work moves forward. Closing the main task affects all assignees; use personal completion for just your subtask work."
+        }
       ],
-      sources: [
-        ['Open Teams', 'https://teams.microsoft.com/'],
-        ['Teams authentication/setup', '../TEAMS-PERSONAL-TAB.md'],
+      "notes": [
+        "Task creation may queue an assignment email for another person according to tenant email settings. Self-assignment mail remains intentionally suppressed.",
+        "This guide does not create production tasks as examples."
       ],
-      images: [],
-      related: ['outlook', 'sharing', 'time'],
-      status: 'Real Teams web read verified',
-    },
-    {
-      id: 'outlook',
-      title: 'Use Worktello inside Outlook web',
-      group: 'Connected apps',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'Outlook can surface the same personal workspace. The server and Microsoft authorization must both permit Outlook web.',
-      steps: [
-        {
-          title: 'Open Outlook web',
-          text: 'Sign in to Outlook with your organization’s Microsoft account.',
-        },
-        {
-          title: 'Open the app picker',
-          text: 'Select the Apps/grid control in the left rail. Choose Worktello from the available app list.',
-        },
-        {
-          title: 'Wait for sign-in',
-          text: 'The embedded workspace should load using the linked staff account. Your normal Worktello permissions apply.',
-        },
-        {
-          title: 'Review before using actions',
-          text: 'Search/open your tasks. Review time and assignment controls before saving; do not start a timer solely as a visual test.',
-        },
-        {
-          title: 'If content is refused',
-          text: 'Capture the visible error and report the host URL. An administrator must check the exact embedding policy and Outlook web authorization; do not disable browser protections.',
-        },
-        {
-          title: 'Email-to-task add-in readiness',
-          text: 'The separate email-to-task task pane and review API are deployed. Native Outlook sideloading, Office sign-in/dialog behavior and real email/attachment transfer remain unverified. Ask the administrator to complete that acceptance before relying on this workflow.',
-        },
-      ],
-      notes: [
-        'Production Outlook web SSO, task list and an accessible task detail were verified after the scoped fix. Assignment/time/update controls and the blank create form rendered. No task, time entry, assignment or message was submitted.',
-        'Outlook desktop/mobile, creating from an email and Copilot features are not claimed by the Supported on badge or this personal-tab fix.',
-        'The 28 October release records public task-pane 200 and unauthenticated API 401 checks. These checks do not establish native Outlook acceptance. The earlier personal workspace evidence remains separate.',
-      ],
-      sources: [
-        ['Open Outlook', 'https://outlook.office.com/mail/'],
-        ['Technical resolution', '../resolutions/2026-10-25-outlook-web.md'],
-        ['Feedback release evidence', '../../ai/RELEASE-2026-10-28-FEEDBACK.md'],
-      ],
-      images: [
+      "sources": [
         [
-          'outlook-after.png',
-          'After fix • actual production Outlook web workspace • deliberate no-match search hides business records • 25 October 2026',
-        ],
+          "Open Tasks",
+          "https://worktello.com/tasks"
+        ]
       ],
-      related: ['teams', 'time', 'resolutions'],
-      status: 'Real Outlook web SSO and detail read verified',
+      "images": [],
+      "related": [
+        "subtasks",
+        "updates",
+        "files",
+        "sharing"
+      ],
+      "status": "Documented workflow"
     },
     {
-      id: 'microsoft365',
-      title: 'Use Worktello inside Microsoft 365',
-      group: 'Connected apps',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'Microsoft 365 web can open your Worktello personal workspace using your linked organization identity. Normal Worktello permissions still apply.',
-      steps: [
-        {
-          title: 'Open the organization app',
-          text: 'From Microsoft 365 web, open the available organization apps and select Worktello. Availability depends on your organization app settings.',
-        },
-        {
-          title: 'Use the personal workspace',
-          text: 'Wait for sign-in, then use My Tasks, task search and the form-based Create task controls. Review assignment, dates and destination before saving.',
-        },
-        {
-          title: 'Distinguish the workspace from Copilot chat',
-          text: 'Opening the workspace does not prove that Copilot can create tasks conversationally. The current conversational pilot has not completed live preview, confirmation and creation acceptance.',
-        },
+      "id": "subtasks",
+      "title": "Finish your subtask, keep shared work open",
+      "group": "Daily work",
+      "roles": [
+        "Agent",
+        "Admin"
       ],
-      notes: [
-        'Production Microsoft 365 web sign-in and My Tasks rendering were verified on 25 October. No task, message, assignment or time entry was written for this acceptance check.',
-        'The pilot account had Business Basic without a Copilot add-on. Copilot reported unavailable action tools; licensing/capability prerequisites remain to be resolved and the full action flow must then be tested. No paid purchase was made.',
+      "intro": "My subtask done is a personal focus control. The task can remain open for colleagues.",
+      "steps": [
+        {
+          "title": "Complete the real subtask",
+          "text": "Open the task and mark your assigned subtask complete when its work is finished. Check the updated completion count."
+        },
+        {
+          "title": "Clear your active view",
+          "text": "Choose My subtask done when you want the shared task removed from your active work/My Desk view."
+        },
+        {
+          "title": "Find it later",
+          "text": "Use Mine → My subtask done or All my work, where available, to find personally completed shared work."
+        },
+        {
+          "title": "Resume if needed",
+          "text": "Choose Resume my work when you want it active again. New or reopened assigned subtasks can bring the task back automatically."
+        }
       ],
-      sources: [
-        ['Microsoft host release and acceptance record', '../../ai/RELEASE-2026-10-25-COPILOT.md'],
+      "notes": [
+        "Personal completion does not close the main task, complete another person’s subtask, or remove their access.",
+        "The controlled checkbox/count fix was verified with a synthetic record, reload and reversal; ordinary-account production mutations were not repeated."
       ],
-      images: [],
-      related: ['teams', 'outlook', 'tasks'],
-      status: 'Real Microsoft 365 web SSO/list verified; Copilot creation unverified',
-    },
-    {
-      id: 'sharing',
-      title: 'Share a task link to Teams',
-      group: 'Connected apps',
-      roles: ['Agent', 'Admin'],
-      intro:
-        'Sharing opens a review/recipient flow. Worktello does not silently send a direct chat message.',
-      steps: [
-        {
-          title: 'Choose the task',
-          text: 'Open the full task page, quick drawer or supported Teams detail.',
-        },
-        {
-          title: 'Review the preview',
-          text: 'Select Share task to Teams and check the number, title, status and authenticated task link.',
-        },
-        {
-          title: 'Choose the recipient in Teams',
-          text: 'Continue to the supported Microsoft sharing interface. Choose the chat/person and review before sending.',
-        },
-        {
-          title: 'Use a manual link if needed',
-          text: 'If native sharing is unavailable, use the provided copy/link fallback. The recipient still needs access to open the task.',
-        },
-      ],
-      notes: [
-        'The share preview excludes internal descriptions, attachment data, tokens and customer details. A title may itself contain private information: check the audience.',
-        'Localhost sharing is disabled. Sharing does not copy chat history, synchronize conversations or automatically reply to a source message.',
-      ],
-      sources: [['Sharing record', '../TASK-TEAMS-SHARING.md']],
-      images: [],
-      related: ['teams', 'tasks'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'setup',
-      title: 'Setup and organization settings',
-      group: 'Administration',
-      roles: ['Admin'],
-      intro:
-        'Setup opens a tabbed workspace over the current work page. Only permitted tabs and actions appear.',
-      steps: [
-        {
-          title: 'Open Setup',
-          text: 'Select Setup from the rail/sidebar/mobile menu. Queues is the initial tab when permitted; otherwise the first available tab opens.',
-        },
-        {
-          title: 'Choose the setting',
-          text: 'Tabs include Queues, What’s new, Tutorials, Email, Pipeline, WhatsApp, Saved replies, Tenant settings, Custom fields, Import and export and Tenants according to your rights.',
-        },
-        {
-          title: 'Review before applying',
-          text: 'Read what a setting changes and who it affects. Preview messages/videos where available; confirm real sender identities and destinations.',
-        },
-        {
-          title: 'Return to your work',
-          text: 'Use Close setup or Escape. Direct Setup URLs can be opened again and the return path keeps the originating page/filter context.',
-        },
-      ],
-      notes: [
-        'Setup visibility is not authorization by itself: the server checks each operation.',
-        'WhatsApp and tutorial integrations depend on their actual configuration; a visible tab does not mean every external channel is connected.',
-      ],
-      sources: [['Setup workspace record', '../SETUP-WORKSPACE.md']],
-      images: [],
-      related: ['transfer', 'access', 'resolutions'],
-      status: 'Documented workflow',
-    },
-    {
-      id: 'release-publishing',
-      title: 'Manage What’s new by date and topic',
-      group: 'Administration',
-      roles: ['Admin'],
-      intro:
-        'Prepare tenant-scoped updates in Setup → What’s new. Topics sharing a release date appear together.',
-      steps: [
-        {
-          title: 'Prepare a topic',
-          text: 'Choose Add topic, set Main topic and Release date, then edit sections and paragraphs. Use Save draft to retain private edits.',
-        },
-        {
-          title: 'Preview and order',
-          text: 'Review the preview and move topics within their date. Expand a topic to manage its content.',
-        },
-        {
-          title: 'Publish the selected topic',
-          text: 'Choose Publish or Publish changes on that topic. Sibling draft topics stay private. Unpublish hides only the selected topic.',
-        },
-      ],
-      notes: [
-        'Permissions and tenant boundaries apply to every save and publication.',
-        'PR63 merged and the PR64 release handover includes this feature. Earlier candidate port 3004 was unused; no fresh production publication is claimed.',
-      ],
-      sources: [['Release publication record', '../resolutions/2026-10-27-release-publishing.md']],
-      images: [],
-      related: ['setup'],
-      status: 'Merged and included in recorded release',
-    },
-    {
-      id: 'transfer',
-      title: 'Import and export CSV records',
-      group: 'Administration',
-      roles: ['Admin'],
-      intro:
-        'Use Setup → Import and export for guided examples, explicit match decisions and contact imports. This code was deployed with the 25 October release; the newer guided controls still require separate browser interaction acceptance.',
-      steps: [
-        {
-          title: 'Choose a record type',
-          text: 'Choose Tasks, Tickets, Customers, Contacts, Leads, Products or Contracts. Contacts use customer permissions.',
-        },
-        {
-          title: 'Prepare the template',
-          text: 'Read the formatting instructions, download two example rows, delete both examples and retain headings. Example markers block accidental imports.',
-        },
-        {
-          title: 'Link contacts to customers',
-          text: 'Import customers first. Use an exact unique customer name or customerId from the customer export. If both are filled they must agree. isPrimary accepts true or false; contact imports do not create portal logins.',
-        },
-        {
-          title: 'Review every match',
-          text: 'The preview shows the matching record or CSV row and reason. Choose Skip, or for customers/contacts Create separately or Update a specific existing match. A shared email may belong to different branches. Blank update fields preserve existing values.',
-        },
-        {
-          title: 'Preview decisions and confirm',
-          text: 'Preview again after changing choices. Review create/update/skip totals before confirming. Changed matching records invalidate the preview; two rows cannot update the same destination.',
-        },
-        {
-          title: 'Review results and export',
-          text: 'Download the review report and inspect created/updated/skipped/failed outcomes. Retry only failed rows with new review. Export core records separately; this is not a complete backup.',
-        },
-      ],
-      notes: [
-        'Deployed with PR49. Isolated database/unit checks passed; the guided import browser interaction and mobile acceptance remain unverified. Do not treat a migration or older import as proof of this new review interface.',
-        'Attachments, conversations, custom fields, portal accounts and detailed product/contract configuration remain excluded.',
-        'The existing screenshot shows the earlier live interface; it is historical evidence, not the new match-review controls.',
-      ],
-      sources: [
-        ['Transfer technical guide', '../DATA-TRANSFER.md'],
-        ['Import review resolution', '../resolutions/2026-10-25-import-review.md'],
-      ],
-      images: [
+      "sources": [
         [
-          'import-export.png',
-          'Historical production Import and export screen before guided match-review controls • no uploaded business file • 25 October 2026',
+          "Checkbox QA",
+          "../SUBTASK-CHECKBOX-QA.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "daily",
+        "tasks",
+        "teams"
+      ],
+      "status": "Documented workflow"
+    },
+    {
+      "id": "spaces",
+      "title": "Spaces, Folders and board views",
+      "group": "Daily work",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "Use Spaces for shared work and Folders for organization. Personal work has its own visibility rules.",
+      "steps": [
+        {
+          "title": "Open the right Space",
+          "text": "Select Spaces and open an accessible Space. Use a Folder when the Space is divided into work areas."
+        },
+        {
+          "title": "Choose a view",
+          "text": "Use the board/list/timeline controls available on that Space. Filters narrow the visible records without moving or deleting them."
+        },
+        {
+          "title": "Move work deliberately",
+          "text": "A status move changes the task’s workflow. Review the task and intended stage before dragging or saving a status change."
+        },
+        {
+          "title": "Review completed work",
+          "text": "Done tasks can remain in the board’s Done column. Use the available visibility control to hide them if you need a clearer active view."
+        },
+        {
+          "title": "Archive with care",
+          "text": "Administrators can archive a Space or Folder through settings. Read whether its tasks are archived too or retained in the Space; restore through the corresponding archived view."
+        }
+      ],
+      "notes": [
+        "Being an assignee does not bypass a private Space or Folder boundary.",
+        "Archiving and hiding are different operations. Do not archive shared work merely to clear your own list."
+      ],
+      "sources": [
+        [
+          "Open Spaces",
+          "https://worktello.com/spaces"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "gantt",
+        "tasks",
+        "subtasks"
+      ],
+      "status": "Documented workflow"
+    },
+    {
+      "id": "gantt",
+      "title": "Plan dates on the timeline",
+      "group": "Daily work",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "The Space timeline uses Dubai office time. Preview date changes first; save only when the intended schedule is clear.",
+      "steps": [
+        {
+          "title": "Find the right scale",
+          "text": "Use Fit, Today, Week, Month or Quarter. Adjust zoom and the task-name column when the chart is crowded."
+        },
+        {
+          "title": "Select one task",
+          "text": "Choose the task’s date control or bar. Closed tasks do not expose schedule editing; unscheduled tasks remain visible in their section."
+        },
+        {
+          "title": "Preview a move or resize",
+          "text": "Move a bar to change its schedule, or resize an edge. Choose day, hour or half-hour snapping; keyboard equivalents are available."
+        },
+        {
+          "title": "Check the exact dates",
+          "text": "Read the date preview in office time. An end before a start is invalid. Only one date preview is edited at a time."
+        },
+        {
+          "title": "Save or discard",
+          "text": "Save writes the dates. Discard restores the displayed stored dates without a save. Reloading an unsaved preview keeps the original stored schedule."
+        },
+        {
+          "title": "Undo a recent save",
+          "text": "Undo last save reverses the last save in this mounted chart, provided nobody has changed those dates. Undo does not survive a reload."
+        },
+        {
+          "title": "Inspect subtasks",
+          "text": "Use Show subtasks and the expand/collapse controls. Dashed child bars inherit the parent schedule when the child lacks a complete window. Saving child dates does not move the parent; a derived envelope for an undated parent does not save parent dates."
+        },
+        {
+          "title": "Download a PDF",
+          "text": "Use PDF to export the Gantt chart. Review the dates and visible hierarchy before sharing the downloaded file."
+        }
+      ],
+      "notes": [
+        "A stale/concurrent edit is rejected rather than silently overwriting someone else’s dates. Reload and review the current schedule before trying again.",
+        "Images below are actual application captures from isolated Docker QA with synthetic records, not production customer work. Physical touch and two-browser collision UI testing were not performed.",
+        "Subtask/PDF behavior is supported by merged source and recorded local QA in the 28 October release; authenticated production acceptance was not performed. The existing screenshot predates these additions.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
+      ],
+      "sources": [
+        [
+          "Gantt QA",
+          "../GANTT-QA.md"
         ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
+        ]
       ],
-      related: ['customers', 'products', 'contracts', 'setup'],
-      status: 'Deployed; guided-import UI acceptance pending',
+      "images": [
+        [
+          "gantt-synthetic-qa.jpg",
+          "Actual timeline screen • isolated synthetic Docker QA • 24 October 2026"
+        ]
+      ],
+      "related": [
+        "spaces",
+        "tasks"
+      ],
+      "status": "Service/database and synthetic UI verified"
     },
     {
-      id: 'access',
-      title: 'Users, roles and access',
-      group: 'Administration',
-      roles: ['Admin'],
-      intro:
-        'Grant only the access a person needs. Viewing, assigning and time ownership are separate rules.',
-      steps: [
-        {
-          title: 'Review the account',
-          text: 'Open Security → Users and roles. Confirm the intended active staff identity and organization before editing.',
-        },
-        {
-          title: 'Choose permissions deliberately',
-          text: 'Use the documented roles/grants/denials. Explicit denials win where the permission system defines them.',
-        },
-        {
-          title: 'Separate Teams rights',
-          text: 'View other agents’ tasks and Assign tasks to others are independent permissions. Neither bypasses private Spaces/Folders.',
-        },
-        {
-          title: 'Keep time ownership clear',
-          text: 'Teams time actions remain for the signed-in agent even when an administrator can view other people’s tasks.',
-        },
-        {
-          title: 'Record a change',
-          text: 'Use a reason/audit process for sensitive access changes and test the intended role with an authorized test account.',
-        },
-        {
-          title: 'Separate customer sign-ins',
-          text: 'Use Worktello users for staff and Customer portal accounts for customer sign-ins. Customer accounts are excluded from staff assignment choices. Newly selected assignees must be active staff in the current organization.',
-        },
+      "id": "updates",
+      "title": "Conversations, updates and mentions",
+      "group": "Daily work",
+      "roles": [
+        "Agent",
+        "Admin"
       ],
-      notes: [
-        'The manual never grants permissions or adds Microsoft clients just by being opened. New security-sensitive authorization requires explicit action-time approval.',
-        'Secrets, environment files and token values do not belong in a manual, screenshot, commit or support conversation.',
-        '28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime.',
+      "intro": "Keep progress with the task so colleagues can follow its history.",
+      "steps": [
+        {
+          "title": "Open the conversation",
+          "text": "Use the full task page or quick drawer. The main reply/update box sits above the conversation."
+        },
+        {
+          "title": "Choose the order",
+          "text": "Use Ascending or Descending where available. The drawer shows latest updates first; Show more reveals older threads."
+        },
+        {
+          "title": "Write a useful update",
+          "text": "State what changed, any blocker and the next step. Use a mention only when that colleague needs to act or know."
+        },
+        {
+          "title": "Attach evidence",
+          "text": "Paste, drop or choose supported files. Check the thumbnail/filename before posting; remove the wrong selection first."
+        },
+        {
+          "title": "Post once and verify",
+          "text": "Review the saved thread before retrying. You can edit your own update where the control is available; edited notes are labelled."
+        }
       ],
-      sources: [
-        ['Open Users and roles', 'https://worktello.com/security/users'],
-        ['Feedback release evidence', '../../ai/RELEASE-2026-10-28-FEEDBACK.md'],
+      "notes": [
+        "Task updates linked to a support ticket stay internal and are not customer replies. To communicate with a customer, use the ticket’s public reply control.",
+        "A mention may trigger an email under existing rules. Do not send a test mention to a real colleague for a demonstration."
       ],
-      images: [],
-      related: ['teams', 'outlook', 'resolutions'],
-      status: 'Documented workflow',
+      "sources": [],
+      "images": [],
+      "related": [
+        "files",
+        "tickets",
+        "teams"
+      ],
+      "status": "Documented workflow"
     },
     {
-      id: 'resolutions',
-      title: 'Problems, fixes and verification',
-      group: 'Support and handover',
-      roles: ['Agent', 'Admin', 'Customer'],
-      intro:
-        'Every resolution has a dated record. A green test alone is not proof that production or a native Microsoft client works.',
-      steps: [
-        {
-          title: 'Record the symptom',
-          text: 'Capture the exact safe error text, affected screen, date and a screenshot. Exclude credentials, tokens and confidential record contents.',
-        },
-        {
-          title: 'Confirm the cause',
-          text: 'Separate evidence from a guess. Check the running revision/configuration as well as local source.',
-        },
-        {
-          title: 'Apply the smallest fix',
-          text: 'Keep tenant/user access boundaries, preserve unrelated work and use the required approval for new security-sensitive access.',
-        },
-        {
-          title: 'Verify at each layer',
-          text: 'Record tests, build/CI, actual deployment and a real browser acceptance check separately. Name any device/write flow not exercised.',
-        },
-        {
-          title: 'Update this manual',
-          text: 'Add the dated resolution, link its chapter, store safe screenshots locally and in the repository, and retain old evidence as history.',
-        },
+      "id": "files",
+      "title": "Documents, images and attachments",
+      "group": "Daily work",
+      "roles": [
+        "Agent",
+        "Admin",
+        "Customer"
       ],
-      notes: [
-        'Resolution cards below describe documented history. The detailed Markdown record is the source for exact commit, deployment and rollback evidence.',
+      "intro": "Use the attachment picker with an update/reply. A preview lets you check what will be posted.",
+      "steps": [
+        {
+          "title": "Select the destination first",
+          "text": "Open the correct task, ticket or portal conversation before choosing files."
+        },
+        {
+          "title": "Add files",
+          "text": "Paste an image, drop supported files, or use the attach/upload option provided beside the update or reply."
+        },
+        {
+          "title": "Check the preview",
+          "text": "Confirm image thumbnails and filenames. Remove accidental selections before posting. An image-only update is supported where implemented."
+        },
+        {
+          "title": "Find existing files",
+          "text": "On the full task page, open Documents & attachments on the right. It collects accessible task attachments so you do not need to scroll through every update."
+        },
+        {
+          "title": "Open or download safely",
+          "text": "Use the saved thumbnail/filename to preview or download. Permissions are checked; an inaccessible attachment is not made public by its URL."
+        }
       ],
-      sources: [
-        ['Resolution index', '../resolutions/README.md'],
-        ['Feedback release resolution', '../resolutions/2026-10-29-feedback-release.md'],
+      "notes": [
+        "Image limit: 3 MB per image; message total: 10 MB. The customer portal also caps attachments at 10 files. Read any additional file-specific message shown by the picker.",
+        "The task quick drawer does not have a separate Documents tab. Production clipboard-to-post acceptance remains a separate check; no private files are uploaded by this manual."
       ],
-      images: [],
-      related: ['outlook', 'handover'],
-      status: 'Evidence-led resolution history',
+      "sources": [],
+      "images": [],
+      "related": [
+        "updates",
+        "tickets",
+        "portal"
+      ],
+      "status": "Documented workflow"
     },
     {
-      id: 'handover',
-      title: 'Files, local copies and developer handover',
-      group: 'Support and handover',
-      roles: ['Admin'],
-      intro:
-        'The application, documentation and images remain in the local project folder and are versioned in GitHub. Secrets remain separate.',
-      steps: [
-        {
-          title: 'Start from current state',
-          text: 'Read ai/CURRENT_TASK.md and ai/HANDOFF.md before continuing. Historical notes are retained; a newer verified entry supersedes a pending one.',
-        },
-        {
-          title: 'Understand the files',
-          text: '.tsx files build interactive React screens. .ts files hold services, validation, permissions and tests. .md files hold readable technical/QA/deployment records.',
-        },
-        {
-          title: 'Keep the manual together',
-          text: 'docs/manual contains the HTML, CSS, JavaScript, assets, manifest and blank downloads. docs/resolutions contains dated diagnosis/fix/verification records.',
-        },
-        {
-          title: 'Distinguish local, cloud and live',
-          text: 'A local file is not automatically committed. A pushed commit is not automatically deployed. Use the actual application SHA/process/health evidence before saying live.',
-        },
-        {
-          title: 'Preserve private configuration',
-          text: 'Do not copy .env files, PEM keys, tokens, private exports or backups into the manual or GitHub. Keep unrelated projects/ and persistent Docker volumes untouched.',
-        },
-        {
-          title: 'Prepare rollback',
-          text: 'Follow deploy/ZERO-DOWNTIME.md, current active slots and exact release notes. Never assume the original server checkout is the active web or worker directory.',
-        },
+      "id": "time",
+      "title": "Timers and manual time",
+      "group": "Daily work",
+      "roles": [
+        "Agent",
+        "Admin"
       ],
-      notes: [
-        'The manual is a local/repository artifact; publishing it to a public application route is a separate decision.',
-        'The canonical application URL is worktello.com. Historical COEX integration compatibility routes remain; use the dated domain record before changing Microsoft registrations.',
+      "intro": "Log the work you actually do. Your own time and other people’s totals are separate views.",
+      "steps": [
+        {
+          "title": "Start on the right item",
+          "text": "Open the task or ticket and use its timer control. Starting a timer follows the application’s rule for stopping your previous running timer."
+        },
+        {
+          "title": "Stop when finished",
+          "text": "Stop the timer at the end of the work. Review the saved entry in your timesheet."
+        },
+        {
+          "title": "Add missed time manually",
+          "text": "Use Add time when you forgot the timer. Choose the correct date and duration, add a clear note and set Billable only when appropriate."
+        },
+        {
+          "title": "Correct transparently",
+          "text": "Use the edit/remove action available to you and provide a reason. Locked weeks and running-entry rules still apply."
+        },
+        {
+          "title": "Review the week",
+          "text": "Open My timesheet and check dates, notes and totals. Use permitted team reports for wider visibility; normal agents do not gain access to everyone’s time."
+        },
+        {
+          "title": "Review latest recorded activity",
+          "text": "Team Activity can show staff latest activity with its exact timestamp and elapsed period. This reflects recorded work and running timers, not keyboard activity or online presence; No recorded activity means there is no matching work record."
+        }
       ],
-      sources: [
-        ['Current AI handover', '../../ai/HANDOFF.md'],
-        ['Deployment procedure', '../../deploy/ZERO-DOWNTIME.md'],
-        ['Manual maintenance guide', 'README.md'],
-        ['Domain transition record', '../resolutions/2026-10-27-domain-transition.md'],
+      "notes": [
+        "Do not start a production timer merely to see the control: it can stop your existing timer.",
+        "App task times use Dubai office time. Read the displayed date/time before saving, especially when travelling.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
       ],
-      images: [],
-      related: ['resolutions', 'access'],
-      status: 'Documented workflow',
+      "sources": [
+        [
+          "Open My timesheet",
+          "https://worktello.com/time"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "teams",
+        "outlook",
+        "tasks"
+      ],
+      "status": "Documented workflow"
     },
+    {
+      "id": "tickets",
+      "title": "Handle support tickets",
+      "group": "Customer work",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "Use a public reply for customer communication and an internal note for staff-only discussion.",
+      "steps": [
+        {
+          "title": "Search across ticket history",
+          "text": "The header search follows the current section. In Tickets, use the header or the existing list search: Enter or Show matching tickets filters this same list and preserves queue, agent, status and priority filters. The header reflects the applied list query. Search by ticket number, subject, customer/contact name, email, phone, initial description, replies, staff notes, tags or attachment filename. Search includes resolved and closed tickets; other selected filters still apply. All words must match somewhere on the ticket. Put a phrase in quotes to keep it together. Phone separators and local/international formatting are handled; four-digit partial numbers are supported. Use Clear search to return to the active list."
+        },
+        {
+          "title": "Find the ticket",
+          "text": "Open Support → Tickets. Filter by the available queue, assignment and status controls. Select the subject for preview or full detail."
+        },
+        {
+          "title": "Check customer and sending identity",
+          "text": "Review the linked customer/contact, CC list and configured Reply to customer sender before sending."
+        },
+        {
+          "title": "Read in the order you prefer",
+          "text": "Choose Ascending or Descending message order. Use Show more for older messages and Read more for long text."
+        },
+        {
+          "title": "Choose public or internal",
+          "text": "Select the intended reply/note type explicitly. Customer messages have purple glow, agent replies green and internal notes red; color is only a visual aid."
+        },
+        {
+          "title": "Attach and review",
+          "text": "Preview files/images and check the body and recipients. A public reply can send email; internal task notes remain private."
+        },
+        {
+          "title": "Resolve or close correctly",
+          "text": "Choose a permitted status when support work is complete. A resolved/closed ticket stops its running timer under existing service rules."
+        }
+      ],
+      "notes": [
+        "The red internal-note style is not a substitute for checking the note/reply mode.",
+        "Tutorial link/permission failures and sending failures should be diagnosed before repeatedly resubmitting the same content."
+      ],
+      "sources": [
+        [
+          "Open support tickets",
+          "https://worktello.com/support/tickets"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "files",
+        "portal",
+        "resolutions"
+      ],
+      "status": "Documented workflow"
+    },
+    {
+      "id": "customers",
+      "title": "Customers and contacts",
+      "group": "Customer work",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "Keep company and contact information with the customer record. Available editing depends on your permissions.",
+      "steps": [
+        {
+          "title": "Find before adding",
+          "text": "Open CRM → Customers and search for the company/contact. Avoid creating a second record for the same customer."
+        },
+        {
+          "title": "Review the customer",
+          "text": "Open its detail to see permitted contacts, history, opportunities and contracts."
+        },
+        {
+          "title": "Maintain contact information",
+          "text": "Add or update the appropriate contact through the available form. Check the email/mobile before using it in communication."
+        },
+        {
+          "title": "Use portal access deliberately",
+          "text": "An authorized administrator can create a portal account for an eligible active contact. Share its one-time credentials securely; an invitation email is not automatically sent."
+        },
+        {
+          "title": "Find contacts from tickets",
+          "text": "Inside Add Contact, choose Find from tickets. Search requesters or copied people, tick the intended people and review any move confirmation before adding them. Check the customer carefully to avoid linking someone to the wrong company."
+        }
+      ],
+      "notes": [
+        "Customer portal access is linked to the contact/company, not granted to anyone who knows an email address.",
+        "Existing customer exports contain core fields only, not every contact/document/history field.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
+      ],
+      "sources": [
+        [
+          "Open Customers",
+          "https://worktello.com/customers"
+        ],
+        [
+          "Portal access rules",
+          "../CUSTOMER-PORTAL.md"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "leads",
+        "contracts",
+        "portal"
+      ],
+      "status": "Documented workflow"
+    },
+    {
+      "id": "leads",
+      "title": "Qualify and convert a lead",
+      "group": "Customer work",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "A lead records a possible customer before qualification. Conversion connects it to a customer and, optionally, an opportunity.",
+      "steps": [
+        {
+          "title": "Record the lead",
+          "text": "Open CRM → Leads and use the permitted add form. Enter useful identity/contact/source and ownership information."
+        },
+        {
+          "title": "Check duplicate warnings",
+          "text": "Review any match for email, mobile or company. A warning helps you avoid duplicates; do not ignore it without checking."
+        },
+        {
+          "title": "Keep the stage current",
+          "text": "Mark work in progress or disqualify with a reason where appropriate. Reopen if the circumstances change."
+        },
+        {
+          "title": "Convert when qualified",
+          "text": "Use Convert, choose a new or existing customer, and review the contact. Optionally create an opportunity and choose its salesperson."
+        }
+      ],
+      "notes": [
+        "Conversion is a business-record mutation; review the destination and owner before confirming.",
+        "The lead remains marked Converted with a customer link and retained history."
+      ],
+      "sources": [
+        [
+          "Open Leads",
+          "https://worktello.com/leads"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "customers",
+        "opportunities"
+      ],
+      "status": "Documented workflow"
+    },
+    {
+      "id": "opportunities",
+      "title": "Manage the sales pipeline",
+      "group": "Customer work",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "An opportunity tracks a potential sale, its owner, stage, value and next action.",
+      "steps": [
+        {
+          "title": "Create the deal",
+          "text": "Choose the customer/contact, owner, expected close date, value/currency, products and available quote reference."
+        },
+        {
+          "title": "Set a next step",
+          "text": "Add a clear next action and date so the deal does not become an unexplained open record."
+        },
+        {
+          "title": "Move through stages",
+          "text": "Use the list/board controls to move the deal. Read additional requirements when marking Won or Lost."
+        },
+        {
+          "title": "Close accurately",
+          "text": "Give the required loss reason, or review the optional contract creation after winning. An offered contract remains a draft until activated."
+        }
+      ],
+      "notes": [
+        "Currencies are kept separate; a total in one currency is not automatically comparable with another.",
+        "Stage probabilities and loss reasons are administrator-managed. This chapter is a guide, not a fresh production sales mutation test."
+      ],
+      "sources": [
+        [
+          "Open Opportunities",
+          "https://worktello.com/opportunities"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "customers",
+        "contracts",
+        "setup"
+      ],
+      "status": "Documented workflow"
+    },
+    {
+      "id": "products",
+      "title": "Maintain the product list",
+      "group": "Customer work",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "Products describe the things sold or covered by customer agreements.",
+      "steps": [
+        {
+          "title": "Search for an existing product",
+          "text": "Open CRM → Products and find the item by its name/code before adding another."
+        },
+        {
+          "title": "Use a consistent code",
+          "text": "Create or edit through the permitted form. Keep codes consistent when products are referenced in CSV imports or contracts."
+        },
+        {
+          "title": "Review related agreements",
+          "text": "Check the intended product and pricing information before using it on a customer contract."
+        }
+      ],
+      "notes": [
+        "CSV transfer covers core product fields; detailed service models/parent configuration are not a complete round trip."
+      ],
+      "sources": [
+        [
+          "Open Products",
+          "https://worktello.com/products"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "contracts",
+        "transfer"
+      ],
+      "status": "Documented workflow"
+    },
+    {
+      "id": "contracts",
+      "title": "Manage contracts and renewals",
+      "group": "Customer work",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "Contracts keep agreement dates, products, billing information and renewal follow-up together.",
+      "steps": [
+        {
+          "title": "Review the agreement",
+          "text": "Choose the customer, dates, amount/currency, billing interval, products and document link through the allowed form."
+        },
+        {
+          "title": "Check before activation",
+          "text": "Review a draft before activating it. A renewal prepares the next term; activation can retire the prior contract."
+        },
+        {
+          "title": "Follow expiry indicators",
+          "text": "Use Expiring/Expired and renewal filters. Customer warnings use configured thresholds; contract-owner email reminders depend on tenant settings."
+        },
+        {
+          "title": "Record invoicing accurately",
+          "text": "Use Mark invoiced only after the invoice has actually been raised in the connected business process."
+        },
+        {
+          "title": "Preview messages",
+          "text": "When using the contract email action, select recipients/template and review the message before sending."
+        },
+        {
+          "title": "Enter a historic start date",
+          "text": "Existing agreements may start in 2025. Enter their actual start and end dates; the end must not precede the start."
+        }
+      ],
+      "notes": [
+        "A manual walkthrough does not send a renewal message, activate a contract or mark a real invoice.",
+        "Core CSV contract transfer excludes detailed service lines and is not a full contract backup.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
+      ],
+      "sources": [
+        [
+          "Open Contracts",
+          "https://worktello.com/contracts"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "customers",
+        "products",
+        "transfer"
+      ],
+      "status": "Documented workflow"
+    },
+    {
+      "id": "agreement-drafting",
+      "title": "Prepare a customer agreement",
+      "group": "Customer work",
+      "roles": [
+        "Admin",
+        "Agent"
+      ],
+      "intro": "Reusable templates prepare editable agreement text for a customer contract.",
+      "steps": [
+        {
+          "title": "Choose a template",
+          "text": "Open Contracts, then Contract templates. Create, duplicate or edit a template. Custom templates may be archived."
+        },
+        {
+          "title": "Populate an agreement",
+          "text": "Open a customer contract and Draft agreement. Select a matching template, then Populate agreement fields. Review customer details, dates, products and terms; complete additional fields before generating."
+        },
+        {
+          "title": "Review and save",
+          "text": "Edit the full text and save. Resolve placeholders before marking reviewed. Further edits clear review; template changes do not rewrite saved agreement snapshots."
+        },
+        {
+          "title": "Export and attach",
+          "text": "Print/save PDF or download text. Attach the signed document through the existing Microsoft 365 document link."
+        }
+      ],
+      "notes": [
+        "Internal review does not sign, activate, invoice or email the contract. Review starter clauses and conflicting source terms before customer use.",
+        "Isolated synthetic browser QA passed. Production authenticated drafting, OS PDF saving and physical signature acceptance remain unverified."
+      ],
+      "sources": [
+        [
+          "Agreement release record",
+          "../resolutions/2026-10-27-agreement-drafting.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "contracts",
+        "files"
+      ],
+      "status": "Released per 26 October handover; production walkthrough pending"
+    },
+    {
+      "id": "portal",
+      "title": "Customer support portal",
+      "group": "Customer work",
+      "roles": [
+        "Customer",
+        "Admin"
+      ],
+      "intro": "Customers can raise and follow their own support tickets. Staff and internal notes stay outside the customer view.",
+      "steps": [
+        {
+          "title": "Use the provided account",
+          "text": "Select Customer at sign-in. Eligible imported accounts keep their osTicket password and mapped username. For passwordless access choose Sign in with an email code and verify the code sent to your registered email. It works once, expires after ten minutes and allows five guesses; request another after ten minutes. Forgot your password sends a reset link and also activates an eligible invited imported account. The original activation-then-password route remains available."
+        },
+        {
+          "title": "Find your ticket",
+          "text": "Use My tickets, search and status filters. Only tickets linked to your permitted contact/company identity are listed."
+        },
+        {
+          "title": "Raise a request",
+          "text": "Choose Raise ticket, enter a clear subject/message and attach relevant evidence. Review files before submitting."
+        },
+        {
+          "title": "Reply on the conversation",
+          "text": "Open the ticket and send a public customer reply. Pending/resolved tickets may reopen on reply; closed or merged tickets ask for a new ticket."
+        },
+        {
+          "title": "Maintain your profile",
+          "text": "Use the account menu for profile, password reset, browser notification opt-in and sign-out."
+        }
+      ],
+      "notes": [
+        "Customers cannot see internal staff notes, private task discussions, staff timers or another contact’s tickets.",
+        "Do not put passwords, verification codes or unnecessary personal/medical documents in a support request. Customer account provisioning and live email delivery are separate administrator checks.",
+        "Customer-unassigned imported contacts can read and reply to their existing own tickets. Contact support for customer assignment before raising a new ticket. Previous helpdesk attachment files are deferred."
+      ],
+      "sources": [
+        [
+          "Open customer portal",
+          "https://worktello.com/portal"
+        ],
+        [
+          "Portal technical guide",
+          "../CUSTOMER-PORTAL.md"
+        ]
+      ],
+      "images": [
+        [
+          "osticket-activation-local.png",
+          "Local isolated activation UI • invalid-code handling verified • 25 October 2026. SMTP delivery is separate."
+        ],
+        [
+          "osticket-activation-production.png",
+          "Production activation page • 25 October 2026. Page rendering verified; real inbox delivery and customer password entry not exercised."
+        ],
+        [
+          "customer-email-login-20261026.png",
+          "Production customer email-code form • 26 October 2026. Form rendering verified; real customer inbox receipt not exercised."
+        ]
+      ],
+      "related": [
+        "login",
+        "files",
+        "tickets"
+      ],
+      "status": "Documented workflow"
+    },
+    {
+      "id": "teams",
+      "title": "Use Worktello inside Microsoft Teams",
+      "group": "Connected apps",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "The existing organization app opens a personal workspace with your accessible tasks. It uses your linked Microsoft staff identity.",
+      "steps": [
+        {
+          "title": "Open the organization app",
+          "text": "In Teams, open Apps and choose Worktello from the organization’s available apps. If it is already pinned, select its rail icon."
+        },
+        {
+          "title": "View your work",
+          "text": "Use My Tasks, Search tasks and the personal-work filter. With the separate view-others permission, select agents; shared tasks appear once."
+        },
+        {
+          "title": "Read task detail",
+          "text": "Select a task to read updates, assignment and your time controls. Open full Worktello for attachments/full-page features."
+        },
+        {
+          "title": "Use your time controls",
+          "text": "Start/stop your timer or add/edit your own time with a reason. These controls always act as the signed-in person, not a selected agent."
+        },
+        {
+          "title": "Create or assign where allowed",
+          "text": "Use Create task to choose Space, Folder, assignees, dates and time in the form. Assigning other people needs its own permission; it does not grant private destination access."
+        },
+        {
+          "title": "Create from a message",
+          "text": "Where the message action is available, use More actions → Create Worktello task and review the destination/content before saving."
+        }
+      ],
+      "notes": [
+        "Real Teams web SSO, list and task-detail rendering were verified. Production timer/time edits, posting, reassignment and creation were not mutated for the demonstration.",
+        "Desktop/mobile and ordinary-account device acceptance remain separate. Some capabilities, including task sharing, vary by host."
+      ],
+      "sources": [
+        [
+          "Open Teams",
+          "https://teams.microsoft.com/"
+        ],
+        [
+          "Teams authentication/setup",
+          "../TEAMS-PERSONAL-TAB.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "outlook",
+        "sharing",
+        "time"
+      ],
+      "status": "Real Teams web read verified"
+    },
+    {
+      "id": "outlook",
+      "title": "Use Worktello inside Outlook web",
+      "group": "Connected apps",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "Outlook can surface the same personal workspace. The server and Microsoft authorization must both permit Outlook web.",
+      "steps": [
+        {
+          "title": "Open Outlook web",
+          "text": "Sign in to Outlook with your organization’s Microsoft account."
+        },
+        {
+          "title": "Open the app picker",
+          "text": "Select the Apps/grid control in the left rail. Choose Worktello from the available app list."
+        },
+        {
+          "title": "Wait for sign-in",
+          "text": "The embedded workspace should load using the linked staff account. Your normal Worktello permissions apply."
+        },
+        {
+          "title": "Review before using actions",
+          "text": "Search/open your tasks. Review time and assignment controls before saving; do not start a timer solely as a visual test."
+        },
+        {
+          "title": "If content is refused",
+          "text": "Capture the visible error and report the host URL. An administrator must check the exact embedding policy and Outlook web authorization; do not disable browser protections."
+        },
+        {
+          "title": "Email-to-task add-in readiness",
+          "text": "The separate email-to-task task pane and review API are deployed. Native Outlook sideloading, Office sign-in/dialog behavior and real email/attachment transfer remain unverified. Ask the administrator to complete that acceptance before relying on this workflow."
+        }
+      ],
+      "notes": [
+        "Production Outlook web SSO, task list and an accessible task detail were verified after the scoped fix. Assignment/time/update controls and the blank create form rendered. No task, time entry, assignment or message was submitted.",
+        "Outlook desktop/mobile, creating from an email and Copilot features are not claimed by the Supported on badge or this personal-tab fix.",
+        "The 28 October release records public task-pane 200 and unauthenticated API 401 checks. These checks do not establish native Outlook acceptance. The earlier personal workspace evidence remains separate."
+      ],
+      "sources": [
+        [
+          "Open Outlook",
+          "https://outlook.office.com/mail/"
+        ],
+        [
+          "Technical resolution",
+          "../resolutions/2026-10-25-outlook-web.md"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
+        ]
+      ],
+      "images": [
+        [
+          "outlook-after.png",
+          "After fix • actual production Outlook web workspace • deliberate no-match search hides business records • 25 October 2026"
+        ]
+      ],
+      "related": [
+        "teams",
+        "time",
+        "resolutions"
+      ],
+      "status": "Real Outlook web SSO and detail read verified"
+    },
+    {
+      "id": "microsoft365",
+      "title": "Use Worktello inside Microsoft 365",
+      "group": "Connected apps",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "Microsoft 365 web can open your Worktello personal workspace using your linked organization identity. Normal Worktello permissions still apply.",
+      "steps": [
+        {
+          "title": "Open the organization app",
+          "text": "From Microsoft 365 web, open the available organization apps and select Worktello. Availability depends on your organization app settings."
+        },
+        {
+          "title": "Use the personal workspace",
+          "text": "Wait for sign-in, then use My Tasks, task search and the form-based Create task controls. Review assignment, dates and destination before saving."
+        },
+        {
+          "title": "Distinguish the workspace from Copilot chat",
+          "text": "Opening the workspace does not prove that Copilot can create tasks conversationally. The current conversational pilot has not completed live preview, confirmation and creation acceptance."
+        }
+      ],
+      "notes": [
+        "Production Microsoft 365 web sign-in and My Tasks rendering were verified on 25 October. No task, message, assignment or time entry was written for this acceptance check.",
+        "The pilot account had Business Basic without a Copilot add-on. Copilot reported unavailable action tools; licensing/capability prerequisites remain to be resolved and the full action flow must then be tested. No paid purchase was made."
+      ],
+      "sources": [
+        [
+          "Microsoft host release and acceptance record",
+          "../../ai/RELEASE-2026-10-25-COPILOT.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "teams",
+        "outlook",
+        "tasks"
+      ],
+      "status": "Real Microsoft 365 web SSO/list verified; Copilot creation unverified"
+    },
+    {
+      "id": "sharing",
+      "title": "Share a task link to Teams",
+      "group": "Connected apps",
+      "roles": [
+        "Agent",
+        "Admin"
+      ],
+      "intro": "Sharing opens a review/recipient flow. Worktello does not silently send a direct chat message.",
+      "steps": [
+        {
+          "title": "Choose the task",
+          "text": "Open the full task page, quick drawer or supported Teams detail."
+        },
+        {
+          "title": "Review the preview",
+          "text": "Select Share task to Teams and check the number, title, status and authenticated task link."
+        },
+        {
+          "title": "Choose the recipient in Teams",
+          "text": "Continue to the supported Microsoft sharing interface. Choose the chat/person and review before sending."
+        },
+        {
+          "title": "Use a manual link if needed",
+          "text": "If native sharing is unavailable, use the provided copy/link fallback. The recipient still needs access to open the task."
+        }
+      ],
+      "notes": [
+        "The share preview excludes internal descriptions, attachment data, tokens and customer details. A title may itself contain private information: check the audience.",
+        "Localhost sharing is disabled. Sharing does not copy chat history, synchronize conversations or automatically reply to a source message."
+      ],
+      "sources": [
+        [
+          "Sharing record",
+          "../TASK-TEAMS-SHARING.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "teams",
+        "tasks"
+      ],
+      "status": "Documented workflow"
+    },
+    {
+      "id": "setup",
+      "title": "Setup and organization settings",
+      "group": "Administration",
+      "roles": [
+        "Admin"
+      ],
+      "intro": "Setup opens a tabbed workspace over the current work page. Only permitted tabs and actions appear.",
+      "steps": [
+        {
+          "title": "Open Setup",
+          "text": "Select Setup from the rail/sidebar/mobile menu. Queues is the initial tab when permitted; otherwise the first available tab opens."
+        },
+        {
+          "title": "Choose the setting",
+          "text": "Tabs include Queues, What’s new, Tutorials, Email, Pipeline, WhatsApp, Saved replies, Tenant settings, Custom fields, Import and export and Tenants according to your rights."
+        },
+        {
+          "title": "Review before applying",
+          "text": "Read what a setting changes and who it affects. Preview messages/videos where available; confirm real sender identities and destinations."
+        },
+        {
+          "title": "Return to your work",
+          "text": "Use Close setup or Escape. Direct Setup URLs can be opened again and the return path keeps the originating page/filter context."
+        }
+      ],
+      "notes": [
+        "Setup visibility is not authorization by itself: the server checks each operation.",
+        "WhatsApp and tutorial integrations depend on their actual configuration; a visible tab does not mean every external channel is connected."
+      ],
+      "sources": [
+        [
+          "Setup workspace record",
+          "../SETUP-WORKSPACE.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "transfer",
+        "access",
+        "resolutions"
+      ],
+      "status": "Documented workflow"
+    },
+    {
+      "id": "release-publishing",
+      "title": "Manage What’s new by date and topic",
+      "group": "Administration",
+      "roles": [
+        "Admin"
+      ],
+      "intro": "Prepare tenant-scoped updates in Setup → What’s new. Topics sharing a release date appear together.",
+      "steps": [
+        {
+          "title": "Prepare a topic",
+          "text": "Choose Add topic, set Main topic and Release date, then edit sections and paragraphs. Use Save draft to retain private edits."
+        },
+        {
+          "title": "Preview and order",
+          "text": "Review the preview and move topics within their date. Expand a topic to manage its content."
+        },
+        {
+          "title": "Publish the selected topic",
+          "text": "Choose Publish or Publish changes on that topic. Sibling draft topics stay private. Unpublish hides only the selected topic."
+        }
+      ],
+      "notes": [
+        "Permissions and tenant boundaries apply to every save and publication.",
+        "PR63 merged and the PR64 release handover includes this feature. Earlier candidate port 3004 was unused; no fresh production publication is claimed."
+      ],
+      "sources": [
+        [
+          "Release publication record",
+          "../resolutions/2026-10-27-release-publishing.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "setup"
+      ],
+      "status": "Merged and included in recorded release"
+    },
+    {
+      "id": "transfer",
+      "title": "Import and export CSV records",
+      "group": "Administration",
+      "roles": [
+        "Admin"
+      ],
+      "intro": "Use Setup → Import and export for guided examples, explicit match decisions and contact imports. This code was deployed with the 25 October release; the newer guided controls still require separate browser interaction acceptance.",
+      "steps": [
+        {
+          "title": "Choose a record type",
+          "text": "Choose Tasks, Tickets, Customers, Contacts, Leads, Products or Contracts. Contacts use customer permissions."
+        },
+        {
+          "title": "Prepare the template",
+          "text": "Read the formatting instructions, download two example rows, delete both examples and retain headings. Example markers block accidental imports."
+        },
+        {
+          "title": "Link contacts to customers",
+          "text": "Import customers first. Use an exact unique customer name or customerId from the customer export. If both are filled they must agree. isPrimary accepts true or false; contact imports do not create portal logins."
+        },
+        {
+          "title": "Review every match",
+          "text": "The preview shows the matching record or CSV row and reason. Choose Skip, or for customers/contacts Create separately or Update a specific existing match. A shared email may belong to different branches. Blank update fields preserve existing values."
+        },
+        {
+          "title": "Preview decisions and confirm",
+          "text": "Preview again after changing choices. Review create/update/skip totals before confirming. Changed matching records invalidate the preview; two rows cannot update the same destination."
+        },
+        {
+          "title": "Review results and export",
+          "text": "Download the review report and inspect created/updated/skipped/failed outcomes. Retry only failed rows with new review. Export core records separately; this is not a complete backup."
+        }
+      ],
+      "notes": [
+        "Deployed with PR49. Isolated database/unit checks passed; the guided import browser interaction and mobile acceptance remain unverified. Do not treat a migration or older import as proof of this new review interface.",
+        "Attachments, conversations, custom fields, portal accounts and detailed product/contract configuration remain excluded.",
+        "The existing screenshot shows the earlier live interface; it is historical evidence, not the new match-review controls."
+      ],
+      "sources": [
+        [
+          "Transfer technical guide",
+          "../DATA-TRANSFER.md"
+        ],
+        [
+          "Import review resolution",
+          "../resolutions/2026-10-25-import-review.md"
+        ]
+      ],
+      "images": [
+        [
+          "import-export.png",
+          "Historical production Import and export screen before guided match-review controls • no uploaded business file • 25 October 2026"
+        ]
+      ],
+      "related": [
+        "customers",
+        "products",
+        "contracts",
+        "setup"
+      ],
+      "status": "Deployed; guided-import UI acceptance pending"
+    },
+    {
+      "id": "access",
+      "title": "Users, roles and access",
+      "group": "Administration",
+      "roles": [
+        "Admin"
+      ],
+      "intro": "Grant only the access a person needs. Viewing, assigning and time ownership are separate rules.",
+      "steps": [
+        {
+          "title": "Review the account",
+          "text": "Open Security → Users and roles. Confirm the intended active staff identity and organization before editing."
+        },
+        {
+          "title": "Choose permissions deliberately",
+          "text": "Use the documented roles/grants/denials. Explicit denials win where the permission system defines them."
+        },
+        {
+          "title": "Separate Teams rights",
+          "text": "View other agents’ tasks and Assign tasks to others are independent permissions. Neither bypasses private Spaces/Folders."
+        },
+        {
+          "title": "Keep time ownership clear",
+          "text": "Teams time actions remain for the signed-in agent even when an administrator can view other people’s tasks."
+        },
+        {
+          "title": "Record a change",
+          "text": "Use a reason/audit process for sensitive access changes and test the intended role with an authorized test account."
+        },
+        {
+          "title": "Separate customer sign-ins",
+          "text": "Use Worktello users for staff and Customer portal accounts for customer sign-ins. Customer accounts are excluded from staff assignment choices. Newly selected assignees must be active staff in the current organization."
+        }
+      ],
+      "notes": [
+        "The manual never grants permissions or adds Microsoft clients just by being opened. New security-sensitive authorization requires explicit action-time approval.",
+        "Secrets, environment files and token values do not belong in a manual, screenshot, commit or support conversation.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
+      ],
+      "sources": [
+        [
+          "Open Users and roles",
+          "https://worktello.com/security/users"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "teams",
+        "outlook",
+        "resolutions"
+      ],
+      "status": "Documented workflow"
+    },
+    {
+      "id": "resolutions",
+      "title": "Problems, fixes and verification",
+      "group": "Support and handover",
+      "roles": [
+        "Agent",
+        "Admin",
+        "Customer"
+      ],
+      "intro": "Every resolution has a dated record. A green test alone is not proof that production or a native Microsoft client works.",
+      "steps": [
+        {
+          "title": "Record the symptom",
+          "text": "Capture the exact safe error text, affected screen, date and a screenshot. Exclude credentials, tokens and confidential record contents."
+        },
+        {
+          "title": "Confirm the cause",
+          "text": "Separate evidence from a guess. Check the running revision/configuration as well as local source."
+        },
+        {
+          "title": "Apply the smallest fix",
+          "text": "Keep tenant/user access boundaries, preserve unrelated work and use the required approval for new security-sensitive access."
+        },
+        {
+          "title": "Verify at each layer",
+          "text": "Record tests, build/CI, actual deployment and a real browser acceptance check separately. Name any device/write flow not exercised."
+        },
+        {
+          "title": "Update this manual",
+          "text": "Add the dated resolution, link its chapter, store safe screenshots locally and in the repository, and retain old evidence as history."
+        }
+      ],
+      "notes": [
+        "Resolution cards below describe documented history. The detailed Markdown record is the source for exact commit, deployment and rollback evidence."
+      ],
+      "sources": [
+        [
+          "Resolution index",
+          "../resolutions/README.md"
+        ],
+        [
+          "Feedback release resolution",
+          "../resolutions/2026-10-29-feedback-release.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "outlook",
+        "handover"
+      ],
+      "status": "Evidence-led resolution history"
+    },
+    {
+      "id": "handover",
+      "title": "Files, local copies and developer handover",
+      "group": "Support and handover",
+      "roles": [
+        "Admin"
+      ],
+      "intro": "The application, documentation and images remain in the local project folder and are versioned in GitHub. Secrets remain separate.",
+      "steps": [
+        {
+          "title": "Start from current state",
+          "text": "Read ai/CURRENT_TASK.md and ai/HANDOFF.md before continuing. Historical notes are retained; a newer verified entry supersedes a pending one."
+        },
+        {
+          "title": "Understand the files",
+          "text": ".tsx files build interactive React screens. .ts files hold services, validation, permissions and tests. .md files hold readable technical/QA/deployment records."
+        },
+        {
+          "title": "Keep the manual together",
+          "text": "docs/manual contains the HTML, CSS, JavaScript, assets, manifest and blank downloads. docs/resolutions contains dated diagnosis/fix/verification records."
+        },
+        {
+          "title": "Distinguish local, cloud and live",
+          "text": "A local file is not automatically committed. A pushed commit is not automatically deployed. Use the actual application SHA/process/health evidence before saying live."
+        },
+        {
+          "title": "Preserve private configuration",
+          "text": "Do not copy .env files, PEM keys, tokens, private exports or backups into the manual or GitHub. Keep unrelated projects/ and persistent Docker volumes untouched."
+        },
+        {
+          "title": "Prepare rollback",
+          "text": "Follow deploy/ZERO-DOWNTIME.md, current active slots and exact release notes. Never assume the original server checkout is the active web or worker directory."
+        }
+      ],
+      "notes": [
+        "The manual is a local/repository artifact; publishing it to a public application route is a separate decision.",
+        "The canonical application URL is worktello.com. Historical COEX integration compatibility routes remain; use the dated domain record before changing Microsoft registrations."
+      ],
+      "sources": [
+        [
+          "Current AI handover",
+          "../../ai/HANDOFF.md"
+        ],
+        [
+          "Deployment procedure",
+          "../../deploy/ZERO-DOWNTIME.md"
+        ],
+        [
+          "Manual maintenance guide",
+          "README.md"
+        ],
+        [
+          "Domain transition record",
+          "../resolutions/2026-10-27-domain-transition.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "resolutions",
+        "access"
+      ],
+      "status": "Documented workflow"
+    }
   ],
-  resolutions: [
+  "resolutions": [
     {
-      id: 'outlook-web',
-      title: 'Outlook iframe refused to connect',
-      date: '25 Oct 2026',
-      status: 'Deployed; real Outlook web reads verified',
-      symptom: 'Worktello was listed in Outlook but its embedded screen was refused.',
-      cause:
-        'Exact Outlook web host was missing from frame-ancestors; the token verifier allowed Teams clients only.',
-      fix: 'Allow exact production Outlook web hosts/client; owner-approved preauthorization for the existing access_as_user scope.',
-      verification:
-        '348 unit tests, local/server build and PR/main CI passed. Real Outlook web SSO, list, task detail and blank create form rendered; no production mutation sent.',
-      record: '../resolutions/2026-10-25-outlook-web.md',
+      "id": "outlook-web",
+      "title": "Outlook iframe refused to connect",
+      "date": "25 Oct 2026",
+      "status": "Deployed; real Outlook web reads verified",
+      "symptom": "Worktello was listed in Outlook but its embedded screen was refused.",
+      "cause": "Exact Outlook web host was missing from frame-ancestors; the token verifier allowed Teams clients only.",
+      "fix": "Allow exact production Outlook web hosts/client; owner-approved preauthorization for the existing access_as_user scope.",
+      "verification": "348 unit tests, local/server build and PR/main CI passed. Real Outlook web SSO, list, task detail and blank create form rendered; no production mutation sent.",
+      "record": "../resolutions/2026-10-25-outlook-web.md"
     },
     {
-      id: 'search-popup',
-      title: 'Search popup trapped by the header',
-      date: '23–25 Oct 2026',
-      status: 'Deployed; production read checked',
-      symptom:
-        'The popup position/layer could be affected by the header on intermediate screen widths.',
-      cause: 'A blurred/transformed ancestor contained the fixed overlay.',
-      fix: 'Render the popup in document.body and clamp it to the visible viewport; keep focus and stale-request handling.',
-      verification:
-        'Responsive synthetic/local QA and production permitted-result search documented.',
-      record: '../resolutions/2026-10-25-search-popup.md',
+      "id": "search-popup",
+      "title": "Search popup trapped by the header",
+      "date": "23–25 Oct 2026",
+      "status": "Deployed; production read checked",
+      "symptom": "The popup position/layer could be affected by the header on intermediate screen widths.",
+      "cause": "A blurred/transformed ancestor contained the fixed overlay.",
+      "fix": "Render the popup in document.body and clamp it to the visible viewport; keep focus and stale-request handling.",
+      "verification": "Responsive synthetic/local QA and production permitted-result search documented.",
+      "record": "../resolutions/2026-10-25-search-popup.md"
     },
     {
-      id: 'subtask-checkbox',
-      title: 'Subtask checkbox/count did not settle correctly',
-      date: '24–25 Oct 2026',
-      status: 'Deployed; synthetic UI verified',
-      symptom: 'Full-page checkbox state/count needed to follow server-confirmed toggling.',
-      cause: 'Uncontrolled checkbox state did not consistently track optimistic/reconciled state.',
-      fix: 'Use controlled completion state/count with existing action error rollback.',
-      verification:
-        'Synthetic check/uncheck/reload flow documented; no real production task mutated for demonstration.',
-      record: '../resolutions/2026-10-25-subtask-checkbox.md',
+      "id": "subtask-checkbox",
+      "title": "Subtask checkbox/count did not settle correctly",
+      "date": "24–25 Oct 2026",
+      "status": "Deployed; synthetic UI verified",
+      "symptom": "Full-page checkbox state/count needed to follow server-confirmed toggling.",
+      "cause": "Uncontrolled checkbox state did not consistently track optimistic/reconciled state.",
+      "fix": "Use controlled completion state/count with existing action error rollback.",
+      "verification": "Synthetic check/uncheck/reload flow documented; no real production task mutated for demonstration.",
+      "record": "../resolutions/2026-10-25-subtask-checkbox.md"
     },
     {
-      id: 'tutorial-origin',
-      title: 'Tutorial link save showed Not allowed',
-      date: '22 Oct 2026',
-      status: 'Deployed; write/playback acceptance limited',
-      symptom: 'A valid tutorial link could be denied behind the production HTTPS proxy.',
-      cause: 'Browser public Origin was compared only with an internal listener origin.',
-      fix: 'Accept the exact configured public origin while keeping administrator and foreign-origin rejection.',
-      verification:
-        'Route regression, local/server build and public auth checks; signed-in save/playback not claimed.',
-      record: '../resolutions/2026-10-22-tutorial-origin.md',
+      "id": "tutorial-origin",
+      "title": "Tutorial link save showed Not allowed",
+      "date": "22 Oct 2026",
+      "status": "Deployed; write/playback acceptance limited",
+      "symptom": "A valid tutorial link could be denied behind the production HTTPS proxy.",
+      "cause": "Browser public Origin was compared only with an internal listener origin.",
+      "fix": "Accept the exact configured public origin while keeping administrator and foreign-origin rejection.",
+      "verification": "Route regression, local/server build and public auth checks; signed-in save/playback not claimed.",
+      "record": "../resolutions/2026-10-22-tutorial-origin.md"
     },
     {
-      id: 'microsoft-redirect',
-      title: 'Microsoft login returned to localhost',
-      date: '22–25 Oct 2026',
-      status: 'Deployed; real sign-in verified',
-      symptom: 'The callback could build a destination from the internal listener address.',
-      cause: 'Redirect origin did not consistently use the configured public application URL.',
-      fix: 'Use the configured canonical HTTPS origin for callback outcomes.',
-      verification: 'Redirect regressions and real production Microsoft sign-in on 25 October.',
-      record: '../resolutions/2026-10-22-microsoft-redirect.md',
+      "id": "microsoft-redirect",
+      "title": "Microsoft login returned to localhost",
+      "date": "22–25 Oct 2026",
+      "status": "Deployed; real sign-in verified",
+      "symptom": "The callback could build a destination from the internal listener address.",
+      "cause": "Redirect origin did not consistently use the configured public application URL.",
+      "fix": "Use the configured canonical HTTPS origin for callback outcomes.",
+      "verification": "Redirect regressions and real production Microsoft sign-in on 25 October.",
+      "record": "../resolutions/2026-10-22-microsoft-redirect.md"
     },
     {
-      id: 'assignment-email',
-      title: 'Teams assignment email expectations',
-      date: '22 Oct 2026',
-      status: 'Owner-accepted behavior deployed',
-      symptom: 'Email was absent when assigning a Teams-created task to the creator.',
-      cause: 'Existing staff self-action suppression; another selected assignee received mail.',
-      fix: 'Retain intentional self-assignment suppression; reuse normal alerts for another assignee and tenant email switches.',
-      verification:
-        'Owner confirmed behavior; queue/service evidence retained. No real test mail sent by this manual.',
-      record: '../resolutions/2026-10-22-assignment-email.md',
+      "id": "assignment-email",
+      "title": "Teams assignment email expectations",
+      "date": "22 Oct 2026",
+      "status": "Owner-accepted behavior deployed",
+      "symptom": "Email was absent when assigning a Teams-created task to the creator.",
+      "cause": "Existing staff self-action suppression; another selected assignee received mail.",
+      "fix": "Retain intentional self-assignment suppression; reuse normal alerts for another assignee and tenant email switches.",
+      "verification": "Owner confirmed behavior; queue/service evidence retained. No real test mail sent by this manual.",
+      "record": "../resolutions/2026-10-22-assignment-email.md"
     },
     {
-      id: 'node-runtime',
-      title: 'Patched Node runtime activation',
-      date: '25 Oct 2026',
-      status: 'COEX application process trees verified',
-      symptom: 'Production application processes still used the older Node runtime.',
-      cause:
-        'Updating requirements alone does not replace the executable of an already running process.',
-      fix: 'Install verified Node 22.23.4 side by side and activate explicit interpreters for web and one-at-a-time workers.',
-      verification:
-        'Actual parent/descendant executables under five PM2 entries verified. Host-global Node/PM2 daemon replacement was not claimed.',
-      record: '../resolutions/2026-10-25-node-runtime.md',
+      "id": "node-runtime",
+      "title": "Patched Node runtime activation",
+      "date": "25 Oct 2026",
+      "status": "COEX application process trees verified",
+      "symptom": "Production application processes still used the older Node runtime.",
+      "cause": "Updating requirements alone does not replace the executable of an already running process.",
+      "fix": "Install verified Node 22.23.4 side by side and activate explicit interpreters for web and one-at-a-time workers.",
+      "verification": "Actual parent/descendant executables under five PM2 entries verified. Host-global Node/PM2 daemon replacement was not claimed.",
+      "record": "../resolutions/2026-10-25-node-runtime.md"
     },
     {
-      id: 'import-review',
-      title: 'Guided import templates and contact match review',
-      date: '25 Oct 2026',
-      status: 'Deployed with PR49; guided-import UI acceptance pending',
-      symptom:
-        'Blank templates did not explain formats, possible matches were skipped, and contacts had no CSV transfer.',
-      cause:
-        'Templates contained only headings; duplicate checks returned a boolean and contact transfer was absent.',
-      fix: 'Two marked examples per template, formatting guidance, explicit match decisions and customer-linked contact import/export.',
-      verification:
-        '384 unit tests, workspace checks and disposable database integration passed. Code was deployed with PR49; guided-import browser interaction and mobile acceptance remain unverified.',
-      record: '../resolutions/2026-10-25-import-review.md',
+      "id": "import-review",
+      "title": "Guided import templates and contact match review",
+      "date": "25 Oct 2026",
+      "status": "Deployed with PR49; guided-import UI acceptance pending",
+      "symptom": "Blank templates did not explain formats, possible matches were skipped, and contacts had no CSV transfer.",
+      "cause": "Templates contained only headings; duplicate checks returned a boolean and contact transfer was absent.",
+      "fix": "Two marked examples per template, formatting guidance, explicit match decisions and customer-linked contact import/export.",
+      "verification": "384 unit tests, workspace checks and disposable database integration passed. Code was deployed with PR49; guided-import browser interaction and mobile acceptance remain unverified.",
+      "record": "../resolutions/2026-10-25-import-review.md"
     },
     {
-      id: 'osticket-migration',
-      title: 'Historical tickets and imported customer activation',
-      date: '25 Oct 2026',
-      symptom:
-        'Legacy support history needed migration without exposing staff notes or changing staff credentials.',
-      cause: 'The previous helpdesk history and customer accounts were outside Worktello.',
-      fix: 'Imported the verified source snapshot; added emailed-code activation and own-ticket access for imported customer-unassigned contacts.',
-      verification:
-        'Live history reconciliation and staff ticket/activation-page reads passed. Real customer inbox delivery and password activation remain untested; attachment payloads and continuous sync remain deferred.',
-      status: 'Live history verified; real-inbox activation untested',
-      record: '../resolutions/2026-10-25-osticket-migration.md',
+      "id": "osticket-migration",
+      "title": "Historical tickets and imported customer activation",
+      "date": "25 Oct 2026",
+      "symptom": "Legacy support history needed migration without exposing staff notes or changing staff credentials.",
+      "cause": "The previous helpdesk history and customer accounts were outside Worktello.",
+      "fix": "Imported the verified source snapshot; added emailed-code activation and own-ticket access for imported customer-unassigned contacts.",
+      "verification": "Live history reconciliation and staff ticket/activation-page reads passed. Real customer inbox delivery and password activation remain untested; attachment payloads and continuous sync remain deferred.",
+      "status": "Live history verified; real-inbox activation untested",
+      "record": "../resolutions/2026-10-25-osticket-migration.md"
     },
     {
-      id: 'ticket-search',
-      title: 'Search customer details and full ticket conversations',
-      date: '25 Oct 2026',
-      symptom:
-        'Ticket number/subject lookup missed customer contact details and historical conversation text.',
-      cause:
-        'Search covered too few fields and the default open scope hid resolved/closed history.',
-      fix: 'Expanded authorized search across customer/contact details, public conversations and staff-only fields where permitted; retained selected filters.',
-      verification:
-        '390 tests and isolated field/privacy integration passed; authenticated production history search and Clear search were verified. Phone service checks do not prove native mobile UI acceptance.',
-      status: 'Live authenticated history search verified',
-      record: '../resolutions/2026-10-25-ticket-search.md',
+      "id": "ticket-search",
+      "title": "Search customer details and full ticket conversations",
+      "date": "25 Oct 2026",
+      "symptom": "Ticket number/subject lookup missed customer contact details and historical conversation text.",
+      "cause": "Search covered too few fields and the default open scope hid resolved/closed history.",
+      "fix": "Expanded authorized search across customer/contact details, public conversations and staff-only fields where permitted; retained selected filters.",
+      "verification": "390 tests and isolated field/privacy integration passed; authenticated production history search and Clear search were verified. Phone service checks do not prove native mobile UI acceptance.",
+      "status": "Live authenticated history search verified",
+      "record": "../resolutions/2026-10-25-ticket-search.md"
     },
     {
-      id: 'section-search',
-      title: 'Header search follows the current section',
-      date: '25 Oct 2026',
-      symptom: 'A header search returned mixed record types regardless of the active screen.',
-      cause: 'The header used a cross-section lookup without the requested context.',
-      fix: 'Scoped header suggestions by section and synchronized ticket header/list queries while retaining existing filters.',
-      verification:
-        '402 tests and production Tickets/Customers reads passed. Native mobile/touch and every CRM flow were not exercised.',
-      status: 'Live Tickets/Customers context verified',
-      record: '../resolutions/2026-10-25-section-search.md',
+      "id": "section-search",
+      "title": "Header search follows the current section",
+      "date": "25 Oct 2026",
+      "symptom": "A header search returned mixed record types regardless of the active screen.",
+      "cause": "The header used a cross-section lookup without the requested context.",
+      "fix": "Scoped header suggestions by section and synchronized ticket header/list queries while retaining existing filters.",
+      "verification": "402 tests and production Tickets/Customers reads passed. Native mobile/touch and every CRM flow were not exercised.",
+      "status": "Live Tickets/Customers context verified",
+      "record": "../resolutions/2026-10-25-section-search.md"
     },
     {
-      id: 'digisol-sidebar',
-      title: 'DigiSol sidebar identity and theme contrast',
-      date: '25 Oct 2026',
-      symptom:
-        'The expanded sidebar needed the DigiSol identity with readable contrast in the application theme.',
-      cause:
-        'The initial logo contrast followed the operating-system theme rather than the application theme.',
-      fix: 'Reused the approved artwork; DigiSol appears in expanded menus and Worktello W remains in the narrow rail. Contrast now follows the application theme.',
-      verification:
-        'Production dark-theme screenshot and compiled light/dark rules were verified after corrected rollout. Separate light-theme interaction and native mobile menu remain untested.',
-      status: 'Live dark-theme identity verified; device limits retained',
-      record: '../resolutions/2026-10-25-digisol-sidebar.md',
+      "id": "digisol-sidebar",
+      "title": "DigiSol sidebar identity and theme contrast",
+      "date": "25 Oct 2026",
+      "symptom": "The expanded sidebar needed the DigiSol identity with readable contrast in the application theme.",
+      "cause": "The initial logo contrast followed the operating-system theme rather than the application theme.",
+      "fix": "Reused the approved artwork; DigiSol appears in expanded menus and Worktello W remains in the narrow rail. Contrast now follows the application theme.",
+      "verification": "Production dark-theme screenshot and compiled light/dark rules were verified after corrected rollout. Separate light-theme interaction and native mobile menu remain untested.",
+      "status": "Live dark-theme identity verified; device limits retained",
+      "record": "../resolutions/2026-10-25-digisol-sidebar.md"
     },
     {
-      id: 'agreement-drafting',
-      title: 'Customer agreement templates and drafting',
-      date: '27 Oct 2026',
-      symptom: 'Staff needed reusable agreements and editable customer-specific text.',
-      cause:
-        'Contract metadata alone did not provide versioned template snapshots and reviewable agreement text.',
-      fix: 'Added templates, populated draft snapshots, review and print/text export.',
-      verification:
-        'PR64 merge 9abb6d6; recorded CI/build and isolated QA passed. Production authenticated drafting remains untested.',
-      status: 'Released; production walkthrough pending',
-      record: '../resolutions/2026-10-27-agreement-drafting.md',
+      "id": "agreement-drafting",
+      "title": "Customer agreement templates and drafting",
+      "date": "27 Oct 2026",
+      "symptom": "Staff needed reusable agreements and editable customer-specific text.",
+      "cause": "Contract metadata alone did not provide versioned template snapshots and reviewable agreement text.",
+      "fix": "Added templates, populated draft snapshots, review and print/text export.",
+      "verification": "PR64 merge 9abb6d6; recorded CI/build and isolated QA passed. Production authenticated drafting remains untested.",
+      "status": "Released; production walkthrough pending",
+      "record": "../resolutions/2026-10-27-agreement-drafting.md"
     },
     {
-      id: 'release-publishing',
-      title: 'Independent What’s new topic publication',
-      date: '27 Oct 2026',
-      symptom: 'Updates needed date grouping and independent topic publication.',
-      cause: 'Publishing a date must not expose sibling drafts.',
-      fix: 'Tenant-scoped drafts and per-topic publish/unpublish controls.',
-      verification:
-        'PR63 merge da78b6e; PR64 release handover includes the change. No new live publication performed.',
-      status: 'Merged; included in recorded release',
-      record: '../resolutions/2026-10-27-release-publishing.md',
+      "id": "release-publishing",
+      "title": "Independent What’s new topic publication",
+      "date": "27 Oct 2026",
+      "symptom": "Updates needed date grouping and independent topic publication.",
+      "cause": "Publishing a date must not expose sibling drafts.",
+      "fix": "Tenant-scoped drafts and per-topic publish/unpublish controls.",
+      "verification": "PR63 merge da78b6e; PR64 release handover includes the change. No new live publication performed.",
+      "status": "Merged; included in recorded release",
+      "record": "../resolutions/2026-10-27-release-publishing.md"
     },
     {
-      id: 'domain-transition',
-      title: 'Worktello domain and support moved page',
-      date: '27 Oct 2026',
-      symptom: 'Customers needed a canonical Worktello address and guidance from the old portal.',
-      cause: 'Product and legacy support addresses needed coordinated routing.',
-      fix: 'Canonical worktello.com, legacy compatibility routes and static support moved page.',
-      verification:
-        'PR66 merge 99b2c01 and PR67 merge fb2e9d1; recorded release handover only, no fresh runtime check.',
-      status: 'Recorded live; runtime not rechecked',
-      record: '../resolutions/2026-10-27-domain-transition.md',
+      "id": "domain-transition",
+      "title": "Worktello domain and support moved page",
+      "date": "27 Oct 2026",
+      "symptom": "Customers needed a canonical Worktello address and guidance from the old portal.",
+      "cause": "Product and legacy support addresses needed coordinated routing.",
+      "fix": "Canonical worktello.com, legacy compatibility routes and static support moved page.",
+      "verification": "PR66 merge 99b2c01 and PR67 merge fb2e9d1; recorded release handover only, no fresh runtime check.",
+      "status": "Recorded live; runtime not rechecked",
+      "record": "../resolutions/2026-10-27-domain-transition.md"
     },
     {
-      id: 'feedback-release',
-      title: 'Feedback release and verification boundaries',
-      date: '29 Oct 2026',
-      symptom:
-        'Daily workflows needed clearer contact, timeline, activity and account controls with less repeated loading.',
-      cause:
-        'Release scope combined usability changes and confirmed excessive account/query loading; freeze root cause remains unconfirmed.',
-      fix: 'PR70 shipped the completed feedback scope; PR71 records deployment and rollback.',
-      verification:
-        '441 unit tests and CI/build passed; recorded isolated DB suite 265 passed with one known billable-default failure. No authenticated production flow or native Outlook acceptance.',
-      status: 'Recorded live; acceptance limits remain',
-      record: '../resolutions/2026-10-29-feedback-release.md',
-    },
-  ],
+      "id": "feedback-release",
+      "title": "Feedback release and verification boundaries",
+      "date": "29 Oct 2026",
+      "symptom": "Daily workflows needed clearer contact, timeline, activity and account controls with less repeated loading.",
+      "cause": "Release scope combined usability changes and confirmed excessive account/query loading; freeze root cause remains unconfirmed.",
+      "fix": "PR70 shipped the completed feedback scope; PR71 records deployment and rollback.",
+      "verification": "441 unit tests and CI/build passed; recorded isolated DB suite 265 passed with one known billable-default failure. No authenticated production flow or native Outlook acceptance.",
+      "status": "Recorded live; acceptance limits remain",
+      "record": "../resolutions/2026-10-29-feedback-release.md"
+    }
+  ]
 };
