@@ -1,5 +1,13 @@
 # Worktello (formerly COEX) — Current AI Task
 
+## Completed feedback release live — 28 October 2026
+
+PR #70 merged as `515649d3b9abddbf02b7990e035e368d29c6512e`; active `coex-app-feedback` PID 515255 on loopback 3004 in `/srv/coex/releases/feedback-20261028`. All four Worktello/COEX Apache application vhosts target 3004. Green 3002 and blue 3001 remain online fallbacks; osTicket and all three workers were not restarted. PM2 saved. Node 22.23.4 is pinned. Full release record, backup, smoke checks and rollback: `ai/RELEASE-2026-10-28-FEEDBACK.md`.
+
+PR and merged-main CI passed; local clean install, 441 unit tests, types, lint, formatting and production build passed. Isolated database suite under `TZ=Asia/Dubai`: 265/266 passed; the one known unrelated expectation is `tests/database/time.test.ts:176` (omitted `billable` defaults false in the existing time service). Twenty public HTTPS samples returned login 200, Outlook pane 200 and unauthenticated Outlook task API 401. No authenticated workflow, task creation, mail, data migration or session expiry was performed. The feedback bundle does not include the deferred owner/admin task-assignment request.
+
+Outlook routes/static pane are deployed. The production-origin manifest is prepared at `outputs/microsoft/Worktello-Outlook-production/manifest.xml`; it still needs user/admin sideload and real Outlook acceptance. The reported multi-computer freezes remain unproven as resolved; monitor real staff traffic and correlate any remaining freeze/proxy-reset report separately.
+
 ## Footer release live; support.digisolteam.com moved page — 26 October 2026 (Claude)
 
 PR67 merged as fb2e9d1 (tree = 7e32b8b): sign-in footer "Powered by" + smaller DigiSol logo + © Digisol LLC-FZ; Teams error text points to worktello.com; Teams package 1.4.1 published in Teams admin center (1.4.0 upload had failed). Active green coex-app-green on 3002 in /srv/coex/releases/footer-20261026 (COEX_APP_URL=https://worktello.com); all four vhosts (worktello*, coex*) target 3002. Blue coex-app on 3001 (contracts-20261026, worktello URL) is rollback. Workers untouched.
