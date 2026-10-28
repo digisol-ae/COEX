@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { clsx } from 'clsx';
 import { asUser, requirePermission } from '@/lib/session';
 import { apiEnabledFor, apiRequest } from '@/lib/api-client';
 import {
@@ -9,10 +8,12 @@ import {
   type LeadSummary,
 } from '@/modules/crm/services/lead.service';
 import { listFieldDefinitions } from '@/modules/crm/services/field-definition.service';
-import { listUsers } from '@/modules/core/services/user.service';
-import { listOrganisations } from '@/modules/crm/services/organisation.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
+import { listOrganisationChoices } from '@/modules/crm/services/organisation.service';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
+import { Icon } from '@/components/ui/icon-button';
+import { FilterToggleLink } from '@/components/ui/filter-toggle';
 import { LEAD_STATUSES } from '@coex/shared/crm/models/lead.model';
 import { archiveLeadAction, startWorkingLeadAction } from './actions';
 import { ConvertButton } from './convert-button';
@@ -95,8 +96,8 @@ export default async function LeadsPage({
       loadLeads(),
       loadLeadSources(),
       listFieldDefinitions('lead'),
-      listUsers(),
-      canConvert ? listOrganisations() : Promise.resolve([]),
+      listStaffUsers(),
+      canConvert ? listOrganisationChoices() : Promise.resolve([]),
     ]),
   );
 
@@ -143,19 +144,30 @@ export default async function LeadsPage({
           const selected = status === option;
 
           return (
-            <Link
+            <FilterToggleLink
               key={option ?? 'all'}
               href={link({ status: option })}
-              aria-current={selected ? 'true' : undefined}
-              className={clsx(
-                'inline-flex items-center gap-2 rounded-[var(--radius-control)] border px-3 py-2 text-sm font-medium transition-colors',
-                'bg-[var(--color-surface-sunken)] text-[var(--color-ink-muted)]',
-                selected ? 'border-current' : 'border-transparent hover:border-current',
-              )}
+              label={`${option ? STATUS_LABEL[option] : 'All'} leads`}
+              active={selected}
+              icon={
+                <Icon
+                  name={
+                    option === 'disqualified'
+                      ? 'alert'
+                      : option === 'working'
+                        ? 'clock'
+                        : option === 'converted'
+                          ? 'status'
+                          : option === 'new'
+                            ? 'contact'
+                            : 'filter'
+                  }
+                />
+              }
             >
               {option ? STATUS_LABEL[option] : 'All'}
               <span className="font-semibold tabular-nums">({countFor(option)})</span>
-            </Link>
+            </FilterToggleLink>
           );
         })}
 

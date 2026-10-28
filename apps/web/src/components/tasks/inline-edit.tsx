@@ -122,6 +122,7 @@ export function Popover({
       <button
         type="button"
         aria-label={label}
+        title={label}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={() => setOpen(!open)}

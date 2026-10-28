@@ -16,6 +16,9 @@
 
 # next.js
 **/.next/
+**/.next-release/
+**/.next-performance-qa/
+**/.next-pagination-qa/
 **/out/
 
 # production

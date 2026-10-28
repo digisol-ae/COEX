@@ -1,3 +1,4 @@
+import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { UserModel } from '@coex/shared/core/models/user.model';
@@ -24,7 +25,7 @@ export async function mentionableUsers(onlyIds?: string[] | null): Promise<Menti
   const found = await users()
     .find({
       status: 'active',
-      role: { $ne: 'client_contact' },
+      role: { $in: [...STAFF_ROLES] },
       ...(onlyIds ? { _id: { $in: onlyIds } } : {}),
     })
     .select('name')

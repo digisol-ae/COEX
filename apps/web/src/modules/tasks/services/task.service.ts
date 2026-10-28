@@ -1,7 +1,8 @@
+import { assertStaffAdditions } from '@/modules/core/services/staff.service';
 import { taskTeamsSource, teamsMessageLink } from '@coex/shared/tasks/teams-sharing';
 import { fileStorage } from '@/lib/storage';
 import { storeTaskImages, type IncomingFile } from '@/modules/tickets/services/attachment.service';
-import { Types } from 'mongoose';
+import { Types, type HydratedDocument } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { repository } from '@/lib/repository';
@@ -10,7 +11,7 @@ import { recordAudit, changedFields } from '@/modules/core/services/audit.servic
 import { nextNumber } from '@/modules/core/services/numbering.service';
 import { recordActivity } from '@/modules/crm/services/activity.service';
 import { UserModel } from '@coex/shared/core/models/user.model';
-import { TaskModel } from '@coex/shared/tasks/models/task.model';
+import { TaskModel, type Task } from '@coex/shared/tasks/models/task.model';
 import { TaskCommentModel } from '@coex/shared/tasks/models/task-comment.model';
 import { alertStaff, appBaseUrl } from '@/modules/core/services/email.service';
 import {
@@ -28,6 +29,11 @@ import { parseDocumentLink } from '@coex/shared/tasks/document-links';
 import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
 import { TicketMessageModel } from '@coex/shared/tickets/models/ticket-message.model';
 import { parseDateTimeInput } from '@coex/shared/tasks/dates';
+import {
+  nextRecurrenceDate,
+  TASK_RECURRENCES,
+  type TaskRecurrence,
+} from '@coex/shared/tasks/recurrence';
 
 /**
  * Tasks.
@@ -66,7 +72,15 @@ export interface TaskSummary {
   sortOrder: number;
   subtaskCount: number;
   subtasksDone: number;
-  subtasks: { id: string; title: string; done: boolean; assigneeId: string | null }[];
+  subtasks: {
+    id: string;
+    title: string;
+    done: boolean;
+    assigneeId: string | null;
+    assigneeName?: string | null;
+    startAt?: Date | null;
+    endAt?: Date | null;
+  }[];
   sourceTeamsMessageUrl?: string | null;
   documentCount: number;
   documentLinks: { id: string; title: string; url: string }[];
@@ -215,9 +229,17 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   );
 
   const assigneeIds = [
-    ...new Set(found.flatMap((task) => task.assigneeIds.map((id) => String(id)))),
+    ...new Set(
+      found.flatMap((task) => [
+        ...task.assigneeIds.map(String),
+        ...task.subtasks.flatMap((sub) => (sub.assigneeId ? [String(sub.assigneeId)] : [])),
+      ]),
+    ),
   ];
-  const users = await UserModel.find({ _id: { $in: assigneeIds } }).select('name');
+  const users = await UserModel.find({
+    tenantId: getContext().tenantId,
+    _id: { $in: assigneeIds },
+  }).select('name');
   const names = new Map(users.map((user) => [String(user._id), user.name]));
 
   // Batched the same way documentCount and subtaskCount are, so a list of a hundred tasks costs
@@ -271,6 +293,11 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
       title: subtask.title,
       done: subtask.done,
       assigneeId: subtask.assigneeId ? String(subtask.assigneeId) : null,
+      assigneeName: subtask.assigneeId
+        ? (names.get(String(subtask.assigneeId)) ?? 'Unknown')
+        : null,
+      startAt: subtask.startAt ?? null,
+      endAt: subtask.endAt ?? null,
     })),
     documentCount: task.documentLinks.length,
     documentLinks: task.documentLinks.map((link) => ({
@@ -708,6 +735,22 @@ export interface CreateTaskInput {
   /** Set when support escalates a ticket, so work updates on the task can reach that ticket. */
   sourceTicketId?: string | null;
   sourceTeamsMessageUrl?: string | null;
+  recurrence?: TaskRecurrence;
+  /** Internal hooks used to create a single linked repeat occurrence. */
+  id?: string;
+  tags?: string[];
+  subtasks?: {
+    title: string;
+    assigneeId?: string | null;
+    startAt?: string | null;
+    endAt?: string | null;
+  }[];
+}
+
+function recurrenceValue(value: unknown): TaskRecurrence {
+  return (TASK_RECURRENCES as readonly unknown[]).includes(value)
+    ? (value as TaskRecurrence)
+    : 'none';
 }
 
 /**
@@ -720,7 +763,9 @@ async function assertAssignable(
   folderId: string | null,
   assigneeIds: string[],
   spaceId?: string,
+  retainedIds: string[] = [],
 ): Promise<void> {
+  await assertStaffAdditions(assigneeIds, retainedIds);
   const spaceAllowed = spaceId ? await assignableSpaceMemberIds(spaceId) : null;
   if (spaceAllowed && assigneeIds.some((id) => !spaceAllowed.includes(id))) {
     throw new Error('That space is private, so work in it can only be assigned to its members.');
@@ -804,6 +849,7 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
   const endAt = toDate(input.endAt);
 
   const created = await tasks().create({
+    ...(input.id ? { _id: toObjectId(input.id) } : {}),
     number: await nextNumber('task'),
     title: input.title.trim(),
     description: input.description?.trim() || null,
@@ -815,7 +861,10 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     primaryAssigneeId: assigneeIds[0] ?? null,
     startAt,
     endAt,
+    recurrence: recurrenceValue(input.recurrence),
+    recurrenceNextTaskId: null,
     estimateMinutes: input.estimateMinutes ?? null,
+    tags: input.tags ?? [],
     sortOrder: Date.now(),
     organisationId: toOptionalObjectId(input.organisationId ?? space.organisationId),
     sourceTicketId: toOptionalObjectId(input.sourceTicketId),
@@ -829,7 +878,26 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
   // sub-document array, and the plain record is what every other write already uses.
   await tasks().updateOne(
     { _id: created._id },
-    { $set: { assignments: assignmentsAfter([], assigneeIds, []) } },
+    {
+      $set: {
+        assignments: assignmentsAfter([], assigneeIds, []),
+        ...(input.subtasks?.length
+          ? {
+              subtasks: input.subtasks.map((subtask) => ({
+                title: subtask.title.trim(),
+                done: false,
+                assigneeId:
+                  subtask.assigneeId && assigneeIds.some((id) => String(id) === subtask.assigneeId)
+                    ? toObjectId(subtask.assigneeId)
+                    : null,
+                completedAt: null,
+                startAt: toDate(subtask.startAt),
+                endAt: toDate(subtask.endAt),
+              })),
+            }
+          : {}),
+      },
+    },
   );
 
   await recordAudit({
@@ -905,7 +973,12 @@ export async function moveTaskToSpace(
     }
   }
 
-  await assertAssignable(folderId, task.assigneeIds.map(String), String(target._id));
+  await assertAssignable(
+    folderId,
+    task.assigneeIds.map(String),
+    String(target._id),
+    task.assigneeIds.map(String),
+  );
 
   const firstColumn = [...target.statuses].sort(
     (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
@@ -941,6 +1014,61 @@ export async function moveTaskToSpace(
     before: { space: from.name },
     after: { space: target.name, folder: folderId, status: firstColumn.name },
   });
+}
+
+async function createNextRecurringTask(task: HydratedDocument<Task>): Promise<void> {
+  const recurrence = recurrenceValue(task.recurrence);
+  if (recurrence === 'none') return;
+
+  const tenantId = getContext().tenantId;
+  let nextTaskId = task.recurrenceNextTaskId ?? null;
+  if (!nextTaskId) {
+    const candidateId = new Types.ObjectId();
+    const reserved = await TaskModel.findOneAndUpdate(
+      { _id: task._id, tenantId, recurrenceNextTaskId: null },
+      { $set: { recurrenceNextTaskId: candidateId } },
+      { new: true },
+    );
+    nextTaskId =
+      reserved?.recurrenceNextTaskId ??
+      (await TaskModel.findOne({ _id: task._id, tenantId }).select('recurrenceNextTaskId'))
+        ?.recurrenceNextTaskId ??
+      null;
+  }
+  if (!nextTaskId) throw new Error('Could not reserve the next recurring task.');
+
+  if (await TaskModel.exists({ _id: nextTaskId, tenantId })) return;
+
+  try {
+    await createTask({
+      id: String(nextTaskId),
+      spaceId: String(task.spaceId),
+      folderId: task.folderId ? String(task.folderId) : null,
+      organisationId: task.organisationId ? String(task.organisationId) : null,
+      title: task.title,
+      description: task.description ?? '',
+      priority: (task.priority ?? 'normal') as Priority,
+      assigneeIds: task.assigneeIds.map(String),
+      startAt: nextRecurrenceDate(task.startAt, recurrence)?.toISOString() ?? null,
+      endAt: nextRecurrenceDate(task.endAt, recurrence)?.toISOString() ?? null,
+      estimateMinutes: task.estimateMinutes ?? null,
+      tags: task.tags ?? [],
+      recurrence,
+      subtasks: task.subtasks.map((subtask) => ({
+        title: subtask.title,
+        assigneeId: subtask.assigneeId ? String(subtask.assigneeId) : null,
+        startAt: nextRecurrenceDate(subtask.startAt, recurrence)?.toISOString() ?? null,
+        endAt: nextRecurrenceDate(subtask.endAt, recurrence)?.toISOString() ?? null,
+      })),
+    });
+  } catch (error) {
+    // Two simultaneous completion requests can race to create the same reserved _id. The winner
+    // has already produced the occurrence, so this is successful idempotent completion.
+    if (await TaskModel.exists({ _id: nextTaskId, tenantId })) return;
+    throw new Error(
+      `The task was completed, but the next recurring task could not be created: ${error instanceof Error ? error.message : 'try again'}`,
+    );
+  }
 }
 
 export async function moveTask(id: string, status: string): Promise<void> {
@@ -1008,6 +1136,10 @@ export async function moveTask(id: string, status: string): Promise<void> {
       { $set: { lastActivityAt: new Date() } },
     );
   }
+
+  // Creating on any move into a closed column makes a failed/interruptible create retryable when
+  // the same completed status is submitted again. The reserved next-task id prevents duplicates.
+  if (column.isClosed) await createNextRecurringTask(task);
 }
 
 export interface UpdateTaskInput {
@@ -1020,6 +1152,7 @@ export interface UpdateTaskInput {
   estimateMinutes?: number | null;
   tags?: string[];
   folderId?: string | null;
+  recurrence?: TaskRecurrence;
 }
 
 export async function updateTask(id: string, input: UpdateTaskInput): Promise<void> {
@@ -1036,6 +1169,7 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
         : null,
     input.assigneeIds.filter(Boolean),
     String(before.spaceId),
+    before.assigneeIds.map(String),
   );
 
   const assigneeIds = input.assigneeIds.filter(Boolean).map((value) => toObjectId(value));
@@ -1073,6 +1207,9 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
         primaryAssigneeId: assigneeIds[0] ?? null,
         startAt,
         endAt,
+        ...(input.recurrence !== undefined
+          ? { recurrence: recurrenceValue(input.recurrence) }
+          : {}),
         estimateMinutes: input.estimateMinutes ?? null,
         tags: input.tags ?? [],
         folderId: toOptionalObjectId(input.folderId),
@@ -1092,6 +1229,7 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
         startAt: before.startAt,
         endAt: before.endAt,
         assigneeIds: before.assigneeIds.map(String),
+        recurrence: before.recurrence ?? 'none',
       },
       {
         title: after?.title,
@@ -1099,6 +1237,7 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
         startAt: after?.startAt,
         endAt: after?.endAt,
         assigneeIds: after?.assigneeIds.map(String),
+        recurrence: after?.recurrence ?? 'none',
       },
     ),
   });
@@ -1142,6 +1281,7 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
       patch.folderId,
       (patch.assigneeIds ?? before.assigneeIds.map(String)).filter(Boolean),
       String(before.spaceId),
+      before.assigneeIds.map(String),
     );
 
     set.folderId = toOptionalObjectId(patch.folderId);
@@ -1158,6 +1298,7 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
       before.folderId ? String(before.folderId) : null,
       patch.assigneeIds.filter(Boolean),
       String(before.spaceId),
+      before.assigneeIds.map(String),
     );
 
     const assigneeIds = patch.assigneeIds.filter(Boolean).map((value) => toObjectId(value));
@@ -1287,6 +1428,7 @@ export async function setSubtaskAssignee(
 
   const previousAssigneeId = subtask.assigneeId ? String(subtask.assigneeId) : null;
   if (previousAssigneeId === assigneeId) return;
+  await assertStaffAdditions(assigneeId ? [assigneeId] : []);
 
   if (assigneeId) {
     task.mySubtaskDoneByIds = (task.mySubtaskDoneByIds ?? []).filter(

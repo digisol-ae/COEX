@@ -195,6 +195,7 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
     <div>
       <div className="flex items-center">
         <Link
+          prefetch={false}
           href="/spaces"
           className={clsx(
             'flex-1 rounded-[var(--radius-control)] px-2 py-2 text-[13px] transition-colors',
@@ -277,6 +278,7 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
                   </span>
 
                   <Link
+                    prefetch={false}
                     href={`/spaces/${space.id}`}
                     className={clsx(
                       'flex min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] px-2 py-1.5 text-xs transition-colors',
@@ -370,6 +372,7 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
                             ) : null}
 
                             <Link
+                              prefetch={false}
                               href={
                                 folder.id
                                   ? `/spaces/${space.id}?folder=${folder.id}`
@@ -406,6 +409,7 @@ export function SpaceTree({ canManage }: { canManage: boolean }) {
                                 <div key={task.id}>
                                   <div className="flex min-w-0 items-center gap-1">
                                     <Link
+                                      prefetch={false}
                                       href={`/tasks/${task.id}`}
                                       className={clsx(
                                         'block min-w-0 flex-1 truncate rounded-[var(--radius-control)] px-2 py-1 text-[11px] transition-colors hover:text-[var(--color-ink)]',

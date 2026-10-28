@@ -158,7 +158,10 @@ export function ContractPanel({
           </Field>
 
           <div className="grid gap-3 sm:grid-cols-3">
-            <Field label="Starts">
+            <Field
+              label="Starts"
+              hint="Past dates, including 2025, are allowed. Type or choose the full date."
+            >
               <Input
                 type="date"
                 name="startDate"

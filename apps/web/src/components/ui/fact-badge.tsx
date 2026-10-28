@@ -23,7 +23,8 @@ export type FactIcon =
   | 'file'
   | 'receipt'
   | 'note'
-  | 'alert';
+  | 'alert'
+  | 'repeat';
 
 const PATHS: Record<FactIcon, ReactNode> = {
   mail: <path d="M2.5 4.5h11v7h-11zM2.8 4.8 8 8.8l5.2-4" />,
@@ -75,6 +76,7 @@ const PATHS: Record<FactIcon, ReactNode> = {
   receipt: <path d="M4 2.5h8v11l-1.3-1-1.4 1-1.3-1-1.3 1-1.4-1L4 13.5zM6 6h4M6 8.5h4" />,
   note: <path d="M3 3.5h10v7H8l-3 2.5v-2.5H3z" />,
   alert: <path d="M8 2.5 14 13H2zM8 6.5v3M8 11.2v.1" />,
+  repeat: <path d="M3 5.5h8l-2-2m4 7H5l2 2" />,
 };
 
 export function FactGlyph({ name }: { name: FactIcon }) {

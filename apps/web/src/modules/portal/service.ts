@@ -21,6 +21,7 @@ import {
 import { recordAudit } from '@/modules/core/services/audit.service';
 import { createUser } from '@/modules/core/services/user.service';
 import { alertStaff, appBaseUrl } from '@/modules/core/services/email.service';
+import { RECORD_PAGE_SIZE } from '@/modules/core/record-page-size';
 
 /** Revalidate account/contact/company on every call. Never infer access from an email alone. */
 export async function portalIdentity() {
@@ -93,7 +94,7 @@ async function ownScope() {
     },
   };
 }
-export async function portalTickets(search = '', page = 1, status = '') {
+export async function portalTickets(search = '', page = 1, status = '', cumulative = false) {
   const { filter } = await ownScope();
   const safePage = Math.max(1, Number.isSafeInteger(page) ? page : 1);
   const query: QueryFilter<Ticket> = {
@@ -109,8 +110,8 @@ export async function portalTickets(search = '', page = 1, status = '') {
     TicketModel.find(query)
       .select('number subject status createdAt lastActivityAt')
       .sort({ lastActivityAt: -1, _id: -1 })
-      .skip((safePage - 1) * 25)
-      .limit(25),
+      .skip(cumulative ? 0 : (safePage - 1) * RECORD_PAGE_SIZE)
+      .limit(cumulative ? Math.min(safePage * RECORD_PAGE_SIZE, 2147483647) : RECORD_PAGE_SIZE),
     TicketModel.countDocuments(query),
   ]);
   return {

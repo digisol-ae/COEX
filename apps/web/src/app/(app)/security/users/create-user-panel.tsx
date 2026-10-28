@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
-import { ROLES } from '@coex/shared/core/permissions';
+import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { createUserAction, type UserFormState } from './actions';
 
 const initialState: UserFormState = {};
@@ -53,7 +53,7 @@ export function CreateUserPanel() {
 
             <Field label="Role">
               <Select name="role" defaultValue="agent">
-                {ROLES.map((role) => (
+                {STAFF_ROLES.map((role) => (
                   <option key={role} value={role}>
                     {role.replace('_', ' ')}
                   </option>

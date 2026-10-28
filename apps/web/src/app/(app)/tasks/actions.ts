@@ -6,6 +6,7 @@ import {
   type IncomingFile,
 } from '@/modules/tickets/services/attachment.service';
 import { validateSpaceStatuses } from '@coex/shared/tasks/statuses';
+import { TASK_RECURRENCES, type TaskRecurrence } from '@coex/shared/tasks/recurrence';
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -72,6 +73,12 @@ function text(formData: FormData, field: string): string {
 
 function toPriority(value: string): Priority {
   return (PRIORITIES as readonly string[]).includes(value) ? (value as Priority) : 'normal';
+}
+
+function toRecurrence(value: string): TaskRecurrence {
+  return (TASK_RECURRENCES as readonly string[]).includes(value)
+    ? (value as TaskRecurrence)
+    : 'none';
 }
 
 function assigneesFrom(formData: FormData): string[] {
@@ -196,6 +203,7 @@ export async function createTaskAction(
         estimateMinutes: text(formData, 'estimateHours')
           ? Math.round(Number(text(formData, 'estimateHours')) * 60)
           : null,
+        recurrence: toRecurrence(text(formData, 'recurrence')),
       }),
     );
   } catch (error) {
@@ -223,6 +231,7 @@ export async function createPersonalTaskAction(
         priority: toPriority(text(formData, 'priority')),
         assigneeIds: [actor.id],
         endAt: text(formData, 'endAt') || null,
+        recurrence: toRecurrence(text(formData, 'recurrence')),
       });
     });
   } catch (error) {
@@ -260,6 +269,7 @@ export async function createTaskAnywhereAction(
         startAt: text(formData, 'startAt') || null,
         endAt: text(formData, 'endAt') || null,
         folderId: personal ? null : text(formData, 'folderId') || null,
+        recurrence: toRecurrence(text(formData, 'recurrence')),
       });
     });
   } catch (error) {
@@ -435,6 +445,7 @@ export async function updateTaskAction(
           .split(',')
           .map((tag) => tag.trim())
           .filter(Boolean),
+        recurrence: toRecurrence(text(formData, 'recurrence')),
       }),
     );
   } catch (error) {

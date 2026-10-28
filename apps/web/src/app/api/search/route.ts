@@ -1,6 +1,6 @@
 import { asUser, getSignedInUser } from '@/lib/session';
 import { listTasks } from '@/modules/tasks/services/task.service';
-import { listOrganisations } from '@/modules/crm/services/organisation.service';
+import { listOrganisationChoices } from '@/modules/crm/services/organisation.service';
 import { listSpaces } from '@/modules/tasks/services/space.service';
 import { searchTickets } from '@/modules/tickets/services/ticket.service';
 import { SEARCH_SCOPES, type SearchScope } from '@/components/navigation/search-context';
@@ -90,7 +90,7 @@ export async function GET(request: Request) {
     }
 
     if (includes('customers') && user.permissions.includes('customer.read')) {
-      const customers = await listOrganisations({ search: query });
+      const customers = await listOrganisationChoices({ search: query, limit: 20 });
 
       for (const customer of customers) {
         found.push({

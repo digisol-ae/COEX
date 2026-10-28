@@ -26,7 +26,12 @@ export function Sidebar({
     <SidebarFrame>
       <aside className="sidebar-glow hidden w-60 shrink-0 flex-col border-r border-[var(--color-line)] md:flex">
         <div className="flex items-center justify-between px-4 py-3">
-          <Link href="/dashboard" aria-label={`${tenantName} home`} title={tenantName}>
+          <Link
+            prefetch={false}
+            href="/dashboard"
+            aria-label={`${tenantName} home`}
+            title={tenantName}
+          >
             <DigisolLogo priority />
           </Link>
         </div>

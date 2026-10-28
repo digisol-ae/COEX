@@ -19,8 +19,10 @@ import {
 import { useToast } from '@/components/ui/toast';
 import { Chip, StatusDot, StatusPill } from '@/components/ui/pill';
 import { formatDateTime } from '@coex/shared/tasks/dates';
+import { TASK_RECURRENCES } from '@coex/shared/tasks/recurrence';
 import { formatMinutes } from '@coex/shared/time/week';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
+import { ShowMore, useRecordWindow } from '@/components/ui/record-window';
 import { Gantt } from './gantt';
 import { ViewTabs } from './view-tabs';
 import { FolderBar } from './folder-bar';
@@ -189,17 +191,28 @@ export function Board({
 
     if (assigneeFilter) {
       const name = nameOf.get(assigneeFilter);
-      if (!name || !task.assigneeNames.includes(name)) return false;
+      if (
+        !name ||
+        (!task.assigneeNames.includes(name) &&
+          !task.subtasks.some((sub) => sub.assigneeId === assigneeFilter))
+      )
+        return false;
     }
 
     if (search.trim()) {
-      const text = `${task.number} ${task.title} ${task.folderName ?? ''}`.toLowerCase();
+      const text =
+        `${task.number} ${task.title} ${task.folderName ?? ''} ${task.subtasks.map((sub) => sub.title).join(' ')}`.toLowerCase();
       if (!text.includes(search.trim().toLowerCase())) return false;
     }
 
     return true;
   });
 
+  const page = useRecordWindow(
+    visible,
+    `${view}:${folderId}:${assigneeFilter}:${search}:${showClosed}:` +
+      visible.map((task) => task.id).join('|'),
+  );
   const columnTasks = (status: string) => visible.filter((task) => task.status === status);
 
   // Read from the optimistic list rather than held in state, so an edit made inside the panel is
@@ -435,6 +448,18 @@ export function Board({
                 <Input name="endAt" type="datetime-local" />
               </Field>
 
+              <Field label="Repeat" hint="The next task is created when this one is completed.">
+                <Select name="recurrence" defaultValue="none">
+                  {TASK_RECURRENCES.map((option) => (
+                    <option key={option} value={option}>
+                      {option === 'none'
+                        ? 'Does not repeat'
+                        : option[0].toUpperCase() + option.slice(1)}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+
               {folders.length > 0 ? (
                 <Field label="Folder">
                   <Select name="folderId" defaultValue={activeFolderId ?? ''}>
@@ -482,7 +507,9 @@ export function Board({
             style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(16rem, 1fr))` }}
           >
             {columns.map((column) => {
-              const inColumn = columnTasks(column.name);
+              const inColumn = columnTasks(column.name).filter((task) =>
+                page.items.some((shown) => shown.id === task.id),
+              );
 
               return (
                 <div
@@ -500,7 +527,7 @@ export function Board({
                   <div className="mb-2 flex items-center gap-2">
                     <StatusPill status={column.name} isClosed={column.isClosed} />
                     <span className="text-xs text-[var(--color-ink-subtle)] tabular-nums">
-                      {inColumn.length}
+                      {visible.filter((task) => task.status === column.name).length}
                     </span>
 
                     {canManage ? (
@@ -574,7 +601,9 @@ export function Board({
 
                     {inColumn.length === 0 && !canManage ? (
                       <p className="px-2 py-6 text-center text-xs text-[var(--color-ink-subtle)]">
-                        Nothing here
+                        {columnTasks(column.name).length
+                          ? 'Show more to see tasks in this column'
+                          : 'Nothing here'}
                       </p>
                     ) : null}
 
@@ -592,7 +621,10 @@ export function Board({
         </div>
       ) : view === 'list' ? (
         <ListView
-          tasks={visible}
+          totalCounts={Object.fromEntries(
+            columns.map((column) => [column.name, columnTasks(column.name).length]),
+          )}
+          tasks={page.items}
           columns={columns}
           handlers={handlers}
           dragging={dragging}
@@ -602,6 +634,7 @@ export function Board({
         />
       ) : null}
 
+      {view !== 'gantt' ? <ShowMore {...page} /> : null}
       {openTask ? (
         <TaskPanel
           key={openTask.id}
@@ -758,6 +791,7 @@ function TaskCard({
  */
 function ListView({
   tasks,
+  totalCounts,
   columns,
   handlers,
   dragging,
@@ -766,6 +800,7 @@ function ListView({
   onDropOn,
 }: {
   tasks: TaskSummary[];
+  totalCounts: Record<string, number>;
   columns: { name: string; isClosed: boolean }[];
   handlers: EditHandlers;
   dragging: DragState | null;
@@ -808,7 +843,7 @@ function ListView({
 
               <StatusPill status={column.name} isClosed={column.isClosed} />
               <span className="text-xs text-[var(--color-ink-subtle)] tabular-nums">
-                {inColumn.length}
+                {totalCounts[column.name] ?? inColumn.length}
               </span>
             </div>
 
@@ -821,7 +856,7 @@ function ListView({
                     onDropOn(column.name, inColumn.length);
                   }}
                 >
-                  <Table className="w-full border-collapse text-sm">
+                  <Table paginate={false} className="w-full border-collapse text-sm">
                     <thead>
                       <tr className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
                         <th className="w-6 border-b border-[var(--color-line)] px-2 py-1.5" />
@@ -1034,7 +1069,9 @@ function ListView({
                             colSpan={6}
                             className="px-3 py-3 text-center text-xs text-[var(--color-ink-subtle)]"
                           >
-                            Nothing here
+                            {totalCounts[column.name]
+                              ? 'Show more to see tasks in this column'
+                              : 'Nothing here'}
                           </td>
                         </tr>
                       ) : null}

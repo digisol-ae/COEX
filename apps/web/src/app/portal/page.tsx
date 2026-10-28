@@ -43,7 +43,7 @@ export default async function PortalPage({
   try {
     data = await asUser(user, async () => ({
       identity: await portalIdentity(),
-      list: await portalTickets(params.q, Number(params.page ?? 1), params.status),
+      list: await portalTickets(params.q, Number(params.page ?? 1), params.status, true),
     }));
   } catch (error) {
     return (
@@ -113,14 +113,19 @@ export default async function PortalPage({
           <li className="p-4 text-sm text-[var(--color-ink-muted)]">No tickets found.</li>
         )}
       </ul>
-      <div className="flex justify-between text-sm">
-        {list.page > 1 ? (
-          <Link href={`/portal?${query}&page=${list.page - 1}`}>Previous</Link>
-        ) : (
-          <span />
-        )}
-        {list.page * 25 < list.total ? (
-          <Link href={`/portal?${query}&page=${list.page + 1}`}>Next</Link>
+      <div className="flex items-center justify-center gap-3 py-3 text-sm">
+        <span role="status">
+          Showing {list.tickets.length} of {list.total}
+        </span>
+        {list.tickets.length < list.total ? (
+          <Link
+            prefetch={false}
+            scroll={false}
+            className="rounded border border-[var(--color-line)] px-3 py-1.5"
+            href={`/portal?${query}&page=${list.page + 1}`}
+          >
+            Show more
+          </Link>
         ) : null}
       </div>
     </>

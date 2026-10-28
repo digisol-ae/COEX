@@ -26,6 +26,7 @@ export function TicketSubjectLink({
   return (
     <>
       <Link
+        prefetch={false}
         href={`/support/tickets/${ticketId}`}
         className={className}
         onClick={(event) => {

@@ -45,7 +45,7 @@ export default defineConfig({
       MONGODB_URI: environment.MONGODB_URI ?? '',
       // Optional. Point this at a MongoDB on the same machine (see tests/README.md) and the suite
       // stops paying a network round trip per query. Falls back to MONGODB_URI.
-      MONGODB_TEST_URI: environment.MONGODB_TEST_URI ?? '',
+      MONGODB_TEST_URI: process.env.MONGODB_TEST_URI ?? environment.MONGODB_TEST_URI ?? '',
       // Uploads in the suite go to their own directory, so a test run can never write into the
       // store a running development server is using.
       STORAGE_DIR: path.resolve(import.meta.dirname, '.storage-test'),

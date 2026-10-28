@@ -14,6 +14,8 @@ import {
   archiveContact,
   updateContact,
 } from '@/modules/crm/services/contact.service';
+import { linkTicketPeople } from '@/modules/crm/services/ticket-people.service';
+import { parseTicketPersonSelection } from '@coex/shared/crm/ticket-people';
 import { createLocation, archiveLocation } from '@/modules/crm/services/location.service';
 import { recordActivity, type ActivityKind } from '@/modules/crm/services/activity.service';
 import {
@@ -254,4 +256,44 @@ export async function updateContactAction(
   }
   revalidatePath(`/customers/${organisationId}`);
   return { saved: true };
+}
+
+export interface LinkFromTicketsState {
+  error?: string;
+  /** Set when some people belong to another customer and the move needs confirming. */
+  conflicts?: { name: string; organisationName: string }[];
+  message?: string;
+}
+
+/** Links people found on tickets to this customer, creating contacts where needed. */
+export async function linkTicketPeopleAction(
+  _previous: LinkFromTicketsState,
+  formData: FormData,
+): Promise<LinkFromTicketsState> {
+  const actor = await requirePermission('customer.manage');
+  if (!actor.permissions.includes('ticket.read.all')) {
+    return { error: 'You need access to all tickets to add contacts from them.' };
+  }
+  const organisationId = text(formData, 'organisationId');
+
+  try {
+    const people = parseTicketPersonSelection(text(formData, 'people'));
+    const result = await asUser(actor, () =>
+      linkTicketPeople(organisationId, people, formData.get('move') === 'yes'),
+    );
+    if (result.conflicts.length && !result.added) return { conflicts: result.conflicts };
+
+    revalidatePath(`/customers/${organisationId}`);
+    const parts = [
+      `${result.added} contact${result.added === 1 ? '' : 's'} added`,
+      result.moved ? `${result.moved} moved from another customer` : '',
+      result.ticketsLinked
+        ? `${result.ticketsLinked} ticket${result.ticketsLinked === 1 ? '' : 's'} now filed here`
+        : '',
+      result.alreadyHere ? `${result.alreadyHere} already here` : '',
+    ].filter(Boolean);
+    return { message: parts.join(' · ') + '.' };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not add the contacts.' };
+  }
 }

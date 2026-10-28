@@ -1,12 +1,13 @@
 import { LiveRefresh } from '@/components/ui/live-refresh';
 import Link from 'next/link';
-import { clsx } from 'clsx';
 import { asUser, requirePermission } from '@/lib/session';
 import { listContracts, type ContractSummary } from '@/modules/crm/services/contract.service';
-import { listOrganisations } from '@/modules/crm/services/organisation.service';
+import { listOrganisationChoices } from '@/modules/crm/services/organisation.service';
 import { fromMinorUnits, listProducts } from '@/modules/crm/services/product.service';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
+import { Icon } from '@/components/ui/icon-button';
+import { FilterToggleLink } from '@/components/ui/filter-toggle';
 import {
   matchesContractFilter,
   parseContractFilter,
@@ -47,37 +48,31 @@ const FILTERS: {
   id: ContractFilter;
   label: string;
   hint: string;
-  color: string;
 }[] = [
   {
     id: 'all',
     label: 'All',
     hint: 'Every contract',
-    color: 'text-[var(--color-ink-muted)] bg-[var(--color-surface-sunken)]',
   },
   {
     id: 'due',
     label: 'Needs renewal',
     hint: "In force and inside the customer's warning window, or past its end date",
-    color: 'text-[var(--color-status-warn)] bg-[var(--color-status-warn-soft)]',
   },
   {
     id: '30',
     label: 'Expiring in 30 days',
     hint: 'In force and ending within 30 days',
-    color: 'text-[var(--color-status-warn)] bg-[var(--color-status-warn-soft)]',
   },
   {
     id: '60',
     label: 'Expiring in 60 days',
     hint: 'In force and ending within 60 days',
-    color: 'text-[var(--color-status-info)] bg-[var(--color-status-info-soft)]',
   },
   {
     id: 'expired',
     label: 'Expired',
     hint: 'Still marked active but past the end date',
-    color: 'text-[var(--color-status-alert)] bg-[var(--color-status-alert-soft)]',
   },
 ];
 
@@ -92,7 +87,7 @@ export default async function ContractsPage({
   const editable = actor.permissions.includes('contract.manage');
 
   const [allContracts, organisations, products] = await asUser(actor, () =>
-    Promise.all([listContracts(), listOrganisations(), listProducts()]),
+    Promise.all([listContracts(), listOrganisationChoices(), listProducts()]),
   );
 
   const contracts = allContracts.filter(
@@ -143,25 +138,37 @@ export default async function ContractsPage({
         }
       />
 
-      <div className="mb-3 flex flex-wrap gap-3 text-sm" aria-label="Service model filters">
+      <div
+        className="coex-filters mb-3 flex flex-wrap items-center gap-1.5"
+        aria-label="Service model filters"
+      >
         {[
           ['', 'All services'],
           ['contractual', 'Contractual'],
           ['subscription', 'Subscriptions'],
         ].map(([model, label]) => (
-          <Link
+          <FilterToggleLink
             key={model}
-            className={
-              query.model === model || (!query.model && !model)
-                ? 'font-semibold underline'
-                : 'hover:underline'
+            label={label}
+            active={query.model === model || (!query.model && !model)}
+            icon={
+              <Icon name={!model ? 'filter' : model === 'subscription' ? 'calendar' : 'status'} />
             }
             href={`/contracts?${new URLSearchParams({ ...(query.customer ? { customer: query.customer } : {}), ...(model ? { model } : {}), filter })}`}
           >
             {label}
-          </Link>
+          </FilterToggleLink>
         ))}
-        {query.customer ? <Link href="/contracts">All customers</Link> : null}
+        {query.customer ? (
+          <FilterToggleLink
+            href="/contracts"
+            label="Show contracts for all customers"
+            active={false}
+            icon={<Icon name="customer" />}
+          >
+            All customers
+          </FilterToggleLink>
+        ) : null}
       </div>
       <div
         className="coex-filters mb-3 flex flex-wrap gap-1.5"
@@ -171,21 +178,22 @@ export default async function ContractsPage({
           const selected = filter === option.id;
 
           return (
-            <Link
+            <FilterToggleLink
               key={option.id}
               href={`/contracts?${new URLSearchParams({ filter: option.id, ...(query.customer ? { customer: query.customer } : {}), ...(query.model ? { model: query.model } : {}) })}`}
               title={option.hint}
-              aria-current={selected ? 'true' : undefined}
-              className={clsx(
-                'inline-flex items-center gap-2 rounded-[var(--radius-control)] border px-3 py-2 text-sm font-medium transition-colors',
-                option.color,
-                selected ? 'border-current' : 'border-transparent hover:border-current',
-              )}
+              label={`${option.label}: ${option.hint}`}
+              active={selected}
+              tone={option.id === 'expired' ? 'danger' : 'default'}
+              icon={
+                <Icon
+                  name={option.id === 'all' ? 'filter' : option.id === 'due' ? 'alert' : 'clock'}
+                />
+              }
             >
-              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-current" />
               {option.label}
               <span className="font-semibold tabular-nums">({countFor(option.id)})</span>
-            </Link>
+            </FilterToggleLink>
           );
         })}
       </div>

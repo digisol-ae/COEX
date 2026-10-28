@@ -20,6 +20,8 @@ const subtaskSchema = new Schema(
     done: { type: Boolean, default: false },
     assigneeId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
     completedAt: { type: Date, default: null },
+    startAt: { type: Date, default: null },
+    endAt: { type: Date, default: null },
   },
   { _id: true },
 );
@@ -92,6 +94,15 @@ const taskSchema = new Schema(
     startAt: { type: Date, default: null, index: true },
     endAt: { type: Date, default: null, index: true },
 
+    /** When a closed occurrence should create its next open task. */
+    recurrence: {
+      type: String,
+      enum: ['none', 'daily', 'weekly', 'monthly', 'yearly'],
+      default: 'none',
+    },
+    /** Makes completion-driven occurrence creation idempotent. */
+    recurrenceNextTaskId: { type: Schema.Types.ObjectId, ref: 'Task', default: null },
+
     /**
      * Working minutes between startAt and endAt, stored rather than computed on read so a report
      * cannot disagree with a screen. Working minutes, not elapsed: a task planned from Monday
@@ -157,6 +168,28 @@ if (models.Task && !models.Task.schema.path('mySubtaskDoneByIds')) {
 if (models.Task && !models.Task.schema.path('sourceTeamsMessageUrl'))
   models.Task.schema.add({ sourceTeamsMessageUrl: { type: String, default: null } });
 
+if (models.Task && !models.Task.schema.path('recurrence')) {
+  models.Task.schema.add({
+    recurrence: {
+      type: String,
+      enum: ['none', 'daily', 'weekly', 'monthly', 'yearly'],
+      default: 'none',
+    },
+  });
+}
+if (models.Task && !models.Task.schema.path('recurrenceNextTaskId')) {
+  models.Task.schema.add({
+    recurrenceNextTaskId: { type: Schema.Types.ObjectId, ref: 'Task', default: null },
+  });
+}
+
+if (models.Task && !models.Task.schema.path('subtasks.startAt')) {
+  const embedded = models.Task.schema.path('subtasks') as Schema.Types.DocumentArray;
+  embedded.schema.add({
+    startAt: { type: Date, default: null },
+    endAt: { type: Date, default: null },
+  });
+}
 if (models.Task && process.env.NODE_ENV === 'development') models.Task.recompileSchema();
 
 export const TaskModel: Model<Task> =

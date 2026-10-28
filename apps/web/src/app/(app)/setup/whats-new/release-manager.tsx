@@ -1,5 +1,6 @@
 'use client';
 
+import { ShowMore, useRecordWindow } from '@/components/ui/record-window';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui';
@@ -54,6 +55,10 @@ export function ReleaseManager({ initial }: { initial: ReleaseContentState }) {
       }
     });
   }
+  const grouped = groupReleaseTopicsByDate(state.entries, (entry) => entry.draft.date);
+  const allTopics = grouped.flatMap((day) => day.topics);
+  const page = useRecordWindow(allTopics, allTopics.map((entry) => entry.draft.id).join('|'));
+  const visibleIds = new Set(page.items.map((entry) => entry.draft.id));
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -104,8 +109,9 @@ export function ReleaseManager({ initial }: { initial: ReleaseContentState }) {
             />
           </div>
         )}
-        {groupReleaseTopicsByDate(state.entries, (entry) => entry.draft.date).map(
-          (day, dayIndex) => (
+        {grouped
+          .filter((day) => day.topics.some((entry) => visibleIds.has(entry.draft.id)))
+          .map((day, dayIndex) => (
             <details
               key={day.date}
               open={dayIndex === 0}
@@ -121,25 +127,27 @@ export function ReleaseManager({ initial }: { initial: ReleaseContentState }) {
                 </span>
               </summary>
               <div className="pb-3 pl-4">
-                {day.topics.map((entry, index) => (
-                  <Topic
-                    key={entry.draft.id}
-                    entry={entry}
-                    index={index}
-                    total={day.topics.length}
-                    run={run}
-                  />
-                ))}
+                {day.topics.map((entry, index) =>
+                  visibleIds.has(entry.draft.id) ? (
+                    <Topic
+                      key={entry.draft.id}
+                      entry={entry}
+                      index={index}
+                      total={day.topics.length}
+                      run={run}
+                    />
+                  ) : null,
+                )}
               </div>
             </details>
-          ),
-        )}
+          ))}
         {!state.entries.length && (
           <p className="p-6 text-sm text-[var(--color-ink-muted)]">
             No topics yet. Add a topic to prepare your first update.
           </p>
         )}
       </fieldset>
+      <ShowMore {...page} />
       {pending && (
         <p role="status" className="text-sm">
           Saving…

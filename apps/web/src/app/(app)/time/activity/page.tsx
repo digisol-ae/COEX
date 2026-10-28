@@ -1,12 +1,14 @@
+import { RecordList } from '@/components/ui/record-window';
 import { asUser, requirePermission } from '@/lib/session';
-import { listUsers } from '@/modules/core/services/user.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
 import { listSpaces } from '@/modules/tasks/services/space.service';
 import { listTasks } from '@/modules/tasks/services/task.service';
-import { listTeamActivity } from '@/modules/time/services/activity.service';
+import { listTeamActivity, latestTeamWork } from '@/modules/time/services/activity.service';
 import { activityQuery, parseActivityParams } from '@/modules/time/activity-filter';
 import { STATUS_LABELS } from '@/modules/tickets/labels';
 import { todayKey } from '@coex/shared/crm/contract-status';
 import { formatMinutes } from '@coex/shared/time/week';
+import { sinceLastActive } from '@coex/shared/time/last-active';
 import { formatDateTime } from '@coex/shared/tasks/dates';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
@@ -40,7 +42,7 @@ export default async function TeamActivityPage({
   const filter = parseActivityParams(params, today);
   const query = activityQuery(filter);
 
-  const { rows, users, spaces, tasks } = await asUser(actor, async () => {
+  const { rows, users, spaces, tasks, latest } = await asUser(actor, async () => {
     const rows = await listTeamActivity(filter);
     const taskIds = [
       ...new Set(rows.filter((row) => row.kind === 'task').map((row) => row.itemId)),
@@ -48,7 +50,10 @@ export default async function TeamActivityPage({
 
     return {
       rows,
-      users: (await listUsers()).filter((user) => user.status === 'active'),
+      latest: await latestTeamWork(),
+      users: (await listStaffUsers()).filter(
+        (user) => user.status === 'active' && user.role !== 'client_contact',
+      ),
       spaces: await listSpaces(),
       tasks: taskIds.length ? await listTasks({ ids: taskIds, includeClosed: true }) : [],
     };
@@ -92,6 +97,37 @@ export default async function TeamActivityPage({
         ticketStatuses={Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }))}
       />
 
+      <section
+        className="mb-4 rounded border border-[var(--color-line)] p-3"
+        aria-label="Agent last activity"
+      >
+        <h2 className="text-sm font-medium">Since last active</h2>
+        <p className="mb-2 text-xs text-[var(--color-ink-subtle)]">
+          Latest timer or logged work across all dates. This records work, not online presence.
+          Times use the office timezone.
+        </p>
+        <RecordList as="ul" className="divide-y divide-[var(--color-line)]">
+          {users
+            .filter((user) => !filter.userIds?.length || filter.userIds.includes(user.id))
+            .map((user) => {
+              const work = latest.get(user.id);
+              return (
+                <li key={user.id} className="flex flex-wrap justify-between gap-2 py-2 text-sm">
+                  <span>{user.name}</span>
+                  <span>
+                    {sinceLastActive(work?.at ?? null, work?.running)}
+                    {work ? (
+                      <span className="ml-2 text-xs text-[var(--color-ink-subtle)]">
+                        {formatDateTime(work.at)}
+                      </span>
+                    ) : null}
+                  </span>
+                </li>
+              );
+            })}
+        </RecordList>
+      </section>
+
       <p className="mb-2 text-xs text-[var(--color-ink-subtle)]">
         {rows.length} {rows.length === 1 ? 'row' : 'rows'}
         {working > 0 ? ` · ${working} working right now` : ''}
@@ -129,7 +165,7 @@ export default async function TeamActivityPage({
                 <Th>Task or ticket</Th>
                 <Th>Stage</Th>
                 <Th>Time</Th>
-                <Th>Last worked</Th>
+                <Th>Since last active</Th>
               </tr>
             </thead>
             <tbody>
@@ -181,7 +217,12 @@ export default async function TeamActivityPage({
                       {formatMinutes(row.minutes)}{' '}
                       {row.running ? <Badge tone="ok">working now</Badge> : null}
                     </Td>
-                    <Td>{row.running ? 'Now' : formatDateTime(row.lastWorkedAt)}</Td>
+                    <Td>
+                      <p>{sinceLastActive(row.lastWorkedAt, row.running)}</p>
+                      <p className="text-xs text-[var(--color-ink-subtle)]">
+                        {formatDateTime(row.lastWorkedAt)}
+                      </p>
+                    </Td>
                   </tr>
                 );
               })}

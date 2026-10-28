@@ -1,8 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
-import { Button, Input, Select } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
+import { Icon } from '@/components/ui/icon-button';
+import { FilterToggleButton, FilterToggleLink } from '@/components/ui/filter-toggle';
 import { AssigneePicker } from '@/components/tasks/inline-edit';
 
 /**
@@ -47,12 +48,14 @@ export function ActivityFilters({
         <span className="text-xs text-[var(--color-ink-subtle)]">To</span>
         <Input type="date" name="to" defaultValue={to} />
       </label>
-      <Link
+      <FilterToggleLink
         href={todayHref}
-        className="rounded-[var(--radius-control)] border border-[var(--color-line-strong)] px-3 py-2 text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)]"
+        label="Show today's activity"
+        active={false}
+        icon={<Icon name="calendar" />}
       >
         Today
-      </Link>
+      </FilterToggleLink>
 
       <div className="flex flex-col gap-1">
         <span className="text-xs text-[var(--color-ink-subtle)]">People</span>
@@ -109,7 +112,14 @@ export function ActivityFilters({
         </Select>
       </label>
 
-      <Button type="submit">Apply</Button>
+      <FilterToggleButton
+        type="submit"
+        label="Apply activity filters"
+        active={false}
+        icon={<Icon name="filter" />}
+      >
+        Apply
+      </FilterToggleButton>
     </form>
   );
 }

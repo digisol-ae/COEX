@@ -1,3 +1,4 @@
+import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import {
   serviceTerms,
   type ServiceTermsInput,
@@ -656,7 +657,7 @@ export async function prepareContractEmail(id: string): Promise<ContractEmailDra
     tenantId: getContext().tenantId,
     deletedAt: null,
     status: 'active',
-    role: { $ne: 'client_contact' },
+    role: { $in: [...STAFF_ROLES] },
   }).select('name email');
   const defaultCc = staff.some((user) => user.email === 'ali@digisol.ae') ? ['ali@digisol.ae'] : [];
 
@@ -717,7 +718,7 @@ export async function sendContractEmail(
           email: 'ali@digisol.ae',
           status: 'active',
           deletedAt: null,
-          role: { $ne: 'client_contact' },
+          role: { $in: [...STAFF_ROLES] },
         })
       : false;
   const cc = normaliseCc(input.cc ?? (manager ? ['ali@digisol.ae'] : [])).filter(
@@ -739,7 +740,7 @@ export async function sendContractEmail(
     tenantId: getContext().tenantId,
     deletedAt: null,
     status: 'active',
-    role: { $ne: 'client_contact' },
+    role: { $in: [...STAFF_ROLES] },
   }).select('name email');
   const recipients = to.map((email) => {
     const contact = availableContacts.find((c) => c.email === email);

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Worktello for Outlook</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <style>
+      body {
+        font: 15px system-ui;
+        padding: 20px;
+        color: #20232b;
+      }
+      button {
+        padding: 12px;
+        background: #c7354c;
+        color: white;
+        border: 0;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      label {
+        display: block;
+        margin: 12px 0;
+      }
+      #status {
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Create Worktello task</h2>
+    <p>Turn this email into a task. Review the content and destination before saving.</p>
+    <div id="files"></div>
+    <button id="create" disabled>Review email and create task</button>
+    <p id="status" role="status">Loading Outlook…</p>
+    <script src="/integrations/outlook/taskpane.js"></script>
+  </body>
+</html>

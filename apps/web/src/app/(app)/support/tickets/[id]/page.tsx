@@ -1,5 +1,6 @@
+import { parallel } from '@/lib/parallel';
 import { TicketCustomer } from './ticket-customer';
-import { listOrganisations } from '@/modules/crm/services/organisation.service';
+import { listOrganisationChoices } from '@/modules/crm/services/organisation.service';
 import { customerReplySenders } from '@/modules/core/services/email.service';
 import { listCollaboratorOptions } from '@/modules/tickets/services/collaborator.service';
 import { notFound } from 'next/navigation';
@@ -8,7 +9,7 @@ import { asUser, requirePermission } from '@/lib/session';
 import { customerReplyAddress, getTicketDetail } from '@/modules/tickets/services/ticket.service';
 import { listQueues } from '@/modules/tickets/services/queue.service';
 import { listCannedReplies } from '@/modules/tickets/services/canned-reply.service';
-import { listUsers } from '@/modules/core/services/user.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
 import { mentionableUsers } from '@/modules/core/services/mention.service';
 import { getMyProfile } from '@/modules/core/services/user.service';
 import { renderSignature } from '@coex/shared/tickets/email-text';
@@ -50,12 +51,12 @@ export default async function TicketPage({
 
   const canManage = actor.permissions.includes('ticket.manage');
   const canEditCustomer = canManage && actor.permissions.includes('customer.read');
-  const customers = canEditCustomer ? await asUser(actor, () => listOrganisations()) : [];
-  const collaboratorOptions = canManage ? await asUser(actor, () => listCollaboratorOptions()) : [];
-  const senders = canManage ? await asUser(actor, () => customerReplySenders()) : [];
-  const replyEmail = canManage ? await asUser(actor, () => customerReplyAddress(id)) : null;
 
   const {
+    customers,
+    collaboratorOptions,
+    senders,
+    replyEmail,
     queues,
     users,
     spaces,
@@ -65,21 +66,27 @@ export default async function TicketPage({
     people,
     myTitle,
     contractNotice,
-  } = await asUser(actor, async () => ({
-    queues: await listQueues(),
-    users: await listUsers(),
-    spaces: actor.permissions.includes('task.manage') ? await listSpaces() : [],
-    cannedReplies: await listCannedReplies({ queueId: ticket.queueId }),
-    runningTimer: await getRunningTimer(),
-    // Other people's hours are for those granted timesheet.read.all; everyone else sees their own.
-    timeByPerson: await listTicketTimeByPerson(
-      id,
-      actor.permissions.includes('timesheet.read.all') ? {} : { onlyUserId: actor.id },
-    ),
-    people: canManage ? await mentionableUsers() : [],
-    myTitle: canManage ? (await getMyProfile()).title : null,
-    contractNotice: await contractNoticeFor(ticket.organisationId),
-  }));
+  } = await asUser(actor, () =>
+    parallel({
+      customers: canEditCustomer ? listOrganisationChoices() : [],
+      collaboratorOptions: canManage ? listCollaboratorOptions() : [],
+      senders: canManage ? customerReplySenders() : [],
+      replyEmail: canManage ? customerReplyAddress(id) : null,
+      queues: listQueues(),
+      users: listStaffUsers(),
+      spaces: actor.permissions.includes('task.manage') ? listSpaces() : [],
+      cannedReplies: listCannedReplies({ queueId: ticket.queueId }),
+      runningTimer: getRunningTimer(),
+      // Other people's hours are for those granted timesheet.read.all; everyone else sees their own.
+      timeByPerson: listTicketTimeByPerson(
+        id,
+        actor.permissions.includes('timesheet.read.all') ? {} : { onlyUserId: actor.id },
+      ),
+      people: canManage ? mentionableUsers() : [],
+      myTitle: canManage ? getMyProfile().then((profile) => profile.title) : null,
+      contractNotice: contractNoticeFor(ticket.organisationId),
+    }),
+  );
 
   // The queue's signature as this person's replies will carry it.
   const signature = renderSignature(ticket.queueSignature, {

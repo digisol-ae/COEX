@@ -1,8 +1,9 @@
+import { parallel } from '@/lib/parallel';
 import { asUser, requirePermission } from '@/lib/session';
 import { listTasks } from '@/modules/tasks/services/task.service';
 import { listSpaces } from '@/modules/tasks/services/space.service';
 import { getRunningTimer } from '@/modules/time/services/time.service';
-import { listUsers } from '@/modules/core/services/user.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
 import { PageHeader } from '@/components/ui';
 import { TaskFilters } from './filters';
 import { TaskList } from './task-list';
@@ -53,31 +54,33 @@ export default async function TasksPage({
     assigneeIds.length === 0 &&
     (params.mine === '1' || !seesEverything);
 
-  const { tasks, spaces, users, folders, runningTimer } = await asUser(actor, async () => ({
-    tasks: await listTasks({
-      personalWork: mine
-        ? params.personalWork === 'done'
-          ? 'done'
-          : params.personalWork === 'all'
-            ? 'all'
-            : 'active'
-        : 'all',
-      assigneeId: mine ? actor.id : undefined,
-      assigneeIds,
-      spaceIds,
-      overdueOnly: params.overdue === '1',
-      unassignedOnly: params.unassigned === '1',
-      assignedById: assignedByMe ? actor.id : undefined,
-      createdById: createdByMe ? actor.id : undefined,
-      includeClosed: params.closed === '1',
+  const { tasks, spaces, users, folders, runningTimer } = await asUser(actor, () =>
+    parallel({
+      tasks: listTasks({
+        personalWork: mine
+          ? params.personalWork === 'done'
+            ? 'done'
+            : params.personalWork === 'all'
+              ? 'all'
+              : 'active'
+          : 'all',
+        assigneeId: mine ? actor.id : undefined,
+        assigneeIds,
+        spaceIds,
+        overdueOnly: params.overdue === '1',
+        unassignedOnly: params.unassigned === '1',
+        assignedById: assignedByMe ? actor.id : undefined,
+        createdById: createdByMe ? actor.id : undefined,
+        includeClosed: params.closed === '1',
+      }),
+      // Status can be changed from this list, and each space configures its own columns, so the
+      // picker needs to know which columns belong to the space the task is in.
+      spaces: listSpaces(),
+      users: listStaffUsers(),
+      folders: listFolders(),
+      runningTimer: getRunningTimer(),
     }),
-    // Status can be changed from this list, and each space configures its own columns, so the
-    // picker needs to know which columns belong to the space the task is in.
-    spaces: await listSpaces(),
-    users: await listUsers(),
-    folders: await listFolders(),
-    runningTimer: await getRunningTimer(),
-  }));
+  );
 
   const columnsBySpace = Object.fromEntries(spaces.map((space) => [space.id, space.statuses]));
 

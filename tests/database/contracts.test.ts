@@ -76,6 +76,15 @@ beforeEach(async () => {
 });
 
 describe('contracts', () => {
+  it('creates and edits a contract whose term starts in 2025', async () => {
+    await inOne(async () => {
+      const values = await input({ startDate: '2025-01-01', endDate: '2026-12-31' });
+      const id = await createContract(values);
+      await updateContract(id, { ...values, startDate: '2025-06-01' });
+      const found = await listContracts();
+      expect(found.find((contract) => contract.id === id)?.startDate).toBe('2025-06-01');
+    });
+  });
   it('stores money as minor units and numbers contracts in sequence', async () => {
     await inOne(async () => {
       await createContract(await input());

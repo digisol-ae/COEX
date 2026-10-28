@@ -48,27 +48,58 @@ export async function listOrganisations(filter?: {
 
   const found = await organisations().find(query).sort({ name: 1 });
 
-  return Promise.all(
-    found.map(async (organisation) => ({
-      id: String(organisation._id),
-      name: organisation.name,
-      kind: organisation.kind as OrganisationKind,
-      industry: organisation.industry ?? null,
-      email: organisation.email ?? null,
-      phone: organisation.phone ?? null,
-      contactCount: await ContactModel.countDocuments({
-        tenantId: organisation.tenantId,
-        organisationId: organisation._id,
-        deletedAt: null,
-      }),
-      locationCount: await LocationModel.countDocuments({
-        tenantId: organisation.tenantId,
-        organisationId: organisation._id,
-        deletedAt: null,
-      }),
-      status: organisation.status,
-    })),
-  );
+  const ids = found.map((organisation) => organisation._id);
+  const [contactCounts, locationCounts] = ids.length
+    ? await Promise.all([
+        ContactModel.aggregate<{ _id: import('mongoose').Types.ObjectId; count: number }>([
+          { $match: repository(ContactModel).scope({ organisationId: { $in: ids } }) },
+          { $group: { _id: '$organisationId', count: { $sum: 1 } } },
+        ]),
+        LocationModel.aggregate<{ _id: import('mongoose').Types.ObjectId; count: number }>([
+          { $match: repository(LocationModel).scope({ organisationId: { $in: ids } }) },
+          { $group: { _id: '$organisationId', count: { $sum: 1 } } },
+        ]),
+      ])
+    : [[], []];
+  const contacts = new Map(contactCounts.map((row) => [String(row._id), row.count]));
+  const locations = new Map(locationCounts.map((row) => [String(row._id), row.count]));
+  return found.map((organisation) => ({
+    id: String(organisation._id),
+    name: organisation.name,
+    kind: organisation.kind as OrganisationKind,
+    industry: organisation.industry ?? null,
+    email: organisation.email ?? null,
+    phone: organisation.phone ?? null,
+    contactCount: contacts.get(String(organisation._id)) ?? 0,
+    locationCount: locations.get(String(organisation._id)) ?? 0,
+    status: organisation.status,
+  }));
+}
+
+/** Customer dropdown/search data needs no contact/site count or full customer document. */
+export async function listOrganisationChoices(
+  filter: { search?: string; kind?: OrganisationKind; limit?: number } = {},
+) {
+  await connectToDatabase();
+  const query: Record<string, unknown> = {};
+  if (filter.kind) query.kind = filter.kind;
+  if (filter.search?.trim())
+    query.name = {
+      $regex: filter.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      $options: 'i',
+    };
+  const rows = await organisations()
+    .find(query)
+    .select('name kind status')
+    .sort({ name: 1 })
+    .limit(filter.limit ?? 0)
+    .lean();
+  return rows.map((row) => ({
+    id: String(row._id),
+    name: row.name,
+    kind: row.kind as OrganisationKind,
+    status: row.status,
+  }));
 }
 
 export async function getOrganisation(id: string) {

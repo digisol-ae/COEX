@@ -1,6 +1,7 @@
+import { parallel } from '@/lib/parallel';
 import { asUser, requirePermission } from '@/lib/session';
 import { loadTimesheet } from '@/modules/time/services/timesheet.service';
-import { listUsers } from '@/modules/core/services/user.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
 import { listTasks } from '@/modules/tasks/services/task.service';
 import { listTickets } from '@/modules/tickets/services/ticket.service';
 import { PageHeader } from '@/components/ui';
@@ -27,16 +28,18 @@ export default async function TimePage({
   const subject = canSeeOthers && params.user ? params.user : actor.id;
   const week = params.week ? new Date(params.week) : new Date();
 
-  const { timesheet, users, tasks, assignedTasks, myTickets } = await asUser(actor, async () => ({
-    timesheet: await loadTimesheet(week, subject),
-    users: canSeeOthers ? await listUsers() : [],
-    tasks: await listTasks({ assigneeId: seesEveryTask ? undefined : actor.id }),
-    // Open work assigned to me, so it can be listed with no hours before any timer is started.
-    assignedTasks: await listTasks({ assigneeId: actor.id }),
-    myTickets: actor.permissions.includes('ticket.read.own')
-      ? await listTickets({ assigneeId: actor.id, openOnly: true, limit: 0 })
-      : [],
-  }));
+  const { timesheet, users, tasks, assignedTasks, myTickets } = await asUser(actor, () =>
+    parallel({
+      timesheet: loadTimesheet(week, subject),
+      users: canSeeOthers ? listStaffUsers() : [],
+      tasks: listTasks({ assigneeId: seesEveryTask ? undefined : actor.id }),
+      // Open work assigned to me, so it can be listed with no hours before any timer is started.
+      assignedTasks: listTasks({ assigneeId: actor.id }),
+      myTickets: actor.permissions.includes('ticket.read.own')
+        ? listTickets({ assigneeId: actor.id, openOnly: true, limit: 0 })
+        : [],
+    }),
+  );
 
   // Tasks and tickets share one picker; the prefix says which a choice is.
   const items = [
