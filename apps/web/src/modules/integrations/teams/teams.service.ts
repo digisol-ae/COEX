@@ -1,3 +1,4 @@
+import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { decodeJwt } from 'jose';
 import { Schema, model, models } from 'mongoose';
 import { UserModel } from '@coex/shared/core/models/user.model';
@@ -165,7 +166,7 @@ export async function handleTeamsActivity(
           tenantId: actor.tenantId,
           status: 'active',
           deletedAt: null,
-          role: { $ne: 'client_contact' },
+          role: { $in: [...STAFF_ROLES] },
         });
         const allowed = await assignableUserIdsForTask({ spaceId, folderId });
         if (!person || (allowed && !allowed.includes(assigneeId)))
@@ -244,7 +245,7 @@ export async function loadTeamsForm(
       status: 'active',
       deletedAt: null,
       entraObjectId: { $type: 'string' },
-      role: { $ne: 'client_contact' },
+      role: { $in: [...STAFF_ROLES] },
     }),
     TenantModel.findOne({ _id: settings.tenantId, status: 'active' }),
   ]);
@@ -288,7 +289,7 @@ export async function loadTeamsForm(
         tenantId: actor.tenantId,
         status: 'active',
         deletedAt: null,
-        role: { $ne: 'client_contact' },
+        role: { $in: [...STAFF_ROLES] },
       })
         .sort({ name: 1 })
         .select('_id name');

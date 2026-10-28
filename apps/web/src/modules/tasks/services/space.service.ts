@@ -1,3 +1,4 @@
+import { assertStaffAdditions } from '@/modules/core/services/staff.service';
 import {
   assertUsedStatusesPreserved,
   validateSpaceStatuses,
@@ -113,40 +114,47 @@ export async function listSpaces(): Promise<SpaceSummary[]> {
   // cannot open. A count that does not match the list is how people conclude a tool is lying.
   const folderScope = await visibleFolderFilter();
 
-  return Promise.all(
-    found.map(async (space) => {
-      const tasks = await TaskModel.find({
-        tenantId: space.tenantId,
-        spaceId: space._id,
+  const allTasks = found.length
+    ? await TaskModel.find({
+        tenantId: getContext().tenantId,
+        spaceId: { $in: found.map((space) => space._id) },
         deletedAt: null,
         ...folderScope,
-      }).select('isClosed estimateMinutes');
-
-      return {
-        id: String(space._id),
-        name: space.name,
-        description: space.description ?? null,
-        organisationId: space.organisationId ? String(space.organisationId) : null,
-        organisationName: null,
-        dueDate: space.dueDate ?? null,
-        statuses: space.statuses.map((status) => ({
-          name: status.name,
-          isClosed: status.isClosed ?? false,
+      }).select('spaceId isClosed estimateMinutes')
+    : [];
+  const grouped = new Map<string, typeof allTasks>();
+  for (const task of allTasks) {
+    const key = String(task.spaceId);
+    const group = grouped.get(key) ?? [];
+    group.push(task);
+    grouped.set(key, group);
+  }
+  return found.map((space) => {
+    const tasks = grouped.get(String(space._id)) ?? [];
+    return {
+      id: String(space._id),
+      name: space.name,
+      description: space.description ?? null,
+      organisationId: space.organisationId ? String(space.organisationId) : null,
+      organisationName: null,
+      dueDate: space.dueDate ?? null,
+      statuses: space.statuses.map((status) => ({
+        name: status.name,
+        isClosed: status.isClosed ?? false,
+      })),
+      openTaskCount: tasks.filter((task) => !task.isClosed).length,
+      totalTaskCount: tasks.length,
+      progressPercent: progressPercent(
+        tasks.map((task) => ({
+          isClosed: task.isClosed ?? false,
+          estimateMinutes: task.estimateMinutes ?? null,
         })),
-        openTaskCount: tasks.filter((task) => !task.isClosed).length,
-        totalTaskCount: tasks.length,
-        progressPercent: progressPercent(
-          tasks.map((task) => ({
-            isClosed: task.isClosed ?? false,
-            estimateMinutes: task.estimateMinutes ?? null,
-          })),
-        ),
-        status: space.status,
-        isPrivate: space.memberIds.length > 0,
-        memberIds: space.memberIds.map(String),
-      };
-    }),
-  );
+      ),
+      status: space.status,
+      isPrivate: space.memberIds.length > 0,
+      memberIds: space.memberIds.map(String),
+    };
+  });
 }
 
 export async function getSpace(id: string) {
@@ -170,6 +178,7 @@ export async function createSpace(input: SpaceInput): Promise<string> {
   const name = input.name.trim();
   if (!name) throw new Error('A space needs a name.');
 
+  await assertStaffAdditions(input.memberIds ?? []);
   const created = await spaces().create({
     name,
     description: input.description?.trim() || null,
@@ -232,6 +241,7 @@ export async function updateSpace(id: string, input: SpaceInput): Promise<void> 
   await connectToDatabase();
   const space = await spaces().findById(id);
   if (!space) throw new Error('Space not found.');
+  await assertStaffAdditions(input.memberIds ?? [], space.memberIds.map(String));
   const name = input.name.trim();
   if (!name) throw new Error('A space needs a name.');
   if (!(await canOpenSpace(id))) throw new Error('You cannot open this space.');

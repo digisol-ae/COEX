@@ -1,7 +1,9 @@
 'use client';
 
+import { RecordList } from '@/components/ui/record-window';
 import { DetailPopup } from '@/components/ui/detail-popup';
 import { PortalAccess } from './portal-access';
+import { TicketPeoplePicker } from './ticket-people-picker';
 import { useActionState, useState } from 'react';
 import { Button, Card, CardSection, EmptyState, Field, Input, Notice } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
@@ -21,13 +23,16 @@ export function ContactsPanel({
   contacts,
   canWrite,
   canManagePortal = false,
+  canSearchTickets = false,
 }: {
   organisationId: string;
   contacts: ContactSummary[];
   canWrite: boolean;
   canManagePortal?: boolean;
+  canSearchTickets?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [finding, setFinding] = useState(false);
   const [state, formAction, pending] = useActionState(addContactAction, initialState);
 
   return (
@@ -36,7 +41,7 @@ export function ContactsPanel({
         {contacts.length === 0 ? (
           <EmptyState message="No contacts yet." />
         ) : (
-          <ul className="space-y-3">
+          <RecordList as="ul" className="space-y-3">
             {contacts.map((contact) => (
               <li key={contact.id} className="flex items-start justify-between gap-2">
                 <div>
@@ -79,7 +84,7 @@ export function ContactsPanel({
                 ) : null}
               </li>
             ))}
-          </ul>
+          </RecordList>
         )}
 
         {canWrite ? (
@@ -89,6 +94,19 @@ export function ContactsPanel({
               className="mt-4 space-y-3 border-t border-[var(--color-line)] pt-4"
             >
               <input type="hidden" name="organisationId" value={organisationId} />
+
+              {canSearchTickets ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setOpen(false);
+                    setFinding(true);
+                  }}
+                >
+                  Find from tickets
+                </Button>
+              ) : null}
 
               <Field label="Name">
                 <Input name="name" required autoFocus />
@@ -125,10 +143,19 @@ export function ContactsPanel({
                 </Button>
               </div>
             </form>
+          ) : finding ? (
+            <TicketPeoplePicker organisationId={organisationId} onClose={() => setFinding(false)} />
           ) : (
-            <Button variant="secondary" className="mt-4" onClick={() => setOpen(true)}>
-              Add contact
-            </Button>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button variant="secondary" onClick={() => setOpen(true)}>
+                Add contact
+              </Button>
+              {canSearchTickets ? (
+                <Button variant="secondary" onClick={() => setFinding(true)}>
+                  Find from tickets
+                </Button>
+              ) : null}
+            </div>
           )
         ) : null}
       </CardSection>

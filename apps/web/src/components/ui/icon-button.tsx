@@ -38,7 +38,12 @@ export type IconName =
   | 'archive'
   | 'restore'
   | 'close'
-  | 'back';
+  | 'back'
+  | 'alert'
+  | 'calendar'
+  | 'filter'
+  | 'inbox'
+  | 'search';
 
 const PATHS: Record<IconName, ReactNode> = {
   status: (
@@ -139,6 +144,31 @@ const PATHS: Record<IconName, ReactNode> = {
   ),
   close: <path d="M4 4l8 8M12 4l-8 8" />,
   back: <path d="M13 8H3.5M7.5 4 3.5 8l4 4" />,
+  alert: (
+    <>
+      <path d="M8 2.5 14 13H2z" />
+      <path d="M8 6v3.5m0 2h.01" />
+    </>
+  ),
+  calendar: (
+    <>
+      <rect x="2.5" y="3.5" width="11" height="10" rx="1.5" />
+      <path d="M5 2v3m6-3v3M2.5 6.5h11" />
+    </>
+  ),
+  filter: <path d="M2.5 3.5h11M4.5 8h7m-5 4.5h3" />,
+  inbox: (
+    <>
+      <path d="M2.5 3.5h11l1 7v2h-13v-2z" />
+      <path d="M2.8 9h3l.8 1.5h2.8l.8-1.5h3" />
+    </>
+  ),
+  search: (
+    <>
+      <circle cx="7" cy="7" r="4.5" />
+      <path d="m10.5 10.5 3 3" />
+    </>
+  ),
   restore: (
     <>
       <path d="M3 8a5 5 0 1 0 1.5-3.5" />
@@ -213,6 +243,7 @@ export function IconLink({
 }) {
   return (
     <Link
+      prefetch={false}
       {...props}
       aria-label={label}
       data-tooltip={label}

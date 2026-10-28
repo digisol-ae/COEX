@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
-import { listUsers } from '@/modules/core/services/user.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
 import { loadTimesheet } from '@/modules/time/services/timesheet.service';
 import { daysOfWeek, formatMinutes, startOfWeek, toDateKey } from '@coex/shared/time/week';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
@@ -33,7 +33,7 @@ export default async function AllTimesheetsPage({
   nextWeek.setDate(nextWeek.getDate() + 7);
 
   const { people, sheets } = await asUser(actor, async () => {
-    const users = (await listUsers()).filter((user) => user.status === 'active');
+    const users = (await listStaffUsers()).filter((user) => user.status === 'active');
     const sheets = await Promise.all(users.map((user) => loadTimesheet(weekStart, user.id)));
     return { people: users, sheets };
   });

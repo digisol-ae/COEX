@@ -1,5 +1,41 @@
 # FEEDBACK
 
+## 28 October 2026 — Recurring tasks
+
+Added Does not repeat/Daily/Weekly/Monthly/Yearly choices to task creation in All Tasks, Personal and Space Board, plus the task edit form. Completing a recurring task creates its next open occurrence, advances any planned dates by the selected interval, preserves tags/assignees/description and resets subtasks. Each occurrence stores a reserved next-task ID so repeated completion requests cannot duplicate it. Local web typecheck passed and the All Tasks recurrence options were browser-checked without creating a task; lifecycle tests were not run. Local only, production unchanged.
+
+## 28 October 2026 — Tasks filter icons
+
+Updated locally to match the Space toolbar: icon-only Mine/Overdue/Unassigned/Assigned by me/Created by me toggles with accessible names, tooltips and pressed state; Done label with completion icon and black active styling; compact Spaces trigger; staff-only avatar/badge assignee trigger with selected avatars/count. Added a horizontally aligned plus icon and tooltip to Add task. Existing URL filters and multi-selection preserved. Web typecheck and browser checks passed; production unchanged.
+
+Filter order refined: Done first, then Spaces and assignee picker, followed by Unassigned, Assigned by me, Mine and Created by me. Overdue is isolated at the far right with a divider; red selection styling is retained. Browser layout and web typecheck passed; local only.
+
+Extended the same theme-based filter control across Tickets, Customers, Leads, Opportunities, Contracts and Team Activity: selected filters use the ink fill, urgent filters use the alert-soft red treatment, icons carry accessible labels/tooltips, and submit/clear actions use compact named icons. Status names/counts and form-field labels remain visible where they aid scanning. Local browser spot checks and web typecheck passed; production unchanged.
+
+## 28 October 2026 — Strict staff/customer separation
+
+Hardened staff-only assignee/filter choices with an explicit staff role allowlist. Split Worktello users and Customer portal accounts into separate administration views; customer accounts cannot become staff through role/access controls or remain as task/ticket assignees through a historical-assignment exception. Verified locally with 12 staff/420 customer accounts, browser checks and mutation regressions. No production deployment or credential migration. Details: `ai/STAFF-CUSTOMER-SEPARATION-2026-10-28.md`.
+
+## 28 October 2026 — 10-record module lists
+
+Changed the local initial display and each Show more increment to 10 records across shared tables and module card/group views, including My Desk, mobile Tickets and Space Board/List/Gantt. Portal loads cumulative 10-record batches through its database query; most staff lists progressively render existing service results. Full supplied-result sorting/filtering/totals and exports preserved. Web typecheck passed; browser showed 10/56 customers initially and 20/56 after one Show more click. Updated regression expectations are recorded but not run for this follow-up. Coverage and performance boundary: `ai/APPLICATION-PAGINATION-2026-10-28.md`. Production unchanged.
+
+## 28 October 2026 — Gantt toolbar refinement
+
+Implemented locally: PDF label with download icon on the right, grouped timeline views, grouped expand/collapse icons, Fit icon beside Zoom, and descriptive action tooltips including Snap. Typecheck and local browser interaction checks passed; production unchanged.
+
+## 28 October 2026 — Application-wide account and query loading
+
+Implemented locally: staff-only operational choices across Tasks/Tickets/Spaces/CRM/time, lightweight customer choices, batched customer/dashboard/space/folder/queue counts, parallel independent page reads, on-demand shared navigation and guarded background page refresh. Synthetic regression reproduces 432 accounts and returns 12 staff while administration retains all accounts. Production unchanged; reported freezes and prior proxy resets are not yet proven resolved. Validation and three remaining unrelated test expectation failures: `ai/APPLICATION-PERFORMANCE-2026-10-28.md`.
+
+## 28 October 2026 — Gantt subtasks, PDF export and local QA
+
+Owner requested a clearer Gantt with subtask items, at least 10 tasks for QA, and PDF download. Implemented locally: grouped/expandable subtasks, independent or explicitly inherited dates, child scheduling/Undo, subtask search/assignee matching, and an authenticated filtered landscape PDF export. Created 12 synthetic tasks with 36 subtasks in the isolated local QA Space. Automated/browser/PDF verification and boundaries: `ai/GANTT-LOCAL-QA-2026-10-28.md`. Local only; no push/deploy or live-data mutation.
+
+## 26 October 2026 — Customer contacts from tickets
+
+Owner asked to search all people on tickets (requesters/CCs) from a Customer and add them as contacts; confirmed the proposed behaviour (live search, same-domain suggestions, already-linked greyed, confirm before moving from another customer, bulk add, unassigned tickets filed to the customer). Implemented locally; details and pending checks: `docs/resolutions/2026-10-26-contacts-from-tickets.md`. Not committed/pushed/deployed.
+
 ## 24 October 2026 — Worktello loading animation approved
 
 Owner prefers **highlight bars** as the default. Preserve the build-up animation in `docs/brand/animations/worktello-build-preview.html` for later; do not make it the default. Branding/loader documentation and commit requested; no push/deployment requested.

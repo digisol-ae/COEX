@@ -2,10 +2,20 @@
 import { UI_LABELS } from '@/components/ui/labels';
 
 import { useState, useTransition } from 'react';
+import { Icon } from '@/components/ui/icon-button';
 import { Button, Field, Input, Notice, Select, Textarea } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
 import { AssigneePicker } from '@/components/tasks/inline-edit';
 import { createTaskAnywhereAction } from './actions';
+import { TASK_RECURRENCES, type TaskRecurrence } from '@coex/shared/tasks/recurrence';
+
+const RECURRENCE_LABELS: Record<TaskRecurrence, string> = {
+  none: 'Does not repeat',
+  daily: 'Daily',
+  weekly: 'Weekly',
+  monthly: 'Monthly',
+  yearly: 'Yearly',
+};
 
 /**
  * Add task on All tasks (John, 9 Oct 2026): a popup where the task can go to Personal or to any
@@ -37,6 +47,7 @@ export function NewTaskPopup({
   const [priority, setPriority] = useState('normal');
   const [startAt, setStartAt] = useState('');
   const [endAt, setEndAt] = useState('');
+  const [recurrence, setRecurrence] = useState<TaskRecurrence>('none');
 
   const personal = spaceId === 'personal';
   const spaceFolders = folders.filter((folder) => folder.spaceId === spaceId);
@@ -50,6 +61,7 @@ export function NewTaskPopup({
     setPriority('normal');
     setStartAt('');
     setEndAt('');
+    setRecurrence('none');
     setError(null);
   }
 
@@ -65,6 +77,7 @@ export function NewTaskPopup({
     data.set('priority', priority);
     data.set('startAt', startAt);
     data.set('endAt', endAt);
+    data.set('recurrence', recurrence);
     for (const id of assigneeIds) data.append('assigneeIds', id);
 
     startTransition(async () => {
@@ -79,7 +92,17 @@ export function NewTaskPopup({
     });
   }
 
-  if (!open) return <Button onClick={() => setOpen(true)}>Add task</Button>;
+  if (!open)
+    return (
+      <Button
+        className="inline-flex items-center gap-1.5"
+        title="Create a new task"
+        onClick={() => setOpen(true)}
+      >
+        <Icon name="add" />
+        Add task
+      </Button>
+    );
 
   return (
     <div
@@ -157,6 +180,26 @@ export function NewTaskPopup({
               <option value="high">High</option>
               <option value="normal">Normal</option>
               <option value="low">Low</option>
+            </Select>
+          </Field>
+
+          <Field
+            label="Repeat"
+            hint={
+              recurrence === 'none'
+                ? undefined
+                : 'The next task is created when this one is completed.'
+            }
+          >
+            <Select
+              value={recurrence}
+              onChange={(event) => setRecurrence(event.target.value as TaskRecurrence)}
+            >
+              {TASK_RECURRENCES.map((option) => (
+                <option key={option} value={option}>
+                  {RECURRENCE_LABELS[option]}
+                </option>
+              ))}
             </Select>
           </Field>
 

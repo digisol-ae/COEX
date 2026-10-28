@@ -1,5 +1,6 @@
 'use client';
 
+import { RecordList } from '@/components/ui/record-window';
 import { useActionState, useState, useTransition } from 'react';
 import { Badge, Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
 import type { ChannelSettingsView } from '@/modules/channels/services/channel-settings.service';
@@ -364,7 +365,7 @@ export function WhatsAppSettingsForm({
             {settings.lastInboundAt ? new Date(settings.lastInboundAt).toLocaleString() : 'never'}
           </p>
           {messages.length ? (
-            <ul className="divide-y divide-[var(--color-line)] text-sm">
+            <RecordList as="ul" className="divide-y divide-[var(--color-line)] text-sm">
               {messages.map((message) => (
                 <li key={message.id} className="flex items-start justify-between gap-3 py-2">
                   <div className="min-w-0">
@@ -390,7 +391,7 @@ export function WhatsAppSettingsForm({
                   </div>
                 </li>
               ))}
-            </ul>
+            </RecordList>
           ) : (
             <p className="text-sm text-[var(--color-ink-subtle)]">No WhatsApp messages yet.</p>
           )}

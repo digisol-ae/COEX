@@ -1,7 +1,8 @@
+import { parallel } from '@/lib/parallel';
 import { asUser, requirePermission } from '@/lib/session';
 import { listQueues } from '@/modules/tickets/services/queue.service';
 import { standardSenderLabel } from '@/modules/core/services/email.service';
-import { listUsers } from '@/modules/core/services/user.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
 import { listProducts } from '@/modules/crm/services/product.service';
 import { Card, CardSection, EmptyState, PageHeader } from '@/components/ui';
 import { QueueList } from './queue-list';
@@ -11,12 +12,14 @@ export const metadata = { title: 'Queues · Worktello' };
 export default async function QueuesPage() {
   const actor = await requirePermission('tenant.manage');
 
-  const { queues, users, products, from } = await asUser(actor, async () => ({
-    from: await standardSenderLabel(),
-    queues: await listQueues({ includeArchived: true }),
-    users: await listUsers(),
-    products: await listProducts(),
-  }));
+  const { queues, users, products, from } = await asUser(actor, () =>
+    parallel({
+      from: standardSenderLabel(),
+      queues: listQueues({ includeArchived: true }),
+      users: listStaffUsers(),
+      products: listProducts(),
+    }),
+  );
 
   return (
     <div className="mx-auto max-w-4xl">

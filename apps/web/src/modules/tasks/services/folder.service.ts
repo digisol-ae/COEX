@@ -1,3 +1,4 @@
+import { assertStaffAdditions } from '@/modules/core/services/staff.service';
 import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
@@ -98,31 +99,41 @@ export async function listFolders(spaceId?: string): Promise<FolderSummary[]> {
     ...new Set(found.flatMap((folder) => folder.memberIds.map((id) => String(id)))),
   ];
 
-  const users = await UserModel.find({ _id: { $in: memberIds } }).select('name');
+  const users = await UserModel.find({
+    tenantId: getContext().tenantId,
+    _id: { $in: memberIds },
+  }).select('name');
   const names = new Map(users.map((user) => [String(user._id), user.name]));
 
-  return Promise.all(
-    found.map(async (folder) => {
-      const tasks = await TaskModel.find({
-        tenantId: folder.tenantId,
-        folderId: folder._id,
+  const allTasks = found.length
+    ? await TaskModel.find({
+        tenantId: getContext().tenantId,
+        folderId: { $in: found.map((folder) => folder._id) },
         deletedAt: null,
-      }).select('isClosed');
-
-      return {
-        id: String(folder._id),
-        spaceId: String(folder.spaceId),
-        name: folder.name,
-        description: folder.description ?? null,
-        isPrivate: folder.memberIds.length > 0,
-        memberIds: folder.memberIds.map((id) => String(id)),
-        memberNames: folder.memberIds.map((id) => names.get(String(id)) ?? 'Unknown'),
-        sortOrder: folder.sortOrder ?? 0,
-        openTaskCount: tasks.filter((task) => !task.isClosed).length,
-        totalTaskCount: tasks.length,
-      };
-    }),
-  );
+      }).select('folderId isClosed')
+    : [];
+  const grouped = new Map<string, typeof allTasks>();
+  for (const task of allTasks) {
+    const key = String(task.folderId);
+    const group = grouped.get(key) ?? [];
+    group.push(task);
+    grouped.set(key, group);
+  }
+  return found.map((folder) => {
+    const tasks = grouped.get(String(folder._id)) ?? [];
+    return {
+      id: String(folder._id),
+      spaceId: String(folder.spaceId),
+      name: folder.name,
+      description: folder.description ?? null,
+      isPrivate: folder.memberIds.length > 0,
+      memberIds: folder.memberIds.map((id) => String(id)),
+      memberNames: folder.memberIds.map((id) => names.get(String(id)) ?? 'Unknown'),
+      sortOrder: folder.sortOrder ?? 0,
+      openTaskCount: tasks.filter((task) => !task.isClosed).length,
+      totalTaskCount: tasks.length,
+    };
+  });
 }
 
 export async function getFolder(id: string) {
@@ -143,6 +154,7 @@ export async function createFolder(input: FolderInput): Promise<string> {
   const name = input.name.trim();
   if (!name) throw new Error('A folder needs a name.');
 
+  await assertStaffAdditions(input.memberIds ?? []);
   const last = await folders()
     .find({ spaceId: toObjectId(input.spaceId) })
     .sort({ sortOrder: -1 })
@@ -175,6 +187,7 @@ export async function updateFolder(
 
   const folder = await folders().findById(id);
   if (!folder) throw new Error('Folder not found.');
+  await assertStaffAdditions(input.memberIds ?? [], folder.memberIds.map(String));
 
   const name = input.name.trim();
   if (!name) throw new Error('A folder needs a name.');

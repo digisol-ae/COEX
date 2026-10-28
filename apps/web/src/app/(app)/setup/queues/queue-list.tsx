@@ -1,5 +1,6 @@
 'use client';
 
+import { ShowMore, useRecordWindow } from '@/components/ui/record-window';
 import { useActionState, useEffect, useState } from 'react';
 import { Badge, Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
@@ -32,6 +33,7 @@ export function QueueList({
   products: { id: string; name: string }[];
 }) {
   const [editing, setEditing] = useState<string | null>(null);
+  const page = useRecordWindow(queues, queues.map((item) => item.id).join('|'));
 
   return (
     <div className="space-y-3">
@@ -47,7 +49,7 @@ export function QueueList({
         <Button onClick={() => setEditing('new')}>Add queue</Button>
       )}
 
-      {queues.map((queue) =>
+      {page.items.map((queue) =>
         editing === queue.id ? (
           <QueueForm
             from={from}
@@ -125,6 +127,7 @@ export function QueueList({
           </Card>
         ),
       )}
+      <ShowMore {...page} />
     </div>
   );
 }

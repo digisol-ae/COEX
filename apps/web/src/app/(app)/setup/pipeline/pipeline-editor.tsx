@@ -1,5 +1,6 @@
 'use client';
 
+import { RecordList } from '@/components/ui/record-window';
 import { useActionState, useEffect, useState, useTransition } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Textarea } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
@@ -128,7 +129,7 @@ export function PipelineEditor({
     <div className="space-y-4">
       <Card>
         <CardSection title="Stages">
-          <ul className="divide-y divide-[var(--color-line)]">
+          <RecordList as="ul" className="divide-y divide-[var(--color-line)]">
             {stages.map((stage) => (
               <StageRow
                 key={stage.id}
@@ -137,7 +138,7 @@ export function PipelineEditor({
                 last={stage.id === openStages.at(-1)?.id}
               />
             ))}
-          </ul>
+          </RecordList>
 
           <form
             action={addAction}

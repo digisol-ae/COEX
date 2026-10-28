@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Input, Select } from '@/components/ui';
+import { IconButton } from '@/components/ui/icon-button';
 
 /** Filters live in the address bar, so a filtered list can be bookmarked or shared. */
 export function CustomerFilters({ search, kind }: { search: string; kind: string }) {
@@ -19,7 +20,7 @@ export function CustomerFilters({ search, kind }: { search: string; kind: string
 
   return (
     <form
-      className="coex-filters grid w-fit max-w-full grid-cols-[minmax(0,11rem)_7rem] gap-1.5"
+      className="coex-filters grid w-fit max-w-full grid-cols-[minmax(0,11rem)_7rem_2rem] gap-1.5"
       onSubmit={(event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -46,6 +47,7 @@ export function CustomerFilters({ search, kind }: { search: string; kind: string
         <option value="supplier">Suppliers</option>
         <option value="partner">Partners</option>
       </Select>
+      <IconButton type="submit" icon="search" label="Search customers" />
     </form>
   );
 }

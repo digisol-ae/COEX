@@ -1,8 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { clsx } from 'clsx';
-import { Button, Input, Select } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
+import { Icon, IconButton } from '@/components/ui/icon-button';
+import { FilterToggleButton } from '@/components/ui/filter-toggle';
 import { STATUS_LABELS } from '@/modules/tickets/labels';
 
 /** Colored workload counts double as list filters; URLs remain bookmarkable. */
@@ -12,21 +13,18 @@ const SCOPES = [
     key: 'opened',
     label: 'Opened',
     hint: 'All active tickets',
-    color: 'text-[var(--color-status-ok)] bg-[var(--color-status-ok-soft)]',
   },
   {
     id: 'delayed',
     key: 'delayed',
     label: 'Delayed',
     hint: 'An SLA deadline is within the next hour',
-    color: 'text-[var(--color-status-warn)] bg-[var(--color-status-warn-soft)]',
   },
   {
     id: 'missed',
     key: 'missed',
     label: 'Missed',
     hint: 'A reply or resolution SLA deadline has been missed',
-    color: 'text-[var(--color-status-alert)] bg-[var(--color-status-alert-soft)]',
   },
 ] as const;
 
@@ -69,41 +67,38 @@ export function TicketFilters({
   return (
     <div className="coex-filters space-y-1.5" aria-label="Ticket filters">
       <div className="flex flex-wrap gap-2" aria-label="Ticket analytics">
-        <button
-          type="button"
-          aria-pressed={scope === 'all' && !status}
+        <FilterToggleButton
+          label="All ticket statuses"
+          icon={<Icon name="filter" />}
+          active={scope === 'all' && !status}
           onClick={() => apply({ scope: 'all', status: '' })}
-          className={clsx(
-            'rounded-[var(--radius-control)] border px-3 py-2 text-sm font-medium',
-            scope === 'all' && !status
-              ? 'border-[var(--color-action)] text-[var(--color-action)]'
-              : 'border-transparent',
-          )}
         >
           All statuses
-        </button>
+        </FilterToggleButton>
         {SCOPES.map((option) => {
           const selected =
             scope === option.id ||
             (option.id === 'open' && scope === 'mine') ||
             (option.id === 'missed' && scope === 'breached');
           return (
-            <button
+            <FilterToggleButton
               key={option.id}
-              type="button"
+              label={`${option.label}: ${option.hint}`}
               title={option.hint}
-              aria-pressed={selected}
+              icon={
+                <Icon
+                  name={
+                    option.id === 'open' ? 'inbox' : option.id === 'delayed' ? 'clock' : 'alert'
+                  }
+                />
+              }
+              active={selected}
+              tone={option.id === 'missed' ? 'danger' : 'default'}
               onClick={() => apply({ scope: option.id, status: '' })}
-              className={clsx(
-                'inline-flex items-center gap-2 rounded-[var(--radius-control)] border px-3 py-2 text-sm font-medium transition-colors',
-                option.color,
-                selected ? 'border-current' : 'border-transparent hover:border-current',
-              )}
             >
-              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-current" />
               {option.label}
               <span className="font-semibold tabular-nums">({counts[option.key]})</span>
-            </button>
+            </FilterToggleButton>
           );
         })}
       </div>
@@ -127,15 +122,14 @@ export function TicketFilters({
           className="min-w-0 flex-1 basis-72 max-w-xl"
         />
 
-        <Button type="submit">Search</Button>
+        <IconButton type="submit" icon="search" label="Search tickets" />
         {search ? (
-          <Button
+          <IconButton
             type="button"
-            variant="secondary"
+            icon="close"
+            label="Clear ticket search"
             onClick={() => apply({ search: '', scope: 'open' })}
-          >
-            Clear search
-          </Button>
+          />
         ) : null}
 
         <Select

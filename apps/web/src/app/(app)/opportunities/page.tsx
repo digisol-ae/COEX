@@ -7,11 +7,13 @@ import {
   type OpportunitySummary,
 } from '@/modules/crm/services/opportunity.service';
 import { listLostReasons, listStages } from '@/modules/crm/services/pipeline.service';
-import { listOrganisations } from '@/modules/crm/services/organisation.service';
+import { listOrganisationChoices } from '@/modules/crm/services/organisation.service';
 import { fromMinorUnits, listProducts } from '@/modules/crm/services/product.service';
-import { listUsers } from '@/modules/core/services/user.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
+import { Icon } from '@/components/ui/icon-button';
+import { FilterToggleLink } from '@/components/ui/filter-toggle';
 import { OPPORTUNITY_STATUSES } from '@coex/shared/crm/models/opportunity.model';
 import {
   lacksNextStep,
@@ -69,9 +71,9 @@ export default async function OpportunitiesPage({
         listOpportunities(),
         listStages(),
         listLostReasons(),
-        listOrganisations(),
+        listOrganisationChoices(),
         listProducts(),
-        listUsers(),
+        listStaffUsers(),
       ]),
   );
 
@@ -156,19 +158,29 @@ export default async function OpportunitiesPage({
       >
         {([undefined, ...OPPORTUNITY_STATUSES] as (OpportunitySummary['status'] | undefined)[]).map(
           (option) => (
-            <Link
+            <FilterToggleLink
               key={option ?? 'all'}
               href={link({ status: option })}
-              aria-current={status === option ? 'true' : undefined}
-              className={clsx(
-                'inline-flex items-center gap-2 rounded-[var(--radius-control)] border px-3 py-2 text-sm font-medium transition-colors',
-                'bg-[var(--color-surface-sunken)] text-[var(--color-ink-muted)]',
-                status === option ? 'border-current' : 'border-transparent hover:border-current',
-              )}
+              label={`${option ? STATUS_LABEL[option] : 'All'} opportunities`}
+              active={status === option}
+              tone={option === 'lost' ? 'danger' : 'default'}
+              icon={
+                <Icon
+                  name={
+                    option === 'lost'
+                      ? 'alert'
+                      : option === 'won'
+                        ? 'status'
+                        : option === 'open'
+                          ? 'clock'
+                          : 'filter'
+                  }
+                />
+              }
             >
               {option ? STATUS_LABEL[option] : 'All'}
               <span className="font-semibold tabular-nums">({countFor(option)})</span>
-            </Link>
+            </FilterToggleLink>
           ),
         )}
 

@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
 import { createPersonalTaskAction, type TaskFormState } from './actions';
+import { TASK_RECURRENCES } from '@coex/shared/tasks/recurrence';
 
 const initialState: TaskFormState = {};
 
@@ -41,6 +42,17 @@ export function PersonalTaskPanel() {
               <option value="high">High</option>
               <option value="normal">Normal</option>
               <option value="low">Low</option>
+            </Select>
+          </Field>
+          <Field label="Repeat" hint="The next task is created when this one is completed.">
+            <Select name="recurrence" defaultValue="none">
+              {TASK_RECURRENCES.map((option) => (
+                <option key={option} value={option}>
+                  {option === 'none'
+                    ? 'Does not repeat'
+                    : option[0].toUpperCase() + option.slice(1)}
+                </option>
+              ))}
             </Select>
           </Field>
           {state.error ? <Notice tone="alert">{state.error}</Notice> : null}

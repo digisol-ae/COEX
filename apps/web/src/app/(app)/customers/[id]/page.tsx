@@ -1,3 +1,4 @@
+import { parallel } from '@/lib/parallel';
 import { listContracts } from '@/modules/crm/services/contract.service';
 import { CustomerDrawer } from './customer-drawer';
 import { LiveRefresh } from '@/components/ui/live-refresh';
@@ -28,16 +29,18 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   const seesOpportunities = actor.permissions.includes('opportunity.read');
 
   const { contacts, locations, timeline, customFieldDefinitions, opportunities, services } =
-    await asUser(actor, async () => ({
-      services: actor.permissions.includes('contract.read')
-        ? await listContracts({ organisationId: id })
-        : [],
-      opportunities: seesOpportunities ? await listOpportunities({ organisationId: id }) : [],
-      contacts: await listContacts(id),
-      locations: await listLocations(id),
-      timeline: await listTimeline(id, 0),
-      customFieldDefinitions: await listFieldDefinitions('organisation'),
-    }));
+    await asUser(actor, () =>
+      parallel({
+        services: actor.permissions.includes('contract.read')
+          ? listContracts({ organisationId: id })
+          : [],
+        opportunities: seesOpportunities ? listOpportunities({ organisationId: id }) : [],
+        contacts: listContacts(id),
+        locations: listLocations(id),
+        timeline: listTimeline(id, 0),
+        customFieldDefinitions: listFieldDefinitions('organisation'),
+      }),
+    );
 
   // A Mongoose Map has to become a plain object before it crosses into a client component.
   const customFieldValues = Object.fromEntries(organisation.customFields ?? []) as Record<
@@ -108,6 +111,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                   contacts={contacts}
                   canWrite={editable}
                   canManagePortal={actor.permissions.includes('user.manage')}
+                  canSearchTickets={actor.permissions.includes('ticket.read.all')}
                 />
                 <LocationsPanel organisationId={id} locations={locations} canWrite={editable} />
               </CustomerDrawer>

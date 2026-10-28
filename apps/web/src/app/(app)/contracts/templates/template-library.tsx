@@ -1,4 +1,5 @@
 'use client';
+import { RecordList } from '@/components/ui/record-window';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Field, Input, Select, Notice } from '@/components/ui';
@@ -58,23 +59,25 @@ export function TemplateLibrary({
             New template
           </Button>
         )}
-        {templates.map((t) => (
-          <button
-            type="button"
-            key={t.id}
-            aria-pressed={selected.id === t.id}
-            onClick={() => {
-              setSelected(t);
-              setMessage('');
-            }}
-            className={`block w-full rounded border p-3 text-left text-sm ${selected.id === t.id ? 'border-current font-semibold' : 'border-transparent'}`}
-          >
-            {t.name}
-            <span className="block text-xs font-normal">
-              {t.builtin ? 'Starter · save an edited copy' : `Custom · revision ${t.revision}`}
-            </span>
-          </button>
-        ))}
+        <RecordList>
+          {templates.map((t) => (
+            <button
+              type="button"
+              key={t.id}
+              aria-pressed={selected.id === t.id}
+              onClick={() => {
+                setSelected(t);
+                setMessage('');
+              }}
+              className={`block w-full rounded border p-3 text-left text-sm ${selected.id === t.id ? 'border-current font-semibold' : 'border-transparent'}`}
+            >
+              {t.name}
+              <span className="block text-xs font-normal">
+                {t.builtin ? 'Starter · save an edited copy' : `Custom · revision ${t.revision}`}
+              </span>
+            </button>
+          ))}
+        </RecordList>
       </div>
       <form
         className="space-y-3"

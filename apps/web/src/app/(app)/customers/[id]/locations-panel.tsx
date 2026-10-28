@@ -1,5 +1,6 @@
 'use client';
 
+import { RecordList } from '@/components/ui/record-window';
 import { useActionState, useState } from 'react';
 import { Button, Card, CardSection, EmptyState, Field, Input, Notice } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
@@ -26,7 +27,7 @@ export function LocationsPanel({
         {locations.length === 0 ? (
           <EmptyState message="No sites recorded." />
         ) : (
-          <ul className="space-y-3">
+          <RecordList as="ul" className="space-y-3">
             {locations.map((location) => (
               <li key={location.id} className="flex items-start justify-between gap-2">
                 <div>
@@ -55,7 +56,7 @@ export function LocationsPanel({
                 ) : null}
               </li>
             ))}
-          </ul>
+          </RecordList>
         )}
 
         {canWrite ? (

@@ -1,5 +1,6 @@
 'use client';
 
+import { RecordList } from '@/components/ui/record-window';
 import { useState, type ReactNode } from 'react';
 import type { DeskHistoryItem } from '@/modules/tasks/services/desk.service';
 import { formatDeskDate } from './format-desk-date';
@@ -80,7 +81,7 @@ export function DeskHistory({
         <h2 className="font-semibold">{title}</h2>
         <p className="mt-1 text-sm text-[var(--color-ink-muted)]">{description}</p>
       </div>
-      <div className="divide-y divide-[var(--color-line)]">
+      <RecordList className="divide-y divide-[var(--color-line)]">
         {history.map((item) => (
           <article key={item.id} className="p-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -97,7 +98,7 @@ export function DeskHistory({
             </dl>
           </article>
         ))}
-      </div>
+      </RecordList>
     </div>
   );
 }

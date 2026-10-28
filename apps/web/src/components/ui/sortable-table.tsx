@@ -7,6 +7,7 @@ import {
   type ReactNode,
   type ReactElement,
 } from 'react';
+import { ShowMore, useRecordWindow } from './record-window';
 import { compareSortValues, type SortValue } from './table-sort';
 
 type ElementProps = {
@@ -46,9 +47,11 @@ function values(node: ReactNode): SortValue[] | null {
 export function SortableTable({
   children,
   className = 'w-full border-collapse text-sm',
+  paginate = true,
 }: {
   children: ReactNode;
   className?: string;
+  paginate?: boolean;
 }) {
   const [sort, setSort] = useState<{ column: number; descending: boolean } | null>(null);
   const toggle = (column: number) =>
@@ -57,7 +60,22 @@ export function SortableTable({
       descending: current?.column === column ? !current.descending : false,
     }));
 
-  const sections = nodes(children).map((section) => {
+  const bodies = nodes(children).filter(
+    (section): section is Element =>
+      isValidElement<ElementProps>(section) && section.type === 'tbody',
+  );
+  const rows = bodies.flatMap((section) =>
+    sort
+      ? sortTableRows(section.props.children, sort.column, sort.descending)
+      : nodes(section.props.children),
+  );
+  const page = useRecordWindow(
+    rows,
+    `${sort?.column}:${sort?.descending}:` +
+      rows.map((row, index) => (isValidElement(row) ? (row.key ?? index) : index)).join('|'),
+  );
+  const sectionNodes = nodes(children);
+  const sections = sectionNodes.map((section, sectionIndex) => {
     if (!isValidElement<ElementProps>(section)) return section;
     if (section.type === 'thead') {
       return cloneElement(
@@ -98,13 +116,21 @@ export function SortableTable({
       );
     }
     if (section.type !== 'tbody') return section;
+    const ordered = sort
+      ? sortTableRows(section.props.children, sort.column, sort.descending)
+      : nodes(section.props.children);
+    const rowOffset = sectionNodes.slice(0, sectionIndex).reduce<number>((offset, previous) => {
+      if (!isValidElement<ElementProps>(previous) || previous.type !== 'tbody') return offset;
+      const previousRows = sort
+        ? sortTableRows(previous.props.children, sort.column, sort.descending)
+        : nodes(previous.props.children);
+      return offset + previousRows.length;
+    }, 0);
+    const visible = paginate ? ordered.slice(0, Math.max(0, page.shown - rowOffset)) : ordered;
     return cloneElement(
       section,
       {},
-      (sort
-        ? sortTableRows(section.props.children, sort.column, sort.descending)
-        : nodes(section.props.children)
-      ).map((node) => disableDrag(node, Boolean(sort))),
+      visible.map((node) => disableDrag(node, Boolean(sort))),
     );
   });
   return (
@@ -121,6 +147,7 @@ export function SortableTable({
         </div>
       ) : null}
       <table className={className}>{sections}</table>
+      {paginate ? <ShowMore {...page} /> : null}
     </div>
   );
 }

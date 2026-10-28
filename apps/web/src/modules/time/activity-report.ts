@@ -18,6 +18,7 @@ export interface ReportRow {
   minutes: number;
   running: boolean;
   lastWorked: string;
+  sinceLastActive?: string;
 }
 
 export interface ReportInput {
@@ -36,7 +37,7 @@ const COLUMNS = [
   { key: 'item', label: 'Task or ticket', width: 350 },
   { key: 'stage', label: 'Stage', width: 110 },
   { key: 'time', label: 'Time', width: 70 },
-  { key: 'last', label: 'Last worked', width: 120 },
+  { key: 'last', label: 'Since last active', width: 120 },
 ] as const;
 
 /** Standard fonts cannot draw characters outside Latin-1. */
@@ -121,7 +122,8 @@ export async function buildActivityReport(input: ReportInput): Promise<Buffer> {
   if (input.rows.length > 0) header();
 
   for (const row of input.rows) {
-    if (y < MARGIN + 20) {
+    const rowHeight = row.sinceLastActive ? 26 : 14;
+    if (y < MARGIN + rowHeight) {
       page = pdf.addPage([PAGE.width, PAGE.height]);
       y = PAGE.height - MARGIN;
       header();
@@ -131,14 +133,20 @@ export async function buildActivityReport(input: ReportInput): Promise<Buffer> {
       `${row.number} ${row.title}${row.kind === 'ticket' ? ' (ticket)' : ''}`,
       row.stage,
       row.running ? `${formatMinutes(row.minutes)} (working now)` : formatMinutes(row.minutes),
-      row.running ? 'Now' : row.lastWorked,
+      row.sinceLastActive ?? (row.running ? 'Now' : row.lastWorked),
     ];
     let x = MARGIN;
     COLUMNS.forEach((column, index) => {
       text(fit(cells[index], regular, 9, column.width - 8), x, 9, regular);
+      if (column.key === 'last' && row.sinceLastActive) {
+        const top = y;
+        y -= 11;
+        text(fit(row.lastWorked, regular, 8, column.width - 8), x, 8, regular, muted);
+        y = top;
+      }
       x += column.width;
     });
-    y -= 14;
+    y -= rowHeight;
   }
 
   return Buffer.from(await pdf.save());

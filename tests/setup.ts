@@ -28,6 +28,13 @@ export async function connectForTests(suiteName: string) {
 
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(uri, { dbName, serverSelectionTimeoutMS: 20000 });
+    // Services must reuse this explicitly isolated connection, never reopen the app's URI.
+    if (globalThis.__coexMongoose) {
+      globalThis.__coexMongoose.connection = mongoose;
+      globalThis.__coexMongoose.promise = Promise.resolve(mongoose);
+    } else {
+      globalThis.__coexMongoose = { connection: mongoose, promise: Promise.resolve(mongoose) };
+    }
 
     // Each file gets a fresh database, so its indexes are built on first use. Building them here,
     // once, keeps that cost out of the first test's own time. Models are registered by the test
@@ -55,4 +62,8 @@ export async function clearDatabase() {
 
 export async function disconnectFromTests() {
   await mongoose.disconnect();
+  if (globalThis.__coexMongoose) {
+    globalThis.__coexMongoose.connection = null;
+    globalThis.__coexMongoose.promise = null;
+  }
 }
