@@ -1,5 +1,9 @@
 # FEEDBACK
 
+## 28 October 2026 — Completed feedback release deployed
+
+Completed feedback bundle is live at PR #70 / application SHA `515649d`. It includes the contract year change, customer contacts sourced from tickets, Team Activity last-active factor, Outlook email-to-task backend/pane assets, Gantt subtasks and PDF export, 10-record progressive lists, staff-only assignee filtering and team/customer separation, shared filter/icon refinements, recurring tasks and application-wide account/query/refresh optimizations. Owner/admin task assignment requests remain deferred for the next release. Deployment evidence and known limits: `ai/RELEASE-2026-10-28-FEEDBACK.md`. Outlook still needs the prepared production manifest sideloaded and tested in Outlook. Production freeze reports have not been proven resolved by this release.
+
 ## 28 October 2026 — Recurring tasks
 
 Added Does not repeat/Daily/Weekly/Monthly/Yearly choices to task creation in All Tasks, Personal and Space Board, plus the task edit form. Completing a recurring task creates its next open occurrence, advances any planned dates by the selected interval, preserves tags/assignees/description and resets subtasks. Each occurrence stores a reserved next-task ID so repeated completion requests cannot duplicate it. Local web typecheck passed and the All Tasks recurrence options were browser-checked without creating a task; lifecycle tests were not run. Local only, production unchanged.

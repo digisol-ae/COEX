@@ -1,5 +1,15 @@
 # COEX live deployment
 
+## Completed Worktello feedback release live — 28 October 2026
+
+PR #70 merged to `main` as `515649d3b9abddbf02b7990e035e368d29c6512e`. Active `coex-app-feedback` PID 515255 serves loopback port 3004 from `/srv/coex/releases/feedback-20261028`, built with Node 22.23.4. All four canonical app vhosts (`worktello.conf`, `worktello-le-ssl.conf`, `coex.conf`, `coex-le-ssl.conf`) proxy to 3004. `coex-app-green` on 3002 and `coex-app` on 3001 remain warm rollback slots; osTicket process and workers 10/11/12 were left online and unchanged. PM2 saved. Apache config test passed.
+
+Backups and private Apache/PM2 snapshots: `/srv/coex/shared/backups/worktello-feedback-20261028/`; database archive `coex-2026-10-28-1602.archive.gz`, uploaded files `files-2026-10-28-1602.tar.gz`. Gzip and tar integrity checks passed. Twenty HTTPS samples returned `/login` 200, Outlook task pane 200 and unauthenticated Outlook task API 401. The three local web slots and public login answer 200. No DB migration or user/session mutation.
+
+Rollback: confirm `http://127.0.0.1:3002/login` returns 200; restore the four `*.before` vhost files from the private backup directory to `/etc/apache2/sites-available/`, run `sudo apache2ctl configtest`, then `sudo apache2ctl graceful`. Keep the 3004 release and PM2 process until the prior mapping is verified publicly. Workers and database stay untouched.
+
+Verification: PR and merged-main CI passed, 441 unit tests, workspace types/lint/format and local/server production builds passed. Isolated database suite (`TZ=Asia/Dubai`): 265 pass, one known unrelated billable-default expectation failure at `tests/database/time.test.ts:176`. Outlook add-in manifest is prepared but has not been sideloaded or tested in Outlook. No authenticated production UI workflow was performed. See `ai/RELEASE-2026-10-28-FEEDBACK.md` for full scope and limits.
+
 ## Footer release live; support.digisolteam.com moved page — 26 October 2026 (Claude)
 
 PR67 merged as fb2e9d1 (tree = 7e32b8b): sign-in footer "Powered by" + smaller DigiSol logo + © Digisol LLC-FZ; Teams error text points to worktello.com; Teams package 1.4.1 published in Teams admin center (1.4.0 upload had failed). Active green coex-app-green on 3002 in /srv/coex/releases/footer-20261026 (COEX_APP_URL=https://worktello.com); all four vhosts (worktello*, coex*) target 3002. Blue coex-app on 3001 (contracts-20261026, worktello URL) is rollback. Workers untouched.
