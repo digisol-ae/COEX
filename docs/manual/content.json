@@ -1,6 +1,6 @@
 {
-  "version": "2026.10.27",
-  "updated": "27 October 2026",
+  "version": "2026.10.29",
+  "updated": "29 October 2026",
   "title": "Worktello field guide",
   "chapters": [
     {
@@ -33,13 +33,22 @@
         {
           "title": "Keep a local copy",
           "text": "Keep this manual folder together. For a portable copy with linked technical records, use the generated ZIP and extract its complete folder tree. Live app links require internet and your own account."
+        },
+        {
+          "title": "Show more records",
+          "text": "Lists initially show 10 top-level records. Use Show more to reveal the next batch while keeping earlier rows. Search and filters narrow the results; this display window does not mean every staff list fetches only 10 records from the server."
         }
       ],
       "notes": [
-        "Updated 25 October 2026. Technical COEX identifiers and the coex.digisol.ae hostname remain compatible with the Worktello name.",
+        "Updated 29 October 2026 from merged release evidence. Production workflow acceptance is stated separately from source review and local QA.",
         "This is a complete module reference, not a claim that every workflow was freshly tested on every device. Chapters state their evidence limits."
       ],
-      "sources": [],
+      "sources": [
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
+        ]
+      ],
       "images": [],
       "related": [
         "login",
@@ -420,16 +429,30 @@
         {
           "title": "Undo a recent save",
           "text": "Undo last save reverses the last save in this mounted chart, provided nobody has changed those dates. Undo does not survive a reload."
+        },
+        {
+          "title": "Inspect subtasks",
+          "text": "Use Show subtasks and the expand/collapse controls. Dashed child bars inherit the parent schedule when the child lacks a complete window. Saving child dates does not move the parent; a derived envelope for an undated parent does not save parent dates."
+        },
+        {
+          "title": "Download a PDF",
+          "text": "Use PDF to export the Gantt chart. Review the dates and visible hierarchy before sharing the downloaded file."
         }
       ],
       "notes": [
         "A stale/concurrent edit is rejected rather than silently overwriting someone else’s dates. Reload and review the current schedule before trying again.",
-        "Images below are actual application captures from isolated Docker QA with synthetic records, not production customer work. Physical touch and two-browser collision UI testing were not performed."
+        "Images below are actual application captures from isolated Docker QA with synthetic records, not production customer work. Physical touch and two-browser collision UI testing were not performed.",
+        "Subtask/PDF behavior is supported by merged source and recorded local QA in the 28 October release; authenticated production acceptance was not performed. The existing screenshot predates these additions.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
       ],
       "sources": [
         [
           "Gantt QA",
           "../GANTT-QA.md"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
         ]
       ],
       "images": [
@@ -562,16 +585,25 @@
         {
           "title": "Review the week",
           "text": "Open My timesheet and check dates, notes and totals. Use permitted team reports for wider visibility; normal agents do not gain access to everyone’s time."
+        },
+        {
+          "title": "Review latest recorded activity",
+          "text": "Team Activity can show staff latest activity with its exact timestamp and elapsed period. This reflects recorded work and running timers, not keyboard activity or online presence; No recorded activity means there is no matching work record."
         }
       ],
       "notes": [
         "Do not start a production timer merely to see the control: it can stop your existing timer.",
-        "App task times use Dubai office time. Read the displayed date/time before saving, especially when travelling."
+        "App task times use Dubai office time. Read the displayed date/time before saving, especially when travelling.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
       ],
       "sources": [
         [
           "Open My timesheet",
           "https://worktello.com/time"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
         ]
       ],
       "images": [],
@@ -664,11 +696,16 @@
         {
           "title": "Use portal access deliberately",
           "text": "An authorized administrator can create a portal account for an eligible active contact. Share its one-time credentials securely; an invitation email is not automatically sent."
+        },
+        {
+          "title": "Find contacts from tickets",
+          "text": "Inside Add Contact, choose Find from tickets. Search requesters or copied people, tick the intended people and review any move confirmation before adding them. Check the customer carefully to avoid linking someone to the wrong company."
         }
       ],
       "notes": [
         "Customer portal access is linked to the contact/company, not granted to anyone who knows an email address.",
-        "Existing customer exports contain core fields only, not every contact/document/history field."
+        "Existing customer exports contain core fields only, not every contact/document/history field.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
       ],
       "sources": [
         [
@@ -678,6 +715,10 @@
         [
           "Portal access rules",
           "../CUSTOMER-PORTAL.md"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
         ]
       ],
       "images": [],
@@ -845,16 +886,25 @@
         {
           "title": "Preview messages",
           "text": "When using the contract email action, select recipients/template and review the message before sending."
+        },
+        {
+          "title": "Enter a historic start date",
+          "text": "Existing agreements may start in 2025. Enter their actual start and end dates; the end must not precede the start."
         }
       ],
       "notes": [
         "A manual walkthrough does not send a renewal message, activate a contract or mark a real invoice.",
-        "Core CSV contract transfer excludes detailed service lines and is not a full contract backup."
+        "Core CSV contract transfer excludes detailed service lines and is not a full contract backup.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
       ],
       "sources": [
         [
           "Open Contracts",
           "https://worktello.com/contracts"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
         ]
       ],
       "images": [],
@@ -1062,11 +1112,16 @@
         {
           "title": "If content is refused",
           "text": "Capture the visible error and report the host URL. An administrator must check the exact embedding policy and Outlook web authorization; do not disable browser protections."
+        },
+        {
+          "title": "Email-to-task add-in readiness",
+          "text": "The separate email-to-task task pane and review API are deployed. Native Outlook sideloading, Office sign-in/dialog behavior and real email/attachment transfer remain unverified. Ask the administrator to complete that acceptance before relying on this workflow."
         }
       ],
       "notes": [
         "Production Outlook web SSO, task list and an accessible task detail were verified after the scoped fix. Assignment/time/update controls and the blank create form rendered. No task, time entry, assignment or message was submitted.",
-        "Outlook desktop/mobile, creating from an email and Copilot features are not claimed by the Supported on badge or this personal-tab fix."
+        "Outlook desktop/mobile, creating from an email and Copilot features are not claimed by the Supported on badge or this personal-tab fix.",
+        "The 28 October release records public task-pane 200 and unauthenticated API 401 checks. These checks do not establish native Outlook acceptance. The earlier personal workspace evidence remains separate."
       ],
       "sources": [
         [
@@ -1076,6 +1131,10 @@
         [
           "Technical resolution",
           "../resolutions/2026-10-25-outlook-web.md"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
         ]
       ],
       "images": [
@@ -1349,16 +1408,25 @@
         {
           "title": "Record a change",
           "text": "Use a reason/audit process for sensitive access changes and test the intended role with an authorized test account."
+        },
+        {
+          "title": "Separate customer sign-ins",
+          "text": "Use Worktello users for staff and Customer portal accounts for customer sign-ins. Customer accounts are excluded from staff assignment choices. Newly selected assignees must be active staff in the current organization."
         }
       ],
       "notes": [
         "The manual never grants permissions or adds Microsoft clients just by being opened. New security-sensitive authorization requires explicit action-time approval.",
-        "Secrets, environment files and token values do not belong in a manual, screenshot, commit or support conversation."
+        "Secrets, environment files and token values do not belong in a manual, screenshot, commit or support conversation.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
       ],
       "sources": [
         [
           "Open Users and roles",
           "https://worktello.com/security/users"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
         ]
       ],
       "images": [],
@@ -1408,6 +1476,10 @@
         [
           "Resolution index",
           "../resolutions/README.md"
+        ],
+        [
+          "Feedback release resolution",
+          "../resolutions/2026-10-29-feedback-release.md"
         ]
       ],
       "images": [],
@@ -1646,6 +1718,17 @@
       "verification": "PR66 merge 99b2c01 and PR67 merge fb2e9d1; recorded release handover only, no fresh runtime check.",
       "status": "Recorded live; runtime not rechecked",
       "record": "../resolutions/2026-10-27-domain-transition.md"
+    },
+    {
+      "id": "feedback-release",
+      "title": "Feedback release and verification boundaries",
+      "date": "29 Oct 2026",
+      "symptom": "Daily workflows needed clearer contact, timeline, activity and account controls with less repeated loading.",
+      "cause": "Release scope combined usability changes and confirmed excessive account/query loading; freeze root cause remains unconfirmed.",
+      "fix": "PR70 shipped the completed feedback scope; PR71 records deployment and rollback.",
+      "verification": "441 unit tests and CI/build passed; recorded isolated DB suite 265 passed with one known billable-default failure. No authenticated production flow or native Outlook acceptance.",
+      "status": "Recorded live; acceptance limits remain",
+      "record": "../resolutions/2026-10-29-feedback-release.md"
     }
   ]
 }
