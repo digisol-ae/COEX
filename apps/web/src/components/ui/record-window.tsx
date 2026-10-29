@@ -6,9 +6,18 @@ import { RECORD_PAGE_SIZE } from '@/modules/core/record-page-size';
 export { RECORD_PAGE_SIZE } from '@/modules/core/record-page-size';
 
 /** Reset when a filter/sort changes the result set; never slice before filtering or sorting. */
-export function useRecordWindow<T>(records: readonly T[], resetKey: string) {
+export function useRecordWindow<T>(records: readonly T[], resetKey: string, revealIndex = -1) {
   const [window, setWindow] = useState({ key: resetKey, limit: RECORD_PAGE_SIZE });
-  const limit = window.key === resetKey ? window.limit : RECORD_PAGE_SIZE;
+  const previousLimit = window.key === resetKey ? window.limit : RECORD_PAGE_SIZE;
+  // Creation can finish before refreshed records arrive. Reveal the saved record once present,
+  // and keep that expanded budget for subsequent edits and refreshes.
+  const limit = Math.max(
+    previousLimit,
+    Math.ceil((revealIndex + 1) / RECORD_PAGE_SIZE) * RECORD_PAGE_SIZE,
+  );
+  if (window.key !== resetKey || window.limit !== limit) {
+    setWindow({ key: resetKey, limit });
+  }
   return {
     items: records.slice(0, limit),
     shown: Math.min(limit, records.length),

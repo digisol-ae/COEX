@@ -134,11 +134,15 @@ export function Board({
     setPreviousFolderId(activeFolderId);
     setFolderId(activeFolderId);
   }
+  const windowScope = JSON.stringify([spaceId, view, folderId, assigneeFilter, search, showClosed]);
+  const [createdTask, setCreatedTask] = useState<{ id: string; scope: string } | null>(null);
+  if (createdTask && createdTask.scope !== windowScope) setCreatedTask(null);
   const { showToast } = useToast();
   const [state, formAction, pending] = useActionState(
     async (previous: TaskFormState, formData: FormData) => {
       const result = await createTaskAction(previous, formData);
       if (result.saved) {
+        if (result.createdTaskId) setCreatedTask({ id: result.createdTaskId, scope: windowScope });
         setAdding(false);
         showToast('Task created.');
       }
@@ -210,8 +214,10 @@ export function Board({
 
   const page = useRecordWindow(
     visible,
-    `${view}:${folderId}:${assigneeFilter}:${search}:${showClosed}:` +
-      visible.map((task) => task.id).join('|'),
+    windowScope,
+    createdTask?.scope === windowScope
+      ? visible.findIndex((task) => task.id === createdTask.id)
+      : -1,
   );
   const columnTasks = (status: string) => visible.filter((task) => task.status === status);
 
@@ -294,6 +300,7 @@ export function Board({
       setEditError(null);
 
       const result = await quickAddTaskAction({ spaceId, title, status, folderId });
+      if (result.createdTaskId) setCreatedTask({ id: result.createdTaskId, scope: windowScope });
       return result.error ?? null;
     },
     onRename: (task, title) => patch(task.id, { title }, { id: task.id, spaceId, title }),
