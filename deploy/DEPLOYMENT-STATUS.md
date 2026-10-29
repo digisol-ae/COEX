@@ -1,10 +1,10 @@
 # COEX live deployment
 
-## Worktello UI improvements live — 29 October 2026
+## Worktello UI improvements candidate held before cutover — 29 October 2026
 
-PR #73 merged as `93ec4211da581b99010e9e4ba0ca60b98155b3cb`. Active `coex-app-ui-improvements` PID 544805 serves loopback port 3005 from `/srv/coex/releases/ui-improvements-20261029`, using Node 22.23.4. All four canonical app vhosts (`worktello.conf`, `worktello-le-ssl.conf`, `coex.conf`, `coex-le-ssl.conf`) proxy to 3005. Previous feedback release `coex-app-feedback` PID 515255 on 3004 remains warm rollback; green 3002 and blue 3001 remain online. PM2 saved. osTicket and workers 10/11/12 were not restarted.
+PR #73 merged as `93ec4211da581b99010e9e4ba0ca60b98155b3cb`. Candidate `coex-app-ui-improvements` PID 544805 is online on loopback port 3005 from `/srv/coex/releases/ui-improvements-20261029`, using Node 22.23.4, but is not serving production traffic. All four canonical app vhosts (`worktello.conf`, `worktello-le-ssl.conf`, `coex.conf`, `coex-le-ssl.conf`) are restored to 3004. `coex-app-feedback` PID 515255 is the active production release; green 3002 and blue 3001 remain online. PM2 saved. osTicket and workers 10/11/12 were not restarted.
 
-PR CI run 40817396640 and merged-main CI run 40817646544 passed. Local typecheck, source lint, formatting, 441 unit tests and the 83-route webpack build passed. Production `npm ci` and Node 22.23.4 server build passed. The same server-action key as the prior release was preserved; prior hashed static assets were copied without overwrites. Candidate login, Outlook pane/dialog, add-time/share icons returned 200; unauthenticated Outlook task API returned 401. After switch, 20/20 HTTPS samples returned login 200, task pane 200, API 401, and both icons 200. Apache config test passed. Final public `/login`, `/time/activity`, Outlook pane and icons returned 200; API remained 401. Loopback ports 3001, 3002, 3004 and 3005 all returned login 200. No authenticated production workflow was performed.
+PR CI run 40817396640 and merged-main CI run 40817646544 passed. Local typecheck, source lint, formatting, 441 unit tests and the 83-route webpack build passed. Production `npm ci` and Node 22.23.4 server build passed. The same server-action key as the prior release was preserved; prior hashed static assets were copied without overwrites. Candidate login, Outlook pane/dialog, add-time/share icons returned 200; unauthenticated Outlook task API returned 401. A temporary switch passed 20/20 HTTPS samples, then routing was restored to 3004 because authenticated agent smoke could not be completed. Public login, Team Activity, Outlook pane and icons return 200 on 3004; the API remains 401. Candidate port 3005 remains healthy. Browser access to `https://worktello.com` was rejected by the origin approval gate, so the signed-in browser session could not be inspected. Do not retry through another browser or workaround.
 
 No DB migration, task/time write, email, account change or session expiry was performed. Backup contains the private pre-switch PM2 dump and all four canonical vhost snapshots at `/srv/coex/shared/backups/worktello-ui-improvements-20261029/` (mode 0700 directory; snapshot files mode 0600). Release tree and prior slot remain available.
 
@@ -14,7 +14,7 @@ Security follow-up: `npm audit --omit=dev --audit-level=critical` reports 1 crit
 
 ## Completed Worktello feedback release live — 28 October 2026
 
-PR #70 merged to `main` as `515649d3b9abddbf02b7990e035e368d29c6512e`; its web process remains available as rollback on 3004 at `/srv/coex/releases/feedback-20261028`. Current traffic is on 3005; 3002 and 3001 are additional warm rollback slots.
+PR #70 merged to `main` as `515649d3b9abddbf02b7990e035e368d29c6512e`; its web process is currently active on 3004 at `/srv/coex/releases/feedback-20261028`. Ports 3002 and 3001 remain additional warm rollback slots; the 3005 candidate has not been promoted.
 
 Backups and private Apache/PM2 snapshots: `/srv/coex/shared/backups/worktello-feedback-20261028/`; database archive `coex-2026-10-28-1602.archive.gz`, uploaded files `files-2026-10-28-1602.tar.gz`. Gzip and tar integrity checks passed. Twenty HTTPS samples returned `/login` 200, Outlook task pane 200 and unauthenticated Outlook task API 401. The three local web slots and public login answer 200. No DB migration or user/session mutation.
 
