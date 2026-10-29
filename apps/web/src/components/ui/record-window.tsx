@@ -80,3 +80,28 @@ export function RecordList({
     </>
   );
 }
+
+/** Give each independently grouped board column its own display window. */
+export function RecordWindow<T extends { id: string }>({
+  records,
+  resetKey,
+  revealId,
+  children,
+}: {
+  records: readonly T[];
+  resetKey: string;
+  revealId?: string;
+  children: (items: readonly T[]) => ReactNode;
+}) {
+  const page = useRecordWindow(
+    records,
+    resetKey,
+    records.findIndex((row) => row.id === revealId),
+  );
+  return (
+    <>
+      {children(page.items)}
+      <ShowMore {...page} />
+    </>
+  );
+}

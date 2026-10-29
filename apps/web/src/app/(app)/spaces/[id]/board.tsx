@@ -22,7 +22,7 @@ import { formatDateTime } from '@coex/shared/tasks/dates';
 import { TASK_RECURRENCES } from '@coex/shared/tasks/recurrence';
 import { formatMinutes } from '@coex/shared/time/week';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
-import { ShowMore, useRecordWindow } from '@/components/ui/record-window';
+import { RecordWindow, ShowMore, useRecordWindow } from '@/components/ui/record-window';
 import { Gantt } from './gantt';
 import { ViewTabs } from './view-tabs';
 import { FolderBar } from './folder-bar';
@@ -514,13 +514,13 @@ export function Board({
             style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(16rem, 1fr))` }}
           >
             {columns.map((column) => {
-              const inColumn = columnTasks(column.name).filter((task) =>
-                page.items.some((shown) => shown.id === task.id),
-              );
+              const allInColumn = columnTasks(column.name);
 
               return (
                 <div
                   key={column.name}
+                  role="region"
+                  aria-label={`${column.name} tasks`}
                   className="min-w-0"
                   onDragOver={(event) => {
                     if (!dragging) return;
@@ -528,7 +528,7 @@ export function Board({
                   }}
                   onDrop={(event) => {
                     event.preventDefault();
-                    drop(column.name, inColumn.length);
+                    drop(column.name, allInColumn.length);
                   }}
                 >
                   <div className="mb-2 flex items-center gap-2">
@@ -562,65 +562,71 @@ export function Board({
                     ) : null}
                   </div>
 
-                  <div
-                    className={clsx(
-                      'min-h-24 space-y-2 rounded-[var(--radius-card)] p-1 transition-colors',
-                      dragging && dropTarget?.status === column.name
-                        ? 'bg-[var(--color-surface-muted)]'
-                        : 'bg-transparent',
-                    )}
+                  <RecordWindow
+                    records={allInColumn}
+                    resetKey={windowScope}
+                    revealId={createdTask?.scope === windowScope ? createdTask.id : undefined}
                   >
-                    {inColumn.map((task, index) => (
+                    {(inColumn) => (
                       <div
-                        key={task.id}
-                        onDragOver={(event) => {
-                          if (!dragging) return;
-                          event.preventDefault();
-                          setDropTarget({ status: column.name, index });
-                        }}
-                        onDrop={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          drop(column.name, index);
-                        }}
+                        className={clsx(
+                          'min-h-24 space-y-2 rounded-[var(--radius-card)] p-1 transition-colors',
+                          dragging && dropTarget?.status === column.name
+                            ? 'bg-[var(--color-surface-muted)]'
+                            : 'bg-transparent',
+                        )}
                       >
-                        {dragging &&
-                        dropTarget?.status === column.name &&
-                        dropTarget.index === index ? (
-                          <div className="mb-2 h-0.5 rounded-full bg-[image:var(--gradient-brand)]" />
+                        {inColumn.map((task, index) => (
+                          <div
+                            key={task.id}
+                            onDragOver={(event) => {
+                              if (!dragging) return;
+                              event.preventDefault();
+                              setDropTarget({ status: column.name, index });
+                            }}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              drop(column.name, index);
+                            }}
+                          >
+                            {dragging &&
+                            dropTarget?.status === column.name &&
+                            dropTarget.index === index ? (
+                              <div className="mb-2 h-0.5 rounded-full bg-[image:var(--gradient-brand)]" />
+                            ) : null}
+
+                            <TaskCard
+                              task={task}
+                              handlers={handlers}
+                              isClosedColumn={column.isClosed}
+                              onDragStart={() =>
+                                setDragging({ taskId: task.id, fromStatus: column.name })
+                              }
+                              onDragEnd={() => {
+                                setDragging(null);
+                                setDropTarget(null);
+                              }}
+                              isDragging={dragging?.taskId === task.id}
+                            />
+                          </div>
+                        ))}
+
+                        {inColumn.length === 0 && !canManage ? (
+                          <p className="px-2 py-6 text-center text-xs text-[var(--color-ink-subtle)]">
+                            Nothing here
+                          </p>
                         ) : null}
 
-                        <TaskCard
-                          task={task}
-                          handlers={handlers}
-                          isClosedColumn={column.isClosed}
-                          onDragStart={() =>
-                            setDragging({ taskId: task.id, fromStatus: column.name })
-                          }
-                          onDragEnd={() => {
-                            setDragging(null);
-                            setDropTarget(null);
-                          }}
-                          isDragging={dragging?.taskId === task.id}
-                        />
+                        {canManage ? (
+                          <QuickAdd
+                            status={column.name}
+                            onAdd={(title) => handlers.onQuickAdd(column.name, title)}
+                          />
+                        ) : null}
                       </div>
-                    ))}
-
-                    {inColumn.length === 0 && !canManage ? (
-                      <p className="px-2 py-6 text-center text-xs text-[var(--color-ink-subtle)]">
-                        {columnTasks(column.name).length
-                          ? 'Show more to see tasks in this column'
-                          : 'Nothing here'}
-                      </p>
-                    ) : null}
-
-                    {canManage ? (
-                      <QuickAdd
-                        status={column.name}
-                        onAdd={(title) => handlers.onQuickAdd(column.name, title)}
-                      />
-                    ) : null}
-                  </div>
+                    )}
+                  </RecordWindow>
                 </div>
               );
             })}
@@ -641,7 +647,7 @@ export function Board({
         />
       ) : null}
 
-      {view !== 'gantt' ? <ShowMore {...page} /> : null}
+      {view === 'list' ? <ShowMore {...page} /> : null}
       {openTask ? (
         <TaskPanel
           key={openTask.id}
