@@ -60,7 +60,8 @@ export function SortableTable({
       descending: current?.column === column ? !current.descending : false,
     }));
 
-  const bodies = nodes(children).filter(
+  const childSections = nodes(children);
+  const bodies = childSections.filter(
     (section): section is Element =>
       isValidElement<ElementProps>(section) && section.type === 'tbody',
   );
@@ -74,8 +75,12 @@ export function SortableTable({
     `${sort?.column}:${sort?.descending}:` +
       rows.map((row, index) => (isValidElement(row) ? (row.key ?? index) : index)).join('|'),
   );
-  const sectionNodes = nodes(children);
-  const sections = sectionNodes.map((section, sectionIndex) => {
+  const orderedBodies = bodies.map((section) =>
+    sort
+      ? sortTableRows(section.props.children, sort.column, sort.descending)
+      : nodes(section.props.children),
+  );
+  const sections = childSections.map((section, sectionIndex) => {
     if (!isValidElement<ElementProps>(section)) return section;
     if (section.type === 'thead') {
       return cloneElement(
@@ -116,16 +121,16 @@ export function SortableTable({
       );
     }
     if (section.type !== 'tbody') return section;
-    const ordered = sort
-      ? sortTableRows(section.props.children, sort.column, sort.descending)
-      : nodes(section.props.children);
-    const rowOffset = sectionNodes.slice(0, sectionIndex).reduce<number>((offset, previous) => {
-      if (!isValidElement<ElementProps>(previous) || previous.type !== 'tbody') return offset;
-      const previousRows = sort
-        ? sortTableRows(previous.props.children, sort.column, sort.descending)
-        : nodes(previous.props.children);
-      return offset + previousRows.length;
-    }, 0);
+    const bodyIndex = childSections
+      .slice(0, sectionIndex)
+      .filter(
+        (previous): previous is Element =>
+          isValidElement<ElementProps>(previous) && previous.type === 'tbody',
+      ).length;
+    const ordered = orderedBodies[bodyIndex];
+    const rowOffset = orderedBodies
+      .slice(0, bodyIndex)
+      .reduce((count, body) => count + body.length, 0);
     const visible = paginate ? ordered.slice(0, Math.max(0, page.shown - rowOffset)) : ordered;
     return cloneElement(
       section,

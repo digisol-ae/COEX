@@ -19,6 +19,8 @@ export type IconName =
   | 'customer'
   | 'contact'
   | 'clock'
+  | 'clockAdd'
+  | 'share'
   | 'attachment'
   | 'message'
   | 'preview'
@@ -45,7 +47,7 @@ export type IconName =
   | 'inbox'
   | 'search';
 
-const PATHS: Record<IconName, ReactNode> = {
+const PATHS: Record<Exclude<IconName, 'clockAdd' | 'share'>, ReactNode> = {
   status: (
     <>
       <circle cx="8" cy="8" r="5.5" />
@@ -178,6 +180,30 @@ const PATHS: Record<IconName, ReactNode> = {
 };
 
 export function Icon({ name, size = 16 }: { name: IconName; size?: number }) {
+  if (name === 'clockAdd' || name === 'share') {
+    const mask =
+      name === 'clockAdd' ? 'url("/brand/add-time.png")' : 'url("/brand/share-send.png")';
+    return (
+      <span
+        aria-hidden="true"
+        className="block shrink-0"
+        style={{
+          width: size,
+          height: size,
+          backgroundColor: 'currentColor',
+          maskImage: mask,
+          WebkitMaskImage: mask,
+          maskRepeat: 'no-repeat',
+          WebkitMaskRepeat: 'no-repeat',
+          maskPosition: 'center',
+          WebkitMaskPosition: 'center',
+          maskSize: 'contain',
+          WebkitMaskSize: 'contain',
+        }}
+      />
+    );
+  }
+
   return (
     <svg
       width={size}
@@ -211,11 +237,17 @@ function classesFor(tone: Tone, className?: string) {
 export function IconButton({
   icon,
   label,
+  iconSize = 16,
   tone = 'default',
   className,
   type = 'button',
   ...props
-}: Omit<ComponentProps<'button'>, 'children'> & { icon: IconName; label: string; tone?: Tone }) {
+}: Omit<ComponentProps<'button'>, 'children'> & {
+  icon: IconName;
+  label: string;
+  iconSize?: number;
+  tone?: Tone;
+}) {
   return (
     <button
       {...props}
@@ -224,7 +256,7 @@ export function IconButton({
       data-tooltip={label}
       className={classesFor(tone, className)}
     >
-      <Icon name={icon} />
+      <Icon name={icon} size={iconSize} />
     </button>
   );
 }
