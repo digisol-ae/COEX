@@ -1,8 +1,18 @@
 # Worktello (formerly COEX) — Current AI Task
 
+## UI improvements release live — 29 October 2026
+
+PR #73 merged as `93ec4211da581b99010e9e4ba0ca60b98155b3cb`. Active `coex-app-ui-improvements` PID 544805 serves loopback port 3005 from `/srv/coex/releases/ui-improvements-20261029`, using Node 22.23.4. All four Worktello/COEX application vhosts target 3005. The feedback release on 3004, green 3002 and blue 3001 remain online rollback slots. PM2 was saved; osTicket and workers 10/11/12 were untouched.
+
+The release adds the collapsible/sortable Team Activity Summary, supplied add-time/share icons, compact share action, Worktello W button wait state and an Improvements entry in What's New. What's New opens only when an agent selects it; the unread indicator remains until acknowledged. No database migration, task/time write, email, account change or session expiry was performed. Full evidence and rollback: `ai/RELEASE-2026-10-29-UI-IMPROVEMENTS.md`.
+
+PR CI run 40817396640 and merged-main CI run 40817646544 passed. Local typecheck, source lint, formatting, 441 unit tests and 83-route webpack build passed; the production server build passed. Candidate and post-switch HTTPS checks passed. No authenticated production UI flow was exercised.
+
+Security follow-up: production-only `npm audit` reports 1 critical Next.js advisory and 8 additional advisories in dependencies. The release did not change dependencies; the Next.js issue predates PR #73 and needs a separately tested security update. See the release record.
+
 ## Completed feedback release live — 28 October 2026
 
-PR #70 merged as `515649d3b9abddbf02b7990e035e368d29c6512e`; active `coex-app-feedback` PID 515255 on loopback 3004 in `/srv/coex/releases/feedback-20261028`. All four Worktello/COEX Apache application vhosts target 3004. Green 3002 and blue 3001 remain online fallbacks; osTicket and all three workers were not restarted. PM2 saved. Node 22.23.4 is pinned. Full release record, backup, smoke checks and rollback: `ai/RELEASE-2026-10-28-FEEDBACK.md`.
+PR #70 merged as `515649d3b9abddbf02b7990e035e368d29c6512e`; this release is retained on loopback port 3004 in `/srv/coex/releases/feedback-20261028` as the immediate rollback. The current UI improvements release is active on 3005. Green 3002 and blue 3001 also remain online fallbacks. Full original release record: `ai/RELEASE-2026-10-28-FEEDBACK.md`.
 
 PR and merged-main CI passed; local clean install, 441 unit tests, types, lint, formatting and production build passed. Isolated database suite under `TZ=Asia/Dubai`: 265/266 passed; the one known unrelated expectation is `tests/database/time.test.ts:176` (omitted `billable` defaults false in the existing time service). Twenty public HTTPS samples returned login 200, Outlook pane 200 and unauthenticated Outlook task API 401. No authenticated workflow, task creation, mail, data migration or session expiry was performed. The feedback bundle does not include the deferred owner/admin task-assignment request.
 

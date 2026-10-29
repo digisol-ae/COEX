@@ -1,5 +1,15 @@
 # Worktello (formerly COEX) — Shared AI Project State
 
+## UI improvements release live — 29 October 2026
+
+PR #73 merged as `93ec4211da581b99010e9e4ba0ca60b98155b3cb` and is active at `/srv/coex/releases/ui-improvements-20261029` on port 3005 (PM2 `coex-app-ui-improvements`, PID 544805; Node 22.23.4). All four Worktello/COEX app vhosts proxy to 3005. The prior feedback release on 3004 remains the immediate rollback; 3001/3002 also remain healthy. Workers 10/11/12 and osTicket remain untouched. See `ai/RELEASE-2026-10-29-UI-IMPROVEMENTS.md` for release checks and rollback.
+
+What's New includes the UI changes under Improvements but no longer auto-opens for all agents; they can open it from the user menu and the unread dot remains until acknowledged. No production task/time data, account or session was changed.
+
+## Security follow-up — 29 October 2026
+
+`npm audit --omit=dev --audit-level=critical` on the deployed dependency lock reports a critical Next.js advisory for the existing 16.3.8 version, plus 8 other production dependency advisories. PR #73 did not change package versions. Exposure conditions have not been fully evaluated; ship a separate patched Next.js dependency update after compatibility tests. Details are in the 29 October UI release record.
+
 ## Microsoft 365 workspace live; Copilot actions unaccepted — 25 October 2026
 
 Application76cac60 (PR46) is live on blue3001: coex-app id14/PID329947, /srv/coex/releases/copilot-pilot-20261025. Green13/PID318054 on3002 is warm fallback; workers10/11/12 unchanged. CI/local/server checks passed,40/40 HTTPS200. Catalog1.3.0 and real Microsoft365 SSO/list verified. Copilot agent loads but action tools are unavailable; pilot account lacks Copilot add-on. No live task/time/email mutation. All owner-approved Entra additions persisted; no paid license/billing enabled. Exact evidence, rollback and remaining acceptance: ai/RELEASE-2026-10-25-COPILOT.md. Local checkout is now /Volumes/sd-mac/Developer/DigiSol/worktello. Cloud manual AI needs a separate configured API key; packaging-only acceptance must not be called AI-writing acceptance.

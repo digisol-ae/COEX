@@ -1,5 +1,11 @@
 # COEX isolated web rollout — current operating state
 
+## Active slot — 29 October 2026
+
+PR #73 merge `93ec4211da581b99010e9e4ba0ca60b98155b3cb` is live on port 3005 at `/srv/coex/releases/ui-improvements-20261029` (`coex-app-ui-improvements`, PID 544805, Node 22.23.4). All four Worktello/COEX app vhosts proxy to 3005. The previous feedback release on port 3004 is the immediate rollback; 3001 and 3002 also remain online. PM2 is saved. Workers and osTicket are untouched. Backup: `/srv/coex/shared/backups/worktello-ui-improvements-20261029/`.
+
+Rollback by restoring the four `*.before` vhost files from that backup into `/etc/apache2/sites-available/`, running `sudo apache2ctl configtest` and `sudo apache2ctl graceful`, then verifying `https://worktello.com/login`. Keep port 3005 online until 3004 traffic is confirmed. No database or session rollback is needed.
+
 ## Customer migration welcome live — 26 October 2026
 
 PR61 merged as7831dd68278972d267043f6c2b8cae9587e63a6e; compiled application tree7272806. Active blue coex-app id20/PID385274 on3001 in /srv/coex/releases/customer-welcome-20261026. Both canonical Apache proxies target3001, PM2 saved, Node22.23.4 verified for actual Node descendants. Green coex-app-green id19/PID383390 on3002 remains immediate rollback and retains customer credential/OTP support. Workers10/11/12 retain PIDs303634/303723/303820 and zero restarts. No database, password, account/session or mail mutation is part of this release.
