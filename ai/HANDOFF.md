@@ -1,8 +1,8 @@
-## 29 October 2026 — UI improvements live
+## 29 October 2026 — UI improvements candidate held before cutover
 
-PR #73 merged to main as `93ec4211da581b99010e9e4ba0ca60b98155b3cb`. Active web process is `coex-app-ui-improvements` PID 544805 on loopback port 3005 from `/srv/coex/releases/ui-improvements-20261029`; all four Worktello/COEX vhosts target 3005. Previous release `coex-app-feedback` PID 515255 on 3004 remains warm rollback; 3001 and 3002 are online. PM2 is saved. The three workers and osTicket were not restarted. Private switch backup: `/srv/coex/shared/backups/worktello-ui-improvements-20261029/`. See `ai/RELEASE-2026-10-29-UI-IMPROVEMENTS.md` for checks, scope and rollback steps.
+PR #73 merged to main as `93ec4211da581b99010e9e4ba0ca60b98155b3cb`. Candidate process `coex-app-ui-improvements` PID 544805 is online on loopback port 3005 from `/srv/coex/releases/ui-improvements-20261029`; it is not serving traffic. All four Worktello/COEX vhosts target the previous verified release, `coex-app-feedback` PID 515255 on 3004. Ports 3001 and 3002 remain online. PM2 is saved. The three workers and osTicket were not restarted. Private switch backup: `/srv/coex/shared/backups/worktello-ui-improvements-20261029/`.
 
-The new Improvements note is available from the user menu and does not open automatically for agents. No production records, accounts or sessions were changed. Authenticated agent UI and Outlook sideload acceptance were not performed.
+The candidate's Improvements note does not automatically open for agents. Candidate smoke and a temporary 20/20 HTTPS monitor passed, then routing was restored to 3004 because authenticated agent smoke was unavailable. The browser origin approval gate denied access to `https://worktello.com`, so do not retry via another browser or workaround. No production records, accounts or sessions were changed. Authenticated agent UI and Outlook sideload acceptance were not performed.
 
 Security follow-up: production-only `npm audit` found 1 critical advisory affecting the existing Next.js 16.3.8 dependency, plus 8 additional production advisories. This release changed no dependencies. Plan a separate, tested dependency update; do not infer exploitability or remediation from this UI release.
 
