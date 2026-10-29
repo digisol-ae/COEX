@@ -63,6 +63,7 @@ function subtaskError(error: unknown, fallback: string): string {
 export interface TaskFormState {
   error?: string;
   saved?: boolean;
+  createdTaskId?: string;
 }
 
 const PRIORITIES = ['urgent', 'high', 'normal', 'low'] as const;
@@ -189,8 +190,9 @@ export async function createTaskAction(
   const actor = await requirePermission('task.manage');
   const spaceId = text(formData, 'spaceId');
 
+  let createdTaskId: string;
   try {
-    await asUser(actor, () =>
+    createdTaskId = await asUser(actor, () =>
       createTask({
         spaceId,
         title: text(formData, 'title'),
@@ -213,7 +215,7 @@ export async function createTaskAction(
   revalidatePath(`/spaces/${spaceId}`);
   revalidatePath('/tasks');
   revalidatePath('/dashboard');
-  return { saved: true };
+  return { saved: true, createdTaskId };
 }
 
 /** Captures a task from My tasks without asking the agent to create or choose a Space. */
@@ -301,8 +303,9 @@ export async function quickAddTaskAction(input: {
   const title = input.title.trim();
   if (!title) return { error: 'A task needs a title.' };
 
+  let createdTaskId: string;
   try {
-    await asUser(actor, () =>
+    createdTaskId = await asUser(actor, () =>
       createTask({
         spaceId: input.spaceId,
         title,
@@ -317,7 +320,7 @@ export async function quickAddTaskAction(input: {
   revalidatePath(`/spaces/${input.spaceId}`);
   revalidatePath('/tasks');
   revalidatePath('/dashboard');
-  return { saved: true };
+  return { saved: true, createdTaskId };
 }
 
 /** Used by drag and drop, which sends the neighbours rather than an index. */
