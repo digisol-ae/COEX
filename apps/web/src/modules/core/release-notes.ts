@@ -3,9 +3,8 @@
  *
  * Describe user-facing features/UI improvements only; keep technical/backend details in handover docs.
  * Owner-requested maintenance entries show counts only.
- * Add a release at the top whenever something users will notice ships. The newest release's id is
- * what "I understand" records on a person's account, so a new entry at the top is all it takes for
- * the drawer to open by itself once more for everyone.
+ * Add a release at the top whenever something users will notice ships. The What's new drawer opens
+ * when a person chooses it from the user menu; its unread indicator remains until acknowledged.
  */
 
 export interface ReleaseNote {
@@ -17,6 +16,20 @@ export interface ReleaseNote {
 }
 
 export const RELEASE_NOTES: ReleaseNote[] = [
+  {
+    id: '2026-10-29-ui-improvements',
+    date: '29 October 2026',
+    title: 'Small improvements across Worktello',
+    sections: [
+      {
+        heading: 'Improvements',
+        items: [
+          'Action buttons and filters now use compact, consistent icons and helpful tooltips. Pending actions show the Worktello W.',
+          'Team activity has a collapsible summary that can be sorted by agent, last activity or total time.',
+        ],
+      },
+    ],
+  },
   {
     id: '2026-10-26-contract-drafting',
     date: '26 October 2026',

@@ -201,16 +201,14 @@ export function Timesheet({
                   <span className="min-w-0 truncate text-sm text-[var(--color-ink)]">
                     {item.label}
                   </span>
-                  <Button
-                    type="button"
-                    variant="secondary"
+                  <IconButton
+                    icon="clockAdd"
+                    label={UI_LABELS.addTime}
                     onClick={() => {
                       setChosen(item.key);
                       setAdding(true);
                     }}
-                  >
-                    {UI_LABELS.addTime}
-                  </Button>
+                  />
                 </li>
               ))}
             </ul>

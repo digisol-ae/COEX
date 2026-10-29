@@ -1,4 +1,3 @@
-import { RecordList } from '@/components/ui/record-window';
 import { asUser, requirePermission } from '@/lib/session';
 import { listStaffUsers } from '@/modules/core/services/staff.service';
 import { listSpaces } from '@/modules/tasks/services/space.service';
@@ -66,10 +65,9 @@ export default async function TeamActivityPage({
   // The same totals the PDF opens with, so the screen and the report agree.
   const minutesByPerson = new Map<string, number>();
   for (const row of rows) {
-    minutesByPerson.set(row.userName, (minutesByPerson.get(row.userName) ?? 0) + row.minutes);
+    minutesByPerson.set(row.userId, (minutesByPerson.get(row.userId) ?? 0) + row.minutes);
   }
-  const personTotals = [...minutesByPerson.entries()].sort((a, b) => b[1] - a[1]);
-  const totalMinutes = personTotals.reduce((sum, [, minutes]) => sum + minutes, 0);
+  const totalMinutes = [...minutesByPerson.values()].reduce((sum, minutes) => sum + minutes, 0);
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -97,62 +95,66 @@ export default async function TeamActivityPage({
         ticketStatuses={Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }))}
       />
 
-      <section
-        className="mb-4 rounded border border-[var(--color-line)] p-3"
-        aria-label="Agent last activity"
-      >
-        <h2 className="text-sm font-medium">Since last active</h2>
-        <p className="mb-2 text-xs text-[var(--color-ink-subtle)]">
+      <details open className="mb-4 rounded border border-[var(--color-line)]">
+        <summary className="cursor-pointer px-3 py-3 text-sm font-medium marker:text-[var(--color-ink-subtle)]">
+          Summary
+        </summary>
+        <p className="px-3 pb-2 text-xs text-[var(--color-ink-subtle)]">
           Latest timer or logged work across all dates. This records work, not online presence.
           Times use the office timezone.
         </p>
-        <RecordList as="ul" className="divide-y divide-[var(--color-line)]">
-          {users
-            .filter((user) => !filter.userIds?.length || filter.userIds.includes(user.id))
-            .map((user) => {
-              const work = latest.get(user.id);
-              return (
-                <li key={user.id} className="flex flex-wrap justify-between gap-2 py-2 text-sm">
-                  <span>{user.name}</span>
-                  <span>
-                    {sinceLastActive(work?.at ?? null, work?.running)}
-                    {work ? (
-                      <span className="ml-2 text-xs text-[var(--color-ink-subtle)]">
-                        {formatDateTime(work.at)}
-                      </span>
-                    ) : null}
-                  </span>
-                </li>
-              );
-            })}
-        </RecordList>
-      </section>
+        <Table>
+          <thead>
+            <tr>
+              <Th>Agent</Th>
+              <Th>Since Last Active</Th>
+              <Th>Total Time</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {users
+              .filter((user) => !filter.userIds?.length || filter.userIds.includes(user.id))
+              .map((user) => {
+                const work = latest.get(user.id);
+                const userMinutes = minutesByPerson.get(user.id) ?? 0;
+                return (
+                  <tr
+                    key={user.id}
+                    data-sort-values={JSON.stringify([
+                      user.name,
+                      work?.at.getTime() ?? null,
+                      userMinutes,
+                    ])}
+                    className="border-b border-[var(--color-line)] last:border-b-0"
+                  >
+                    <Td>{user.name}</Td>
+                    <Td>
+                      <p>{sinceLastActive(work?.at ?? null, work?.running)}</p>
+                      {work ? (
+                        <p className="text-xs text-[var(--color-ink-subtle)]">
+                          {formatDateTime(work.at)}
+                        </p>
+                      ) : null}
+                    </Td>
+                    <Td>{formatMinutes(userMinutes)}</Td>
+                  </tr>
+                );
+              })}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-[var(--color-line)] font-medium">
+              <Td>Total</Td>
+              <Td />
+              <Td>{formatMinutes(totalMinutes)}</Td>
+            </tr>
+          </tfoot>
+        </Table>
+      </details>
 
       <p className="mb-2 text-xs text-[var(--color-ink-subtle)]">
         {rows.length} {rows.length === 1 ? 'row' : 'rows'}
         {working > 0 ? ` · ${working} working right now` : ''}
       </p>
-
-      {rows.length > 0 ? (
-        <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
-          <span className="rounded-[var(--radius-control)] bg-[var(--color-surface-muted)] px-3 py-1.5 font-medium text-[var(--color-ink)]">
-            Total {formatMinutes(totalMinutes)}
-          </span>
-          {personTotals.length > 1
-            ? personTotals.map(([name, minutes]) => (
-                <span
-                  key={name}
-                  className="rounded-[var(--radius-control)] border border-[var(--color-line)] px-3 py-1.5 text-[var(--color-ink-muted)]"
-                >
-                  {name}{' '}
-                  <span className="tabular-nums text-[var(--color-ink)]">
-                    {formatMinutes(minutes)}
-                  </span>
-                </span>
-              ))
-            : null}
-        </div>
-      ) : null}
 
       <Card>
         {rows.length === 0 ? (
