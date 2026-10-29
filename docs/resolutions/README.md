@@ -26,3 +26,5 @@ Interactive user guide: `../manual/index.html#resolutions`. Secrets and raw priv
 - [27 October review: Worktello domain and support moved page](2026-10-27-domain-transition.md) — Recorded live; runtime not rechecked.
 
 - [29 October: feedback release and acceptance limits](2026-10-29-feedback-release.md)
+
+- [30 October: Board expansion and activity summary](2026-10-30-board-and-ui.md)

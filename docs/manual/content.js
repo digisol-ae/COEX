@@ -1,6 +1,6 @@
 window.WORKTELLO_MANUAL = {
-  "version": "2026.10.29",
-  "updated": "29 October 2026",
+  "version": "2026.10.30",
+  "updated": "30 October 2026",
   "title": "Worktello field guide",
   "chapters": [
     {
@@ -40,7 +40,7 @@ window.WORKTELLO_MANUAL = {
         }
       ],
       "notes": [
-        "Updated 29 October 2026 from merged release evidence. Production workflow acceptance is stated separately from source review and local QA.",
+        "Updated 30 October 2026 through merged PR77. Verification statements are dated release evidence; this manual run did not check production runtime.",
         "This is a complete module reference, not a claim that every workflow was freshly tested on every device. Chapters state their evidence limits."
       ],
       "sources": [
@@ -281,16 +281,25 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Change status carefully",
           "text": "Use the permitted status action when work moves forward. Closing the main task affects all assignees; use personal completion for just your subtask work."
+        },
+        {
+          "title": "Expand a Space Board column",
+          "text": "Each status column starts with up to 10 tasks. Use its Show more control to reveal the next batch independently. Editing retains expansion; a newly created task is revealed in its own column. Changing filters resets the windows."
         }
       ],
       "notes": [
         "Task creation may queue an assignment email for another person according to tenant email settings. Self-assignment mail remains intentionally suppressed.",
-        "This guide does not create production tasks as examples."
+        "This guide does not create production tasks as examples.",
+        "29 October release handover records signed-in live Board expansion from 10 to 20 Done cards while To do remained unchanged. Creation/edit checks used isolated synthetic data. A narrow-viewport floating timer overlapped the far-right footer control; keyboard activation worked in the recorded live check."
       ],
       "sources": [
         [
           "Open Tasks",
           "https://worktello.com/tasks"
+        ],
+        [
+          "Board expansion resolution",
+          "../resolutions/2026-10-30-board-and-ui.md"
         ]
       ],
       "images": [],
@@ -589,6 +598,10 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Review latest recorded activity",
           "text": "Team Activity can show staff latest activity with its exact timestamp and elapsed period. This reflects recorded work and running timers, not keyboard activity or online presence; No recorded activity means there is no matching work record."
+        },
+        {
+          "title": "Sort the activity summary",
+          "text": "Expand Summary in Team Activity to compare Agent, Since Last Active and Total Time. Select a column heading to change the sort order."
         }
       ],
       "notes": [
@@ -604,6 +617,10 @@ window.WORKTELLO_MANUAL = {
         [
           "Feedback release evidence",
           "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
+        ],
+        [
+          "UI release evidence",
+          "../../ai/RELEASE-2026-10-29-UI-IMPROVEMENTS.md"
         ]
       ],
       "images": [],
@@ -1729,6 +1746,17 @@ window.WORKTELLO_MANUAL = {
       "verification": "441 unit tests and CI/build passed; recorded isolated DB suite 265 passed with one known billable-default failure. No authenticated production flow or native Outlook acceptance.",
       "status": "Recorded live; acceptance limits remain",
       "record": "../resolutions/2026-10-29-feedback-release.md"
+    },
+    {
+      "id": "board-and-ui",
+      "title": "Independent Board expansion and activity summary",
+      "date": "30 Oct 2026",
+      "symptom": "Space Board expansion needed to retain visible tasks and work independently per status.",
+      "cause": "A shared display window limited unrelated columns and refreshes lost expansion.",
+      "fix": "PR76 retains expanded windows and reveals new tasks; PR77 gives each Board column its own window. PR73 adds sortable activity Summary.",
+      "verification": "Recorded signed-in live expansion passed; creation/edit checks were local synthetic QA. No runtime check in this manual run.",
+      "status": "Recorded live read check; narrow viewport overlap remains",
+      "record": "../resolutions/2026-10-30-board-and-ui.md"
     }
   ]
 };
