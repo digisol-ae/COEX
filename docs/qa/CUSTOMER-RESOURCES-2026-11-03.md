@@ -33,3 +33,7 @@ Synthetic preview/seed helpers refuse non-local databases. Temporary QA credenti
 ## Ticket composer follow-up
 
 Share resources now opens inline beside Reply to customer and Internal note. Local browser verification selected the synthetic PDF, submitted a labelled QA message from that tab, and confirmed the public reply in the conversation and return to the reply tab. Reopening Share resources retains the 72-hour default and opens no dialog. The library sharing drawer remains available. Source lint and web typecheck passed. This follow-up is local only; no real customer mail was sent.
+
+## Same-page document viewing
+
+Replaced the customer View document external-tab link with an inline preview control. PDFs use the bundled viewer; previewable images and plain text use a protected same-page frame. Local browser verification confirmed that clicking View document retains the shared-resource URL and renders the synthetic PDF; download remains separate. Source lint and web typecheck passed. The synthetic PDF was restored from its previously downloaded QA copy after temporary storage had been cleared; no customer file was changed.

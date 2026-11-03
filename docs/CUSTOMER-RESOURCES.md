@@ -43,3 +43,5 @@ No data migration, production deployment, account change, real email delivery or
 
 Local verification and limitations: [QA record](qa/CUSTOMER-RESOURCES-2026-11-03.md).
 PDF renderer integration follows the [official PDF.js examples](https://mozilla.github.io/pdf.js/examples/); assets are bundled locally rather than loaded from a CDN.
+
+Customer document viewing stays in the shared-resource page: View document expands a protected PDF, image or plain-text preview. Downloads remain a separate action; Office files use download.

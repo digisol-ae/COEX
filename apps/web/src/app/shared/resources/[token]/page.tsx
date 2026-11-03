@@ -1,10 +1,9 @@
 import { cookies } from 'next/headers';
-import { ResourcePdfPreview } from '@/modules/resources/pdf-preview';
+import { ResourceDocumentPreview } from '@/modules/resources/document-preview';
 import { Card, CardSection, Notice } from '@/components/ui';
 import { BrandLogo } from '@/components/brand-logo';
 import { publicShare, publicResources, verifiedShare } from '@/modules/resources/service';
 import { resourceCookie } from '@/modules/resources/http';
-import { previewable } from '@/modules/resources/rules';
 import { parseVideoLink } from '@/modules/tutorials/video-link';
 import { ResourceAccessForm } from './access-form';
 export const dynamic = 'force-dynamic';
@@ -91,30 +90,13 @@ export default async function SharedResourcesPage({
                       </a>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
-                        {previewable(resource.contentType ?? '') ? (
-                          <a
-                            href={fileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="underline"
-                          >
-                            View document
-                          </a>
-                        ) : null}
-                        <a href={`${fileUrl}?download=1`} className="break-all underline">
-                          Download {resource.fileName}
-                        </a>
-                      </div>
-                      {resource.contentType === 'application/pdf' ? (
-                        <ResourcePdfPreview
-                          url={fileUrl}
-                          title={resource.title}
-                          autoOpen={data.resources.length === 1}
-                        />
-                      ) : null}
-                    </div>
+                    <ResourceDocumentPreview
+                      url={fileUrl}
+                      title={resource.title}
+                      fileName={resource.fileName ?? 'document'}
+                      contentType={resource.contentType ?? ''}
+                      autoOpen={data.resources.length === 1}
+                    />
                   )}
                 </CardSection>
               </Card>

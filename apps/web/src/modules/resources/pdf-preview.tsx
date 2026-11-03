@@ -46,7 +46,7 @@ export function ResourcePdfPreview({
       })
       .catch(() => {
         if (!cancelled)
-          setError('Preview could not be loaded. You can still use View document or Download.');
+          setError('Preview could not be loaded. You can still download the original document.');
       });
     return () => {
       cancelled = true;
