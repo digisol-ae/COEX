@@ -1,0 +1,11 @@
+# Native contract signing
+
+Worktello supports reviewed contract invitations on the tenant's letterhead. Configure the real logo, address and contact details in **Setup → Tenant settings → Contract letterhead** before sending. Each invitation freezes its agreement revision and letterhead.
+
+From **Contracts**, open a contract's agreement draft, review it and open **Send for signature**. Select its customer contact and send the invitation. **Contracts → Signature tracking** lists each request independently, with its sender, requested date, revision, reference, expiry and status. Sending another contract or a later revision does not overwrite prior request history. Signing does not activate the commercial contract.
+
+Customers follow their private invitation and verify their mailbox before seeing the agreement. They can draw using a finger, stylus or mouse; upload a PNG, JPEG or WebP image; or type their name and choose an appearance. Explicit consent is required. Customer and authorised staff views provide the completed agreement and protected signing receipt.
+
+Invitations expire after 14 days; verification codes after 10 minutes; verified browser access after 30 minutes. Code attempts and resends are limited. Requests preserve versioned agreement hashes, consent, server signing time and mailbox-verification evidence. Drawn/uploaded images are normalised and encrypted; version-three evidence uses server HMAC authentication. Signing pages disable caching, referrers, indexing and framing. Keep existing encryption/HMAC keys and private backups safe: changing keys without migration can make historic evidence unreadable or unverifiable.
+
+These controls do not establish qualified signatures, independent identity verification, certificate-signed PDFs, accredited timestamps, universal enforceability or DocuSign certification. Review country/contract requirements and the organisation's hosting, access, retention and privacy practices before customer use. A queued invitation is not proof of email delivery. Physical touch/stylus hardware and real customer delivery/signing require pilot acceptance.

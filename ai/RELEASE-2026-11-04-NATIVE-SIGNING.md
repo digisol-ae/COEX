@@ -1,6 +1,6 @@
 # Native contract signing release — 4 November 2026
 
-Status: release preparation; production traffic remains on Customer Resources port 3008.
+Status: live on https://worktello.com. Cutover verified at 01:05 PKT on 4 November 2026 (3 November 20:05 UTC). The preparation notes below describe the pre-switch state; the live record supersedes them.
 
 Owner authorised deploying committed changes after commit 1ae7526. Release branch codex/native-signing-release-20261104 integrates the current main (6bbf492), preserving Customer Resources and its inline sharing/preview workflow. Native signing includes tenant letterhead, draw/upload/type capture, mailbox verification, independent dated history, and protected versioned signing receipts. Provider evaluation stays deferred.
 
@@ -33,3 +33,17 @@ Actual cutover, revision, CI, process checks and live acceptance are recorded be
 - Next advisory references: https://github.com/advisories/GHSA-2464-fhr4-w9xw and https://github.com/advisories/GHSA-673q-mjm6-r5xr.
 
 No database/session/customer mutations or mail sends were performed on production for these tests. The three existing workers remain on their prior release; the candidate app dependency audit does not attest to those older worker dependency trees.
+
+## Live release and acceptance
+
+PR [#81](https://github.com/digisol-ae/COEX/pull/81) merged as `0dcaf6ea5f14ecd98397650085840f2ba9249103`. Tested source `202d8f05e2df5e7d84b9098e1bac7ba25f768e41` has exactly the same Git tree as the merge: `7ea2413e22d2053d5974136dd481e807081d98c3`. PR CI [41707632492](https://github.com/digisol-ae/COEX/actions/runs/41707632492) and merged-main CI [41708641435](https://github.com/digisol-ae/COEX/actions/runs/41708641435) passed, including production builds. Server clean install/build passed. Source archive SHA-256 verified at both ends: `eaf8b338aa4a1cc3bc6fb9fae74116194eda8eedce0e06ac64b0aea28733837f` (2,972,516 bytes). The production archive allowlist excludes exports, backups, QA outputs and private project datasets.
+
+Active PM2 `coex-app-native-signing`, id 11/PID 59120, zero restarts, cwd `/srv/coex/releases/native-signing-20261104/apps/web`, listens only on `127.0.0.1:3009`. Actual process executable is Node 22.23.4; installed Next.js is 16.4.5. RELEASE.json records source, merge, archive, CI, port and cutover. All four app vhosts now proxy to 3009. Apache configtest passed and graceful reload completed; PM2 saved. Customer Resources on 3008 remains healthy immediate rollback. Mail/desk-close/channels kept PIDs 906/907/908, zero restarts. Existing osTicket and other slots were untouched.
+
+The existing canonical URL, database/auth/signing configuration, absolute shared storage and build server-action key were preserved. Prior hashed static assets were copied without overwriting candidate assets. Anonymous candidate/live checks verified login, privacy/terms, invalid signing-link refusal and invalid receipt 404. Signing responses have no-store, no-referrer and anti-framing headers. Protected signing/resource/settings pages redirect anonymous callers to sign-in. Twenty public HTTPS login samples passed after cutover; eleven live hashed static assets matched candidate bytes. Candidate error log was empty at final process verification.
+
+Authenticated live browser acceptance verified the Contracts → Signature tracking entry, the empty ledger and status filters in Asia/Dubai, and Setup → Tenant settings → Contract letterhead fields. A live contract signature screen correctly disabled sending while its contact, reviewed draft and configured letterhead were absent. The existing Customer Resources library/history also rendered after cutover. Production tenant logo/address are blank: configure real letterhead before sending; no business identity/address was invented. Local screenshot: `outputs/qa/native-signing-release-20261104/live-tracking.png` (kept locally). Real customer invitation delivery/signing and physical touch/stylus acceptance remain pilot checks; local synthetic flow coverage does not establish delivery or certificate-backed assurance. No customer email, production signature, contract edit, migration, account/password/session change or session expiry was performed for release acceptance.
+
+## Immediate rollback
+
+First verify `http://127.0.0.1:3008/login` returns 200. Restore all four `worktello.conf.before`, `worktello-le-ssl.conf.before`, `coex.conf.before` and `coex-le-ssl.conf.before` snapshots from `/srv/coex/shared/backups/native-signing-20261104/` into their canonical `/etc/apache2/sites-available/` paths. Run `sudo apache2ctl configtest`, then `sudo apache2ctl graceful`; verify public HTTPS and authenticated navigation. Keep both web slots, shared data, encryption keys and workers intact. Do not restore the database or expire sessions for an application rollback. Documentation-only follow-up requires no rebuild/restart.

@@ -1038,7 +1038,7 @@ window.WORKTELLO_MANUAL = {
         ],
         [
           "Signing and evidence guide",
-          "../../projects/crm-contracts/EVIDENCE-CONTROLS.md"
+          "../CONTRACT-SIGNING.md"
         ]
       ],
       "images": [],
