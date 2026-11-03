@@ -1,5 +1,9 @@
 ## 25 October 2026 — guided imports and contacts (draft)
 
+## Customer Resources live — 4 November 2026
+
+PR #79 merged as `6f704035702d8a569e063e6cbedf75bc6a2c27dc`. Active `coex-app-customer-resources` id 10/PID 56939 serves loopback 3008 from `/srv/coex/releases/customer-resources-20261104` (Node 22.23.4). All four app vhosts target 3008; prior Board slot 3007 remains healthy rollback. PM2 saved; workers retained PIDs 906/907/908 with zero restarts. PR/main CI, 455 fresh unit tests, server production build, 20/20 HTTPS monitor and authenticated live library/share-form checks passed. No customer email/upload, data migration, password/account/session change. Real customer delivery remains pilot acceptance. Scope excludes separate local signing/features work. Full evidence and rollback: `ai/RELEASE-2026-11-04-CUSTOMER-RESOURCES.md`.
+
 Branch `codex/import-review-contacts`: seven templates with protected sample rows and formatting guidance; explicit match review with skip, customer/contact separate-create and targeted update; customer-linked contact import/export and review reports. Blank update fields preserved. 55 unit files/384 tests, workspace types/lint/format and local 75-page build passed; disposable Docker integration passed including tenant/portal protection, customer IDs and parent-name reuse proof invalidation. Browser permission at localhost:3111 was declined; no alternate UI workaround, no deployment or new live business writes. Do not call UI/live acceptance complete. Full record: `docs/resolutions/2026-10-25-import-review.md`. Prior 111-created/13-skipped customer import is separate; skipped rows need owner decisions. Private exports and unrelated projects/outputs remain untracked and excluded.
 
 # Worktello (formerly COEX) — AI Handoff
