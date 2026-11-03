@@ -1,4 +1,3 @@
-import { ShareResourcesPanel } from '@/modules/resources/share-panel';
 import { parallel } from '@/lib/parallel';
 import { TicketCustomer } from './ticket-customer';
 import { listOrganisationChoices } from '@/modules/crm/services/organisation.service';
@@ -257,13 +256,9 @@ export default async function TicketPage({
           }
         />
 
-        {canManage && !ticket.mergedIntoId && actor.permissions.includes('resource.share') ? (
-          <div className="mb-3">
-            <ShareResourcesPanel ticketId={ticket.id} ticketRecipient={replyEmail} />
-          </div>
-        ) : null}
         {canManage && !ticket.mergedIntoId ? (
           <ReplyBox
+            canShareResources={actor.permissions.includes('resource.share')}
             ccEmails={ticket.ccEmails}
             collaboratorOptions={collaboratorOptions}
             ticketId={ticket.id}

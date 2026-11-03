@@ -29,3 +29,7 @@ App: http://localhost:3123. Database: `worktello_resources_local` on 127.0.0.1:2
 No real customer inbox delivery, live customer upload, production deployment or external-video playback acceptance claimed. Video provider/source permissions need actual customer-approved content during pilot. Link verification and download activity are not proof of reading/watching. Native mobile browsers and all Office variants have not been individually exercised. Expired/revoked files cannot be fetched again; downloaded copies remain with the recipient.
 
 Synthetic preview/seed helpers refuse non-local databases. Temporary QA credential/OTP capture files are mode 0600 under `/private/tmp` and must never be committed. Screenshots are synthetic-only evidence in `docs/manual/assets/archive/`; they are not live screenshots.
+
+## Ticket composer follow-up
+
+Share resources now opens inline beside Reply to customer and Internal note. Local browser verification selected the synthetic PDF, submitted a labelled QA message from that tab, and confirmed the public reply in the conversation and return to the reply tab. Reopening Share resources retains the 72-hour default and opens no dialog. The library sharing drawer remains available. Source lint and web typecheck passed. This follow-up is local only; no real customer mail was sent.

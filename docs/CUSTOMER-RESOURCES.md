@@ -34,7 +34,7 @@ Browser access uses a per-share HttpOnly, SameSite cookie scoped to that link's 
 - Staff library/actions: `apps/web/src/app/(app)/support/resources/`.
 - Upload/recipient/private staff file endpoints: `apps/web/src/app/api/resources/`.
 - Customer page, verification and protected file endpoint: `apps/web/src/app/shared/resources/`.
-- Ticket entry: the ticket page's Share resources drawer, with a preview of its recipient and public-reply behavior.
+- Ticket entry: the ticket composer's Share resources tab beside Reply to customer and Internal note, with a preview of its recipient and public-reply behavior.
 - Email uses `resource_share` in the existing outbox with the standard sender. The existing email worker delivers it; requests do not call SMTP synchronously. Duplicate share submissions use a tenant-unique request key. If queueing/ticket posting fails, the share fails closed and is revoked.
 
 ## Review and rollout boundary
