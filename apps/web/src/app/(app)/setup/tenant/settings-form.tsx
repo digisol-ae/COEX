@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element -- Preview the embedded tenant letterhead logo. */
 
 import { useActionState, useEffect } from 'react';
 import { Button, Card, CardSection, Field, Input, Notice, Select, Textarea } from '@/components/ui';
@@ -37,6 +38,11 @@ export function TenantSettingsForm({
     workingDays: number[];
     dayStart: string;
     dayEnd: string;
+    letterheadAddress: string;
+    letterheadContact: string;
+    letterheadFooter: string;
+    letterheadLogo: string;
+    letterheadColor: string;
   };
 }) {
   const [state, formAction, pending] = useActionState(saveTenantSettingsAction, initialState);
@@ -47,7 +53,10 @@ export function TenantSettingsForm({
   }, [state, showToast]);
 
   return (
-    <form action={formAction}>
+    <form
+      action={formAction}
+      className="[&_input:not([type=checkbox])]:min-h-12 [&_input]:text-base [&_textarea]:text-base [&_button]:min-h-12 [&_select]:min-h-12 [&_select]:text-base"
+    >
       <Card>
         <CardSection title="Identity">
           <div className="space-y-4">
@@ -57,6 +66,58 @@ export function TenantSettingsForm({
 
             <Field label="Identifier" hint="Fixed after creation. Used in links and subdomains.">
               <Input defaultValue={defaults.slug} disabled />
+            </Field>
+          </div>
+        </CardSection>
+
+        <CardSection title="Contract letterhead">
+          <p className="mb-4 text-sm">
+            Customer contracts use this tenant’s name, logo, address and footer. Configure the logo
+            and address before sending for signature.
+          </p>
+          <div className="space-y-4">
+            {defaults.letterheadLogo && (
+              <img
+                src={defaults.letterheadLogo}
+                alt={`${defaults.name} letterhead logo`}
+                className="max-h-24 max-w-full object-contain"
+              />
+            )}
+            <Field
+              label="Letterhead logo"
+              hint="PNG, JPEG or WebP, up to 2 MB. Leave blank to keep the saved logo."
+            >
+              <Input name="letterheadLogo" type="file" accept="image/png,image/jpeg,image/webp" />
+            </Field>
+            <Field label="Letterhead address">
+              <Textarea
+                name="letterheadAddress"
+                rows={3}
+                maxLength={2000}
+                defaultValue={defaults.letterheadAddress}
+              />
+            </Field>
+            <Field
+              label="Letterhead contact details"
+              hint="Phone, email, website or registration details."
+            >
+              <Textarea
+                name="letterheadContact"
+                rows={3}
+                maxLength={1000}
+                defaultValue={defaults.letterheadContact}
+              />
+            </Field>
+            <Field label="Letterhead footer">
+              <Textarea
+                name="letterheadFooter"
+                rows={2}
+                maxLength={1000}
+                defaultValue={defaults.letterheadFooter}
+              />
+            </Field>
+            <Field label="Letterhead colour">
+              <Input name="letterheadColor" type="color" defaultValue={defaults.letterheadColor} />
             </Field>
           </div>
         </CardSection>

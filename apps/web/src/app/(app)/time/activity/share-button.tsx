@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { Button, Field, Input, Notice } from '@/components/ui';
+import { IconButton } from '@/components/ui/icon-button';
 import { shareActivityAction, type ShareState } from './actions';
 
 /**
@@ -20,9 +21,13 @@ export function ShareButton({
 
   return (
     <>
-      <Button type="button" variant="secondary" onClick={() => setOpen(true)}>
-        Share
-      </Button>
+      <IconButton
+        type="button"
+        icon="share"
+        iconSize={14}
+        label="Share team activity"
+        onClick={() => setOpen(true)}
+      />
       {open ? (
         <div
           className="popup-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"

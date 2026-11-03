@@ -1,4 +1,5 @@
 'use client';
+import { Table } from '@/components/ui';
 import { useState, useTransition } from 'react';
 import { ENTITIES, columns, type Entity } from '@/modules/data-transfer/spec';
 import { instructions } from '@/modules/data-transfer/templates';
@@ -224,7 +225,7 @@ export function TransferPanel() {
             </p>
           )}
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <Table className="w-full text-left">
               <thead>
                 <tr>
                   <th className="p-2">Record</th>
@@ -341,7 +342,7 @@ export function TransferPanel() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </Table>
           </div>
         </section>
       ) : null}

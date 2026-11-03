@@ -99,6 +99,7 @@ export function RailLinks({
 
         return (
           <Link
+            prefetch={false}
             key={item.href}
             href={
               item.href === '/setup'
@@ -156,6 +157,7 @@ export function IconRail({
       className="hidden w-16 shrink-0 flex-col items-center gap-0.5 bg-[image:var(--gradient-rail)] py-3 md:flex"
     >
       <Link
+        prefetch={false}
         href="/dashboard"
         aria-label="Worktello home"
         className="mb-2 flex h-9 w-9 items-center justify-center rounded-[10px] text-sm font-bold text-white"

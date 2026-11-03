@@ -1,5 +1,6 @@
 'use client';
 
+import { RecordList } from '@/components/ui/record-window';
 import { useOptimistic, useState, useTransition } from 'react';
 import { Button, Card, CardSection, EmptyState, Input, Notice } from '@/components/ui';
 import { addSubtaskAction, setSubtaskAssigneeAction, toggleSubtaskAction } from '../actions';
@@ -36,7 +37,7 @@ export function SubtaskList({
         {subtasks.length === 0 ? (
           <EmptyState message="No subtasks. Add them if the task is worth breaking down." />
         ) : (
-          <ul className="space-y-2">
+          <RecordList as="ul" className="space-y-2">
             {visibleSubtasks.map((subtask) => (
               <li key={subtask.id} className="flex items-center gap-2">
                 <div className="flex flex-1 items-center gap-2">
@@ -111,7 +112,7 @@ export function SubtaskList({
                 ) : null}
               </li>
             ))}
-          </ul>
+          </RecordList>
         )}
 
         {canManage ? (

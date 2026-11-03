@@ -126,9 +126,7 @@ export function Button({
       )}
     >
       {waiting ? (
-        <span className="coex-wait" aria-label="Saving">
-          C O E X
-        </span>
+        <span className="worktello-button-wait" role="img" aria-label="Saving" />
       ) : (
         children
       )}

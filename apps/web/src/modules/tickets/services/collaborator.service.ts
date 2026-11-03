@@ -1,3 +1,4 @@
+import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { repository } from '@/lib/repository';
@@ -22,7 +23,7 @@ export async function listCollaboratorOptions(): Promise<CollaboratorOption[]> {
       tenantId,
       deletedAt: null,
       status: 'active',
-      role: { $ne: 'client_contact' },
+      role: { $in: [...STAFF_ROLES] },
     }).select('name email'),
   ]);
   const customers = new Map(organisations.map((row) => [String(row._id), row.name]));

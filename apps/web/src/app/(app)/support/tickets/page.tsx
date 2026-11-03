@@ -1,3 +1,5 @@
+import { RecordList } from '@/components/ui/record-window';
+import { parallel } from '@/lib/parallel';
 import { ticketAnalytics, ticketCategory } from '@/modules/tickets/analytics';
 import { TicketSubjectLink } from './ticket-preview-button';
 import { listCollaboratorOptions } from '@/modules/tickets/services/collaborator.service';
@@ -9,9 +11,10 @@ import {
   type TicketStatus,
 } from '@/modules/tickets/services/ticket.service';
 import { listQueues } from '@/modules/tickets/services/queue.service';
-import { getTicketOrder, listUsers } from '@/modules/core/services/user.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
+import { getTicketOrder } from '@/modules/core/services/user.service';
 import { applyTicketOrder } from '@/modules/tickets/ticket-order';
-import { listOrganisations } from '@/modules/crm/services/organisation.service';
+import { listOrganisationChoices } from '@/modules/crm/services/organisation.service';
 import { STATUS_LABELS } from '@/modules/tickets/labels';
 import { Card, EmptyState, Notice, PageHeader } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
@@ -58,27 +61,29 @@ export default async function TicketsPage({
     users,
     organisations,
     ticketOrder,
-  } = await asUser(actor, async () => ({
-    tickets: await listTickets({
-      queueId: params.queue || undefined,
-      status: params.status ? (params.status as TicketStatus) : undefined,
-      // An agent without ticket.read.all only ever sees their own, whatever the address bar says.
-      assigneeId: seesEverything
-        ? scope === 'mine'
-          ? actor.id
-          : params.assignee || undefined
-        : actor.id,
-      priority: params.priority ? (params.priority as Priority) : undefined,
-      search: params.search,
-      openOnly: !params.status && scope !== 'all',
-      // Counts and category selection share all matching records, never the default 200-row cap.
-      limit: 0,
+  } = await asUser(actor, () =>
+    parallel({
+      tickets: listTickets({
+        queueId: params.queue || undefined,
+        status: params.status ? (params.status as TicketStatus) : undefined,
+        // An agent without ticket.read.all only ever sees their own, whatever the address bar says.
+        assigneeId: seesEverything
+          ? scope === 'mine'
+            ? actor.id
+            : params.assignee || undefined
+          : actor.id,
+        priority: params.priority ? (params.priority as Priority) : undefined,
+        search: params.search,
+        openOnly: !params.status && scope !== 'all',
+        // Counts and category selection share all matching records, never the default 200-row cap.
+        limit: 0,
+      }),
+      queues: listQueues(),
+      users: listStaffUsers(),
+      organisations: listOrganisationChoices(),
+      ticketOrder: getTicketOrder(),
     }),
-    queues: await listQueues(),
-    users: await listUsers(),
-    organisations: await listOrganisations(),
-    ticketOrder: await getTicketOrder(),
-  }));
+  );
 
   const counts = ticketAnalytics(matchingTickets);
   const category = scope === 'breached' ? 'missed' : scope;
@@ -144,85 +149,87 @@ export default async function TicketsPage({
           <EmptyState message="Nothing here. Try another queue, or widen the filters." />
         ) : (
           <>
-            <div className="divide-y divide-[var(--color-line)] md:hidden">
-              {tickets.map((ticket) => (
-                <article key={ticket.id} className="space-y-3 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
-                      <TicketSubjectLink
-                        ticketId={ticket.id}
-                        className="mt-2 block text-sm font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
-                      >
-                        {ticket.unread ? <UnreadMark /> : null}
-                        {ticket.subject}
-                      </TicketSubjectLink>
-                      <p className="mt-1 truncate text-xs text-[var(--color-ink-subtle)]">
-                        {[
-                          ticket.organisationName,
-                          ticket.contactName ?? ticket.requester,
-                          ticket.queueName,
-                        ]
-                          .filter(Boolean)
-                          .join(' · ')}
-                      </p>
-                    </div>
-                    <div className="shrink-0">
-                      {canManage ? (
-                        <AgentControl
+            <div className="md:hidden">
+              <RecordList className="divide-y divide-[var(--color-line)]">
+                {tickets.map((ticket) => (
+                  <article key={ticket.id} className="space-y-3 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <span className={priorityClass(ticket.priority)}>{ticket.number}</span>
+                        <TicketSubjectLink
                           ticketId={ticket.id}
-                          assigneeId={ticket.assigneeId}
-                          assigneeName={ticket.assigneeName}
-                          users={users.map((user) => ({ id: user.id, name: user.name }))}
+                          className="mt-2 block text-sm font-medium text-[var(--color-ink)] underline-offset-4 hover:underline"
+                        >
+                          {ticket.unread ? <UnreadMark /> : null}
+                          {ticket.subject}
+                        </TicketSubjectLink>
+                        <p className="mt-1 truncate text-xs text-[var(--color-ink-subtle)]">
+                          {[
+                            ticket.organisationName,
+                            ticket.contactName ?? ticket.requester,
+                            ticket.queueName,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </p>
+                      </div>
+                      <div className="shrink-0">
+                        {canManage ? (
+                          <AgentControl
+                            ticketId={ticket.id}
+                            assigneeId={ticket.assigneeId}
+                            assigneeName={ticket.assigneeName}
+                            users={users.map((user) => ({ id: user.id, name: user.name }))}
+                          />
+                        ) : ticket.assigneeName ? (
+                          <Avatar name={ticket.assigneeName} size="small" />
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <div>
+                        <p className="mb-1 text-[10px] font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                          Status
+                        </p>
+                        {canManage ? (
+                          <TicketRowActions ticket={{ id: ticket.id, status: ticket.status }} />
+                        ) : (
+                          <span className={statusClass(ticket.status)}>
+                            {STATUS_LABELS[ticket.status]}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="mb-1 text-[10px] font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                          Priority
+                        </p>
+                        {canManage ? (
+                          <PriorityControl ticketId={ticket.id} priority={ticket.priority} />
+                        ) : (
+                          <span className={priorityClass(ticket.priority)}>{ticket.priority}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-end justify-between gap-3 text-xs text-[var(--color-ink-muted)]">
+                      <div className="flex flex-col gap-0.5">
+                        <SlaChip
+                          label="Reply"
+                          state={ticket.firstResponseState}
+                          dueAt={ticket.firstResponseDueAt}
                         />
-                      ) : ticket.assigneeName ? (
-                        <Avatar name={ticket.assigneeName} size="small" />
-                      ) : null}
+                        <SlaChip
+                          label="Resolve"
+                          state={ticket.resolutionState}
+                          dueAt={ticket.resolutionDueAt}
+                        />
+                      </div>
+                      <span className="text-right">{formatDateTime(ticket.lastActivityAt)}</span>
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <div>
-                      <p className="mb-1 text-[10px] font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                        Status
-                      </p>
-                      {canManage ? (
-                        <TicketRowActions ticket={{ id: ticket.id, status: ticket.status }} />
-                      ) : (
-                        <span className={statusClass(ticket.status)}>
-                          {STATUS_LABELS[ticket.status]}
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <p className="mb-1 text-[10px] font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
-                        Priority
-                      </p>
-                      {canManage ? (
-                        <PriorityControl ticketId={ticket.id} priority={ticket.priority} />
-                      ) : (
-                        <span className={priorityClass(ticket.priority)}>{ticket.priority}</span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-end justify-between gap-3 text-xs text-[var(--color-ink-muted)]">
-                    <div className="flex flex-col gap-0.5">
-                      <SlaChip
-                        label="Reply"
-                        state={ticket.firstResponseState}
-                        dueAt={ticket.firstResponseDueAt}
-                      />
-                      <SlaChip
-                        label="Resolve"
-                        state={ticket.resolutionState}
-                        dueAt={ticket.resolutionDueAt}
-                      />
-                    </div>
-                    <span className="text-right">{formatDateTime(ticket.lastActivityAt)}</span>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                ))}
+              </RecordList>
             </div>
 
             {ticketOrder.length > 0 ? (

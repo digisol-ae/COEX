@@ -8,10 +8,11 @@ import { getTask } from './task.service';
 export interface GanttScheduleInput {
   id: string;
   spaceId: string;
-  startAt: string;
-  endAt: string;
-  expectedStartAt: string;
-  expectedEndAt: string;
+  subtaskId?: string;
+  startAt: string | null;
+  endAt: string | null;
+  expectedStartAt: string | null;
+  expectedEndAt: string | null;
 }
 /** Visible-task authorization and an atomic date comparison protect drag edits and Undo. */
 export async function saveGanttSchedule(input: GanttScheduleInput) {
@@ -33,25 +34,51 @@ export async function saveGanttSchedule(input: GanttScheduleInput) {
       Number.isFinite(Date.parse(value))
     );
   };
+  // Undo may restore an undated or due-date-only task, as well as inherited child dates.
+  const partial = input.startAt === null || input.endAt === null;
   if (
-    ![input.startAt, input.endAt, input.expectedStartAt, input.expectedEndAt].every(instant) ||
-    !validSchedule(input.startAt, input.endAt)
+    (input.subtaskId && !Types.ObjectId.isValid(input.subtaskId)) ||
+    ![input.startAt, input.endAt, input.expectedStartAt, input.expectedEndAt].every(
+      (value) => value === null || instant(value),
+    ) ||
+    (!partial && !validSchedule(input.startAt, input.endAt))
   )
     throw new Error('Enter a valid start and an end after it.');
   const before = await getTask(input.id);
   if (!before || String(before.spaceId) !== input.spaceId) throw new Error('Task not found.');
   if (before.isClosed) throw new Error('Reopen this task before changing its schedule.');
-  const startAt = new Date(input.startAt),
-    endAt = new Date(input.endAt);
+  const subtask = input.subtaskId
+    ? before.subtasks.find((sub) => String(sub._id) === input.subtaskId)
+    : null;
+  if (input.subtaskId && !subtask) throw new Error('Subtask not found.');
+  if (subtask?.done) throw new Error('Reopen this subtask before changing its schedule.');
+  const startAt = input.startAt ? new Date(input.startAt) : null,
+    endAt = input.endAt ? new Date(input.endAt) : null;
+  const originalStart = input.expectedStartAt ? new Date(input.expectedStartAt) : null;
+  const originalEnd = input.expectedEndAt ? new Date(input.expectedEndAt) : null;
   const after = await repository(TaskModel).updateOne(
     {
       _id: before._id,
       spaceId: before.spaceId,
       isClosed: false,
-      startAt: new Date(input.expectedStartAt),
-      endAt: new Date(input.expectedEndAt),
+      ...(input.subtaskId
+        ? {
+            subtasks: {
+              $elemMatch: {
+                _id: new Types.ObjectId(input.subtaskId),
+                done: false,
+                startAt: originalStart,
+                endAt: originalEnd,
+              },
+            },
+          }
+        : { startAt: originalStart, endAt: originalEnd }),
     },
-    { $set: { startAt, endAt, lastActivityAt: new Date() } },
+    {
+      $set: input.subtaskId
+        ? { 'subtasks.$.startAt': startAt, 'subtasks.$.endAt': endAt, lastActivityAt: new Date() }
+        : { startAt, endAt, lastActivityAt: new Date() },
+    },
   );
   if (!after)
     throw new Error(
@@ -61,8 +88,11 @@ export async function saveGanttSchedule(input: GanttScheduleInput) {
     action: 'task.updated',
     entityType: 'Task',
     entityId: before._id,
-    before: { startAt: before.startAt, endAt: before.endAt },
-    after: { startAt, endAt, source: 'gantt' },
+    before: {
+      startAt: subtask ? (subtask.startAt ?? null) : before.startAt,
+      endAt: subtask ? (subtask.endAt ?? null) : before.endAt,
+    },
+    after: { startAt, endAt, source: 'gantt', subtaskId: input.subtaskId ?? null },
   });
-  return { startAt: startAt.toISOString(), endAt: endAt.toISOString() };
+  return { startAt: startAt?.toISOString() ?? null, endAt: endAt?.toISOString() ?? null };
 }

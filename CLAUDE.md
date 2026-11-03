@@ -1,5 +1,9 @@
 # Worktello (formerly COEX)
 
+## Contacts from tickets — 26 October 2026 (local, not committed)
+
+Customer → Contacts → **Find from tickets** searches ticket requesters/CCs (same-domain suggestions when empty), bulk-links them as contacts, creates missing Contact records, files their customer-less tickets under the customer, and asks before moving contacts from another customer (their old tickets stay put). Requires customer.manage + ticket.read.all. Unit/lint/types/build passed on a clean clone; DB test `tests/database/ticket-people.test.ts` and UI acceptance pending. Record: `docs/resolutions/2026-10-26-contacts-from-tickets.md`.
+
 ## Outlook web fixed; local interactive manual added — 25 October 2026
 
 Application `d547d25` (PR #44) is live. Exact Outlook web embedding hosts and Microsoft client were added while retaining signed-token, tenant, scope and staff checks. Owner explicitly approved Entra preauthorization at action time; persisted state verified. All 348 tests, types/lint/format, local/server 75-page builds and PR/main CI passed. Real Outlook web SSO/list/detail and blank create-form rendering passed; fresh Teams web SSO/list/create-form reads also passed. No production task/time/message/assignment/import mutation for the demonstration.

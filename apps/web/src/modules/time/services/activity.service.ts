@@ -17,6 +17,37 @@ import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
 
 const entries = () => repository(TimeEntryModel);
 
+/** Latest recorded work per person across all dates, independent of the report's day range. */
+export async function latestTeamWork() {
+  await connectToDatabase();
+  const now = new Date();
+  const rows = await TimeEntryModel.aggregate<{
+    _id: import('mongoose').Types.ObjectId;
+    at: Date;
+    running: number;
+  }>([
+    { $match: entries().scope() },
+    {
+      $group: {
+        _id: '$userId',
+        at: {
+          $max: {
+            $cond: [
+              '$running',
+              now,
+              { $ifNull: ['$endedAt', { $ifNull: ['$startedAt', '$workDate'] }] },
+            ],
+          },
+        },
+        running: { $max: { $cond: ['$running', 1, 0] } },
+      },
+    },
+  ]);
+  return new Map(
+    rows.map((row) => [String(row._id), { at: row.at, running: Boolean(row.running) }]),
+  );
+}
+
 export interface ActivityFilter {
   /** Calendar days, YYYY-MM-DD, both inclusive. */
   fromDay: string;
@@ -93,7 +124,9 @@ export async function listTeamActivity(filter: ActivityFilter): Promise<Activity
     const minutes = entry.running
       ? Math.max(0, Math.floor((Date.now() - startedAt.getTime()) / 60000))
       : (entry.minutes ?? 0);
-    const touchedAt = entry.running ? new Date() : (entry.endedAt ?? entry.updatedAt ?? startedAt);
+    const touchedAt = entry.running
+      ? new Date()
+      : (entry.endedAt ?? entry.startedAt ?? entry.workDate);
 
     const key = `${entry.userId}:${kind}:${itemId}`;
     const existing = rows.get(key);

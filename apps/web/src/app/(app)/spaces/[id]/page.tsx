@@ -1,3 +1,4 @@
+import { parallel } from '@/lib/parallel';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
 import { getSpace, progressPercent } from '@/modules/tasks/services/space.service';
@@ -7,8 +8,8 @@ import { getRunningTimer } from '@/modules/time/services/time.service';
 import { Progress } from '@/components/ui/progress';
 import { Monogram } from '@/components/ui/monogram';
 import { Avatar } from '@/components/ui/avatar';
-import { listUsers } from '@/modules/core/services/user.service';
-import { listOrganisations } from '@/modules/crm/services/organisation.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
+import { listOrganisationChoices } from '@/modules/crm/services/organisation.service';
 import { PageHeader } from '@/components/ui';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Board } from './board';
@@ -28,13 +29,15 @@ export default async function SpacePage({
   const space = await asUser(actor, () => getSpace(id));
   if (!space) notFound();
 
-  const { tasks, users, folders, customers, runningTimer } = await asUser(actor, async () => ({
-    tasks: await listTasks({ spaceId: id, includeClosed: true }),
-    users: await listUsers(),
-    folders: await listFolders(id),
-    customers: await listOrganisations(),
-    runningTimer: await getRunningTimer(),
-  }));
+  const { tasks, users, folders, customers, runningTimer } = await asUser(actor, () =>
+    parallel({
+      tasks: listTasks({ spaceId: id, includeClosed: true }),
+      users: listStaffUsers(),
+      folders: listFolders(id),
+      customers: listOrganisationChoices(),
+      runningTimer: getRunningTimer(),
+    }),
+  );
 
   const columns = [...space.statuses]
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))

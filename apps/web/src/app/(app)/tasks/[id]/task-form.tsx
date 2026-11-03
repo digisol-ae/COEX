@@ -4,6 +4,7 @@ import { UI_LABELS } from '@/components/ui/labels';
 import { useActionState, useState } from 'react';
 import { Button, Field, Input, Notice, Select } from '@/components/ui';
 import { archiveTaskAction, updateTaskAction, type TaskFormState } from '../actions';
+import { TASK_RECURRENCES, type TaskRecurrence } from '@coex/shared/tasks/recurrence';
 
 const initialState: TaskFormState = {};
 
@@ -18,6 +19,7 @@ interface TaskFields {
   estimateHours: string;
   tags: string;
   folderId: string;
+  recurrence: TaskRecurrence;
 }
 
 export function TaskForm({
@@ -42,6 +44,7 @@ export function TaskForm({
   const [estimateHours, setEstimateHours] = useState(task.estimateHours);
   const [folderId, setFolderId] = useState(task.folderId);
   const [tags, setTags] = useState(task.tags);
+  const [recurrence, setRecurrence] = useState(task.recurrence);
 
   /**
    * A form action that succeeds resets every uncontrolled field on it back to whatever defaultValue
@@ -62,6 +65,7 @@ export function TaskForm({
     setEstimateHours(task.estimateHours);
     setFolderId(task.folderId);
     setTags(task.tags);
+    setRecurrence(task.recurrence);
   }
 
   if (!canManage) {
@@ -129,6 +133,27 @@ export function TaskForm({
           </Field>
 
           <div className="space-y-3">
+            <Field
+              label="Repeat"
+              hint={
+                recurrence === 'none'
+                  ? undefined
+                  : 'The next task is created when this one is completed.'
+              }
+            >
+              <Select
+                name="recurrence"
+                value={recurrence}
+                onChange={(event) => setRecurrence(event.target.value as TaskRecurrence)}
+              >
+                <option value="none">Does not repeat</option>
+                {TASK_RECURRENCES.filter((option) => option !== 'none').map((option) => (
+                  <option key={option} value={option}>
+                    {option[0].toUpperCase() + option.slice(1)}
+                  </option>
+                ))}
+              </Select>
+            </Field>
             <Field label="Priority">
               <Select
                 name="priority"

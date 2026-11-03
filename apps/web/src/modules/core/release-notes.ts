@@ -18,6 +18,20 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-10-29-ui-improvements',
+    date: '29 October 2026',
+    title: 'Small improvements across Worktello',
+    sections: [
+      {
+        heading: 'Improvements',
+        items: [
+          'Action buttons and filters now use compact, consistent icons and helpful tooltips. Pending actions show the Worktello W.',
+          'Team activity has a collapsible summary that can be sorted by agent, last activity or total time.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-26-contract-drafting',
     date: '26 October 2026',
     title: 'Prepare customer agreements from reusable templates',

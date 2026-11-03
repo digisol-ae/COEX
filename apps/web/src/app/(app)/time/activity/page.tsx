@@ -1,12 +1,13 @@
 import { asUser, requirePermission } from '@/lib/session';
-import { listUsers } from '@/modules/core/services/user.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
 import { listSpaces } from '@/modules/tasks/services/space.service';
 import { listTasks } from '@/modules/tasks/services/task.service';
-import { listTeamActivity } from '@/modules/time/services/activity.service';
+import { listTeamActivity, latestTeamWork } from '@/modules/time/services/activity.service';
 import { activityQuery, parseActivityParams } from '@/modules/time/activity-filter';
 import { STATUS_LABELS } from '@/modules/tickets/labels';
 import { todayKey } from '@coex/shared/crm/contract-status';
 import { formatMinutes } from '@coex/shared/time/week';
+import { sinceLastActive } from '@coex/shared/time/last-active';
 import { formatDateTime } from '@coex/shared/tasks/dates';
 import { Badge, Card, EmptyState, PageHeader, Table, Td, Th } from '@/components/ui';
 import { Avatar } from '@/components/ui/avatar';
@@ -40,7 +41,7 @@ export default async function TeamActivityPage({
   const filter = parseActivityParams(params, today);
   const query = activityQuery(filter);
 
-  const { rows, users, spaces, tasks } = await asUser(actor, async () => {
+  const { rows, users, spaces, tasks, latest } = await asUser(actor, async () => {
     const rows = await listTeamActivity(filter);
     const taskIds = [
       ...new Set(rows.filter((row) => row.kind === 'task').map((row) => row.itemId)),
@@ -48,7 +49,10 @@ export default async function TeamActivityPage({
 
     return {
       rows,
-      users: (await listUsers()).filter((user) => user.status === 'active'),
+      latest: await latestTeamWork(),
+      users: (await listStaffUsers()).filter(
+        (user) => user.status === 'active' && user.role !== 'client_contact',
+      ),
       spaces: await listSpaces(),
       tasks: taskIds.length ? await listTasks({ ids: taskIds, includeClosed: true }) : [],
     };
@@ -61,10 +65,9 @@ export default async function TeamActivityPage({
   // The same totals the PDF opens with, so the screen and the report agree.
   const minutesByPerson = new Map<string, number>();
   for (const row of rows) {
-    minutesByPerson.set(row.userName, (minutesByPerson.get(row.userName) ?? 0) + row.minutes);
+    minutesByPerson.set(row.userId, (minutesByPerson.get(row.userId) ?? 0) + row.minutes);
   }
-  const personTotals = [...minutesByPerson.entries()].sort((a, b) => b[1] - a[1]);
-  const totalMinutes = personTotals.reduce((sum, [, minutes]) => sum + minutes, 0);
+  const totalMinutes = [...minutesByPerson.values()].reduce((sum, minutes) => sum + minutes, 0);
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -92,31 +95,66 @@ export default async function TeamActivityPage({
         ticketStatuses={Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }))}
       />
 
+      <details open className="mb-4 rounded border border-[var(--color-line)]">
+        <summary className="cursor-pointer px-3 py-3 text-sm font-medium marker:text-[var(--color-ink-subtle)]">
+          Summary
+        </summary>
+        <p className="px-3 pb-2 text-xs text-[var(--color-ink-subtle)]">
+          Latest timer or logged work across all dates. This records work, not online presence.
+          Times use the office timezone.
+        </p>
+        <Table>
+          <thead>
+            <tr>
+              <Th>Agent</Th>
+              <Th>Since Last Active</Th>
+              <Th>Total Time</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {users
+              .filter((user) => !filter.userIds?.length || filter.userIds.includes(user.id))
+              .map((user) => {
+                const work = latest.get(user.id);
+                const userMinutes = minutesByPerson.get(user.id) ?? 0;
+                return (
+                  <tr
+                    key={user.id}
+                    data-sort-values={JSON.stringify([
+                      user.name,
+                      work?.at.getTime() ?? null,
+                      userMinutes,
+                    ])}
+                    className="border-b border-[var(--color-line)] last:border-b-0"
+                  >
+                    <Td>{user.name}</Td>
+                    <Td>
+                      <p>{sinceLastActive(work?.at ?? null, work?.running)}</p>
+                      {work ? (
+                        <p className="text-xs text-[var(--color-ink-subtle)]">
+                          {formatDateTime(work.at)}
+                        </p>
+                      ) : null}
+                    </Td>
+                    <Td>{formatMinutes(userMinutes)}</Td>
+                  </tr>
+                );
+              })}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-[var(--color-line)] font-medium">
+              <Td>Total</Td>
+              <Td />
+              <Td>{formatMinutes(totalMinutes)}</Td>
+            </tr>
+          </tfoot>
+        </Table>
+      </details>
+
       <p className="mb-2 text-xs text-[var(--color-ink-subtle)]">
         {rows.length} {rows.length === 1 ? 'row' : 'rows'}
         {working > 0 ? ` · ${working} working right now` : ''}
       </p>
-
-      {rows.length > 0 ? (
-        <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
-          <span className="rounded-[var(--radius-control)] bg-[var(--color-surface-muted)] px-3 py-1.5 font-medium text-[var(--color-ink)]">
-            Total {formatMinutes(totalMinutes)}
-          </span>
-          {personTotals.length > 1
-            ? personTotals.map(([name, minutes]) => (
-                <span
-                  key={name}
-                  className="rounded-[var(--radius-control)] border border-[var(--color-line)] px-3 py-1.5 text-[var(--color-ink-muted)]"
-                >
-                  {name}{' '}
-                  <span className="tabular-nums text-[var(--color-ink)]">
-                    {formatMinutes(minutes)}
-                  </span>
-                </span>
-              ))
-            : null}
-        </div>
-      ) : null}
 
       <Card>
         {rows.length === 0 ? (
@@ -129,7 +167,7 @@ export default async function TeamActivityPage({
                 <Th>Task or ticket</Th>
                 <Th>Stage</Th>
                 <Th>Time</Th>
-                <Th>Last worked</Th>
+                <Th>Since last active</Th>
               </tr>
             </thead>
             <tbody>
@@ -181,7 +219,12 @@ export default async function TeamActivityPage({
                       {formatMinutes(row.minutes)}{' '}
                       {row.running ? <Badge tone="ok">working now</Badge> : null}
                     </Td>
-                    <Td>{row.running ? 'Now' : formatDateTime(row.lastWorkedAt)}</Td>
+                    <Td>
+                      <p>{sinceLastActive(row.lastWorkedAt, row.running)}</p>
+                      <p className="text-xs text-[var(--color-ink-subtle)]">
+                        {formatDateTime(row.lastWorkedAt)}
+                      </p>
+                    </Td>
                   </tr>
                 );
               })}

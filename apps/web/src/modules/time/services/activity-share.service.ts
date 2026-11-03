@@ -6,6 +6,7 @@ import { queueEmail } from '@/modules/core/services/email.service';
 import { recordAudit } from '@/modules/core/services/audit.service';
 import { STATUS_LABELS } from '@/modules/tickets/labels';
 import { buildActivityReport } from '../activity-report';
+import { sinceLastActive } from '@coex/shared/time/last-active';
 import { formatMinutes } from '@coex/shared/time/week';
 import { listTeamActivity, type ActivityFilter } from './activity.service';
 
@@ -68,6 +69,7 @@ export async function buildReportFor(filter: ActivityFilter) {
       minutes: row.minutes,
       running: row.running,
       lastWorked: formatWhen(row.lastWorkedAt),
+      sinceLastActive: sinceLastActive(row.lastWorkedAt, row.running),
     })),
   });
 

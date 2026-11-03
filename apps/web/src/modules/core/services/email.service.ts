@@ -1,3 +1,4 @@
+import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { Types } from 'mongoose';
 import nodemailer, { type Transporter } from 'nodemailer';
 import { ImapFlow } from 'imapflow';
@@ -693,7 +694,7 @@ export async function newTicketAlertRecipients(): Promise<Types.ObjectId[]> {
     tenantId,
     status: 'active',
     deletedAt: null,
-    role: { $ne: 'client_contact' },
+    role: { $in: [...STAFF_ROLES] },
   }).select('role permissionGrants permissionDenials');
 
   return staff

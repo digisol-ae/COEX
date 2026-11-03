@@ -238,6 +238,7 @@ function MenuLink({
 }) {
   return (
     <Link
+      prefetch={false}
       href={href}
       role="menuitem"
       onClick={onNavigate}

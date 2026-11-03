@@ -4,9 +4,21 @@ import config from '../../apps/web/next.config';
 describe('embedded Microsoft workspace headers', () => {
   it('allows the approved web hosts only on the integration pages', async () => {
     const rules = await config.headers!();
-    expect(rules).toHaveLength(1);
-    expect(rules[0].source).toBe('/integrations/teams/:path*');
-    const headers = Object.fromEntries(rules[0].headers.map(({ key, value }) => [key, value]));
+    expect(rules.map((rule) => rule.source).sort()).toEqual([
+      '/integrations/outlook/:path*',
+      '/integrations/teams/:path*',
+    ]);
+    const teams = rules.find((rule) => rule.source === '/integrations/teams/:path*')!;
+    const outlook = rules.find((rule) => rule.source === '/integrations/outlook/:path*')!;
+    const outlookHeaders = Object.fromEntries(
+      outlook.headers.map(({ key, value }) => [key, value]),
+    );
+    expect(outlookHeaders['Content-Security-Policy']).toBe(
+      "frame-ancestors 'self' https://outlook.office.com https://outlook.office365.com https://*.outlook.com https://*.cloud.microsoft",
+    );
+    expect(outlookHeaders['Cache-Control']).toBe('no-store');
+    expect(outlookHeaders['Referrer-Policy']).toBe('no-referrer');
+    const headers = Object.fromEntries(teams.headers.map(({ key, value }) => [key, value]));
     const ancestors = headers['Content-Security-Policy'].split(' ').slice(1);
     expect(ancestors).toEqual([
       "'self'",

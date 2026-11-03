@@ -7,8 +7,11 @@ import {
   useTransition,
   type PointerEvent,
   type KeyboardEvent,
+  type ComponentProps,
 } from 'react';
 import { clsx } from 'clsx';
+import { ShowMore, useRecordWindow } from '@/components/ui/record-window';
+import { Icon } from '@/components/ui/icon-button';
 import { Card, CardSection, EmptyState } from '@/components/ui';
 import {
   formatDateTime,
@@ -16,7 +19,14 @@ import {
   TASK_TIME_ZONE,
   toDateTimeInput,
 } from '@coex/shared/tasks/dates';
-import { GANTT_DAY, scheduleRange, shiftedSchedule, validSchedule } from '@coex/shared/tasks/gantt';
+import {
+  GANTT_DAY,
+  officeDayStart,
+  scheduleRange,
+  shiftedSchedule,
+  validSchedule,
+} from '@coex/shared/tasks/gantt';
+import { ganttItems, type GanttItem } from '@coex/shared/tasks/gantt-items';
 import { formatMinutes } from '@coex/shared/time/week';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
 import { saveGanttScheduleAction } from './gantt-actions';
@@ -28,12 +38,62 @@ const ZOOMS = [
 ] as const;
 const control =
   'rounded-[var(--radius-control)] border border-[var(--color-line)] px-2.5 py-1 text-xs disabled:opacity-50';
+function GanttAction({
+  label,
+  className,
+  children,
+  ...props
+}: ComponentProps<'button'> & { label: string }) {
+  return (
+    <button
+      {...props}
+      type="button"
+      title={label}
+      aria-label={label}
+      data-tooltip={label}
+      className={clsx(
+        control,
+        'has-tooltip inline-flex h-8 shrink-0 items-center justify-center gap-2',
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+function GanttControlIcon({ name }: { name: 'expand' | 'collapse' | 'fit' }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {name === 'expand' ? (
+        <path d="m5 4 3-3 3 3M8 1v5m-3 6 3 3 3-3m-3-3v6" />
+      ) : name === 'collapse' ? (
+        <path d="m5 2 3 3 3-3M8 1v4m-3 9 3-3 3 3m-3-3v4" />
+      ) : (
+        <path d="M5 3H2v10h3m6-10h3v10h-3M5 8h6M6 6 4 8l2 2m4-4 2 2-2 2" />
+      )}
+    </svg>
+  );
+}
+const controlGroup =
+  'inline-flex items-center divide-x divide-[var(--color-line)] rounded-[var(--radius-control)] border border-[var(--color-line)]';
+const groupedControl =
+  'rounded-none border-0 first:rounded-l-[var(--radius-control)] last:rounded-r-[var(--radius-control)]';
 type Draft = {
   taskId: string;
   startAt: string;
   endAt: string;
-  originalStart: string;
-  originalEnd: string;
+  originalStart: string | null;
+  originalEnd: string | null;
 };
 type Drag = {
   id: string;
@@ -42,16 +102,16 @@ type Drag = {
   scroll: number;
   startAt: string;
   endAt: string;
-  originalStart: string;
-  originalEnd: string;
+  originalStart: string | null;
+  originalEnd: string | null;
   moved: boolean;
   dayWidth: number;
   snap: number;
 };
 type Undo = {
   taskId: string;
-  beforeStart: string;
-  beforeEnd: string;
+  beforeStart: string | null;
+  beforeEnd: string | null;
   afterStart: string;
   afterEnd: string;
 };
@@ -75,6 +135,9 @@ export function Gantt({
     const timer = setInterval(() => setNow(new Date().toISOString()), 60000);
     return () => clearInterval(timer);
   }, []);
+  const [showSubtasks, setShowSubtasks] = useState(true);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [exporting, setExporting] = useState(false);
   const [zoom, setZoom] = useState<number | 'fit'>(22);
   const [columnWidth, setColumnWidth] = useState(240);
   const [available, setAvailable] = useState(0);
@@ -95,11 +158,47 @@ export function Gantt({
     return () => observer.disconnect();
   }, []);
 
-  const scheduled = tasks
-    .filter((t) => validSchedule(t.startAt, t.endAt))
-    .sort((a, b) => new Date(a.startAt!).getTime() - new Date(b.startAt!).getTime());
-  const unscheduled = tasks.filter((t) => !validSchedule(t.startAt, t.endAt));
-  const range = scheduleRange(tasks, now);
+  const page = useRecordWindow(tasks, tasks.map((task) => task.id).join('|'));
+  const visibleTaskIds = new Set(page.items.map((task) => task.id));
+  const allItems = ganttItems(tasks);
+  const items = allItems.filter(
+    (item) =>
+      visibleTaskIds.has(item.parentTaskId) &&
+      (!item.subtaskId || (showSubtasks && !collapsed.has(item.parentTaskId))),
+  );
+  const scheduled = items.filter((t) => validSchedule(t.startAt, t.endAt));
+  const unscheduled = items.filter((t) => !validSchedule(t.startAt, t.endAt));
+  const range = scheduleRange(allItems, now);
+  const openTask = (item: GanttItem<TaskSummary>) => {
+    const parent = tasks.find((t) => t.id === item.parentTaskId);
+    if (parent) onOpen(parent);
+  };
+  async function downloadPDF() {
+    setExporting(true);
+    setError('');
+    try {
+      const response = await fetch(`/spaces/${spaceId}/gantt/pdf`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          taskIds: tasks.map((t) => t.id),
+          showSubtasks,
+          collapsedIds: [...collapsed],
+        }),
+      });
+      if (!response.ok) throw new Error('Could not download the chart. Reload and try again.');
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'worktello-gantt.pdf';
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Could not download the chart.');
+    } finally {
+      setExporting(false);
+    }
+  }
   const labelWidth = available
     ? Math.min(columnWidth, Math.max(110, Math.floor(available * 0.5)))
     : columnWidth;
@@ -122,7 +221,7 @@ export function Gantt({
         weekendBands.push({ left: i * dayWidth, width: dayWidth });
     }
   const draftValid = !!draft && validSchedule(draft.startAt, draft.endAt);
-  const draftTask = draft ? tasks.find((t) => t.id === draft.taskId) : undefined;
+  const draftTask = draft ? allItems.find((t) => t.id === draft.taskId) : undefined;
   const axisBackground =
     dayWidth >= 4
       ? {
@@ -130,24 +229,34 @@ export function Gantt({
         }
       : {};
 
-  function beginDraft(task: TaskSummary) {
-    if (!canManage || pending || task.isClosed) return null;
+  function beginDraft(task: GanttItem<TaskSummary>) {
+    if (!canManage || pending || task.locked) return null;
     if (draft && draft.taskId !== task.id) {
       setError('Save or discard the current preview before editing another task.');
       return null;
     }
     setError('');
+    const planned = validSchedule(task.startAt, task.endAt);
+    const defaultStart = officeDayStart(now) + 9 * 3600000;
     return (
       draft ?? {
         taskId: task.id,
-        startAt: new Date(task.startAt!).toISOString(),
-        endAt: new Date(task.endAt!).toISOString(),
-        originalStart: new Date(task.startAt!).toISOString(),
-        originalEnd: new Date(task.endAt!).toISOString(),
+        startAt: planned
+          ? new Date(task.startAt!).toISOString()
+          : new Date(defaultStart).toISOString(),
+        endAt: planned
+          ? new Date(task.endAt!).toISOString()
+          : new Date(defaultStart + 8 * 3600000).toISOString(),
+        originalStart: task.storedStartAt ? new Date(task.storedStartAt).toISOString() : null,
+        originalEnd: task.storedEndAt ? new Date(task.storedEndAt).toISOString() : null,
       }
     );
   }
-  function startDrag(event: PointerEvent<HTMLElement>, task: TaskSummary, mode: Drag['mode']) {
+  function startDrag(
+    event: PointerEvent<HTMLElement>,
+    task: GanttItem<TaskSummary>,
+    mode: Drag['mode'],
+  ) {
     if (event.button !== 0) return;
     const initial = beginDraft(task);
     if (!initial || !validSchedule(initial.startAt, initial.endAt)) return;
@@ -191,7 +300,7 @@ export function Gantt({
   }
   function keyboard(
     event: KeyboardEvent<HTMLElement>,
-    task: TaskSummary,
+    task: GanttItem<TaskSummary>,
     mode: Drag['mode'] = 'move',
   ) {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
@@ -215,15 +324,18 @@ export function Gantt({
     const change = isUndo ? undo : null;
     if (!isUndo && (!draft || !draftValid)) return;
     const taskId = change?.taskId ?? draft!.taskId;
-    const startAt = change?.beforeStart ?? draft!.startAt,
-      endAt = change?.beforeEnd ?? draft!.endAt;
+    const startAt = change ? change.beforeStart : draft!.startAt,
+      endAt = change ? change.beforeEnd : draft!.endAt;
     const expectedStartAt = change?.afterStart ?? draft!.originalStart,
       expectedEndAt = change?.afterEnd ?? draft!.originalEnd;
     setError('');
     startTransition(async () => {
       try {
+        const item = allItems.find((t) => t.id === taskId);
+        if (!item) throw new Error('Task unavailable.');
         const result = await saveGanttScheduleAction({
-          id: taskId,
+          id: item.parentTaskId,
+          subtaskId: item.subtaskId ?? undefined,
           spaceId,
           startAt,
           endAt,
@@ -241,8 +353,8 @@ export function Gantt({
                 taskId,
                 beforeStart: expectedStartAt,
                 beforeEnd: expectedEndAt,
-                afterStart: startAt,
-                afterEnd: endAt,
+                afterStart: startAt!,
+                afterEnd: endAt!,
               },
         );
         setDraft(null);
@@ -275,57 +387,111 @@ export function Gantt({
   return (
     <div className="min-w-0 space-y-4">
       <Card>
-        <CardSection title={`Schedule · ${scheduled.length} scheduled`}>
+        <CardSection
+          title={`Schedule · ${tasks.length} ${tasks.length === 1 ? 'task' : 'tasks'} · ${allItems.filter((item) => item.subtaskId).length} subtasks`}
+        >
           <div className="mb-3 flex flex-wrap items-center gap-2">
-            <button
-              className={control}
-              onClick={() =>
-                scroller.current?.scrollTo({
-                  left: Math.max(0, offset(now) - chartSpace / 2),
-                  behavior: 'smooth',
-                })
-              }
+            <GanttAction
+              label={exporting ? 'Preparing PDF…' : 'Download this Gantt chart as a PDF'}
+              disabled={exporting || !!draft || pending}
+              onClick={downloadPDF}
             >
-              Today
-            </button>
-            {ZOOMS.map((option) => (
-              <button
-                key={option.label}
-                className={clsx(
-                  control,
-                  zoom === option.width && 'bg-[var(--color-surface-muted)]',
-                )}
-                aria-pressed={zoom === option.width}
-                onClick={() => setZoom(option.width)}
-              >
-                {option.label}
-              </button>
-            ))}
-            <button
-              className={clsx(control, zoom === 'fit' && 'bg-[var(--color-surface-muted)]')}
-              aria-pressed={zoom === 'fit'}
-              onClick={() => setZoom('fit')}
+              {exporting ? 'Preparing…' : 'PDF'}
+              <Icon name="download" />
+            </GanttAction>
+            <label
+              title="Show or hide subtask rows in the chart"
+              className="flex items-center gap-1 text-xs"
             >
-              Fit
-            </button>
-            <label className="flex items-center gap-2 text-xs">
-              Zoom
               <input
-                aria-label="Gantt zoom"
-                type="range"
-                min="4"
-                max="120"
-                step="1"
-                value={zoom === 'fit' ? Math.max(4, Math.min(120, dayWidth)) : zoom}
-                onChange={(e) => setZoom(Number(e.target.value))}
+                type="checkbox"
+                checked={showSubtasks}
+                onChange={(e) => setShowSubtasks(e.target.checked)}
               />
+              Show subtasks
             </label>
+            <div role="group" aria-label="Subtask expansion" className={controlGroup}>
+              <GanttAction
+                label="Expand all task groups to show subtasks"
+                className={groupedControl}
+                disabled={!showSubtasks}
+                onClick={() => setCollapsed(new Set())}
+              >
+                <GanttControlIcon name="expand" />
+              </GanttAction>
+              <GanttAction
+                label="Collapse all task groups to hide subtasks"
+                className={groupedControl}
+                disabled={!showSubtasks}
+                onClick={() => setCollapsed(new Set(tasks.map((t) => t.id)))}
+              >
+                <GanttControlIcon name="collapse" />
+              </GanttAction>
+            </div>
+            <div role="group" aria-label="Timeline views" className={controlGroup}>
+              <GanttAction
+                label="Scroll the timeline to today"
+                className={groupedControl}
+                onClick={() =>
+                  scroller.current?.scrollTo({
+                    left: Math.max(0, offset(now) - chartSpace / 2),
+                    behavior: 'smooth',
+                  })
+                }
+              >
+                Today
+              </GanttAction>
+              {ZOOMS.map((option) => (
+                <GanttAction
+                  key={option.label}
+                  label={`Set timeline zoom to ${option.label.toLowerCase()} view`}
+                  className={clsx(
+                    groupedControl,
+                    zoom === option.width && 'bg-[var(--color-surface-muted)]',
+                  )}
+                  aria-pressed={zoom === option.width}
+                  onClick={() => setZoom(option.width)}
+                >
+                  {option.label}
+                </GanttAction>
+              ))}
+            </div>
+            <div role="group" aria-label="Timeline zoom" className="inline-flex items-center gap-2">
+              <label
+                className="flex items-center gap-2 text-xs"
+                title="Zoom in for more date detail or out to see a longer period"
+              >
+                Zoom
+                <input
+                  aria-label="Gantt zoom"
+                  title="Adjust timeline zoom"
+                  type="range"
+                  min="4"
+                  max="120"
+                  step="1"
+                  value={zoom === 'fit' ? Math.max(4, Math.min(120, dayWidth)) : zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                />
+              </label>
+              <GanttAction
+                label="Fit the full schedule into the available width"
+                className={clsx(zoom === 'fit' && 'bg-[var(--color-surface-muted)]')}
+                aria-pressed={zoom === 'fit'}
+                onClick={() => setZoom('fit')}
+              >
+                <GanttControlIcon name="fit" />
+              </GanttAction>
+            </div>
             {canManage ? (
-              <label className="ml-auto flex items-center gap-2 text-xs">
+              <label
+                title="Snap rounds dragged or resized dates to the selected interval: 1 day, 1 hour or 30 minutes."
+                className="ml-auto flex items-center gap-2 text-xs"
+              >
                 Snap
                 <select
                   className={control}
                   aria-label="Schedule snap"
+                  title="Snap rounds dragged or resized dates to the selected interval"
                   value={snap}
                   disabled={pending}
                   onChange={(e) => setSnap(Number(e.target.value))}
@@ -338,7 +504,8 @@ export function Gantt({
             ) : null}
           </div>
           <p className="mb-3 text-xs text-[var(--color-ink-muted)]">
-            Dubai time · Weekends shaded · Click a task to open its details.
+            Dubai time · Weekends shaded · Dashed bars use the parent window; set subtask dates to
+            plan independently. Click an item to open its task.
             {canManage
               ? ' Drag a bar to move it; drag its edges to resize. Preview changes, then Save.'
               : ''}
@@ -377,12 +544,14 @@ export function Gantt({
                 <button
                   className={control}
                   disabled={pending || !draftValid}
+                  title="Save the previewed schedule dates"
                   onClick={() => save()}
                 >
                   {pending ? 'Saving dates…' : 'Save dates'}
                 </button>
                 <button
                   className={control}
+                  title="Discard the preview and keep the saved dates"
                   disabled={pending}
                   onClick={() => {
                     setDraft(null);
@@ -404,7 +573,12 @@ export function Gantt({
           ) : undo ? (
             <div className="mb-3 flex items-center gap-3 text-xs" role="status">
               <span>Dates saved.</span>
-              <button className={control} disabled={pending} onClick={() => save(true)}>
+              <button
+                title="Restore the dates from before the last save"
+                className={control}
+                disabled={pending}
+                onClick={() => save(true)}
+              >
                 Undo last save
               </button>
             </div>
@@ -484,21 +658,47 @@ export function Gantt({
                   const left = offset(startAt),
                     durationWidth =
                       ((Date.parse(endAt) - Date.parse(startAt)) / GANTT_DAY) * dayWidth;
-                  const editable = canManage && !task.isClosed && !pending;
+                  const editable = canManage && !task.locked && !pending;
                   const description = `${task.title}, ${formatDateTime(startAt)} to ${formatDateTime(endAt)}, ${task.assigneeNames.join(', ') || 'Unassigned'}, ${task.status}`;
-                  const overdue = !task.isClosed && Date.parse(endAt) < Date.parse(now);
+                  const overdue = !task.locked && Date.parse(endAt) < Date.parse(now);
                   return (
-                    <div key={task.id} data-task-id={task.id} className="flex h-14">
+                    <div
+                      key={task.id}
+                      data-task-id={task.parentTaskId}
+                      data-subtask-id={task.subtaskId ?? undefined}
+                      className="flex h-14"
+                    >
                       <div
                         className="sticky left-0 z-20 flex shrink-0 items-center gap-1 border-r border-b border-[var(--color-line)] bg-[var(--color-surface)] px-3"
                         style={{ width: labelWidth }}
                       >
+                        {!task.subtaskId && task.subtasks.length ? (
+                          <button
+                            className="shrink-0 text-xs"
+                            aria-label={`${collapsed.has(task.id) ? 'Expand' : 'Collapse'} subtasks of ${task.title}`}
+                            title={`${collapsed.has(task.id) ? 'Expand' : 'Collapse'} subtasks of ${task.title}`}
+                            aria-expanded={!collapsed.has(task.id)}
+                            onClick={() =>
+                              setCollapsed((previous) => {
+                                const next = new Set(previous);
+                                if (next.has(task.id)) next.delete(task.id);
+                                else next.add(task.id);
+                                return next;
+                              })
+                            }
+                          >
+                            {collapsed.has(task.id) ? '▸' : '▾'}
+                          </button>
+                        ) : null}
                         <button
-                          className="min-w-0 flex-1 text-left"
+                          className={clsx('min-w-0 flex-1 text-left', task.subtaskId && 'pl-5')}
                           title={description}
-                          onClick={() => onOpen(task)}
+                          onClick={() => openTask(task)}
                         >
-                          <span className="block truncate text-xs font-medium">{task.title}</span>
+                          <span className="block truncate text-xs font-medium">
+                            {task.subtaskId ? '↳ ' : `${task.number} · `}
+                            {task.title}
+                          </span>
                           <span
                             className={clsx(
                               'block truncate text-[10px]',
@@ -508,8 +708,17 @@ export function Gantt({
                             )}
                           >
                             {task.status}
+                            {task.subtaskId
+                              ? task.inherited
+                                ? ' · parent window'
+                                : ' · own dates'
+                              : task.derived
+                                ? ' · from subtasks'
+                                : task.subtaskCount
+                                  ? ` · ${task.subtasksDone}/${task.subtaskCount} done`
+                                  : ''}
                             {overdue ? ' · overdue' : ''}
-                            {task.estimateMinutes
+                            {!task.subtaskId && task.estimateMinutes
                               ? ` · ${formatMinutes(task.estimateMinutes)} estimate`
                               : ''}
                           </span>
@@ -517,6 +726,7 @@ export function Gantt({
                         {editable ? (
                           <button
                             className="shrink-0 px-1 text-[10px] underline"
+                            title={`Preview and adjust dates for ${task.title}`}
                             aria-label={`Adjust dates for ${task.title}`}
                             onClick={() => {
                               const initial = beginDraft(task);
@@ -556,6 +766,8 @@ export function Gantt({
                             data-testid="gantt-duration"
                             className={clsx(
                               'pointer-events-none absolute top-1 h-6 rounded',
+                              task.subtaskId && 'opacity-70',
+                              task.inherited && 'border-2 border-dashed border-[var(--color-ink)]',
                               preview
                                 ? 'bg-[var(--color-action)]'
                                 : task.isClosed
@@ -583,7 +795,7 @@ export function Gantt({
                                 suppressClick.current = false;
                                 return;
                               }
-                              onOpen(task);
+                              openTask(task);
                             }}
                           />
                           {editable && durationWidth >= 24 ? (
@@ -641,15 +853,37 @@ export function Gantt({
           <CardSection title={`Not scheduled · ${unscheduled.length}`}>
             <ul className="space-y-2">
               {unscheduled.map((task) => (
-                <li key={task.id} className="flex items-center justify-between gap-3 text-sm">
+                <li
+                  key={task.id}
+                  className={clsx(
+                    'flex items-center justify-between gap-3 text-sm',
+                    task.subtaskId && 'pl-5',
+                  )}
+                >
                   <button
+                    title={`Open task: ${task.title}`}
                     className="min-w-0 truncate text-left underline-offset-4 hover:underline"
-                    onClick={() => onOpen(task)}
+                    onClick={() => openTask(task)}
                   >
-                    {task.number} · {task.title}
+                    {task.subtaskId ? `↳ ${task.parentTitle} / ` : `${task.number} · `}
+                    {task.title}
                   </button>
-                  <span className="shrink-0 text-xs text-[var(--color-ink-subtle)]">
+                  <span className="flex shrink-0 items-center gap-2 text-xs text-[var(--color-ink-subtle)]">
                     {task.status}
+                    {canManage && !task.locked ? (
+                      <button
+                        className={control}
+                        title={`Set start and end dates for ${task.title}`}
+                        aria-label={`Schedule ${task.title}`}
+                        onClick={() => {
+                          const initial = beginDraft(task);
+                          if (initial) setDraft(initial);
+                          scroller.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                        }}
+                      >
+                        Set dates
+                      </button>
+                    ) : null}
                   </span>
                 </li>
               ))}
@@ -657,6 +891,7 @@ export function Gantt({
           </CardSection>
         </Card>
       ) : null}
+      <ShowMore {...page} />
     </div>
   );
 }

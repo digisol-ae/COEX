@@ -19,6 +19,8 @@ export type IconName =
   | 'customer'
   | 'contact'
   | 'clock'
+  | 'clockAdd'
+  | 'share'
   | 'attachment'
   | 'message'
   | 'preview'
@@ -38,9 +40,14 @@ export type IconName =
   | 'archive'
   | 'restore'
   | 'close'
-  | 'back';
+  | 'back'
+  | 'alert'
+  | 'calendar'
+  | 'filter'
+  | 'inbox'
+  | 'search';
 
-const PATHS: Record<IconName, ReactNode> = {
+const PATHS: Record<Exclude<IconName, 'clockAdd' | 'share'>, ReactNode> = {
   status: (
     <>
       <circle cx="8" cy="8" r="5.5" />
@@ -139,6 +146,31 @@ const PATHS: Record<IconName, ReactNode> = {
   ),
   close: <path d="M4 4l8 8M12 4l-8 8" />,
   back: <path d="M13 8H3.5M7.5 4 3.5 8l4 4" />,
+  alert: (
+    <>
+      <path d="M8 2.5 14 13H2z" />
+      <path d="M8 6v3.5m0 2h.01" />
+    </>
+  ),
+  calendar: (
+    <>
+      <rect x="2.5" y="3.5" width="11" height="10" rx="1.5" />
+      <path d="M5 2v3m6-3v3M2.5 6.5h11" />
+    </>
+  ),
+  filter: <path d="M2.5 3.5h11M4.5 8h7m-5 4.5h3" />,
+  inbox: (
+    <>
+      <path d="M2.5 3.5h11l1 7v2h-13v-2z" />
+      <path d="M2.8 9h3l.8 1.5h2.8l.8-1.5h3" />
+    </>
+  ),
+  search: (
+    <>
+      <circle cx="7" cy="7" r="4.5" />
+      <path d="m10.5 10.5 3 3" />
+    </>
+  ),
   restore: (
     <>
       <path d="M3 8a5 5 0 1 0 1.5-3.5" />
@@ -148,6 +180,30 @@ const PATHS: Record<IconName, ReactNode> = {
 };
 
 export function Icon({ name, size = 16 }: { name: IconName; size?: number }) {
+  if (name === 'clockAdd' || name === 'share') {
+    const mask =
+      name === 'clockAdd' ? 'url("/brand/add-time.png")' : 'url("/brand/share-send.png")';
+    return (
+      <span
+        aria-hidden="true"
+        className="block shrink-0"
+        style={{
+          width: size,
+          height: size,
+          backgroundColor: 'currentColor',
+          maskImage: mask,
+          WebkitMaskImage: mask,
+          maskRepeat: 'no-repeat',
+          WebkitMaskRepeat: 'no-repeat',
+          maskPosition: 'center',
+          WebkitMaskPosition: 'center',
+          maskSize: 'contain',
+          WebkitMaskSize: 'contain',
+        }}
+      />
+    );
+  }
+
   return (
     <svg
       width={size}
@@ -181,11 +237,17 @@ function classesFor(tone: Tone, className?: string) {
 export function IconButton({
   icon,
   label,
+  iconSize = 16,
   tone = 'default',
   className,
   type = 'button',
   ...props
-}: Omit<ComponentProps<'button'>, 'children'> & { icon: IconName; label: string; tone?: Tone }) {
+}: Omit<ComponentProps<'button'>, 'children'> & {
+  icon: IconName;
+  label: string;
+  iconSize?: number;
+  tone?: Tone;
+}) {
   return (
     <button
       {...props}
@@ -194,7 +256,7 @@ export function IconButton({
       data-tooltip={label}
       className={classesFor(tone, className)}
     >
-      <Icon name={icon} />
+      <Icon name={icon} size={iconSize} />
     </button>
   );
 }
@@ -213,6 +275,7 @@ export function IconLink({
 }) {
   return (
     <Link
+      prefetch={false}
       {...props}
       aria-label={label}
       data-tooltip={label}

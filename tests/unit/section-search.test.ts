@@ -21,7 +21,7 @@ vi.mock('@/modules/tasks/services/task.service', () => ({ listTasks: services.ta
 vi.mock('@/modules/tasks/services/space.service', () => ({ listSpaces: services.spaces }));
 vi.mock('@/modules/tickets/services/ticket.service', () => ({ searchTickets: services.tickets }));
 vi.mock('@/modules/crm/services/organisation.service', () => ({
-  listOrganisations: services.customers,
+  listOrganisationChoices: services.customers,
 }));
 vi.mock('@/modules/crm/services/product.service', () => ({ listProducts: services.products }));
 vi.mock('@/modules/crm/services/contract.service', () => ({ listContracts: services.contracts }));

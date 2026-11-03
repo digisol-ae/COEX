@@ -1,12 +1,13 @@
+import { parallel } from '@/lib/parallel';
 import { asUser, requirePermission } from '@/lib/session';
 import { listArchivedSpaces, listSpaces } from '@/modules/tasks/services/space.service';
 import { listFolders } from '@/modules/tasks/services/folder.service';
-import { listOrganisations } from '@/modules/crm/services/organisation.service';
+import { listOrganisationChoices } from '@/modules/crm/services/organisation.service';
 import { Card, PageHeader } from '@/components/ui';
 import { NewSpacePanel } from './panels';
 import { SpacesTable } from './spaces-table';
 import { ArchivedSpaces } from './archived-spaces';
-import { listUsers } from '@/modules/core/services/user.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
 
 export const metadata = { title: 'Spaces · Worktello' };
 
@@ -24,13 +25,15 @@ export default async function SpacesPage({
   const actor = await requirePermission('task.read.all');
   const justArchived = (await searchParams).archived === '1';
 
-  const { spaces, archived, folders, customers, users } = await asUser(actor, async () => ({
-    spaces: await listSpaces(),
-    archived: await listArchivedSpaces(),
-    folders: await listFolders(),
-    customers: await listOrganisations(),
-    users: await listUsers(),
-  }));
+  const { spaces, archived, folders, customers, users } = await asUser(actor, () =>
+    parallel({
+      spaces: listSpaces(),
+      archived: listArchivedSpaces(),
+      folders: listFolders(),
+      customers: listOrganisationChoices(),
+      users: listStaffUsers(),
+    }),
+  );
 
   const customerNames = Object.fromEntries(
     customers.map((customer) => [customer.id, customer.name]),

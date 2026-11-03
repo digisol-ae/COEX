@@ -1,20 +1,31 @@
 @import 'tailwindcss';
 
-@keyframes coex-wait {
+@keyframes worktello-button-wait {
   0%,
   100% {
-    opacity: 0.45;
-    letter-spacing: 0.08em;
+    opacity: 0.4;
   }
   50% {
     opacity: 1;
-    letter-spacing: 0.22em;
   }
 }
 
-.coex-wait {
-  animation: coex-wait 900ms ease-in-out infinite;
-  font-weight: 700;
+.worktello-button-wait {
+  display: inline-block;
+  width: 1.2rem;
+  flex: 0 0 1.2rem;
+  aspect-ratio: 591 / 309;
+  background: currentColor;
+  -webkit-mask: url('/brand/worktello-symbol.png') center / contain no-repeat;
+  mask: url('/brand/worktello-symbol.png') center / contain no-repeat;
+  animation: worktello-button-wait 900ms ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .worktello-button-wait {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 /*

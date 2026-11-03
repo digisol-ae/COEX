@@ -1,0 +1,7 @@
+{
+  "sourceCommit": "c2361327d1ae0e4d8e9ec3aa388982b382576533",
+  "aiDraft": "skipped",
+  "packaging": "validated",
+  "reviewRequired": false,
+  "note": "AI writing is not accepted until a real authenticated draft run succeeds; packaging-only runs do not verify AI."
+}

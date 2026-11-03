@@ -1,3 +1,4 @@
+import { assertStaffAdditions } from '@/modules/core/services/staff.service';
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { toObjectId, toOptionalObjectId } from '@/lib/ids';
@@ -95,13 +96,20 @@ export async function listQueues(
   const users = await UserModel.find({ _id: { $in: userIds } }).select('name');
   const names = new Map(users.map((user) => [String(user._id), user.name]));
 
-  const openCounts = await Promise.all(
-    found.map((queue) =>
-      tickets().count({ queueId: queue._id, status: { $nin: ['resolved', 'closed'] } }),
-    ),
-  );
+  const counts = found.length
+    ? await TicketModel.aggregate<{ _id: import('mongoose').Types.ObjectId; count: number }>([
+        {
+          $match: tickets().scope({
+            queueId: { $in: found.map((queue) => queue._id) },
+            status: { $nin: ['resolved', 'closed'] },
+          }),
+        },
+        { $group: { _id: '$queueId', count: { $sum: 1 } } },
+      ])
+    : [];
+  const countByQueue = new Map(counts.map((row) => [String(row._id), row.count]));
 
-  return found.map((queue, index) => ({
+  return found.map((queue) => ({
     id: String(queue._id),
     name: queue.name,
     description: queue.description ?? null,
@@ -117,7 +125,7 @@ export async function listQueues(
       : null,
     productId: queue.productId ? String(queue.productId) : null,
     targets: targetsOf(queue.targets as QueueTarget[]),
-    openTicketCount: openCounts[index],
+    openTicketCount: countByQueue.get(String(queue._id)) ?? 0,
   }));
 }
 
@@ -149,6 +157,10 @@ export async function createQueue(input: QueueInput): Promise<string> {
 
   // The first queue is the default, because a tenant with no default has nowhere to put a ticket
   // that arrives before anyone has configured anything.
+  await assertStaffAdditions([
+    ...(input.memberIds ?? []),
+    ...(input.defaultAssigneeId ? [input.defaultAssigneeId] : []),
+  ]);
   const existing = await queues().count();
   const isDefault = input.isDefault ?? existing === 0;
 
@@ -189,6 +201,13 @@ export async function updateQueue(id: string, input: QueueInput): Promise<void> 
   const clash = await queues().findOne({ name, _id: { $ne: before._id } });
   if (clash) throw new Error(`There is already a queue called ${name}.`);
 
+  await assertStaffAdditions(
+    [...(input.memberIds ?? []), ...(input.defaultAssigneeId ? [input.defaultAssigneeId] : [])],
+    [
+      ...before.memberIds.map(String),
+      ...(before.defaultAssigneeId ? [String(before.defaultAssigneeId)] : []),
+    ],
+  );
   if (input.isDefault) await clearDefault();
 
   await queues().updateOne(

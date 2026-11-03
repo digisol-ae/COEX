@@ -4,6 +4,7 @@ Each resolution records its symptom, confirmed cause, scoped fix, verification a
 
 | Date           | Resolution                                                                        | Status                                                                       |
 | -------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 26 Oct 2026 | [Add contacts from ticket people](2026-10-26-contacts-from-tickets.md) | Local only; unit/build passed, DB test and UI acceptance pending |
 | 26 Oct 2026 | [Customer migration welcome](2026-10-26-customer-welcome.md) | Live; friendly guidance and recovery links verified |
 | 26 Oct 2026 | [Migrated customer passwords, email OTP and recovery](2026-10-26-customer-login.md) | Live; 13 passwords imported, isolated auth tests passed; real inbox delivery untested |
 | 25 Oct 2026 | [DigiSol sidebar logo](2026-10-25-digisol-sidebar.md) | Live; DigiSol/W visible and app-theme contrast corrected |
@@ -20,3 +21,11 @@ Each resolution records its symptom, confirmed cause, scoped fix, verification a
 | 25 Oct 2026    | [Patched Node runtime activation](2026-10-25-node-runtime.md)                     | COEX application process trees verified                                      |
 
 Interactive user guide: `../manual/index.html#resolutions`. Secrets and raw private exports must never be included. The initial index covered seven documented resolutions; older release records remain in ai/ and deploy/. Every future fix should add its dated record and update this register.
+
+- [27 October review: Customer agreement templates and drafting](2026-10-27-agreement-drafting.md) — Released; production walkthrough pending.
+- [27 October review: Independent What’s new topic publication](2026-10-27-release-publishing.md) — Merged; included in recorded release.
+- [27 October review: Worktello domain and support moved page](2026-10-27-domain-transition.md) — Recorded live; runtime not rechecked.
+
+- [29 October: feedback release and acceptance limits](2026-10-29-feedback-release.md)
+
+- [30 October: Board expansion and activity summary](2026-10-30-board-and-ui.md)

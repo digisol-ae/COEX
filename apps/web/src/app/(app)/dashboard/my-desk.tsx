@@ -1,4 +1,5 @@
 'use client';
+import { ShowMore, useRecordWindow } from '@/components/ui/record-window';
 import { DeskTaskButton } from '@/components/tasks/desk-task-button';
 import { TaskPreview } from '@/components/tasks/task-preview';
 import { useState, useTransition, type ReactNode } from 'react';
@@ -115,6 +116,7 @@ export function MyDesk({
 }
 
 export function AvailableDeskTasks({ tasks }: { tasks: TaskSummary[] }) {
+  const page = useRecordWindow(tasks, tasks.map((task) => task.id).join('|'));
   const [preview, setPreview] = useState<TaskSummary | null>(null);
   return (
     <>
@@ -125,7 +127,7 @@ export function AvailableDeskTasks({ tasks }: { tasks: TaskSummary[] }) {
           </p>
           {tasks.length ? (
             <ul className="mt-3 divide-y divide-[var(--color-line)]">
-              {tasks.map((task) => (
+              {page.items.map((task) => (
                 <li
                   key={task.id}
                   draggable
@@ -151,6 +153,7 @@ export function AvailableDeskTasks({ tasks }: { tasks: TaskSummary[] }) {
               No other assigned tasks are available.
             </p>
           )}
+          <ShowMore {...page} />
         </CardSection>
       </Card>
       {preview ? (

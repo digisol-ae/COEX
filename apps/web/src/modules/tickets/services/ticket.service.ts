@@ -1,3 +1,4 @@
+import { assertStaffAdditions } from '@/modules/core/services/staff.service';
 import { ticketSearchClauses } from './search-filter.service';
 import { permissionsFor, type Role } from '@coex/shared/core/permissions';
 import { normaliseCc } from '@coex/shared/tickets/collaborators';
@@ -752,6 +753,10 @@ export async function assignTicket(
 
   const ticket = await tickets().findById(ticketId);
   if (!ticket) throw new Error('Ticket not found.');
+  await assertStaffAdditions(
+    userId ? [userId] : [],
+    ticket.assigneeId ? [String(ticket.assigneeId)] : [],
+  );
   const changed = String(ticket.assigneeId ?? '') !== String(userId ?? '');
   const reason = note?.trim() ?? '';
   if (changed && ticket.assigneeId && !reason)

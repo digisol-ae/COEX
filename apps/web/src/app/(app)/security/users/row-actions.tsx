@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react';
 import { Button, Notice, Select } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
-import { ROLES } from '@coex/shared/core/permissions';
+import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import {
   changeRoleAction,
   resetPasswordAction,
@@ -26,7 +26,7 @@ export function RoleSelect({ userId, role }: { userId: string; role: string }) {
         onChange={(event) => event.currentTarget.form?.requestSubmit()}
         className="max-w-40"
       >
-        {ROLES.map((option) => (
+        {STAFF_ROLES.map((option) => (
           <option key={option} value={option}>
             {option.replace('_', ' ')}
           </option>

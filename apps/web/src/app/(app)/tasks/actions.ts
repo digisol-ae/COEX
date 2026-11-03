@@ -6,6 +6,7 @@ import {
   type IncomingFile,
 } from '@/modules/tickets/services/attachment.service';
 import { validateSpaceStatuses } from '@coex/shared/tasks/statuses';
+import { TASK_RECURRENCES, type TaskRecurrence } from '@coex/shared/tasks/recurrence';
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -62,6 +63,7 @@ function subtaskError(error: unknown, fallback: string): string {
 export interface TaskFormState {
   error?: string;
   saved?: boolean;
+  createdTaskId?: string;
 }
 
 const PRIORITIES = ['urgent', 'high', 'normal', 'low'] as const;
@@ -72,6 +74,12 @@ function text(formData: FormData, field: string): string {
 
 function toPriority(value: string): Priority {
   return (PRIORITIES as readonly string[]).includes(value) ? (value as Priority) : 'normal';
+}
+
+function toRecurrence(value: string): TaskRecurrence {
+  return (TASK_RECURRENCES as readonly string[]).includes(value)
+    ? (value as TaskRecurrence)
+    : 'none';
 }
 
 function assigneesFrom(formData: FormData): string[] {
@@ -182,8 +190,9 @@ export async function createTaskAction(
   const actor = await requirePermission('task.manage');
   const spaceId = text(formData, 'spaceId');
 
+  let createdTaskId: string;
   try {
-    await asUser(actor, () =>
+    createdTaskId = await asUser(actor, () =>
       createTask({
         spaceId,
         title: text(formData, 'title'),
@@ -196,6 +205,7 @@ export async function createTaskAction(
         estimateMinutes: text(formData, 'estimateHours')
           ? Math.round(Number(text(formData, 'estimateHours')) * 60)
           : null,
+        recurrence: toRecurrence(text(formData, 'recurrence')),
       }),
     );
   } catch (error) {
@@ -205,7 +215,7 @@ export async function createTaskAction(
   revalidatePath(`/spaces/${spaceId}`);
   revalidatePath('/tasks');
   revalidatePath('/dashboard');
-  return { saved: true };
+  return { saved: true, createdTaskId };
 }
 
 /** Captures a task from My tasks without asking the agent to create or choose a Space. */
@@ -223,6 +233,7 @@ export async function createPersonalTaskAction(
         priority: toPriority(text(formData, 'priority')),
         assigneeIds: [actor.id],
         endAt: text(formData, 'endAt') || null,
+        recurrence: toRecurrence(text(formData, 'recurrence')),
       });
     });
   } catch (error) {
@@ -260,6 +271,7 @@ export async function createTaskAnywhereAction(
         startAt: text(formData, 'startAt') || null,
         endAt: text(formData, 'endAt') || null,
         folderId: personal ? null : text(formData, 'folderId') || null,
+        recurrence: toRecurrence(text(formData, 'recurrence')),
       });
     });
   } catch (error) {
@@ -291,8 +303,9 @@ export async function quickAddTaskAction(input: {
   const title = input.title.trim();
   if (!title) return { error: 'A task needs a title.' };
 
+  let createdTaskId: string;
   try {
-    await asUser(actor, () =>
+    createdTaskId = await asUser(actor, () =>
       createTask({
         spaceId: input.spaceId,
         title,
@@ -307,7 +320,7 @@ export async function quickAddTaskAction(input: {
   revalidatePath(`/spaces/${input.spaceId}`);
   revalidatePath('/tasks');
   revalidatePath('/dashboard');
-  return { saved: true };
+  return { saved: true, createdTaskId };
 }
 
 /** Used by drag and drop, which sends the neighbours rather than an index. */
@@ -435,6 +448,7 @@ export async function updateTaskAction(
           .split(',')
           .map((tag) => tag.trim())
           .filter(Boolean),
+        recurrence: toRecurrence(text(formData, 'recurrence')),
       }),
     );
   } catch (error) {

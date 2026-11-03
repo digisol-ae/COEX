@@ -1,3 +1,4 @@
+import { parallel } from '@/lib/parallel';
 import { TeamsShare } from '@/components/tasks/teams-share';
 import { TaskAddTime } from '@/modules/time/components/ticket-add-time';
 import { FactBadge } from '@/components/ui/fact-badge';
@@ -19,7 +20,7 @@ import {
 } from '@/modules/tasks/services/task.service';
 import { getSpace } from '@/modules/tasks/services/space.service';
 import { listFolders } from '@/modules/tasks/services/folder.service';
-import { listUsers } from '@/modules/core/services/user.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
 import { Badge, PageHeader } from '@/components/ui';
 import {
   getRunningTimer,
@@ -58,24 +59,26 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
     mentionable,
     sourceTicket,
     origin,
-  } = await asUser(actor, async () => ({
-    space: await getSpace(String(task.spaceId)),
-    folders: await listFolders(String(task.spaceId)),
-    users: await listUsers(),
-    timer: await getRunningTimer(),
-    loggedMinutes: await loggedMinutesForTask(id),
-    // Other people's hours are for those granted timesheet.read.all; everyone else sees their own.
-    timeByPerson: await listTaskTimeByPerson(
-      id,
-      actor.permissions.includes('timesheet.read.all') ? {} : { onlyUserId: actor.id },
-    ),
-    comments: await listTaskComments(id),
-    ownerIds: await assignableUserIdsForTask(task),
-    subtaskOwnerIds: await assignableUserIdsForSubtask(task),
-    mentionable: await mentionableForTask(id),
-    sourceTicket: await sourceTicketFor(task),
-    origin: await taskOrigin(task),
-  }));
+  } = await asUser(actor, () =>
+    parallel({
+      space: getSpace(String(task.spaceId)),
+      folders: listFolders(String(task.spaceId)),
+      users: listStaffUsers(),
+      timer: getRunningTimer(),
+      loggedMinutes: loggedMinutesForTask(id),
+      // Other people's hours are for those granted timesheet.read.all; everyone else sees their own.
+      timeByPerson: listTaskTimeByPerson(
+        id,
+        actor.permissions.includes('timesheet.read.all') ? {} : { onlyUserId: actor.id },
+      ),
+      comments: listTaskComments(id),
+      ownerIds: assignableUserIdsForTask(task),
+      subtaskOwnerIds: assignableUserIdsForSubtask(task),
+      mentionable: mentionableForTask(id),
+      sourceTicket: sourceTicketFor(task),
+      origin: taskOrigin(task),
+    }),
+  );
 
   const canManage = actor.permissions.includes('task.manage');
 
@@ -220,6 +223,11 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
               <FactBadge icon="alert" label="Priority">
                 {task.priority}
               </FactBadge>
+              {task.recurrence && task.recurrence !== 'none' ? (
+                <FactBadge icon="repeat" label="Repeats">
+                  {task.recurrence[0].toUpperCase() + task.recurrence.slice(1)}
+                </FactBadge>
+              ) : null}
               <span>
                 Starts: {task.startAt ? toDateTimeInput(task.startAt).replace('T', ' ') : 'No date'}
               </span>
@@ -254,6 +262,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
                       estimateHours: task.estimateMinutes ? String(task.estimateMinutes / 60) : '',
                       tags: (task.tags ?? []).join(', '),
                       folderId: task.folderId ? String(task.folderId) : '',
+                      recurrence: task.recurrence ?? 'none',
                     }}
                     folders={folders.map((folder) => ({
                       id: folder.id,

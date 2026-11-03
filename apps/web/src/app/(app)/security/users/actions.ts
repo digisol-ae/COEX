@@ -9,7 +9,12 @@ import {
   updateUserAccess,
   updateUserRole,
 } from '@/modules/core/services/user.service';
-import { PERMISSIONS, ROLES, type Permission, type Role } from '@coex/shared/core/permissions';
+import {
+  PERMISSIONS,
+  STAFF_ROLES,
+  type Permission,
+  type Role,
+} from '@coex/shared/core/permissions';
 
 export interface UserFormState {
   error?: string;
@@ -23,7 +28,7 @@ export interface UserFormState {
 function toRole(value: FormDataEntryValue | null): Role {
   const role = String(value ?? '');
 
-  if (!(ROLES as readonly string[]).includes(role)) {
+  if (!(STAFF_ROLES as readonly string[]).includes(role)) {
     throw new Error('Unknown role.');
   }
 

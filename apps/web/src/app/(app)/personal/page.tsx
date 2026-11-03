@@ -3,7 +3,7 @@ import { listTasks } from '@/modules/tasks/services/task.service';
 import { listSpaces, personalSpaceForCurrentUser } from '@/modules/tasks/services/space.service';
 import { listFolders } from '@/modules/tasks/services/folder.service';
 import { getRunningTimer } from '@/modules/time/services/time.service';
-import { listUsers } from '@/modules/core/services/user.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
 import { PageHeader } from '@/components/ui';
 import { PersonalTaskPanel } from '../tasks/personal-task-panel';
 import { TaskList } from '../tasks/task-list';
@@ -28,7 +28,7 @@ export default async function PersonalPage() {
           })),
       ),
       tasks: await listTasks({ spaceId, includeClosed: true }),
-      users: await listUsers(),
+      users: await listStaffUsers(),
       runningTimer: await getRunningTimer(),
     };
   });

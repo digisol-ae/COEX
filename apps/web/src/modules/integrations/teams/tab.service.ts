@@ -1,3 +1,4 @@
+import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { Schema, model, models } from 'mongoose';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { TenantModel } from '@coex/shared/core/models/tenant.model';
@@ -204,7 +205,7 @@ export async function readTeamsTab(token: string, raw: unknown, host: 'tab' | 'c
               tenantId: settings.tenantId,
               status: 'active',
               deletedAt: null,
-              role: { $ne: 'client_contact' },
+              role: { $in: [...STAFF_ROLES] },
             })
               .sort({ name: 1 })
               .select('_id name')
@@ -406,7 +407,7 @@ async function validateAssignees(
     _id: { $in: ids },
     status: 'active',
     deletedAt: null,
-    role: { $ne: 'client_contact' },
+    role: { $in: [...STAFF_ROLES] },
   }).select('_id');
   const allowed = await assignableUserIdsForTask({
     spaceId: String(task.spaceId),

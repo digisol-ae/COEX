@@ -11,7 +11,7 @@ import { FactBadge, FactRow } from '@/components/ui/fact-badge';
 import { Badge, Card, CardSection, Notice, PageHeader } from '@/components/ui';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { ContractPanel } from '@/app/(app)/contracts/contract-panel';
-import { listOrganisations } from '@/modules/crm/services/organisation.service';
+import { listOrganisationChoices } from '@/modules/crm/services/organisation.service';
 import { suggestedEndDate } from '@/modules/crm/services/contract.service';
 import { MoveButton } from '../move-button';
 
@@ -45,7 +45,7 @@ export default async function OpportunityPage({
 
   const customers =
     opportunity.status === 'won' && canCreateContract
-      ? (await asUser(actor, () => listOrganisations())).map(({ id: customerId, name }) => ({
+      ? (await asUser(actor, () => listOrganisationChoices())).map(({ id: customerId, name }) => ({
           id: customerId,
           name,
         }))

@@ -78,6 +78,7 @@ export function SetupWorkspace({
             >
               {tabs.map((tab) => (
                 <Link
+                  prefetch={false}
                   key={tab.href}
                   role="tab"
                   id={`setup-tab-${tab.href.split('/').pop()}`}

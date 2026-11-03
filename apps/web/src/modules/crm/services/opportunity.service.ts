@@ -1,3 +1,4 @@
+import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
@@ -163,6 +164,8 @@ async function prepare(input: OpportunityInput) {
     _id: ownerId,
     tenantId: getContext().tenantId,
     status: 'active',
+    deletedAt: null,
+    role: { $in: [...STAFF_ROLES] },
   });
   if (!owner) throw new Error('The owner must be an active member of the team.');
 

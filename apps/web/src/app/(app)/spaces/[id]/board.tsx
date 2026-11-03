@@ -19,8 +19,10 @@ import {
 import { useToast } from '@/components/ui/toast';
 import { Chip, StatusDot, StatusPill } from '@/components/ui/pill';
 import { formatDateTime } from '@coex/shared/tasks/dates';
+import { TASK_RECURRENCES } from '@coex/shared/tasks/recurrence';
 import { formatMinutes } from '@coex/shared/time/week';
 import type { TaskSummary } from '@/modules/tasks/services/task.service';
+import { RecordWindow, ShowMore, useRecordWindow } from '@/components/ui/record-window';
 import { Gantt } from './gantt';
 import { ViewTabs } from './view-tabs';
 import { FolderBar } from './folder-bar';
@@ -132,11 +134,15 @@ export function Board({
     setPreviousFolderId(activeFolderId);
     setFolderId(activeFolderId);
   }
+  const windowScope = JSON.stringify([spaceId, view, folderId, assigneeFilter, search, showClosed]);
+  const [createdTask, setCreatedTask] = useState<{ id: string; scope: string } | null>(null);
+  if (createdTask && createdTask.scope !== windowScope) setCreatedTask(null);
   const { showToast } = useToast();
   const [state, formAction, pending] = useActionState(
     async (previous: TaskFormState, formData: FormData) => {
       const result = await createTaskAction(previous, formData);
       if (result.saved) {
+        if (result.createdTaskId) setCreatedTask({ id: result.createdTaskId, scope: windowScope });
         setAdding(false);
         showToast('Task created.');
       }
@@ -189,17 +195,30 @@ export function Board({
 
     if (assigneeFilter) {
       const name = nameOf.get(assigneeFilter);
-      if (!name || !task.assigneeNames.includes(name)) return false;
+      if (
+        !name ||
+        (!task.assigneeNames.includes(name) &&
+          !task.subtasks.some((sub) => sub.assigneeId === assigneeFilter))
+      )
+        return false;
     }
 
     if (search.trim()) {
-      const text = `${task.number} ${task.title} ${task.folderName ?? ''}`.toLowerCase();
+      const text =
+        `${task.number} ${task.title} ${task.folderName ?? ''} ${task.subtasks.map((sub) => sub.title).join(' ')}`.toLowerCase();
       if (!text.includes(search.trim().toLowerCase())) return false;
     }
 
     return true;
   });
 
+  const page = useRecordWindow(
+    visible,
+    windowScope,
+    createdTask?.scope === windowScope
+      ? visible.findIndex((task) => task.id === createdTask.id)
+      : -1,
+  );
   const columnTasks = (status: string) => visible.filter((task) => task.status === status);
 
   // Read from the optimistic list rather than held in state, so an edit made inside the panel is
@@ -281,6 +300,7 @@ export function Board({
       setEditError(null);
 
       const result = await quickAddTaskAction({ spaceId, title, status, folderId });
+      if (result.createdTaskId) setCreatedTask({ id: result.createdTaskId, scope: windowScope });
       return result.error ?? null;
     },
     onRename: (task, title) => patch(task.id, { title }, { id: task.id, spaceId, title }),
@@ -435,6 +455,18 @@ export function Board({
                 <Input name="endAt" type="datetime-local" />
               </Field>
 
+              <Field label="Repeat" hint="The next task is created when this one is completed.">
+                <Select name="recurrence" defaultValue="none">
+                  {TASK_RECURRENCES.map((option) => (
+                    <option key={option} value={option}>
+                      {option === 'none'
+                        ? 'Does not repeat'
+                        : option[0].toUpperCase() + option.slice(1)}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+
               {folders.length > 0 ? (
                 <Field label="Folder">
                   <Select name="folderId" defaultValue={activeFolderId ?? ''}>
@@ -482,11 +514,13 @@ export function Board({
             style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(16rem, 1fr))` }}
           >
             {columns.map((column) => {
-              const inColumn = columnTasks(column.name);
+              const allInColumn = columnTasks(column.name);
 
               return (
                 <div
                   key={column.name}
+                  role="region"
+                  aria-label={`${column.name} tasks`}
                   className="min-w-0"
                   onDragOver={(event) => {
                     if (!dragging) return;
@@ -494,13 +528,13 @@ export function Board({
                   }}
                   onDrop={(event) => {
                     event.preventDefault();
-                    drop(column.name, inColumn.length);
+                    drop(column.name, allInColumn.length);
                   }}
                 >
                   <div className="mb-2 flex items-center gap-2">
                     <StatusPill status={column.name} isClosed={column.isClosed} />
                     <span className="text-xs text-[var(--color-ink-subtle)] tabular-nums">
-                      {inColumn.length}
+                      {visible.filter((task) => task.status === column.name).length}
                     </span>
 
                     {canManage ? (
@@ -528,63 +562,71 @@ export function Board({
                     ) : null}
                   </div>
 
-                  <div
-                    className={clsx(
-                      'min-h-24 space-y-2 rounded-[var(--radius-card)] p-1 transition-colors',
-                      dragging && dropTarget?.status === column.name
-                        ? 'bg-[var(--color-surface-muted)]'
-                        : 'bg-transparent',
-                    )}
+                  <RecordWindow
+                    records={allInColumn}
+                    resetKey={windowScope}
+                    revealId={createdTask?.scope === windowScope ? createdTask.id : undefined}
                   >
-                    {inColumn.map((task, index) => (
+                    {(inColumn) => (
                       <div
-                        key={task.id}
-                        onDragOver={(event) => {
-                          if (!dragging) return;
-                          event.preventDefault();
-                          setDropTarget({ status: column.name, index });
-                        }}
-                        onDrop={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          drop(column.name, index);
-                        }}
+                        className={clsx(
+                          'min-h-24 space-y-2 rounded-[var(--radius-card)] p-1 transition-colors',
+                          dragging && dropTarget?.status === column.name
+                            ? 'bg-[var(--color-surface-muted)]'
+                            : 'bg-transparent',
+                        )}
                       >
-                        {dragging &&
-                        dropTarget?.status === column.name &&
-                        dropTarget.index === index ? (
-                          <div className="mb-2 h-0.5 rounded-full bg-[image:var(--gradient-brand)]" />
+                        {inColumn.map((task, index) => (
+                          <div
+                            key={task.id}
+                            onDragOver={(event) => {
+                              if (!dragging) return;
+                              event.preventDefault();
+                              setDropTarget({ status: column.name, index });
+                            }}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              drop(column.name, index);
+                            }}
+                          >
+                            {dragging &&
+                            dropTarget?.status === column.name &&
+                            dropTarget.index === index ? (
+                              <div className="mb-2 h-0.5 rounded-full bg-[image:var(--gradient-brand)]" />
+                            ) : null}
+
+                            <TaskCard
+                              task={task}
+                              handlers={handlers}
+                              isClosedColumn={column.isClosed}
+                              onDragStart={() =>
+                                setDragging({ taskId: task.id, fromStatus: column.name })
+                              }
+                              onDragEnd={() => {
+                                setDragging(null);
+                                setDropTarget(null);
+                              }}
+                              isDragging={dragging?.taskId === task.id}
+                            />
+                          </div>
+                        ))}
+
+                        {inColumn.length === 0 && !canManage ? (
+                          <p className="px-2 py-6 text-center text-xs text-[var(--color-ink-subtle)]">
+                            Nothing here
+                          </p>
                         ) : null}
 
-                        <TaskCard
-                          task={task}
-                          handlers={handlers}
-                          isClosedColumn={column.isClosed}
-                          onDragStart={() =>
-                            setDragging({ taskId: task.id, fromStatus: column.name })
-                          }
-                          onDragEnd={() => {
-                            setDragging(null);
-                            setDropTarget(null);
-                          }}
-                          isDragging={dragging?.taskId === task.id}
-                        />
+                        {canManage ? (
+                          <QuickAdd
+                            status={column.name}
+                            onAdd={(title) => handlers.onQuickAdd(column.name, title)}
+                          />
+                        ) : null}
                       </div>
-                    ))}
-
-                    {inColumn.length === 0 && !canManage ? (
-                      <p className="px-2 py-6 text-center text-xs text-[var(--color-ink-subtle)]">
-                        Nothing here
-                      </p>
-                    ) : null}
-
-                    {canManage ? (
-                      <QuickAdd
-                        status={column.name}
-                        onAdd={(title) => handlers.onQuickAdd(column.name, title)}
-                      />
-                    ) : null}
-                  </div>
+                    )}
+                  </RecordWindow>
                 </div>
               );
             })}
@@ -592,7 +634,10 @@ export function Board({
         </div>
       ) : view === 'list' ? (
         <ListView
-          tasks={visible}
+          totalCounts={Object.fromEntries(
+            columns.map((column) => [column.name, columnTasks(column.name).length]),
+          )}
+          tasks={page.items}
           columns={columns}
           handlers={handlers}
           dragging={dragging}
@@ -602,6 +647,7 @@ export function Board({
         />
       ) : null}
 
+      {view === 'list' ? <ShowMore {...page} /> : null}
       {openTask ? (
         <TaskPanel
           key={openTask.id}
@@ -758,6 +804,7 @@ function TaskCard({
  */
 function ListView({
   tasks,
+  totalCounts,
   columns,
   handlers,
   dragging,
@@ -766,6 +813,7 @@ function ListView({
   onDropOn,
 }: {
   tasks: TaskSummary[];
+  totalCounts: Record<string, number>;
   columns: { name: string; isClosed: boolean }[];
   handlers: EditHandlers;
   dragging: DragState | null;
@@ -808,7 +856,7 @@ function ListView({
 
               <StatusPill status={column.name} isClosed={column.isClosed} />
               <span className="text-xs text-[var(--color-ink-subtle)] tabular-nums">
-                {inColumn.length}
+                {totalCounts[column.name] ?? inColumn.length}
               </span>
             </div>
 
@@ -821,7 +869,7 @@ function ListView({
                     onDropOn(column.name, inColumn.length);
                   }}
                 >
-                  <Table className="w-full border-collapse text-sm">
+                  <Table paginate={false} className="w-full border-collapse text-sm">
                     <thead>
                       <tr className="text-[11px] tracking-wide text-[var(--color-ink-subtle)] uppercase">
                         <th className="w-6 border-b border-[var(--color-line)] px-2 py-1.5" />
@@ -1034,7 +1082,9 @@ function ListView({
                             colSpan={6}
                             className="px-3 py-3 text-center text-xs text-[var(--color-ink-subtle)]"
                           >
-                            Nothing here
+                            {totalCounts[column.name]
+                              ? 'Show more to see tasks in this column'
+                              : 'Nothing here'}
                           </td>
                         </tr>
                       ) : null}

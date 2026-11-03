@@ -10,6 +10,8 @@ import {
 } from '@coex/shared/crm/contract-drafting';
 import type { DraftSummary } from '@/modules/crm/services/agreement.service';
 import { draftMutation } from '../../templates/actions';
+import type { TenantLetterhead } from '@coex/shared/crm/letterhead';
+import { letterheadHtml, letterheadStyles } from '@/modules/crm/letterhead-html';
 
 export function AgreementEditor({
   contractId,
@@ -18,6 +20,7 @@ export function AgreementEditor({
   draft,
   automaticValues,
   editable,
+  letterhead,
 }: {
   contractId: string;
   number: string;
@@ -25,6 +28,7 @@ export function AgreementEditor({
   draft: DraftSummary | null;
   automaticValues: Record<string, string>;
   editable: boolean;
+  letterhead: TenantLetterhead;
 }) {
   const [templateId, setTemplateId] = useState(draft?.templateId ?? templates[0]?.id ?? '');
   const [values, setValues] = useState<Record<string, string>>({});
@@ -66,13 +70,14 @@ export function AgreementEditor({
     });
   }
   function printAgreement() {
+    const stationery = letterheadHtml(letterhead);
     const frame = document.createElement('iframe');
     frame.style.cssText = 'position:fixed;width:0;height:0;border:0';
     const escaped = body.replace(
       /[&<>"']/g,
       (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!,
     );
-    frame.srcdoc = `<!doctype html><html><head><title>${number.replace(/[^a-zA-Z0-9-]/g, '')}</title><style>@page{size:A4;margin:20mm}body{font:11pt Arial,sans-serif;line-height:1.55;color:#111}pre{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere}header{font-size:10pt;color:#555;margin-bottom:20px}</style></head><body><header>${reviewed ? 'Reviewed agreement' : 'DRAFT — pending review'}</header><pre>${escaped}</pre></body></html>`;
+    frame.srcdoc = `<!doctype html><html><head><title>${number.replace(/[^a-zA-Z0-9-]/g, '')}</title><style>${letterheadStyles}@page{size:A4;margin:20mm}body{font:11pt Arial,sans-serif;line-height:1.55;color:#111}pre{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere}header{font-size:10pt;color:#555;margin-bottom:20px}</style></head><body>${stationery.header}<header>${reviewed ? 'Reviewed agreement' : 'DRAFT — pending review'}</header><pre>${escaped}</pre>${stationery.footer}</body></html>`;
     frame.onload = () => {
       frame.contentWindow?.focus();
       frame.contentWindow?.print();
@@ -83,7 +88,7 @@ export function AgreementEditor({
     frame.dataset.agreementPrint = 'true';
   }
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 [&_button]:min-h-12 [&_input:not([type=checkbox])]:min-h-12 [&_input]:text-base [&_select]:min-h-12 [&_select]:text-base">
       {editable && (
         <section className="rounded border p-4 space-y-3">
           <div className="flex flex-wrap items-end gap-3">
@@ -210,8 +215,11 @@ export function AgreementEditor({
           </div>
           {dirty && <p className="text-sm">Save your changes before printing or downloading.</p>}
           <p className="text-xs">
-            Review is an internal check. Signatures and the signed Microsoft 365 document remain
-            separate from contract activation.
+            Review is an internal check.{' '}
+            <Link className="underline" href={`/contracts/${contractId}/signature`}>
+              Send the saved agreement for signature
+            </Link>
+            . Signing is separate from contract activation.
           </p>
         </section>
       )}

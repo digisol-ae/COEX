@@ -3,7 +3,7 @@ import { toObjectId } from '@/lib/ids';
 import { getContext } from '@/lib/tenant-context';
 import { TaskModel } from '@coex/shared/tasks/models/task.model';
 import { SpaceModel } from '@coex/shared/tasks/models/space.model';
-import { UserModel } from '@coex/shared/core/models/user.model';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
 import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
 import { endOfWeek, startOfWeek } from '@coex/shared/time/week';
 
@@ -59,7 +59,7 @@ export async function loadDashboard(scope: {
   const { tenantId } = getContext();
 
   const base: Record<string, unknown> = { tenantId, deletedAt: null, isClosed: false };
-  if (scope.onlyAssigneeId) base.assigneeIds = scope.onlyAssigneeId;
+  if (scope.onlyAssigneeId) base.assigneeIds = toObjectId(scope.onlyAssigneeId);
 
   const [open, overdue, dueToday, unassigned, blocked] = await Promise.all([
     TaskModel.countDocuments(base),
@@ -71,25 +71,30 @@ export async function loadDashboard(scope: {
 
   const spaces = await SpaceModel.find({ tenantId, deletedAt: null }).sort({ name: 1 });
 
-  const bySpace = await Promise.all(
-    spaces.map(async (space) => ({
-      id: String(space._id),
-      label: space.name,
-      count: await TaskModel.countDocuments({ ...base, spaceId: space._id }),
-    })),
-  );
-
-  const users = await UserModel.find({ tenantId, status: 'active', deletedAt: null }).select(
-    'name',
-  );
-
-  const byAssignee = await Promise.all(
-    users.map(async (user) => ({
-      id: String(user._id),
-      label: user.name,
-      count: await TaskModel.countDocuments({ ...base, assigneeIds: user._id }),
-    })),
-  );
+  const [users, spaceCounts, assigneeCounts] = await Promise.all([
+    listStaffUsers({ activeOnly: true }),
+    TaskModel.aggregate<{ _id: import('mongoose').Types.ObjectId; count: number }>([
+      { $match: base },
+      { $group: { _id: '$spaceId', count: { $sum: 1 } } },
+    ]),
+    TaskModel.aggregate<{ _id: import('mongoose').Types.ObjectId; count: number }>([
+      { $match: base },
+      { $unwind: '$assigneeIds' },
+      { $group: { _id: '$assigneeIds', count: { $sum: 1 } } },
+    ]),
+  ]);
+  const perSpace = new Map(spaceCounts.map((row) => [String(row._id), row.count]));
+  const perPerson = new Map(assigneeCounts.map((row) => [String(row._id), row.count]));
+  const bySpace = spaces.map((space) => ({
+    id: String(space._id),
+    label: space.name,
+    count: perSpace.get(String(space._id)) ?? 0,
+  }));
+  const byAssignee = users.map((user) => ({
+    id: user.id,
+    label: user.name,
+    count: perPerson.get(user.id) ?? 0,
+  }));
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 

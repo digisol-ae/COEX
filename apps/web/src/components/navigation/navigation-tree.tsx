@@ -129,6 +129,7 @@ export function NavigationTree({
       })}
 
       <Link
+        prefetch={false}
         href="/menu-order"
         onClick={onNavigate}
         className="block px-2 py-2 text-[11px] text-[var(--color-ink-subtle)] underline-offset-4 hover:text-[var(--color-ink-muted)] hover:underline"
@@ -157,6 +158,7 @@ function NavigationLink({
 }) {
   return (
     <Link
+      prefetch={false}
       href={href}
       onClick={onNavigate}
       aria-current={active ? 'page' : undefined}

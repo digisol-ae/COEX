@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
 import { listUsers } from '@/modules/core/services/user.service';
 import { Badge, Card, PageHeader, Table, Td, Th } from '@/components/ui';
@@ -7,18 +8,51 @@ import { RoleSelect, StatusButton, ResetPasswordButton, AccessEditor } from './r
 
 export const metadata = { title: 'Users · Worktello' };
 
-export default async function UsersPage() {
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ kind?: string }>;
+}) {
+  const { kind } = await searchParams;
+  const customers = kind === 'customers';
   const actor = await requirePermission('user.manage');
-  const users = await asUser(actor, listUsers);
+  const users = await asUser(actor, () => listUsers({ kind: customers ? 'customers' : 'staff' }));
 
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader
-        title="Users"
-        description={`Everyone who can sign in to ${actor.tenantName}. A suspended account loses its open sessions immediately.`}
-        action={actor.permissions.includes('user.manage') ? <CreateUserPanel /> : undefined}
+        title={customers ? 'Customer portal accounts' : 'Worktello users'}
+        description={
+          customers
+            ? 'Customer sign-ins for raising and following tickets. These accounts are separate from Worktello staff.'
+            : 'Administrators, managers and agents. Customer contacts and portal accounts are managed separately.'
+        }
+        action={
+          !customers && actor.permissions.includes('user.manage') ? <CreateUserPanel /> : undefined
+        }
       />
 
+      <nav aria-label="Account type" className="mb-4 flex gap-2 text-sm">
+        <Link
+          prefetch={false}
+          href="/security/users"
+          aria-current={!customers ? 'page' : undefined}
+          className={`rounded border px-3 py-2 ${!customers ? 'font-semibold bg-[var(--color-surface-muted)]' : ''}`}
+        >
+          Worktello users
+        </Link>
+        <Link
+          prefetch={false}
+          href="/security/users?kind=customers"
+          aria-current={customers ? 'page' : undefined}
+          className={`rounded border px-3 py-2 ${customers ? 'font-semibold bg-[var(--color-surface-muted)]' : ''}`}
+        >
+          Customer portal accounts
+        </Link>
+      </nav>
+      <p className="mb-3 text-xs text-[var(--color-ink-muted)]">
+        {users.length} {customers ? 'customer portal accounts' : 'Worktello users'}
+      </p>
       <Card>
         <Table>
           <thead>
@@ -43,7 +77,9 @@ export default async function UsersPage() {
                   </div>
                 </Td>
                 <Td>
-                  {actor.permissions.includes('user.manage') && user.id !== actor.id ? (
+                  {!customers &&
+                  actor.permissions.includes('user.manage') &&
+                  user.id !== actor.id ? (
                     <RoleSelect userId={user.id} role={user.role} />
                   ) : (
                     <span className="text-[var(--color-ink-muted)]">
@@ -60,12 +96,14 @@ export default async function UsersPage() {
                 <Td>
                   {actor.permissions.includes('user.manage') && user.id !== actor.id ? (
                     <div className="flex justify-end gap-2">
-                      <AccessEditor
-                        userId={user.id}
-                        role={user.role}
-                        grants={user.permissionGrants}
-                        denials={user.permissionDenials}
-                      />
+                      {!customers ? (
+                        <AccessEditor
+                          userId={user.id}
+                          role={user.role}
+                          grants={user.permissionGrants}
+                          denials={user.permissionDenials}
+                        />
+                      ) : null}
                       <ResetPasswordButton userId={user.id} email={user.email} />
                       <StatusButton userId={user.id} status={user.status} />
                     </div>

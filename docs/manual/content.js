@@ -1,6 +1,6 @@
 window.WORKTELLO_MANUAL = {
-  "version": "2026.10.26",
-  "updated": "26 October 2026",
+  "version": "2026.10.30",
+  "updated": "30 October 2026",
   "title": "Worktello field guide",
   "chapters": [
     {
@@ -33,13 +33,22 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Keep a local copy",
           "text": "Keep this manual folder together. For a portable copy with linked technical records, use the generated ZIP and extract its complete folder tree. Live app links require internet and your own account."
+        },
+        {
+          "title": "Show more records",
+          "text": "Lists initially show 10 top-level records. Use Show more to reveal the next batch while keeping earlier rows. Search and filters narrow the results; this display window does not mean every staff list fetches only 10 records from the server."
         }
       ],
       "notes": [
-        "Updated 25 October 2026. Technical COEX identifiers and the coex.digisol.ae hostname remain compatible with the Worktello name.",
+        "Updated 30 October 2026 through merged PR77. Verification statements are dated release evidence; this manual run did not check production runtime.",
         "This is a complete module reference, not a claim that every workflow was freshly tested on every device. Chapters state their evidence limits."
       ],
-      "sources": [],
+      "sources": [
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
+        ]
+      ],
       "images": [],
       "related": [
         "login",
@@ -87,7 +96,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open sign-in",
-          "https://coex.digisol.ae/login"
+          "https://worktello.com/login"
         ],
         [
           "Customer access record",
@@ -180,7 +189,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open My Desk",
-          "https://coex.digisol.ae/my-desk"
+          "https://worktello.com/my-desk"
         ]
       ],
       "images": [],
@@ -272,16 +281,25 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Change status carefully",
           "text": "Use the permitted status action when work moves forward. Closing the main task affects all assignees; use personal completion for just your subtask work."
+        },
+        {
+          "title": "Expand a Space Board column",
+          "text": "Each status column starts with up to 10 tasks. Use its Show more control to reveal the next batch independently. Editing retains expansion; a newly created task is revealed in its own column. Changing filters resets the windows."
         }
       ],
       "notes": [
         "Task creation may queue an assignment email for another person according to tenant email settings. Self-assignment mail remains intentionally suppressed.",
-        "This guide does not create production tasks as examples."
+        "This guide does not create production tasks as examples.",
+        "29 October release handover records signed-in live Board expansion from 10 to 20 Done cards while To do remained unchanged. Creation/edit checks used isolated synthetic data. A narrow-viewport floating timer overlapped the far-right footer control; keyboard activation worked in the recorded live check."
       ],
       "sources": [
         [
           "Open Tasks",
-          "https://coex.digisol.ae/tasks"
+          "https://worktello.com/tasks"
+        ],
+        [
+          "Board expansion resolution",
+          "../resolutions/2026-10-30-board-and-ui.md"
         ]
       ],
       "images": [],
@@ -376,7 +394,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open Spaces",
-          "https://coex.digisol.ae/spaces"
+          "https://worktello.com/spaces"
         ]
       ],
       "images": [],
@@ -420,16 +438,30 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Undo a recent save",
           "text": "Undo last save reverses the last save in this mounted chart, provided nobody has changed those dates. Undo does not survive a reload."
+        },
+        {
+          "title": "Inspect subtasks",
+          "text": "Use Show subtasks and the expand/collapse controls. Dashed child bars inherit the parent schedule when the child lacks a complete window. Saving child dates does not move the parent; a derived envelope for an undated parent does not save parent dates."
+        },
+        {
+          "title": "Download a PDF",
+          "text": "Use PDF to export the Gantt chart. Review the dates and visible hierarchy before sharing the downloaded file."
         }
       ],
       "notes": [
         "A stale/concurrent edit is rejected rather than silently overwriting someone else’s dates. Reload and review the current schedule before trying again.",
-        "Images below are actual application captures from isolated Docker QA with synthetic records, not production customer work. Physical touch and two-browser collision UI testing were not performed."
+        "Images below are actual application captures from isolated Docker QA with synthetic records, not production customer work. Physical touch and two-browser collision UI testing were not performed.",
+        "Subtask/PDF behavior is supported by merged source and recorded local QA in the 28 October release; authenticated production acceptance was not performed. The existing screenshot predates these additions.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
       ],
       "sources": [
         [
           "Gantt QA",
           "../GANTT-QA.md"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
         ]
       ],
       "images": [
@@ -562,16 +594,33 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Review the week",
           "text": "Open My timesheet and check dates, notes and totals. Use permitted team reports for wider visibility; normal agents do not gain access to everyone’s time."
+        },
+        {
+          "title": "Review latest recorded activity",
+          "text": "Team Activity can show staff latest activity with its exact timestamp and elapsed period. This reflects recorded work and running timers, not keyboard activity or online presence; No recorded activity means there is no matching work record."
+        },
+        {
+          "title": "Sort the activity summary",
+          "text": "Expand Summary in Team Activity to compare Agent, Since Last Active and Total Time. Select a column heading to change the sort order."
         }
       ],
       "notes": [
         "Do not start a production timer merely to see the control: it can stop your existing timer.",
-        "App task times use Dubai office time. Read the displayed date/time before saving, especially when travelling."
+        "App task times use Dubai office time. Read the displayed date/time before saving, especially when travelling.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
       ],
       "sources": [
         [
           "Open My timesheet",
-          "https://coex.digisol.ae/time"
+          "https://worktello.com/time"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
+        ],
+        [
+          "UI release evidence",
+          "../../ai/RELEASE-2026-10-29-UI-IMPROVEMENTS.md"
         ]
       ],
       "images": [],
@@ -628,7 +677,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open support tickets",
-          "https://coex.digisol.ae/support/tickets"
+          "https://worktello.com/support/tickets"
         ]
       ],
       "images": [],
@@ -664,20 +713,29 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Use portal access deliberately",
           "text": "An authorized administrator can create a portal account for an eligible active contact. Share its one-time credentials securely; an invitation email is not automatically sent."
+        },
+        {
+          "title": "Find contacts from tickets",
+          "text": "Inside Add Contact, choose Find from tickets. Search requesters or copied people, tick the intended people and review any move confirmation before adding them. Check the customer carefully to avoid linking someone to the wrong company."
         }
       ],
       "notes": [
         "Customer portal access is linked to the contact/company, not granted to anyone who knows an email address.",
-        "Existing customer exports contain core fields only, not every contact/document/history field."
+        "Existing customer exports contain core fields only, not every contact/document/history field.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
       ],
       "sources": [
         [
           "Open Customers",
-          "https://coex.digisol.ae/customers"
+          "https://worktello.com/customers"
         ],
         [
           "Portal access rules",
           "../CUSTOMER-PORTAL.md"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
         ]
       ],
       "images": [],
@@ -722,7 +780,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open Leads",
-          "https://coex.digisol.ae/leads"
+          "https://worktello.com/leads"
         ]
       ],
       "images": [],
@@ -766,7 +824,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open Opportunities",
-          "https://coex.digisol.ae/opportunities"
+          "https://worktello.com/opportunities"
         ]
       ],
       "images": [],
@@ -806,7 +864,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open Products",
-          "https://coex.digisol.ae/products"
+          "https://worktello.com/products"
         ]
       ],
       "images": [],
@@ -845,16 +903,25 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Preview messages",
           "text": "When using the contract email action, select recipients/template and review the message before sending."
+        },
+        {
+          "title": "Enter a historic start date",
+          "text": "Existing agreements may start in 2025. Enter their actual start and end dates; the end must not precede the start."
         }
       ],
       "notes": [
         "A manual walkthrough does not send a renewal message, activate a contract or mark a real invoice.",
-        "Core CSV contract transfer excludes detailed service lines and is not a full contract backup."
+        "Core CSV contract transfer excludes detailed service lines and is not a full contract backup.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
       ],
       "sources": [
         [
           "Open Contracts",
-          "https://coex.digisol.ae/contracts"
+          "https://worktello.com/contracts"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
         ]
       ],
       "images": [],
@@ -864,6 +931,50 @@ window.WORKTELLO_MANUAL = {
         "transfer"
       ],
       "status": "Documented workflow"
+    },
+    {
+      "id": "agreement-drafting",
+      "title": "Prepare a customer agreement",
+      "group": "Customer work",
+      "roles": [
+        "Admin",
+        "Agent"
+      ],
+      "intro": "Reusable templates prepare editable agreement text for a customer contract.",
+      "steps": [
+        {
+          "title": "Choose a template",
+          "text": "Open Contracts, then Contract templates. Create, duplicate or edit a template. Custom templates may be archived."
+        },
+        {
+          "title": "Populate an agreement",
+          "text": "Open a customer contract and Draft agreement. Select a matching template, then Populate agreement fields. Review customer details, dates, products and terms; complete additional fields before generating."
+        },
+        {
+          "title": "Review and save",
+          "text": "Edit the full text and save. Resolve placeholders before marking reviewed. Further edits clear review; template changes do not rewrite saved agreement snapshots."
+        },
+        {
+          "title": "Export and attach",
+          "text": "Print/save PDF or download text. Attach the signed document through the existing Microsoft 365 document link."
+        }
+      ],
+      "notes": [
+        "Internal review does not sign, activate, invoice or email the contract. Review starter clauses and conflicting source terms before customer use.",
+        "Isolated synthetic browser QA passed. Production authenticated drafting, OS PDF saving and physical signature acceptance remain unverified."
+      ],
+      "sources": [
+        [
+          "Agreement release record",
+          "../resolutions/2026-10-27-agreement-drafting.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "contracts",
+        "files"
+      ],
+      "status": "Released per 26 October handover; production walkthrough pending"
     },
     {
       "id": "portal",
@@ -904,7 +1015,7 @@ window.WORKTELLO_MANUAL = {
       "sources": [
         [
           "Open customer portal",
-          "https://coex.digisol.ae/portal"
+          "https://worktello.com/portal"
         ],
         [
           "Portal technical guide",
@@ -1018,11 +1129,16 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "If content is refused",
           "text": "Capture the visible error and report the host URL. An administrator must check the exact embedding policy and Outlook web authorization; do not disable browser protections."
+        },
+        {
+          "title": "Email-to-task add-in readiness",
+          "text": "The separate email-to-task task pane and review API are deployed. Native Outlook sideloading, Office sign-in/dialog behavior and real email/attachment transfer remain unverified. Ask the administrator to complete that acceptance before relying on this workflow."
         }
       ],
       "notes": [
         "Production Outlook web SSO, task list and an accessible task detail were verified after the scoped fix. Assignment/time/update controls and the blank create form rendered. No task, time entry, assignment or message was submitted.",
-        "Outlook desktop/mobile, creating from an email and Copilot features are not claimed by the Supported on badge or this personal-tab fix."
+        "Outlook desktop/mobile, creating from an email and Copilot features are not claimed by the Supported on badge or this personal-tab fix.",
+        "The 28 October release records public task-pane 200 and unauthenticated API 401 checks. These checks do not establish native Outlook acceptance. The earlier personal workspace evidence remains separate."
       ],
       "sources": [
         [
@@ -1032,6 +1148,10 @@ window.WORKTELLO_MANUAL = {
         [
           "Technical resolution",
           "../resolutions/2026-10-25-outlook-web.md"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
         ]
       ],
       "images": [
@@ -1147,7 +1267,7 @@ window.WORKTELLO_MANUAL = {
         },
         {
           "title": "Choose the setting",
-          "text": "Tabs include Queues, Tutorials, Email, Pipeline, WhatsApp, Saved replies, Tenant settings, Custom fields, Import and export and Tenants according to your rights."
+          "text": "Tabs include Queues, What’s new, Tutorials, Email, Pipeline, WhatsApp, Saved replies, Tenant settings, Custom fields, Import and export and Tenants according to your rights."
         },
         {
           "title": "Review before applying",
@@ -1175,6 +1295,44 @@ window.WORKTELLO_MANUAL = {
         "resolutions"
       ],
       "status": "Documented workflow"
+    },
+    {
+      "id": "release-publishing",
+      "title": "Manage What’s new by date and topic",
+      "group": "Administration",
+      "roles": [
+        "Admin"
+      ],
+      "intro": "Prepare tenant-scoped updates in Setup → What’s new. Topics sharing a release date appear together.",
+      "steps": [
+        {
+          "title": "Prepare a topic",
+          "text": "Choose Add topic, set Main topic and Release date, then edit sections and paragraphs. Use Save draft to retain private edits."
+        },
+        {
+          "title": "Preview and order",
+          "text": "Review the preview and move topics within their date. Expand a topic to manage its content."
+        },
+        {
+          "title": "Publish the selected topic",
+          "text": "Choose Publish or Publish changes on that topic. Sibling draft topics stay private. Unpublish hides only the selected topic."
+        }
+      ],
+      "notes": [
+        "Permissions and tenant boundaries apply to every save and publication.",
+        "PR63 merged and the PR64 release handover includes this feature. Earlier candidate port 3004 was unused; no fresh production publication is claimed."
+      ],
+      "sources": [
+        [
+          "Release publication record",
+          "../resolutions/2026-10-27-release-publishing.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "setup"
+      ],
+      "status": "Merged and included in recorded release"
     },
     {
       "id": "transfer",
@@ -1267,16 +1425,25 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Record a change",
           "text": "Use a reason/audit process for sensitive access changes and test the intended role with an authorized test account."
+        },
+        {
+          "title": "Separate customer sign-ins",
+          "text": "Use Worktello users for staff and Customer portal accounts for customer sign-ins. Customer accounts are excluded from staff assignment choices. Newly selected assignees must be active staff in the current organization."
         }
       ],
       "notes": [
         "The manual never grants permissions or adds Microsoft clients just by being opened. New security-sensitive authorization requires explicit action-time approval.",
-        "Secrets, environment files and token values do not belong in a manual, screenshot, commit or support conversation."
+        "Secrets, environment files and token values do not belong in a manual, screenshot, commit or support conversation.",
+        "28 October release handover records deployment and local/CI verification; no authenticated production workflow was performed for this release. This manual run did not recheck runtime."
       ],
       "sources": [
         [
           "Open Users and roles",
-          "https://coex.digisol.ae/security/users"
+          "https://worktello.com/security/users"
+        ],
+        [
+          "Feedback release evidence",
+          "../../ai/RELEASE-2026-10-28-FEEDBACK.md"
         ]
       ],
       "images": [],
@@ -1326,6 +1493,10 @@ window.WORKTELLO_MANUAL = {
         [
           "Resolution index",
           "../resolutions/README.md"
+        ],
+        [
+          "Feedback release resolution",
+          "../resolutions/2026-10-29-feedback-release.md"
         ]
       ],
       "images": [],
@@ -1371,7 +1542,7 @@ window.WORKTELLO_MANUAL = {
       ],
       "notes": [
         "The manual is a local/repository artifact; publishing it to a public application route is a separate decision.",
-        "Current production technical hostname and Microsoft identities remain COEX-compatible. Product naming does not imply a new domain or app identity."
+        "The canonical application URL is worktello.com. Historical COEX integration compatibility routes remain; use the dated domain record before changing Microsoft registrations."
       ],
       "sources": [
         [
@@ -1385,6 +1556,10 @@ window.WORKTELLO_MANUAL = {
         [
           "Manual maintenance guide",
           "README.md"
+        ],
+        [
+          "Domain transition record",
+          "../resolutions/2026-10-27-domain-transition.md"
         ]
       ],
       "images": [],
@@ -1527,6 +1702,61 @@ window.WORKTELLO_MANUAL = {
       "verification": "Production dark-theme screenshot and compiled light/dark rules were verified after corrected rollout. Separate light-theme interaction and native mobile menu remain untested.",
       "status": "Live dark-theme identity verified; device limits retained",
       "record": "../resolutions/2026-10-25-digisol-sidebar.md"
+    },
+    {
+      "id": "agreement-drafting",
+      "title": "Customer agreement templates and drafting",
+      "date": "27 Oct 2026",
+      "symptom": "Staff needed reusable agreements and editable customer-specific text.",
+      "cause": "Contract metadata alone did not provide versioned template snapshots and reviewable agreement text.",
+      "fix": "Added templates, populated draft snapshots, review and print/text export.",
+      "verification": "PR64 merge 9abb6d6; recorded CI/build and isolated QA passed. Production authenticated drafting remains untested.",
+      "status": "Released; production walkthrough pending",
+      "record": "../resolutions/2026-10-27-agreement-drafting.md"
+    },
+    {
+      "id": "release-publishing",
+      "title": "Independent What’s new topic publication",
+      "date": "27 Oct 2026",
+      "symptom": "Updates needed date grouping and independent topic publication.",
+      "cause": "Publishing a date must not expose sibling drafts.",
+      "fix": "Tenant-scoped drafts and per-topic publish/unpublish controls.",
+      "verification": "PR63 merge da78b6e; PR64 release handover includes the change. No new live publication performed.",
+      "status": "Merged; included in recorded release",
+      "record": "../resolutions/2026-10-27-release-publishing.md"
+    },
+    {
+      "id": "domain-transition",
+      "title": "Worktello domain and support moved page",
+      "date": "27 Oct 2026",
+      "symptom": "Customers needed a canonical Worktello address and guidance from the old portal.",
+      "cause": "Product and legacy support addresses needed coordinated routing.",
+      "fix": "Canonical worktello.com, legacy compatibility routes and static support moved page.",
+      "verification": "PR66 merge 99b2c01 and PR67 merge fb2e9d1; recorded release handover only, no fresh runtime check.",
+      "status": "Recorded live; runtime not rechecked",
+      "record": "../resolutions/2026-10-27-domain-transition.md"
+    },
+    {
+      "id": "feedback-release",
+      "title": "Feedback release and verification boundaries",
+      "date": "29 Oct 2026",
+      "symptom": "Daily workflows needed clearer contact, timeline, activity and account controls with less repeated loading.",
+      "cause": "Release scope combined usability changes and confirmed excessive account/query loading; freeze root cause remains unconfirmed.",
+      "fix": "PR70 shipped the completed feedback scope; PR71 records deployment and rollback.",
+      "verification": "441 unit tests and CI/build passed; recorded isolated DB suite 265 passed with one known billable-default failure. No authenticated production flow or native Outlook acceptance.",
+      "status": "Recorded live; acceptance limits remain",
+      "record": "../resolutions/2026-10-29-feedback-release.md"
+    },
+    {
+      "id": "board-and-ui",
+      "title": "Independent Board expansion and activity summary",
+      "date": "30 Oct 2026",
+      "symptom": "Space Board expansion needed to retain visible tasks and work independently per status.",
+      "cause": "A shared display window limited unrelated columns and refreshes lost expansion.",
+      "fix": "PR76 retains expanded windows and reveals new tasks; PR77 gives each Board column its own window. PR73 adds sortable activity Summary.",
+      "verification": "Recorded signed-in live expansion passed; creation/edit checks were local synthetic QA. No runtime check in this manual run.",
+      "status": "Recorded live read check; narrow viewport overlap remains",
+      "record": "../resolutions/2026-10-30-board-and-ui.md"
     }
   ]
 };

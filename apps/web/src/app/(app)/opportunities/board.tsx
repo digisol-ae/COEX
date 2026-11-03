@@ -1,5 +1,6 @@
 'use client';
 
+import { ShowMore, useRecordWindow } from '@/components/ui/record-window';
 import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { clsx } from 'clsx';
@@ -55,6 +56,9 @@ export function PipelineBoard({
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const { showToast } = useToast();
+  const cards = columns.flatMap((column) => column.cards);
+  const page = useRecordWindow(cards, cards.map((card) => card.id).join('|'));
+  const visibleIds = new Set(page.items.map((card) => card.id));
 
   const drop = (column: BoardColumn) => {
     const card = dragging;
@@ -110,69 +114,76 @@ export function PipelineBoard({
             </header>
 
             <ul className="space-y-2">
-              {column.cards.map((card) => (
-                <li
-                  key={card.id}
-                  draggable={canMove}
-                  onDragStart={() => setDragging(card)}
-                  onDragEnd={() => {
-                    setDragging(null);
-                    setOver(null);
-                  }}
-                  className="rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] p-2 text-sm"
-                >
-                  <div className="flex items-start justify-between gap-1">
-                    <Link
-                      href={`/opportunities/${card.id}`}
-                      className="font-medium hover:underline"
-                    >
-                      {card.title}
-                    </Link>
-                    {canMove ? (
-                      <MoveButton
-                        opportunityId={card.id}
-                        title={card.title}
-                        currentStageId={card.stageId}
-                        closed={card.status !== 'open'}
-                        canReopen={canReopen}
-                        stages={stages}
-                        lostReasons={lostReasons}
-                        canCreateContract={canCreateContract}
-                      />
-                    ) : null}
-                  </div>
-                  <div className="text-xs text-[var(--color-ink-muted)]">
-                    {card.organisationName}
-                  </div>
-                  <div className="mt-1 text-xs tabular-nums">{card.value}</div>
-                  {card.lostReason ? (
-                    <div className="text-xs text-[var(--color-ink-subtle)]">{card.lostReason}</div>
-                  ) : null}
-                  {card.flag === 'no-step' ? (
-                    <div className="mt-1 text-xs text-[var(--color-status-warn)]">No next step</div>
-                  ) : card.nextStep ? (
-                    <div
-                      className={clsx(
-                        'mt-1 text-xs',
-                        card.flag === 'overdue'
-                          ? 'text-[var(--color-status-alert)]'
-                          : 'text-[var(--color-ink-subtle)]',
-                      )}
-                    >
-                      {card.nextStep}
-                      {card.nextStepDate ? ` (${card.nextStepDate})` : ''}
+              {column.cards
+                .filter((card) => visibleIds.has(card.id))
+                .map((card) => (
+                  <li
+                    key={card.id}
+                    draggable={canMove}
+                    onDragStart={() => setDragging(card)}
+                    onDragEnd={() => {
+                      setDragging(null);
+                      setOver(null);
+                    }}
+                    className="rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] p-2 text-sm"
+                  >
+                    <div className="flex items-start justify-between gap-1">
+                      <Link
+                        href={`/opportunities/${card.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {card.title}
+                      </Link>
+                      {canMove ? (
+                        <MoveButton
+                          opportunityId={card.id}
+                          title={card.title}
+                          currentStageId={card.stageId}
+                          closed={card.status !== 'open'}
+                          canReopen={canReopen}
+                          stages={stages}
+                          lostReasons={lostReasons}
+                          canCreateContract={canCreateContract}
+                        />
+                      ) : null}
                     </div>
-                  ) : null}
-                  <div className="mt-1 text-xs text-[var(--color-ink-subtle)]">
-                    {card.ownerName}
-                  </div>
-                </li>
-              ))}
+                    <div className="text-xs text-[var(--color-ink-muted)]">
+                      {card.organisationName}
+                    </div>
+                    <div className="mt-1 text-xs tabular-nums">{card.value}</div>
+                    {card.lostReason ? (
+                      <div className="text-xs text-[var(--color-ink-subtle)]">
+                        {card.lostReason}
+                      </div>
+                    ) : null}
+                    {card.flag === 'no-step' ? (
+                      <div className="mt-1 text-xs text-[var(--color-status-warn)]">
+                        No next step
+                      </div>
+                    ) : card.nextStep ? (
+                      <div
+                        className={clsx(
+                          'mt-1 text-xs',
+                          card.flag === 'overdue'
+                            ? 'text-[var(--color-status-alert)]'
+                            : 'text-[var(--color-ink-subtle)]',
+                        )}
+                      >
+                        {card.nextStep}
+                        {card.nextStepDate ? ` (${card.nextStepDate})` : ''}
+                      </div>
+                    ) : null}
+                    <div className="mt-1 text-xs text-[var(--color-ink-subtle)]">
+                      {card.ownerName}
+                    </div>
+                  </li>
+                ))}
             </ul>
           </section>
         ))}
       </div>
 
+      <ShowMore {...page} />
       {dialog ? (
         <MoveDialog
           opportunityId={dialog.card.id}

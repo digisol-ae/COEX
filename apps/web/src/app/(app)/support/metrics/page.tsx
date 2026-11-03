@@ -1,3 +1,4 @@
+import { parallel } from '@/lib/parallel';
 import { Table } from '@/components/ui';
 import { asUser, requirePermission } from '@/lib/session';
 import {
@@ -34,10 +35,12 @@ export default async function DeskMetricsPage({
     ? new Date(`${params.from}T00:00:00`)
     : new Date(to.getTime() - 29 * 24 * 60 * 60 * 1000);
 
-  const { metrics, queues } = await asUser(actor, async () => ({
-    metrics: await loadDeskMetrics({ from, to, queueId: params.queue || undefined }),
-    queues: await listQueues(),
-  }));
+  const { metrics, queues } = await asUser(actor, () =>
+    parallel({
+      metrics: loadDeskMetrics({ from, to, queueId: params.queue || undefined }),
+      queues: listQueues(),
+    }),
+  );
 
   const measured = metrics.totals.resolved + metrics.totals.open;
 

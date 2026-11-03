@@ -1,3 +1,4 @@
+import { parallel } from '@/lib/parallel';
 import { asUser, requirePermission } from '@/lib/session';
 import { PageHeader } from '@/components/ui';
 import { getChannelSettings } from '@/modules/channels/services/channel-settings.service';
@@ -9,11 +10,13 @@ export const metadata = { title: 'WhatsApp · Worktello' };
 
 export default async function WhatsAppSettingsPage() {
   const actor = await requirePermission('tenant.manage');
-  const { settings, queues, messages } = await asUser(actor, async () => ({
-    settings: await getChannelSettings(),
-    queues: await listQueues(),
-    messages: await recentChannelMessages(),
-  }));
+  const { settings, queues, messages } = await asUser(actor, () =>
+    parallel({
+      settings: getChannelSettings(),
+      queues: listQueues(),
+      messages: recentChannelMessages(),
+    }),
+  );
   const appUrl = (
     process.env.COEX_APP_URL ??
     process.env.AUTH_URL ??

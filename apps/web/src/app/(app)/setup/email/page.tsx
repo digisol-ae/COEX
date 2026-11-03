@@ -1,3 +1,4 @@
+import { parallel } from '@/lib/parallel';
 import { SettingsDrawer } from '@/components/ui/settings-drawer';
 import { asUser, requirePermission } from '@/lib/session';
 import { PageHeader } from '@/components/ui';
@@ -9,10 +10,12 @@ export const metadata = { title: 'Email · Worktello' };
 
 export default async function EmailSettingsPage() {
   const actor = await requirePermission('tenant.manage');
-  const { settings, queues } = await asUser(actor, async () => ({
-    settings: await getEmailSettings(),
-    queues: await listQueues(),
-  }));
+  const { settings, queues } = await asUser(actor, () =>
+    parallel({
+      settings: getEmailSettings(),
+      queues: listQueues(),
+    }),
+  );
 
   return (
     <div className="mx-auto max-w-3xl">

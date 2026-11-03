@@ -103,6 +103,7 @@ export function MobileNavigation({
                   className="flex w-16 shrink-0 flex-col items-center gap-0.5 overflow-y-auto bg-[image:var(--gradient-rail)] pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
                 >
                   <Link
+                    prefetch={false}
                     href="/dashboard"
                     onClick={() => setOpen(false)}
                     aria-label="Worktello home"
@@ -121,6 +122,7 @@ export function MobileNavigation({
                 <div className="sidebar-glow flex min-w-0 flex-1 flex-col overflow-y-auto border-r border-[var(--color-line)] pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
                   <div className="flex items-center justify-between gap-2 px-4 pb-2">
                     <Link
+                      prefetch={false}
                       href="/dashboard"
                       onClick={() => setOpen(false)}
                       aria-label={`${tenantName} home`}

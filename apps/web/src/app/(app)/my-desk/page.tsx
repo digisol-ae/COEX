@@ -3,7 +3,7 @@ import { officeDate } from '@coex/shared/tasks/office-day';
 import { asUser, requirePermission } from '@/lib/session';
 import { listTasks } from '@/modules/tasks/services/task.service';
 import { listSpaces } from '@/modules/tasks/services/space.service';
-import { listUsers } from '@/modules/core/services/user.service';
+import { listStaffUsers } from '@/modules/core/services/staff.service';
 import { getRunningTimer } from '@/modules/time/services/time.service';
 import {
   listMyDeskHistory,
@@ -42,7 +42,7 @@ export default async function MyDeskPage({
     history: await listMyDeskHistory(),
     availableTasks: await listTasks({ assigneeId: user.id }),
     spaces: await listSpaces(),
-    users: await listUsers(),
+    users: await listStaffUsers(),
     runningTimer: await getRunningTimer(),
   }));
   // Everyone, suspended people included, so a former colleague's history stays reachable.

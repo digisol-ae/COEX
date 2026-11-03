@@ -1,5 +1,6 @@
 'use client';
 
+import { ShowMore, useRecordWindow } from '@/components/ui/record-window';
 import { useActionState, useEffect, useState } from 'react';
 import { Badge, Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
 import { useToast } from '@/components/ui/toast';
@@ -30,6 +31,7 @@ export function CannedReplyList({
   from: string;
 }) {
   const [editing, setEditing] = useState<string | null>(null);
+  const page = useRecordWindow(replies, replies.map((item) => item.id).join('|'));
 
   return (
     <div className="space-y-3">
@@ -49,7 +51,7 @@ export function CannedReplyList({
         </Card>
       ) : null}
 
-      {replies.map((reply) =>
+      {page.items.map((reply) =>
         editing === reply.id ? (
           <ReplyForm
             key={reply.id}
@@ -113,6 +115,7 @@ export function CannedReplyList({
           </Card>
         ),
       )}
+      <ShowMore {...page} />
     </div>
   );
 }

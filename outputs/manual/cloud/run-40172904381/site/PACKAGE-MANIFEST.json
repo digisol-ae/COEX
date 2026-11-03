@@ -1,0 +1,194 @@
+{
+  "manualVersion": "2026.10.25",
+  "packagedAt": "2026-10-25T07:28:54.641275+00:00",
+  "files": [
+    {
+      "path": "ai/HANDOFF.md",
+      "sha256": "364788c75fbe541ef58437c0db4ab29b33f5a6b61474e1f5ef6dc6f20354057f"
+    },
+    {
+      "path": "ai/RELEASE-2026-10-22-ENTRA-FOOTER.md",
+      "sha256": "91450f3e683773c6f42ca47a66e0e48ebe1d24cd0bb025fb14052847b0da112d"
+    },
+    {
+      "path": "ai/RELEASE-2026-10-22-TUTORIAL-ORIGIN.md",
+      "sha256": "3a65b28f8840b137ad957347053c5fc5990588b1bb57e1a5acc988ff70378f6f"
+    },
+    {
+      "path": "ai/RELEASE-2026-10-25.md",
+      "sha256": "f43751ae69c28830fd550362c7b1cfb2e07a419c583d6dd4d18b60aaeef4dc35"
+    },
+    {
+      "path": "deploy/ZERO-DOWNTIME.md",
+      "sha256": "56a03854fce61336c32eb8af4a9489130a1962145a98f739adffffeb1297722e"
+    },
+    {
+      "path": "docs/CUSTOMER-PORTAL.md",
+      "sha256": "db09488441deaca11bd002ca3f64fc288ff82a5454673a9cfedcc2714a514c63"
+    },
+    {
+      "path": "docs/DATA-TRANSFER.md",
+      "sha256": "4b9d35617cfec4e9dd742a8051cc48fc6ca530390ad5de18294dd5685901765b"
+    },
+    {
+      "path": "docs/GANTT-QA.md",
+      "sha256": "0ff6d6f44c6daba57c93f843cee73d5f0de49b2b1522e5bcab8f29b8f394fa80"
+    },
+    {
+      "path": "docs/OUTLOOK-WEB.md",
+      "sha256": "d408b50dc23d20a41dbbe23da813151fbb91d5678264e29ec9a21eea01aebb43"
+    },
+    {
+      "path": "docs/SEARCH-QA.md",
+      "sha256": "35991dfcab076f8e8f885e0f14243ad245d3881002c292c2a37c83c5d0f48e95"
+    },
+    {
+      "path": "docs/SETUP-WORKSPACE.md",
+      "sha256": "a9d6e7569c70e852ce2369dae45d3aa7db9823f77120ca24951c32a061d6b90c"
+    },
+    {
+      "path": "docs/SUBTASK-CHECKBOX-QA.md",
+      "sha256": "b19c0b0030e2189f53ab2a42c411eb4f594dfcd4f33ff22e5720daefc8bc5921"
+    },
+    {
+      "path": "docs/TASK-TEAMS-SHARING.md",
+      "sha256": "92d8b029ff6504698610c27b4934ec67531857d1d55f655aadf16809bff180c9"
+    },
+    {
+      "path": "docs/TEAMS-PERSONAL-TAB.md",
+      "sha256": "8ebf9ab2b2c5404482a992406fea6bd4af610226458c4e0c5d94a4cda1ced7e3"
+    },
+    {
+      "path": "docs/manual/CLOUD-RUNNER.md",
+      "sha256": "d766f9b08bc03feb6195b0c5726da8926db408e8bb32f961538d5aa81dba1f4f"
+    },
+    {
+      "path": "docs/manual/QA.md",
+      "sha256": "0e8cf1e52251ddc502eb1e943963ec1b7e39f62d23ab440f92c256bf7e832440"
+    },
+    {
+      "path": "docs/manual/README.md",
+      "sha256": "14eaa8f1f102972cc4cae356a37256490657453436b3659a4fb22c5d2b74921e"
+    },
+    {
+      "path": "docs/manual/assets/archive/customer-sign-in.png",
+      "sha256": "2204447250de69a1f208639714189fd2780a281605693b1ec0c010a8f33fc0bf"
+    },
+    {
+      "path": "docs/manual/assets/archive/gantt-unscheduled-synthetic-qa.jpg",
+      "sha256": "13dddc8f9515d6a4844b3b2bc21f331976a9a64b29f2156eb91298d2be4ef344"
+    },
+    {
+      "path": "docs/manual/assets/archive/outlook-before.png",
+      "sha256": "7a47495582e289c189e98b6bb48a1ed3eb84ec305e54f6d0c1fc6b0730396c9e"
+    },
+    {
+      "path": "docs/manual/assets/archive/outlook-create.png",
+      "sha256": "7c23b994e758035c01ba08efa34b47e50b2c4431b3c935440d7730634d5e540d"
+    },
+    {
+      "path": "docs/manual/assets/archive/staff-sign-in.png",
+      "sha256": "214f91be1ad57f4eeb5e3548f9226610b6747142878f5540c5b12bf64e8b59f3"
+    },
+    {
+      "path": "docs/manual/assets/archive/teams-catalog.png",
+      "sha256": "b67ae9aa891034ac31d63db2883e0435947ea13a813e957c7bf76b715276ed81"
+    },
+    {
+      "path": "docs/manual/assets/archive/teams-create.png",
+      "sha256": "80a6070a1a310d4bfe521002b3563c0caf877fa838312237cf6a9d74e37b5ebb"
+    },
+    {
+      "path": "docs/manual/assets/gantt-synthetic-qa.jpg",
+      "sha256": "126873a6778aea64eac49c7487089cf272747db6befb97e05a0607ab6a4e370e"
+    },
+    {
+      "path": "docs/manual/assets/import-export.png",
+      "sha256": "fd12d146a0fe9a833bda8791a7c5e0c4b1b4c2d284df038a992e5b8db7d21fd0"
+    },
+    {
+      "path": "docs/manual/assets/manifest.json",
+      "sha256": "a2ac8506571e8081062cf2d2684595f839dcf400ac3c96ae853f689ceeb7f7ae"
+    },
+    {
+      "path": "docs/manual/assets/manual-preview.png",
+      "sha256": "0e8341554044402e3ce59849880fdb0c0e86fb04adecc7a594117c0ba77aa8b4"
+    },
+    {
+      "path": "docs/manual/assets/outlook-after.png",
+      "sha256": "fb169bd40136c02f08866e64c5a5f3fd0c98412601933c9e196fd2139a960bb5"
+    },
+    {
+      "path": "docs/manual/assets/worktello-symbol.png",
+      "sha256": "f58958c9584417ab148d4c29e293cb634724e5d2fe9f3bd822358800eddeafa2"
+    },
+    {
+      "path": "docs/manual/content.js",
+      "sha256": "798ead968106367526c15f8eaf907f234d5a9edd35f08e55c4049aa8f8dd4666"
+    },
+    {
+      "path": "docs/manual/content.json",
+      "sha256": "4e8fee4a3ad2ca93a9747226ed238bd310040014f0e3508de174a87c97b3ab52"
+    },
+    {
+      "path": "docs/manual/downloads/tasks-template.csv",
+      "sha256": "f4bb871aaac0f3fb14cb803b2dfe78150268cdbd649efe263a76c85f832601af"
+    },
+    {
+      "path": "docs/manual/index.html",
+      "sha256": "08842307cf69b5ab63c0c436981e30086d4c29c2e438929154a7de9d4564aef5"
+    },
+    {
+      "path": "docs/manual/manual.css",
+      "sha256": "268cbf729cf6d2e8934eb8c8ca39b53045d6756e8a10bb4e7a3b8dd8a28b24e7"
+    },
+    {
+      "path": "docs/manual/manual.js",
+      "sha256": "61d7b4ead8a834a25e85357dc55751a717d628082a772ebfd6750fe3886577d2"
+    },
+    {
+      "path": "docs/resolutions/2026-10-22-assignment-email.md",
+      "sha256": "b4180e9724873e39affbb2cbf726eb743498d90816ae10497ecf98c8e2f83346"
+    },
+    {
+      "path": "docs/resolutions/2026-10-22-microsoft-redirect.md",
+      "sha256": "a45509c0032b2f9c809251384fc3d166de313ebaeaff996a52e54b27625d5b4a"
+    },
+    {
+      "path": "docs/resolutions/2026-10-22-tutorial-origin.md",
+      "sha256": "f37a70f3e8d2df9708ea70e8ed8678d1f281a0ca9c1960171dc2adfd516c681a"
+    },
+    {
+      "path": "docs/resolutions/2026-10-25-node-runtime.md",
+      "sha256": "066ef5d44a745261e5d7ea3c489b09dd9955432aca830c48b3a842f0f99fbc0a"
+    },
+    {
+      "path": "docs/resolutions/2026-10-25-outlook-web.md",
+      "sha256": "2e06673f37aac57b89f6509b434e6268ffe20830aa594cc85c493e7f44e8e221"
+    },
+    {
+      "path": "docs/resolutions/2026-10-25-search-popup.md",
+      "sha256": "6296d4a4b90456850585e532d00c67c98225f747210535719b381a12fe0997e0"
+    },
+    {
+      "path": "docs/resolutions/2026-10-25-subtask-checkbox.md",
+      "sha256": "ed1a22b129d0cec9a22a9b537af9740ee2863159641ead0b3837806c32e05388"
+    },
+    {
+      "path": "docs/resolutions/README.md",
+      "sha256": "660a7d63a1d3f53eadfaf1d59d00f6627ac10f0173e4164dc53e083883023cf1"
+    },
+    {
+      "path": "docs/resolutions/TEMPLATE.md",
+      "sha256": "b3d5e26172aa20aa91dbdbdc08784c6a36c202b70a2b96a64596b673caba5990"
+    },
+    {
+      "path": "docs/resolutions/assets/outlook-authorization-review.png",
+      "sha256": "32278fcdd82f6cec62fc3257122b82a3724ba9b77e2969edb48dec5e5653aef4"
+    },
+    {
+      "path": "docs/resolutions/assets/outlook-authorization-saved.png",
+      "sha256": "3bca8104ddeadd6cf3c61d576450bc097f611bc59b2b754517a6ace8d53f4d30"
+    }
+  ]
+}

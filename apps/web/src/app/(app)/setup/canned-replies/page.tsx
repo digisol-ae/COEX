@@ -1,3 +1,4 @@
+import { parallel } from '@/lib/parallel';
 import { asUser, requirePermission } from '@/lib/session';
 import { listCannedReplies } from '@/modules/tickets/services/canned-reply.service';
 import { listQueues } from '@/modules/tickets/services/queue.service';
@@ -10,11 +11,13 @@ export const metadata = { title: 'Saved replies · Worktello' };
 export default async function CannedRepliesPage() {
   const actor = await requirePermission('ticket.manage');
 
-  const { replies, queues, from } = await asUser(actor, async () => ({
-    from: await standardSenderLabel(),
-    replies: await listCannedReplies({ includeArchived: true }),
-    queues: await listQueues({ includeArchived: true }),
-  }));
+  const { replies, queues, from } = await asUser(actor, () =>
+    parallel({
+      from: standardSenderLabel(),
+      replies: listCannedReplies({ includeArchived: true }),
+      queues: listQueues({ includeArchived: true }),
+    }),
+  );
 
   return (
     <div className="mx-auto max-w-4xl">

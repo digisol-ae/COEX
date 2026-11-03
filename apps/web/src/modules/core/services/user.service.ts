@@ -9,7 +9,7 @@ import { recordAudit, changedFields } from './audit.service';
 import { revokeAllSessionsForUser } from './session.service';
 import { notifyPasswordSetByAdmin } from './password-reset.service';
 import type { Role, Permission } from '@coex/shared/core/permissions';
-import { PERMISSIONS } from '@coex/shared/core/permissions';
+import { PERMISSIONS, STAFF_ROLES } from '@coex/shared/core/permissions';
 
 /**
  * User administration inside one tenant.
@@ -33,10 +33,15 @@ export interface UserSummary {
   permissionDenials: string[];
 }
 
-export async function listUsers(): Promise<UserSummary[]> {
+export async function listUsers(
+  options: { kind?: 'staff' | 'customers' } = {},
+): Promise<UserSummary[]> {
   await connectToDatabase();
 
-  const found = await users().find().sort({ createdAt: 1 });
+  const found = await users()
+    .find({ role: options.kind === 'customers' ? 'client_contact' : { $in: [...STAFF_ROLES] } })
+    .select('name email role status lastSignedInAt createdAt permissionGrants permissionDenials')
+    .sort({ createdAt: 1 });
 
   return found.map((user) => ({
     id: String(user._id),
@@ -97,6 +102,11 @@ export async function updateUserRole(userId: string, role: Role): Promise<void> 
   const before = await users().findById(userId);
   if (!before) throw new Error('User not found.');
 
+  if ((before.role === 'client_contact') !== (role === 'client_contact'))
+    throw new Error(
+      'Customer portal accounts and Worktello staff accounts are managed separately.',
+    );
+
   const after = await users().updateOne({ _id: before._id }, { $set: { role } });
   if (!after) throw new Error('User not found.');
 
@@ -125,6 +135,10 @@ export async function updateUserAccess(
 
   const before = await users().findById(userId);
   if (!before) throw new Error('User not found.');
+  if (before.role === 'client_contact')
+    throw new Error(
+      'Customer portal access is managed separately from Worktello staff permissions.',
+    );
 
   const valid = new Set<string>(PERMISSIONS);
   const grants = input.grants.filter((permission) => valid.has(permission));

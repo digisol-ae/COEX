@@ -1,0 +1,9 @@
+    DocumentRoot /var/www/support-moved
+    <Directory /var/www/support-moved>
+        Require all granted
+    </Directory>
+    RewriteEngine on
+    RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/
+    RewriteCond %{REQUEST_URI} !^/index\.html$
+    RewriteRule ^ /index.html [L]
+    Header set Cache-Control "no-store"

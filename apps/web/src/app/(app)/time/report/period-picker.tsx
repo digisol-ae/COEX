@@ -1,7 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Button, Input } from '@/components/ui';
+import { Input } from '@/components/ui';
+import { Icon } from '@/components/ui/icon-button';
+import { FilterToggleButton } from '@/components/ui/filter-toggle';
 
 /** The period lives in the address bar, so a report can be bookmarked or sent to someone. */
 export function PeriodPicker({ from, to }: { from: string; to: string }) {
@@ -26,9 +28,14 @@ export function PeriodPicker({ from, to }: { from: string; to: string }) {
         <Input name="to" type="date" defaultValue={to} />
       </label>
 
-      <Button type="submit" variant="secondary">
+      <FilterToggleButton
+        type="submit"
+        label="Show time report"
+        active={false}
+        icon={<Icon name="filter" />}
+      >
         Show
-      </Button>
+      </FilterToggleButton>
     </form>
   );
 }

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Create Worktello Task</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <style>
+      html,
+      body,
+      iframe {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+      iframe {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe
+      id="form"
+      title="Review email and create Worktello task"
+      src="/integrations/outlook/create"
+    ></iframe>
+    <script src="/integrations/outlook/dialog.js"></script>
+  </body>
+</html>

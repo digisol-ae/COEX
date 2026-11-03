@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Worktello · Practical manual</title>
+    <link rel="stylesheet" href="manual.css" />
+    <script defer src="content.js"></script>
+    <script defer src="manual.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#article">Skip to guide</a>
+    <header>
+      <button id="menu" class="mobile" aria-controls="sidebar" aria-expanded="false">
+        ☰ Chapters</button
+      ><a class="brand" href="#start"
+        ><img src="assets/worktello-symbol.png" alt="" /><span
+          >Worktello<small>Practical manual</small></span
+        ></a
+      >
+      <div class="search">
+        <label for="search">Search this manual <kbd>/</kbd></label
+        ><input
+          id="search"
+          type="search"
+          placeholder="Try: timer, Outlook, attachment…"
+          autocomplete="off"
+        />
+      </div>
+      <label class="role-label"
+        >I am reading as<select id="role">
+          <option value="All">Everyone</option>
+          <option>Agent</option>
+          <option>Admin</option>
+          <option>Customer</option>
+        </select></label
+      ><button id="print" class="secondary">Print manual / PDF</button>
+    </header>
+    <div class="layout">
+      <aside id="sidebar">
+        <p class="eyebrow">YOUR HANDBOOK</p>
+        <p id="result-count" aria-live="polite"></p>
+        <nav id="chapters" aria-label="Manual chapters"></nav>
+        <div class="aside-foot">
+          <strong>Local + versioned</strong>
+          <p>
+            All guide files and screenshots are saved in docs/manual. Your checklist stays in this
+            browser.
+          </p>
+          <a href="README.md">How to maintain this guide ↗</a>
+        </div>
+      </aside>
+      <main id="article" tabindex="-1"></main>
+    </div>
+    <footer>
+      Worktello · Digisol LLC-FZ · Guide updated 25 October 2026
+      <span>Private account access is still required for live app links.</span>
+    </footer>
+    <dialog id="zoom" aria-label="Enlarged application screenshot">
+      <button id="close-zoom" aria-label="Close enlarged screenshot">Close ×</button>
+      <figure>
+        <img id="zoom-image" alt="" />
+        <figcaption id="zoom-caption"></figcaption>
+      </figure>
+    </dialog>
+    <noscript
+      ><p class="noscript">
+        Enable JavaScript for search and chapter navigation. Read the Markdown guides in the parent
+        docs folder if scripts are unavailable.
+      </p></noscript
+    >
+  </body>
+</html>

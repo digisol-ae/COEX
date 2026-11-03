@@ -94,8 +94,11 @@ describe('password sign in', () => {
     const suspended = await request(generousApp)
       .post('/api/v2/auth/login')
       .send({ email: 'ali@digisol.ae', password: PASSWORD });
+    const unknown = await request(generousApp)
+      .post('/api/v2/auth/login')
+      .send({ email: 'unknown@digisol.ae', password: PASSWORD });
     expect(suspended.status).toBe(401);
-    expect(suspended.body.error.message).toContain('not active');
+    expect(suspended.body.error).toEqual(unknown.body.error);
 
     const missing = await request(generousApp).post('/api/v2/auth/login').send({ email: 'x@y.z' });
     expect(missing.status).toBe(400);

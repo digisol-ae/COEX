@@ -273,6 +273,38 @@ describe('customer portal isolation and workflow', () => {
     });
     expect((await UserModel.findById(adminId))?.role).toBe('tenant_admin');
   });
+  it('loads 10 more own tickets cumulatively without exposing another customer', async () => {
+    await TicketModel.insertMany(
+      Array.from({ length: 55 }, (_, index) => ({
+        tenantId,
+        queueId,
+        organisationId: orgId,
+        contactId,
+        subject: `Paging ${index}`,
+        number: `P-${index}`,
+      })),
+    );
+    await TicketModel.create({
+      tenantId,
+      queueId,
+      organisationId: orgId,
+      contactId: otherContactId,
+      subject: 'Foreign contact',
+      number: 'P-foreign',
+    });
+    const first = await runWithContext(context, () => portalTickets('', 1, '', true));
+    const second = await runWithContext(context, () => portalTickets('', 2, '', true));
+    const last = await runWithContext(context, () => portalTickets('', 6, '', true));
+    expect(first.total).toBe(55);
+    expect(first.tickets).toHaveLength(10);
+    expect(second.tickets).toHaveLength(20);
+    expect(last.tickets).toHaveLength(55);
+    expect(new Set(last.tickets.map((ticket) => ticket.id)).size).toBe(55);
+    expect(last.tickets.some((ticket) => ticket.number === 'P-foreign')).toBe(false);
+    expect(second.tickets.slice(0, 10).map((ticket) => ticket.id)).toEqual(
+      first.tickets.map((ticket) => ticket.id),
+    );
+  });
   it('shows legacy email tickets only for the same company and matching requester', async () => {
     const base = {
       tenantId,

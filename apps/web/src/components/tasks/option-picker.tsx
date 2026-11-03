@@ -15,7 +15,9 @@ export function OptionMultiPicker({
   options,
   selectedIds,
   onChange,
+  trigger,
 }: {
+  trigger?: ReactNode;
   label: string;
   allLabel: string;
   noun: string;
@@ -35,18 +37,20 @@ export function OptionMultiPicker({
     <Popover
       label={label}
       trigger={
-        <span className="flex h-9 items-center gap-2 rounded-[var(--radius-control)] border border-[var(--color-line-strong)] px-3 text-sm text-[var(--color-ink)]">
-          <span className="max-w-40 truncate">{summary}</span>
-          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-            <path
-              d="m3 4.5 3 3 3-3"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
+        trigger ?? (
+          <span className="flex h-9 items-center gap-2 rounded-[var(--radius-control)] border border-[var(--color-line-strong)] px-3 text-sm text-[var(--color-ink)]">
+            <span className="max-w-40 truncate">{summary}</span>
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path
+                d="m3 4.5 3 3 3-3"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        )
       }
     >
       {() => (

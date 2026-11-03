@@ -6,14 +6,15 @@
  * services rather than by components.
  */
 
-export const ROLES = [
+export const STAFF_ROLES = [
   'platform_admin',
   'tenant_admin',
   'manager',
   'senior_agent',
   'agent',
-  'client_contact',
 ] as const;
+
+export const ROLES = [...STAFF_ROLES, 'client_contact'] as const;
 
 export type Role = (typeof ROLES)[number];
 

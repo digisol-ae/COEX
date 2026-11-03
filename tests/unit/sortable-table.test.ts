@@ -34,4 +34,36 @@ describe('SortableTable', () => {
 
     expect(markup).toContain('<input type="hidden" name="id" value="1"/>');
   });
+  it('renders only 10 of 55 rows and places Show more after the table', () => {
+    const markup = renderToStaticMarkup(
+      createElement(
+        SortableTable,
+        null,
+        createElement(
+          'tbody',
+          null,
+          Array.from({ length: 55 }, (_, index) =>
+            createElement('tr', { key: index }, createElement('td', null, `record-${index}`)),
+          ),
+        ),
+      ),
+    );
+    expect(markup.match(/<tr>/g) ?? []).toHaveLength(10);
+    expect(markup).toContain('record-9');
+    expect(markup).not.toContain('record-10');
+    expect(markup.indexOf('Show more')).toBeGreaterThan(markup.indexOf('</table>'));
+    expect(markup).toContain('Showing 10 of 55');
+  });
+  it('shares one 10-record budget across multiple table bodies', () => {
+    const body = (offset: number) =>
+      createElement(
+        'tbody',
+        { key: offset },
+        Array.from({ length: 20 }, (_, index) =>
+          createElement('tr', { key: offset + index }, createElement('td', null, offset + index)),
+        ),
+      );
+    const markup = renderToStaticMarkup(createElement(SortableTable, null, body(0), body(20)));
+    expect(markup.match(/<tr>/g) ?? []).toHaveLength(10);
+  });
 });

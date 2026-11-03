@@ -1,5 +1,43 @@
 # Worktello (formerly COEX) — Current AI Task
 
+## Customer Resources — 3 November 2026 (draft PR #79, not deployed)
+
+Implemented and committed as `b74abf82ee8a6f70d33ea58cee5874a8fb320459` on `codex/customer-resources`, pushed for review at https://github.com/digisol-ae/COEX/pull/79. Source is isolated at `/Volumes/sd-mac/Developer/DigiSol/worktello-show-more-live`; do not assume this older mixed checkout contains the new feature or pull over its unrelated edits.
+
+Approved behavior: reusable tutorial documents/video links, email or customer-ticket sharing, no account sign-in, single-use OTP emailed with the link, customizable expiry default 72 hours, and same-browser access until expiry/revocation. Customer library, PDF preview/download, permission/customer/tenant checks, history and revocation implemented. Local types/lint/format, 455 unit tests, 20 focused Mongo/email tests, production build and portable-manual validation passed. Browser upload, sharing, PDF/download, custom 24-hour ticket share, repeat access, revocation and phone layout passed with synthetic local data. Real email delivery, live customer upload and deployment have not occurred. GitHub CI run `41601701297` passed on the draft PR. Review preview is http://localhost:3123/support/resources; no mail worker is running for its dedicated `worktello_resources_local` database on local Mongo 27020.
+
+Definitive feature and QA guides are in the isolated checkout: `docs/CUSTOMER-RESOURCES.md` and `docs/qa/CUSTOMER-RESOURCES-2026-11-03.md`. PR includes updated task/state/handoff notes and the manual. Current primary worktree modifications, project planning, exports and backups were preserved.
+
+
+## Board columns fixed live — 29 October 2026
+
+PR #77 merged as `2312c21c4c43d426a37928206ed4e68aaffc0877`. Each Board status column has an independent ten-task window and Show more control; task edits retain expansion and new tasks reveal within their own column. Signed-in live Personal Board verified 5 To do, 7 In progress, 1 Blocked and initially 10 of 44 Done cards. Done expanded to 20 while To do remained 5. No production tasks changed.
+
+Active `coex-app-board-columns` PID 559971, PM2 id 27, loopback 3007, `/srv/coex/releases/board-columns-20261029`. All four app vhosts target 3007. Prior `coex-app-show-more` PID 557684 on 3006 is immediate rollback. Workers retained PIDs/restart counts; PM2 saved. Local checks, 444 unit tests, local/server builds and PR/main CI passed; 20 HTTPS switch samples passed. Full evidence and rollback: `ai/RELEASE-2026-10-29-BOARD-COLUMNS.md`.
+
+
+## Space Show more fix — 29 October 2026 (live)
+
+Fixed Space Board/List pagination resetting when task ordering changes after edits, moves or refreshes. The window now resets on Space/view/folder/filter changes, and both inline and full-form creation return the saved task ID so the board expands through that task. Existing filters remain applied. PR #76 merged as `8ea8c87fa85837a36ff5f16fafcfd26fcd8a4bb9` and deployed on loopback 3006 (`coex-app-show-more`, PID 557684). All four app vhosts target 3006; prior 3005 remains warm rollback. Local types/lint/format, 441 unit tests, local/server builds and PR/main CI passed. Twenty HTTPS samples passed; signed-in live Board expanded 10 to 20 of 57. No production task write or worker restart. Preserve the mixed checkout. Release/rollback: `ai/RELEASE-2026-10-29-SHOW-MORE.md`; isolated mutation QA: `ai/SPACE-SHOW-MORE-2026-10-29.md`.
+
+## 29 October 2026 release attempt — held before production switch
+
+Owner requested a night release and clarified 02:00 Pakistan time. The one-time Codex follow-up ran after that time and was deleted after the attempt. Earlier owner authorization permits release only after its scope and checks are verified. The release was **not committed, pushed, merged or deployed**. No production operations or data mutations occurred. Recent button/filter/loading and Team activity summary UI work is categorized under **Improvements** in What’s New.
+
+Current source checkout is `claude/footer-release-record` at `372bd2c`, with over 100 changed source/documentation files plus untracked QA, export, backup, contract-source and project material. Do not deploy the dirty checkout wholesale. At release time, inspect every candidate path, prepare a clean source-only release, preserve `projects/`, `docs/contracts_templates/`, `exports/`, `outputs/backup/`, generated QA/database assets and other unrelated material, and follow the current zero-downtime runbook. Last recorded production slot mapping is from 26 October and is stale: confirm active web slot, rollback health, vhosts, PM2 and workers live before any operation.
+
+Current preflight evidence:
+
+- Root typecheck passed after UI and note changes.
+- Source-only ESLint (`apps/web/src`, `apps/api/src`, `apps/api/tests`, `packages/shared/src`, `scripts`, `tests`, `--max-warnings=0`) passed. The broad `npm run lint` scanned generated `.next-pagination-qa` output and failed; one actual source immutability finding in the sortable table was fixed, as was an unused import. Re-run clean-source lint in the release worktree.
+- Unit suite: 68 files / 441 tests passed.
+- The first full Mongo-backed run on the dedicated local container found 3 SortableTable unit failures; the body offset calculation was corrected. Focused SortableTable tests then passed (3/3), and the API database file passed serially (14/14) after test expectation corrections. Root typecheck and source-only ESLint passed after the fix.
+- Full-suite reruns remain inconclusive due test-runner/database-worker instability: one run reported 725 passed with 9 skipped and a `desk.test.ts` connection hook timeout; the isolated desk file passes 9/9. A bounded-concurrency run was stopped after an API test took 170 seconds. A serial-file run reported 717 passed then failed to start the opportunities worker and timed out terminating the auth worker. Do not claim the full suite passed; resolve a stable repeatable full run before release.
+- Turbopack build could not bind its worker port (`Operation not permitted`). An isolated Webpack build passed after the final SortableTable offset fix, with all 83 static generation entries, using `COEX_NEXT_DIST_DIR=.next-release-qa`. Next rewrote `apps/web/tsconfig.json`; that generated rewrite was restored.
+- Source-only ESLint passed; broad `npm run lint` scanned generated `.next-pagination-qa` output and failed. `git diff --check` passed.
+
+Release note is added at the top of `apps/web/src/modules/core/release-notes.ts` as “Small improvements across Worktello”, section **Improvements**, dated 29 October. Preserve that grouping in a future release. The dirty working tree still has over 100 changed paths and private/unrelated material; no clean candidate, commit, PR, CI, live slot/backup check or authenticated production smoke was completed. Resume only after stabilizing the full suite, then prepare and verify a clean source-only candidate and inspect production state afresh. Keep workers and rollback slot intact.
+
 ## Footer release live; support.digisolteam.com moved page — 26 October 2026 (Claude)
 
 PR67 merged as fb2e9d1 (tree = 7e32b8b): sign-in footer "Powered by" + smaller DigiSol logo + © Digisol LLC-FZ; Teams error text points to worktello.com; Teams package 1.4.1 published in Teams admin center (1.4.0 upload had failed). Active green coex-app-green on 3002 in /srv/coex/releases/footer-20261026 (COEX_APP_URL=https://worktello.com); all four vhosts (worktello*, coex*) target 3002. Blue coex-app on 3001 (contracts-20261026, worktello URL) is rollback. Workers untouched.

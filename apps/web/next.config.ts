@@ -27,8 +27,31 @@ const repositoryRoot = existsSync(path.resolve(process.cwd(), '../../packages/sh
  * genuine need for something larger shows up.
  */
 const nextConfig: NextConfig = {
+  distDir: process.env.COEX_NEXT_DIST_DIR || '.next',
   async headers() {
     return [
+      {
+        source: '/sign/:path*',
+        headers: [
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+          { key: 'Cache-Control', value: 'no-store' },
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+        ],
+      },
+      {
+        source: '/integrations/outlook/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value:
+              "frame-ancestors 'self' https://outlook.office.com https://outlook.office365.com https://*.outlook.com https://*.cloud.microsoft",
+          },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+          { key: 'Cache-Control', value: 'no-store' },
+        ],
+      },
       {
         source: '/integrations/teams/:path*',
         headers: [

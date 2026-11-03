@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ShowMore, useRecordWindow } from '@/components/ui/record-window';
 import { useOptimistic, useState, useTransition } from 'react';
 import { clsx } from 'clsx';
 import { Card, EmptyState, Notice, Table, Th } from '@/components/ui';
@@ -244,6 +245,10 @@ export function TaskList({
   const openTask = openTaskId ? (shown.find((task) => task.id === openTaskId) ?? null) : null;
 
   const groups: Group[] = ['overdue', 'today', 'week', 'later', 'none'];
+  const orderedTasks = groups.flatMap((group) =>
+    shown.filter((task) => groupOf(task, now) === group),
+  );
+  const page = useRecordWindow(orderedTasks, orderedTasks.map((task) => task.id).join('|'));
 
   if (shown.length === 0) {
     return (
@@ -258,7 +263,7 @@ export function TaskList({
       {error ? <Notice tone="alert">{error}</Notice> : null}
 
       {groups.map((group) => {
-        const inGroup = shown.filter((task) => groupOf(task, now) === group);
+        const inGroup = page.items.filter((task) => groupOf(task, now) === group);
         if (inGroup.length === 0) return null;
 
         return (
@@ -275,7 +280,7 @@ export function TaskList({
                 {GROUP_LABELS[group]}
               </h2>
               <span className="text-xs text-[var(--color-ink-subtle)] tabular-nums">
-                {inGroup.length}
+                {shown.filter((task) => groupOf(task, now) === group).length}
               </span>
             </div>
 
@@ -378,7 +383,7 @@ export function TaskList({
             </div>
 
             <Card className="hidden md:block">
-              <Table>
+              <Table paginate={false}>
                 <thead>
                   <tr>
                     <Th>Status</Th>
@@ -527,6 +532,7 @@ export function TaskList({
         );
       })}
 
+      <ShowMore {...page} />
       {openTask ? (
         <TaskPanel
           key={openTask.id}

@@ -1,0 +1,115 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.4/schema.json",
+  "schema_version": "v2.4",
+  "name_for_human": "Worktello tasks",
+  "namespace": "WorktelloTasks",
+  "description_for_human": "Prepare and create Worktello tasks after reviewing and confirming their details.",
+  "description_for_model": "Task creation only. Get permitted choices, prepare a preview, show its exact details, and create only after user confirmation. No edit, delete or time tracking actions.",
+  "contact_email": "info@digisol.ae",
+  "privacy_policy_url": "https://coex.digisol.ae/privacy",
+  "legal_info_url": "https://coex.digisol.ae/terms",
+  "runtimes": [
+    {
+      "type": "OpenApi",
+      "auth": {
+        "type": "OAuthPluginVault",
+        "reference_id": "Mzc4OGU5MDUtYzE4Ny00ZThiLWJhZmItODRiN2UwZWMzZjFjIyMxMTY2ZGUzOC05MjgzLTQ1OGEtOGQzOS1kZjI1OTMzM2Q2NTU="
+      },
+      "spec": {
+        "url": "copilot-openapi.json"
+      },
+      "run_for_functions": [
+        "GetWorktelloOptions",
+        "PreviewWorktelloTask",
+        "CreateWorktelloTask"
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "name": "GetWorktelloOptions",
+      "description": "Resolve permitted choices before preparing a task."
+    },
+    {
+      "name": "PreviewWorktelloTask",
+      "description": "Show all returned preview details. No task is created.",
+      "capabilities": {
+        "response_semantics": {
+          "data_path": "$",
+          "static_template": {
+            "type": "AdaptiveCard",
+            "version": "1.5",
+            "body": [
+              {
+                "type": "TextBlock",
+                "text": "Review Worktello task",
+                "weight": "Bolder",
+                "wrap": true
+              },
+              {
+                "type": "TextBlock",
+                "text": "${title}",
+                "weight": "Bolder",
+                "wrap": true
+              },
+              {
+                "type": "TextBlock",
+                "text": "${description}",
+                "wrap": true
+              },
+              {
+                "type": "FactSet",
+                "facts": [
+                  {
+                    "title": "Space",
+                    "value": "${space}"
+                  },
+                  {
+                    "title": "Folder",
+                    "value": "${folder}"
+                  },
+                  {
+                    "title": "Assignees",
+                    "value": "${join(assignees, \", \")}"
+                  },
+                  {
+                    "title": "Priority",
+                    "value": "${priority}"
+                  },
+                  {
+                    "title": "Due date",
+                    "value": "${dueDate}"
+                  },
+                  {
+                    "title": "Time",
+                    "value": "${dueTime}"
+                  },
+                  {
+                    "title": "Timezone",
+                    "value": "${officeTimezone}"
+                  }
+                ]
+              },
+              {
+                "type": "TextBlock",
+                "text": "No task created yet. Confirm to create; changes need a fresh preview.",
+                "wrap": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "CreateWorktelloTask",
+      "description": "Create the reviewed task once. Preserve the preview token for retries.",
+      "capabilities": {
+        "confirmation": {
+          "type": "AdaptiveCard",
+          "title": "Create this Worktello task?",
+          "body": "Create the task shown in the reviewed preview. Normal assignment notifications may be sent. Decline if any details are incorrect."
+        }
+      }
+    }
+  ]
+}

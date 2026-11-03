@@ -1,5 +1,20 @@
 # COEX live deployment
 
+## Board columns fixed live — 29 October 2026
+
+PR #77 merged as `2312c21c4c43d426a37928206ed4e68aaffc0877`. Each Board status column has an independent ten-task window and Show more control; task edits retain expansion and new tasks reveal within their own column. Signed-in live Personal Board verified 5 To do, 7 In progress, 1 Blocked and initially 10 of 44 Done cards. Done expanded to 20 while To do remained 5. No production tasks changed.
+
+Active `coex-app-board-columns` PID 559971, PM2 id 27, loopback 3007, `/srv/coex/releases/board-columns-20261029`. All four app vhosts target 3007. Prior `coex-app-show-more` PID 557684 on 3006 is immediate rollback. Workers retained PIDs/restart counts; PM2 saved. Local checks, 444 unit tests, local/server builds and PR/main CI passed; 20 HTTPS switch samples passed. Full evidence and rollback: `ai/RELEASE-2026-10-29-BOARD-COLUMNS.md`.
+
+
+## Space Show more fix live — 29 October 2026
+
+PR #76 merged as `8ea8c87fa85837a36ff5f16fafcfd26fcd8a4bb9`. Active `coex-app-show-more` PID 557684 serves loopback 3006 from `/srv/coex/releases/show-more-20261029`; all four app vhosts target 3006. Previous `coex-app-ui-improvements` PID 544805 on 3005 remains immediate rollback. Existing workers and slots unchanged; PM2 saved.
+
+Local types/lint/format, 441 unit tests, local/server production builds and PR/main CI passed. Server-action key and prior hashed assets retained. Fresh database/files/config backups verified at `/srv/coex/shared/backups/worktello-show-more-20261029/`. Twenty HTTPS samples passed. Signed-in live Board expanded 10 to 20 of 57; no production task write, migration, email, account/session change or worker restart. Full evidence and exact rollback: `ai/RELEASE-2026-10-29-SHOW-MORE.md`.
+
+Rollback: verify 3005/login returns 200; restore all four app `*.conf.before` snapshots from the backup directory to canonical sites-available files, run Apache configtest and graceful reload, then verify public HTTPS. Keep workers/data and the new process intact.
+
 ## Footer release live; support.digisolteam.com moved page — 26 October 2026 (Claude)
 
 PR67 merged as fb2e9d1 (tree = 7e32b8b): sign-in footer "Powered by" + smaller DigiSol logo + © Digisol LLC-FZ; Teams error text points to worktello.com; Teams package 1.4.1 published in Teams admin center (1.4.0 upload had failed). Active green coex-app-green on 3002 in /srv/coex/releases/footer-20261026 (COEX_APP_URL=https://worktello.com); all four vhosts (worktello*, coex*) target 3002. Blue coex-app on 3001 (contracts-20261026, worktello URL) is rollback. Workers untouched.
