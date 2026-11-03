@@ -37,3 +37,7 @@ Share resources now opens inline beside Reply to customer and Internal note. Loc
 ## Same-page document viewing
 
 Replaced the customer View document external-tab link with an inline preview control. PDFs use the bundled viewer; previewable images and plain text use a protected same-page frame. Local browser verification confirmed that clicking View document retains the shared-resource URL and renders the synthetic PDF; download remains separate. Source lint and web typecheck passed. The synthetic PDF was restored from its previously downloaded QA copy after temporary storage had been cleared; no customer file was changed.
+
+## Customer footer branding
+
+Extracted the existing sign-in Powered by branding into a shared component and used it in the customer resource footer, outside the access-state branches. The footer includes the original DigiSol logo and copyright on verification, content and unavailable-link screens. Local browser screenshot confirmed the logo renders on the customer document page. Source lint and web typecheck passed.

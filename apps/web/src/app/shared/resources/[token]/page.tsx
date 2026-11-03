@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { ResourceDocumentPreview } from '@/modules/resources/document-preview';
 import { Card, CardSection, Notice } from '@/components/ui';
 import { BrandLogo } from '@/components/brand-logo';
+import { PoweredBy } from '@/components/powered-by';
 import { publicShare, publicResources, verifiedShare } from '@/modules/resources/service';
 import { resourceCookie } from '@/modules/resources/http';
 import { parseVideoLink } from '@/modules/tutorials/video-link';
@@ -104,9 +105,10 @@ export default async function SharedResourcesPage({
           })}
         </>
       )}
-      <p className="text-xs text-[var(--color-ink-muted)]">
-        Shared securely through Worktello · Powered by DigiSol
-      </p>
+      <footer className="space-y-4 border-t border-[var(--color-line)] pt-6 text-center">
+        <p className="text-xs text-[var(--color-ink-muted)]">Shared securely through Worktello</p>
+        <PoweredBy />
+      </footer>
     </main>
   );
 }

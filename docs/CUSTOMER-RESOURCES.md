@@ -45,3 +45,5 @@ Local verification and limitations: [QA record](qa/CUSTOMER-RESOURCES-2026-11-03
 PDF renderer integration follows the [official PDF.js examples](https://mozilla.github.io/pdf.js/examples/); assets are bundled locally rather than loaded from a CDN.
 
 Customer document viewing stays in the shared-resource page: View document expands a protected PDF, image or plain-text preview. Downloads remain a separate action; Office files use download.
+
+All customer resource states (email-code verification, verified content, expired/revoked links) show the same Powered by DigiSol logo and copyright branding as the sign-in page. The shared branding component keeps these surfaces consistent.
