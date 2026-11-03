@@ -17,6 +17,20 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-11-03-install-worktello',
+    date: '3 November 2026',
+    title: 'Launch Worktello from your own app icon',
+    sections: [
+      {
+        heading: 'Improvements',
+        items: [
+          'Choose Install Worktello from your account menu to add an app icon on Windows or Mac. Worktello opens in its own window, with the same account and permissions.',
+          'Use the install button where your browser offers it, or follow the steps for Microsoft Edge, Safari or Chrome. An internet connection is required.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-10-29-ui-improvements',
     date: '29 October 2026',
     title: 'Small improvements across Worktello',

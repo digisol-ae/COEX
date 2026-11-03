@@ -131,6 +131,10 @@
           "text": "Select your avatar at the top right. Review Edit profile, What’s new, notification and sign-out options that are available."
         },
         {
+          "title": "Install Worktello on your computer",
+          "text": "Choose Install Worktello in the account menu. Use the install button when offered, or follow the Windows/Edge and Mac/Safari steps. Launch Worktello from its new app icon. An internet connection is required."
+        },
+        {
           "title": "Edit your profile",
           "text": "Update your own name/job title in the provided profile form. Account identity/access changes may need an administrator."
         },
@@ -148,7 +152,12 @@
         }
       ],
       "notes": [],
-      "sources": [],
+      "sources": [
+        [
+          "Desktop installation guide",
+          "../PWA.md"
+        ]
+      ],
       "images": [],
       "related": [
         "login",
