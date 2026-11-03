@@ -1,5 +1,9 @@
 # COEX live deployment
 
+## Customer Resources live — 4 November 2026
+
+PR #79 merged as `6f704035702d8a569e063e6cbedf75bc6a2c27dc`. Active `coex-app-customer-resources` id 10/PID 56939 serves loopback 3008 from `/srv/coex/releases/customer-resources-20261104` (Node 22.23.4). All four app vhosts target 3008; prior Board slot 3007 remains healthy rollback. PM2 saved; workers retained PIDs 906/907/908 with zero restarts. PR/main CI, 455 fresh unit tests, server production build, 20/20 HTTPS monitor and authenticated live library/share-form checks passed. No customer email/upload, data migration, password/account/session change. Real customer delivery remains pilot acceptance. Scope excludes separate local signing/features work. Full evidence and rollback: `ai/RELEASE-2026-11-04-CUSTOMER-RESOURCES.md`.
+
 ## Worktello UI improvements live — 29 October 2026
 
 PR #73 merged as `93ec4211da581b99010e9e4ba0ca60b98155b3cb`. Active `coex-app-ui-improvements` PID 544805 serves loopback port 3005 from `/srv/coex/releases/ui-improvements-20261029`, using Node 22.23.4. All four canonical app vhosts (`worktello.conf`, `worktello-le-ssl.conf`, `coex.conf`, `coex-le-ssl.conf`) proxy to 3005. Previous feedback release `coex-app-feedback` PID 515255 on 3004 remains warm rollback; green 3002 and blue 3001 remain online. PM2 saved. osTicket and workers 10/11/12 were not restarted.
