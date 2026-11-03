@@ -1,10 +1,10 @@
 # COEX isolated web rollout — current operating state
 
-## Active slot — 29 October 2026
+## Current production slot — 29 October 2026
 
-PR #73 merge `93ec4211da581b99010e9e4ba0ca60b98155b3cb` is live on port 3005 at `/srv/coex/releases/ui-improvements-20261029` (`coex-app-ui-improvements`, PID 544805, Node 22.23.4). All four Worktello/COEX app vhosts proxy to 3005. The previous feedback release on port 3004 is the immediate rollback; 3001 and 3002 also remain online. PM2 is saved. Workers and osTicket are untouched. Backup: `/srv/coex/shared/backups/worktello-ui-improvements-20261029/`.
+PR #73 merge `93ec4211da581b99010e9e4ba0ca60b98155b3cb` is prepared on port 3005 at `/srv/coex/releases/ui-improvements-20261029` (`coex-app-ui-improvements`, PID 544805, Node 22.23.4), but not serving traffic. Current production remains on `coex-app-feedback` PID 515255 on port 3004; all four Worktello/COEX app vhosts target 3004. Ports 3001 and 3002 also remain online. PM2 is saved. Workers and osTicket are untouched. Backup: `/srv/coex/shared/backups/worktello-ui-improvements-20261029/`.
 
-Rollback by restoring the four `*.before` vhost files from that backup into `/etc/apache2/sites-available/`, running `sudo apache2ctl configtest` and `sudo apache2ctl graceful`, then verifying `https://worktello.com/login`. Keep port 3005 online until 3004 traffic is confirmed. No database or session rollback is needed.
+Candidate smoke and temporary switch checks passed, but routing was restored because the authenticated agent smoke could not be performed. The browser origin approval gate denied access to `https://worktello.com`; do not retry through another browser or workaround. To activate 3005, first complete the required authenticated read-only agent smoke on the candidate, then repeat the vhost switch and HTTPS monitor. Current traffic remains on 3004; no database or session rollback is needed.
 
 ## Customer migration welcome live — 26 October 2026
 

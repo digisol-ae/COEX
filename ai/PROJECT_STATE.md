@@ -1,10 +1,10 @@
 # Worktello (formerly COEX) — Shared AI Project State
 
-## UI improvements release live — 29 October 2026
+## UI improvements candidate prepared; cutover held — 29 October 2026
 
-PR #73 merged as `93ec4211da581b99010e9e4ba0ca60b98155b3cb` and is active at `/srv/coex/releases/ui-improvements-20261029` on port 3005 (PM2 `coex-app-ui-improvements`, PID 544805; Node 22.23.4). All four Worktello/COEX app vhosts proxy to 3005. The prior feedback release on 3004 remains the immediate rollback; 3001/3002 also remain healthy. Workers 10/11/12 and osTicket remain untouched. See `ai/RELEASE-2026-10-29-UI-IMPROVEMENTS.md` for release checks and rollback.
+PR #73 merged as `93ec4211da581b99010e9e4ba0ca60b98155b3cb`. Candidate is built and online at `/srv/coex/releases/ui-improvements-20261029` on port 3005 (PM2 `coex-app-ui-improvements`, PID 544805; Node 22.23.4), but is not serving production traffic. All four Worktello/COEX vhosts are restored to 3004 (`coex-app-feedback`, PID 515255); ports 3001/3002 are also healthy. Workers 10/11/12 and osTicket remain untouched. See `ai/RELEASE-2026-10-29-UI-IMPROVEMENTS.md` for checks and next safe action.
 
-What's New includes the UI changes under Improvements but no longer auto-opens for all agents; they can open it from the user menu and the unread dot remains until acknowledged. No production task/time data, account or session was changed.
+The candidate's What's New entry categorizes the UI changes under Improvements and does not auto-open for agents. The change is not live until the authenticated check passes. No production task/time data, account or session was changed.
 
 ## Security follow-up — 29 October 2026
 
