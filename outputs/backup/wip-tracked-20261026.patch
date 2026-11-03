@@ -1,0 +1,395 @@
+diff --git a/apps/web/src/app/(app)/contracts/[id]/page.tsx b/apps/web/src/app/(app)/contracts/[id]/page.tsx
+index a11197f..463b82a 100644
+--- a/apps/web/src/app/(app)/contracts/[id]/page.tsx
++++ b/apps/web/src/app/(app)/contracts/[id]/page.tsx
+@@ -1,3 +1,4 @@
++import Link from 'next/link';
+ import { LiveRefresh } from '@/components/ui/live-refresh';
+ import { notFound } from 'next/navigation';
+ import { asUser, requirePermission } from '@/lib/session';
+@@ -73,6 +74,9 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
+           action={
+             <div className="flex items-center gap-3">
+               <LiveRefresh />
++              <Link className="text-sm font-medium underline" href={`/contracts/${id}/draft`}>
++                Draft agreement
++              </Link>
+               <Badge tone={STATUS_TONE[contract.status]}>{STATUS_LABEL[contract.status]}</Badge>
+             </div>
+           }
+diff --git a/apps/web/src/app/(app)/contracts/page.tsx b/apps/web/src/app/(app)/contracts/page.tsx
+index a4ac138..cc75a48 100644
+--- a/apps/web/src/app/(app)/contracts/page.tsx
++++ b/apps/web/src/app/(app)/contracts/page.tsx
+@@ -125,6 +125,9 @@ export default async function ContractsPage({
+         action={
+           <div className="flex items-center gap-3">
+             <LiveRefresh />
++            <Link className="text-sm font-medium underline" href="/contracts/templates">
++              Contract templates
++            </Link>
+             {editable ? (
+               <ContractPanel
+                 organisations={customers}
+diff --git a/apps/web/src/app/(app)/layout.tsx b/apps/web/src/app/(app)/layout.tsx
+index 47c1f1c..0b14581 100644
+--- a/apps/web/src/app/(app)/layout.tsx
++++ b/apps/web/src/app/(app)/layout.tsx
+@@ -20,7 +20,7 @@ import { BackButton } from '@/components/navigation/back-button';
+ import { UserMenu } from '@/components/navigation/user-menu';
+ import { ThemeMenu } from '@/components/navigation/theme-menu';
+ import { WhatsNew } from '@/components/navigation/whats-new';
+-import { LATEST_RELEASE_ID } from '@/modules/core/release-notes';
++import { getPublishedReleases } from '@/modules/core/services/release-content.service';
+ import { orderGroups, visibleGroups } from '@/components/navigation/navigation';
+ import { getNavigationOrder } from '@/modules/core/services/user.service';
+ import { ToastProvider } from '@/components/ui/toast';
+@@ -73,6 +73,8 @@ export default async function AppLayout({
+     },
+   }));
+ 
++  const news = await asUser(user, getPublishedReleases);
++
+   const groups = orderGroups(visibleGroups(user.permissions), order);
+ 
+   return (
+@@ -133,7 +135,7 @@ export default async function AppLayout({
+                 name={user.name}
+                 email={user.email}
+                 tenantName={user.tenantName}
+-                newsUnseen={user.releaseNotesSeen !== LATEST_RELEASE_ID}
++                newsUnseen={Boolean(news.latestId && user.releaseNotesSeen !== news.latestId)}
+               />
+             </header>
+ 
+@@ -143,7 +145,12 @@ export default async function AppLayout({
+             </main>
+ 
+             {setupModal}
+-            <WhatsNew seen={user.releaseNotesSeen} />
++            <WhatsNew
++              key={news.latestId}
++              seen={user.releaseNotesSeen}
++              releases={news.releases}
++              latestId={news.latestId}
++            />
+ 
+             <FloatingTutorial />
+             <GlobalTooltip />
+diff --git a/apps/web/src/app/(app)/preferences/actions.ts b/apps/web/src/app/(app)/preferences/actions.ts
+index 5d18bf0..2e0e409 100644
+--- a/apps/web/src/app/(app)/preferences/actions.ts
++++ b/apps/web/src/app/(app)/preferences/actions.ts
+@@ -2,7 +2,7 @@
+ 
+ import { asUser, requireStaffUser as requireUser } from '@/lib/session';
+ import { acknowledgeReleaseNotes, saveTheme } from '@/modules/core/services/user.service';
+-import { LATEST_RELEASE_ID } from '@/modules/core/release-notes';
++import { getPublishedReleases } from '@/modules/core/services/release-content.service';
+ 
+ /** Saves the person's own theme. The page has already switched; this makes it stick. */
+ export async function saveThemeAction(theme: string): Promise<{ error?: string }> {
+@@ -16,10 +16,17 @@ export async function saveThemeAction(theme: string): Promise<{ error?: string }
+ }
+ 
+ /** "I understand": the drawer stops opening by itself until a newer release is added. */
+-export async function acknowledgeReleaseNotesAction(): Promise<{ error?: string }> {
++export async function acknowledgeReleaseNotesAction(
++  releaseId: string,
++): Promise<{ error?: string }> {
+   const user = await requireUser();
+   try {
+-    await asUser(user, () => acknowledgeReleaseNotes(LATEST_RELEASE_ID));
++    await asUser(user, async () => {
++      const { latestId } = await getPublishedReleases();
++      if (!latestId || latestId !== releaseId)
++        throw new Error('Updates have changed. Reopen What’s new to read the latest content.');
++      await acknowledgeReleaseNotes(releaseId);
++    });
+   } catch (error) {
+     return { error: error instanceof Error ? error.message : 'Could not save that.' };
+   }
+diff --git a/apps/web/src/app/(app)/setup/workspace-content.tsx b/apps/web/src/app/(app)/setup/workspace-content.tsx
+index 71dc79e..f0d0cc4 100644
+--- a/apps/web/src/app/(app)/setup/workspace-content.tsx
++++ b/apps/web/src/app/(app)/setup/workspace-content.tsx
+@@ -12,7 +12,9 @@ import Tenant from './tenant/page';
+ import Fields from './fields/page';
+ import Tenants from './tenants/page';
+ import DataTransfer from './data-transfer/page';
++import WhatsNewManagement from './whats-new/page';
+ const PAGES = {
++  'whats-new': WhatsNewManagement,
+   queues: Queues,
+   tutorials: Tutorials,
+   email: Email,
+diff --git a/apps/web/src/components/navigation/module-context.tsx b/apps/web/src/components/navigation/module-context.tsx
+index cda3712..61682fd 100644
+--- a/apps/web/src/components/navigation/module-context.tsx
++++ b/apps/web/src/components/navigation/module-context.tsx
+@@ -27,6 +27,7 @@ const PAGES: Record<string, string> = {
+   '/setup': 'Setup',
+   '/setup/queues': 'Setup · Queues',
+   '/setup/email': 'Setup · Email',
++  '/setup/whats-new': 'Setup · What’s New Management',
+   '/setup/pipeline': 'Setup · Pipeline',
+   '/setup/whatsapp': 'Setup · WhatsApp',
+   '/setup/canned-replies': 'Setup · Saved replies',
+diff --git a/apps/web/src/components/navigation/navigation.ts b/apps/web/src/components/navigation/navigation.ts
+index a32a34f..bd3441e 100644
+--- a/apps/web/src/components/navigation/navigation.ts
++++ b/apps/web/src/components/navigation/navigation.ts
+@@ -90,6 +90,7 @@ export const GROUPS: NavigationGroup[] = [
+     items: [
+       { href: '/setup/queues', label: 'Queues', permission: 'tenant.manage' },
+       { href: '/setup/tutorials', label: 'Tutorials', permission: 'tenant.manage' },
++      { href: '/setup/whats-new', label: 'What’s New Management', permission: 'tenant.manage' },
+       { href: '/setup/email', label: 'Email', permission: 'tenant.manage' },
+       { href: '/setup/pipeline', label: 'Pipeline', permission: 'pipeline.manage' },
+       { href: '/setup/whatsapp', label: 'WhatsApp', permission: 'tenant.manage' },
+diff --git a/apps/web/src/components/navigation/whats-new.tsx b/apps/web/src/components/navigation/whats-new.tsx
+index 8db53be..d07aec9 100644
+--- a/apps/web/src/components/navigation/whats-new.tsx
++++ b/apps/web/src/components/navigation/whats-new.tsx
+@@ -4,7 +4,8 @@ import { useEffect, useState, useSyncExternalStore, useTransition } from 'react'
+ import { createPortal } from 'react-dom';
+ import { useRouter } from 'next/navigation';
+ import { Button } from '@/components/ui';
+-import { LATEST_RELEASE_ID, RELEASE_NOTES } from '@/modules/core/release-notes';
++import { groupReleaseTopicsByDate } from '@/modules/core/release-groups';
++import type { ReleaseNote } from '@/modules/core/release-notes';
+ import { acknowledgeReleaseNotesAction } from '@/app/(app)/preferences/actions';
+ 
+ /*
+@@ -21,9 +22,9 @@ function subscribe(listener: () => void) {
+   return () => listeners.delete(listener);
+ }
+ 
+-function dismissedThisSession(): boolean {
++function dismissedThisSession(latestId: string | null): boolean {
+   try {
+-    return window.sessionStorage.getItem(DISMISSED_KEY) === LATEST_RELEASE_ID;
++    return window.sessionStorage.getItem(DISMISSED_KEY) === latestId;
+   } catch {
+     return false;
+   }
+@@ -39,42 +40,65 @@ export function openWhatsNew(): void {
+   notify();
+ }
+ 
+-function close() {
++function dismiss(latestId: string | null) {
+   openedByHand = false;
+   try {
+-    window.sessionStorage.setItem(DISMISSED_KEY, LATEST_RELEASE_ID);
++    if (latestId) window.sessionStorage.setItem(DISMISSED_KEY, latestId);
+   } catch {
+     // Without storage it may open again on the next page; harmless.
+   }
+   notify();
+ }
+ 
+-export function WhatsNew({ seen }: { seen: string | null }) {
++export function WhatsNew({
++  seen,
++  releases,
++  latestId,
++}: {
++  seen: string | null;
++  releases: ReleaseNote[];
++  latestId: string | null;
++}) {
+   const router = useRouter();
+-  const unseen = seen !== LATEST_RELEASE_ID;
++  const unseen = Boolean(latestId && seen !== latestId);
++  function close() {
++    dismiss(latestId);
++  }
+   const open = useSyncExternalStore(
+     subscribe,
+-    () => openedByHand || (unseen && !dismissedThisSession()),
++    () => openedByHand || (unseen && !dismissedThisSession(latestId)),
+     () => false,
+   );
+   const [understood, setUnderstood] = useState(false);
+   const [saving, startTransition] = useTransition();
++  const [error, setError] = useState('');
+ 
+   useEffect(() => {
+     if (!open) return;
+     const onKey = (event: KeyboardEvent) => {
+-      if (event.key === 'Escape') close();
++      if (event.key === 'Escape') dismiss(latestId);
+     };
+     document.addEventListener('keydown', onKey);
+     return () => document.removeEventListener('keydown', onKey);
+-  }, [open]);
++  }, [open, latestId]);
+ 
+   if (!open) return null;
+ 
+   function done() {
+-    if (unseen && understood) {
++    if (unseen && understood && latestId) {
++      setError('');
+       startTransition(async () => {
+-        await acknowledgeReleaseNotesAction();
++        try {
++          const result = await acknowledgeReleaseNotesAction(latestId);
++          if (result.error) {
++            setError(result.error);
++            router.refresh();
++            return;
++          }
++        } catch {
++          setError('Could not save. Please try again.');
++          return;
++        }
+         close();
+         // The avatar's dot goes once the account knows.
+         router.refresh();
+@@ -112,49 +136,71 @@ export function WhatsNew({ seen }: { seen: string | null }) {
+           </button>
+         </header>
+ 
+-        <div className="flex-1 space-y-7 overflow-y-auto px-6 py-5">
+-          {RELEASE_NOTES.map((release, index) => (
+-            <article key={release.id}>
+-              <div className="flex flex-wrap items-center gap-2">
+-                <p className="text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
+-                  {release.date}
+-                </p>
+-                {index === 0 && unseen ? (
+-                  <span className="rounded-full bg-[var(--color-brand-red)] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase">
++        <div className="flex-1 overflow-y-auto px-6 py-3">
++          {groupReleaseTopicsByDate(releases, (release) => release.date).map((day, dayIndex) => (
++            <details
++              key={day.date}
++              open={dayIndex === 0}
++              className="group/day border-b border-[var(--color-line)] last:border-0"
++            >
++              <summary className="flex cursor-pointer list-none items-center gap-2 py-4 text-[var(--color-ink)] [&::-webkit-details-marker]:hidden">
++                <span
++                  aria-hidden="true"
++                  className="text-base transition-transform group-open/day:rotate-90"
++                >
++                  ›
++                </span>
++                <span className="text-sm font-semibold">{day.date}</span>
++                <span className="text-xs text-[var(--color-ink-subtle)]">
++                  {day.topics.length} {day.topics.length === 1 ? 'topic' : 'topics'}
++                </span>
++                {dayIndex === 0 && unseen && (
++                  <span className="rounded-full bg-[var(--color-brand-red)] px-2 py-0.5 text-[10px] font-semibold text-white">
+                     New
+                   </span>
+-                ) : null}
+-              </div>
+-              <h3 className="mt-1 text-base font-semibold text-[var(--color-ink)]">
+-                {release.title}
+-              </h3>
+-              <div className="mt-3 space-y-3">
+-                {release.sections.map((section) => (
+-                  <section key={section.heading}>
+-                    <h4 className="text-sm font-semibold text-[var(--color-ink)]">
+-                      {section.heading}
+-                    </h4>
+-                    <ul className="mt-1 space-y-1.5">
+-                      {section.items.map((item) => (
+-                        <li
+-                          key={item}
+-                          className="flex gap-2 text-sm leading-relaxed text-[var(--color-ink-muted)]"
+-                        >
+-                          <span
+-                            aria-hidden="true"
+-                            className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-brand-red)]/70"
+-                          />
+-                          <span>{item}</span>
+-                        </li>
++                )}
++              </summary>
++              <div className="pb-3 pl-4">
++                {day.topics.map((release) => (
++                  <details key={release.id} className="group/topic">
++                    <summary className="flex cursor-pointer list-none items-start gap-2 py-2 text-sm font-semibold leading-relaxed text-[var(--color-ink)] [&::-webkit-details-marker]:hidden">
++                      <span
++                        aria-hidden="true"
++                        className="shrink-0 transition-transform group-open/topic:rotate-90"
++                      >
++                        ›
++                      </span>
++                      <span>{release.title}</span>
++                    </summary>
++                    <div className="space-y-3 pb-4 pl-4 pt-1">
++                      {release.sections.map((section, sectionIndex) => (
++                        <section key={sectionIndex}>
++                          <h4 className="text-sm font-semibold text-[var(--color-ink)]">
++                            {section.heading}
++                          </h4>
++                          <div className="mt-1 space-y-2">
++                            {section.items.map((item, itemIndex) => (
++                              <p
++                                key={itemIndex}
++                                className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-ink-muted)]"
++                              >
++                                {item}
++                              </p>
++                            ))}
++                          </div>
++                        </section>
+                       ))}
+-                    </ul>
+-                  </section>
++                    </div>
++                  </details>
+                 ))}
+               </div>
+-            </article>
++            </details>
+           ))}
+         </div>
+ 
++        {!releases.length && (
++          <p className="px-6 text-sm text-[var(--color-ink-muted)]">No published updates yet.</p>
++        )}
+         <footer className="border-t border-[var(--color-line)] px-6 py-4">
+           {unseen ? (
+             <label className="mb-3 flex items-start gap-2.5 text-sm">
+@@ -179,6 +225,11 @@ export function WhatsNew({ seen }: { seen: string | null }) {
+               You are up to date. This opens by itself again when something new arrives.
+             </p>
+           )}
++          {error && (
++            <p role="alert" className="mb-3 text-sm text-red-600">
++              {error}
++            </p>
++          )}
+           <Button type="button" className="w-full" disabled={saving} onClick={done}>
+             {saving ? 'Saving' : unseen && understood ? 'Done' : 'Close'}
+           </Button>
+diff --git a/apps/web/src/modules/core/release-notes.ts b/apps/web/src/modules/core/release-notes.ts
+index d538df2..bd31c4d 100644
+--- a/apps/web/src/modules/core/release-notes.ts
++++ b/apps/web/src/modules/core/release-notes.ts
+@@ -17,6 +17,21 @@ export interface ReleaseNote {
+ }
+ 
+ export const RELEASE_NOTES: ReleaseNote[] = [
++  {
++    id: '2026-10-25-contract-drafting',
++    date: '25 October 2026',
++    title: 'Prepare customer agreements from reusable templates',
++    sections: [
++      {
++        heading: 'Contract templates and drafting',
++        items: [
++          'Start with IT Basic, IT Standard, IT Comprehensive or R4 annual support subscription agreements. Create, duplicate and edit additional templates without a fixed template limit.',
++          'Open a contract and choose Draft agreement to populate customer details, dates, products and charges. Complete additional fields, edit the full agreement and mark it reviewed before printing or saving a PDF.',
++          'Saved agreements keep their wording when a template changes. Internal review notes highlight sample clauses that need attention; signed documents remain linked through Microsoft 365.',
++        ],
++      },
++    ],
++  },
+   {
+     id: '2026-10-25-ticket-search',
+     date: '25 October 2026',

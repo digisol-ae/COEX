@@ -1,5 +1,22 @@
 # Worktello (formerly COEX) — Shared AI Project State
 
+## Native contract signing live — 4 November 2026
+
+PR #81 merge `0dcaf6ea5f14ecd98397650085840f2ba9249103` is live at https://worktello.com. Active `coex-app-native-signing` id 11/PID 59120 runs Node 22.23.4 / Next 16.4.5 from `/srv/coex/releases/native-signing-20261104`, loopback 3009; all four app vhosts target 3009 and PM2 is saved. Customer Resources on 3008 is the healthy immediate rollback. Workers kept PIDs 906/907/908 with zero restarts.
+
+Native signing includes tenant letterhead, draw/upload/type capture, mailbox verification, independent dated status history and protected versioned evidence receipts. Full local suite 786/786, types/lint/format, PR/main CI and server production build passed. Live checks: 20/20 HTTPS samples, eleven matching static assets, protected-route/privacy headers and authenticated tracking/letterhead UI. Tenant logo/address remain blank and must be configured before sending. No real customer email/signature, business edit, migration, credential/session change or expiry occurred. Real inbox/signing and physical touch/stylus acceptance remain pilot work. Native controls do not establish qualified signatures or independent certification. Full evidence/backups/rollback: `ai/RELEASE-2026-11-04-NATIVE-SIGNING.md`; user guide: `docs/CONTRACT-SIGNING.md`. Provider evaluation remains deferred.
+
+## Customer Resources live — 4 November 2026
+
+PR #79 merged as `6f704035702d8a569e063e6cbedf75bc6a2c27dc`. Active `coex-app-customer-resources` id 10/PID 56939 serves loopback 3008 from `/srv/coex/releases/customer-resources-20261104` (Node 22.23.4). All four app vhosts target 3008; prior Board slot 3007 remains healthy rollback. PM2 saved; workers retained PIDs 906/907/908 with zero restarts. PR/main CI, 455 fresh unit tests, server production build, 20/20 HTTPS monitor and authenticated live library/share-form checks passed. No customer email/upload, data migration, password/account/session change. Real customer delivery remains pilot acceptance. Scope excludes separate local signing/features work. Full evidence and rollback: `ai/RELEASE-2026-11-04-CUSTOMER-RESOURCES.md`.
+
+## Customer Resources — 3 November 2026 (local implementation history)
+
+Owner approved a customer document/video library, sharing by email or customer ticket, no account sign-in, single-use OTP emailed with the link, customizable expiry defaulting to 72 hours, and same-browser access until the original expiry. Implemented in isolated checkout `/Volumes/sd-mac/Developer/DigiSol/worktello-show-more-live`, branch `codex/customer-resources`; preserve the original mixed checkout.
+
+Staff can draft/publish/archive resources, select existing customer contacts, share with custom expiry and revoke access. Protected public pages support PDF preview and downloads after verification. Ticket sharing posts only the link; the OTP goes solely to the server-selected recipient. Local browser QA, 455 unit tests, 20 focused Mongo/email tests and production build passed. No real emails, production upload, migration, account change or deployment. Canonical requirements/implementation: `docs/CUSTOMER-RESOURCES.md`; QA: `docs/qa/CUSTOMER-RESOURCES-2026-11-03.md`.
+
+
 ## UI improvements release live — 29 October 2026
 
 PR #73 merged as `93ec4211da581b99010e9e4ba0ca60b98155b3cb` and is active at `/srv/coex/releases/ui-improvements-20261029` on port 3005 (PM2 `coex-app-ui-improvements`, PID 544805; Node 22.23.4). All four Worktello/COEX app vhosts proxy to 3005. The prior feedback release on 3004 remains the immediate rollback; 3001/3002 also remain healthy. Workers 10/11/12 and osTicket remain untouched. See `ai/RELEASE-2026-10-29-UI-IMPROVEMENTS.md` for release checks and rollback.

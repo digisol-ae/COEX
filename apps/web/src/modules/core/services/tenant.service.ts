@@ -40,10 +40,34 @@ export interface TenantSettingsInput {
   workingDays: number[];
   dayStartMinutes: number;
   dayEndMinutes: number;
+  letterhead?: {
+    address: string;
+    contact: string;
+    footer: string;
+    logoDataUrl?: string;
+    color: string;
+  };
 }
 
 export async function updateTenantSettings(input: TenantSettingsInput): Promise<void> {
   const tenant = await getCurrentTenant();
+  const letterhead = input.letterhead;
+  if (letterhead) {
+    if (
+      letterhead.address.length > 2000 ||
+      letterhead.contact.length > 1000 ||
+      letterhead.footer.length > 1000
+    )
+      throw new Error('Letterhead address or footer is too long.');
+    if (!/^#[0-9a-f]{6}$/i.test(letterhead.color))
+      throw new Error('Choose a valid letterhead colour.');
+    if (
+      letterhead.logoDataUrl !== undefined &&
+      (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(letterhead.logoDataUrl) ||
+        letterhead.logoDataUrl.length > 600000)
+    )
+      throw new Error('Upload a PNG, JPEG or WebP logo of at most 2 MB.');
+  }
 
   const before = {
     name: tenant.name,
@@ -58,6 +82,17 @@ export async function updateTenantSettings(input: TenantSettingsInput): Promise<
     workingDays: tenant.workingDays,
     dayStartMinutes: tenant.dayStartMinutes,
     dayEndMinutes: tenant.dayEndMinutes,
+    ...(letterhead
+      ? {
+          letterhead: {
+            address: tenant.branding?.letterhead?.address ?? '',
+            contact: tenant.branding?.letterhead?.contact ?? '',
+            footer: tenant.branding?.letterhead?.footer ?? '',
+            color: tenant.branding?.primaryColor ?? '#0f172a',
+            hasLogo: Boolean(tenant.branding?.letterhead?.logoDataUrl),
+          },
+        }
+      : {}),
   };
 
   await TenantModel.updateOne(
@@ -76,6 +111,17 @@ export async function updateTenantSettings(input: TenantSettingsInput): Promise<
         workingDays: input.workingDays,
         dayStartMinutes: input.dayStartMinutes,
         dayEndMinutes: input.dayEndMinutes,
+        ...(letterhead
+          ? {
+              'branding.letterhead.address': letterhead.address.trim(),
+              'branding.letterhead.contact': letterhead.contact.trim(),
+              'branding.letterhead.footer': letterhead.footer.trim(),
+              'branding.primaryColor': letterhead.color,
+              ...(letterhead.logoDataUrl !== undefined
+                ? { 'branding.letterhead.logoDataUrl': letterhead.logoDataUrl }
+                : {}),
+            }
+          : {}),
       },
     },
   );
@@ -84,7 +130,21 @@ export async function updateTenantSettings(input: TenantSettingsInput): Promise<
     action: 'tenant.settings_updated',
     entityType: 'Tenant',
     entityId: tenant._id,
-    ...changedFields(before, { ...input, name: input.name.trim() }),
+    ...changedFields(before, {
+      ...input,
+      name: input.name.trim(),
+      ...(letterhead
+        ? {
+            letterhead: {
+              address: letterhead.address.trim(),
+              contact: letterhead.contact.trim(),
+              footer: letterhead.footer.trim(),
+              color: letterhead.color,
+              hasLogo: Boolean(letterhead.logoDataUrl ?? tenant.branding?.letterhead?.logoDataUrl),
+            },
+          }
+        : {}),
+    }),
   });
 }
 

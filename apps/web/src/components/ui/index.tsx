@@ -105,9 +105,10 @@ export function Button({
   className,
   children,
   disabled,
+  loading,
   ...props
-}: ComponentProps<'button'> & { variant?: ButtonVariant }) {
-  const waiting = Boolean(disabled && props.type === 'submit');
+}: ComponentProps<'button'> & { variant?: ButtonVariant; loading?: boolean }) {
+  const waiting = loading ?? Boolean(disabled && props.type === 'submit');
   return (
     <button
       {...props}

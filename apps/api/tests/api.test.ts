@@ -289,8 +289,8 @@ describe('errors and origin', () => {
       .post('/api/v2/leads')
       .set('Origin', 'https://coex.digisol.ae')
       .send({});
-    // The origin is accepted; there is simply no write route yet.
-    expect(ours.status).toBe(404);
+    // The origin is accepted and the request reaches the session guard.
+    expect(ours.status).toBe(401);
   });
 });
 

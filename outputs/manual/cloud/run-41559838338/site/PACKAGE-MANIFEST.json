@@ -1,0 +1,274 @@
+{
+  "manualVersion": "2026.10.30",
+  "packagedAt": "2026-11-03T01:27:37.259231+00:00",
+  "files": [
+    {
+      "path": "ai/HANDOFF.md",
+      "sha256": "083f1e0069cfa2e42925d5b195bc86ede0f8628c5df7afa77c50d8ec41c0cb2e"
+    },
+    {
+      "path": "ai/RELEASE-2026-10-22-ENTRA-FOOTER.md",
+      "sha256": "91450f3e683773c6f42ca47a66e0e48ebe1d24cd0bb025fb14052847b0da112d"
+    },
+    {
+      "path": "ai/RELEASE-2026-10-22-TUTORIAL-ORIGIN.md",
+      "sha256": "3a65b28f8840b137ad957347053c5fc5990588b1bb57e1a5acc988ff70378f6f"
+    },
+    {
+      "path": "ai/RELEASE-2026-10-25-COPILOT.md",
+      "sha256": "dc56215accb58b479bbb8b847fa80e4326622bd6f72d44778a3d6228e1f32a52"
+    },
+    {
+      "path": "ai/RELEASE-2026-10-25.md",
+      "sha256": "f43751ae69c28830fd550362c7b1cfb2e07a419c583d6dd4d18b60aaeef4dc35"
+    },
+    {
+      "path": "ai/RELEASE-2026-10-28-FEEDBACK.md",
+      "sha256": "4a0ed476840517ccf76ab387fc7e49c09b710235a429bcdae49fc07692ffb88f"
+    },
+    {
+      "path": "ai/RELEASE-2026-10-29-UI-IMPROVEMENTS.md",
+      "sha256": "f15a07d4cb8eaa6cff36f50b11fc893f9a0ab4a69939ee9da750ef301c47a1fe"
+    },
+    {
+      "path": "deploy/ZERO-DOWNTIME.md",
+      "sha256": "834dc297c5a742dbb4aeb75552e469906400a99f9060cc407057e14a74b39824"
+    },
+    {
+      "path": "docs/CUSTOMER-PORTAL.md",
+      "sha256": "db09488441deaca11bd002ca3f64fc288ff82a5454673a9cfedcc2714a514c63"
+    },
+    {
+      "path": "docs/DATA-TRANSFER.md",
+      "sha256": "9f8471421cb004b563757dc3d6a5568144d9cf5790c6ad6fb5e905ae872ba9c7"
+    },
+    {
+      "path": "docs/GANTT-QA.md",
+      "sha256": "0ff6d6f44c6daba57c93f843cee73d5f0de49b2b1522e5bcab8f29b8f394fa80"
+    },
+    {
+      "path": "docs/OUTLOOK-WEB.md",
+      "sha256": "d408b50dc23d20a41dbbe23da813151fbb91d5678264e29ec9a21eea01aebb43"
+    },
+    {
+      "path": "docs/SEARCH-QA.md",
+      "sha256": "35991dfcab076f8e8f885e0f14243ad245d3881002c292c2a37c83c5d0f48e95"
+    },
+    {
+      "path": "docs/SETUP-WORKSPACE.md",
+      "sha256": "a9d6e7569c70e852ce2369dae45d3aa7db9823f77120ca24951c32a061d6b90c"
+    },
+    {
+      "path": "docs/SUBTASK-CHECKBOX-QA.md",
+      "sha256": "b19c0b0030e2189f53ab2a42c411eb4f594dfcd4f33ff22e5720daefc8bc5921"
+    },
+    {
+      "path": "docs/TASK-TEAMS-SHARING.md",
+      "sha256": "92d8b029ff6504698610c27b4934ec67531857d1d55f655aadf16809bff180c9"
+    },
+    {
+      "path": "docs/TEAMS-PERSONAL-TAB.md",
+      "sha256": "8ebf9ab2b2c5404482a992406fea6bd4af610226458c4e0c5d94a4cda1ced7e3"
+    },
+    {
+      "path": "docs/manual/CLOUD-RUNNER.md",
+      "sha256": "d6eeb51326ee4973f602409a1bc00ac7c84949657f36ade50cf175ebb4d9e383"
+    },
+    {
+      "path": "docs/manual/QA.md",
+      "sha256": "dbac4db9ec5a99c296ab140796c7fec94b7007795e9c2ac60f51ab461d54747a"
+    },
+    {
+      "path": "docs/manual/README.md",
+      "sha256": "48108a684f59597f3958d2759fa71f897c08c58f569bd9460da0346a231341b2"
+    },
+    {
+      "path": "docs/manual/assets/archive/customer-sign-in.png",
+      "sha256": "2204447250de69a1f208639714189fd2780a281605693b1ec0c010a8f33fc0bf"
+    },
+    {
+      "path": "docs/manual/assets/archive/gantt-unscheduled-synthetic-qa.jpg",
+      "sha256": "13dddc8f9515d6a4844b3b2bc21f331976a9a64b29f2156eb91298d2be4ef344"
+    },
+    {
+      "path": "docs/manual/assets/archive/outlook-before.png",
+      "sha256": "7a47495582e289c189e98b6bb48a1ed3eb84ec305e54f6d0c1fc6b0730396c9e"
+    },
+    {
+      "path": "docs/manual/assets/archive/outlook-create.png",
+      "sha256": "7c23b994e758035c01ba08efa34b47e50b2c4431b3c935440d7730634d5e540d"
+    },
+    {
+      "path": "docs/manual/assets/archive/staff-sign-in.png",
+      "sha256": "214f91be1ad57f4eeb5e3548f9226610b6747142878f5540c5b12bf64e8b59f3"
+    },
+    {
+      "path": "docs/manual/assets/archive/teams-catalog.png",
+      "sha256": "b67ae9aa891034ac31d63db2883e0435947ea13a813e957c7bf76b715276ed81"
+    },
+    {
+      "path": "docs/manual/assets/archive/teams-create.png",
+      "sha256": "80a6070a1a310d4bfe521002b3563c0caf877fa838312237cf6a9d74e37b5ebb"
+    },
+    {
+      "path": "docs/manual/assets/customer-email-login-20261026.png",
+      "sha256": "2a437969fea8a9d96e55fbc9dbaf5a6b5b8331c55e15ed9f78d19adea0d3e96f"
+    },
+    {
+      "path": "docs/manual/assets/customer-welcome-20261026.png",
+      "sha256": "e980e4a534feb5ed38d85972a069cc43ab834b96d94efbe1a221b941e4d7c7a8"
+    },
+    {
+      "path": "docs/manual/assets/gantt-synthetic-qa.jpg",
+      "sha256": "126873a6778aea64eac49c7487089cf272747db6befb97e05a0607ab6a4e370e"
+    },
+    {
+      "path": "docs/manual/assets/import-export.png",
+      "sha256": "fd12d146a0fe9a833bda8791a7c5e0c4b1b4c2d284df038a992e5b8db7d21fd0"
+    },
+    {
+      "path": "docs/manual/assets/manifest.json",
+      "sha256": "a2ac8506571e8081062cf2d2684595f839dcf400ac3c96ae853f689ceeb7f7ae"
+    },
+    {
+      "path": "docs/manual/assets/manual-preview.png",
+      "sha256": "0e8341554044402e3ce59849880fdb0c0e86fb04adecc7a594117c0ba77aa8b4"
+    },
+    {
+      "path": "docs/manual/assets/osticket-activation-local.png",
+      "sha256": "149f7ce0732a9878a83932722fb3d7c3de792287cc802333392cd3a050316e7a"
+    },
+    {
+      "path": "docs/manual/assets/osticket-activation-production.png",
+      "sha256": "c178aef57f795a38cb04d1b67d12b9e2db5de939d7118cccd9570d7ba25d5af2"
+    },
+    {
+      "path": "docs/manual/assets/outlook-after.png",
+      "sha256": "fb169bd40136c02f08866e64c5a5f3fd0c98412601933c9e196fd2139a960bb5"
+    },
+    {
+      "path": "docs/manual/assets/worktello-symbol.png",
+      "sha256": "f58958c9584417ab148d4c29e293cb634724e5d2fe9f3bd822358800eddeafa2"
+    },
+    {
+      "path": "docs/manual/automation-state.json",
+      "sha256": "3bb4307c52e0e5ef47eb2fa54852e4aff62fa2182104793bbce4b8fe007f3498"
+    },
+    {
+      "path": "docs/manual/content.js",
+      "sha256": "7fa513204addf23b8d50b5829c5ab56022636313ad88c02563fae9fdeac70690"
+    },
+    {
+      "path": "docs/manual/content.json",
+      "sha256": "35393d8faea7ca1629af65ed951ded5939b440c190cb15ae38751e7278335275"
+    },
+    {
+      "path": "docs/manual/downloads/tasks-template.csv",
+      "sha256": "f4bb871aaac0f3fb14cb803b2dfe78150268cdbd649efe263a76c85f832601af"
+    },
+    {
+      "path": "docs/manual/index.html",
+      "sha256": "08842307cf69b5ab63c0c436981e30086d4c29c2e438929154a7de9d4564aef5"
+    },
+    {
+      "path": "docs/manual/manual.css",
+      "sha256": "268cbf729cf6d2e8934eb8c8ca39b53045d6756e8a10bb4e7a3b8dd8a28b24e7"
+    },
+    {
+      "path": "docs/manual/manual.js",
+      "sha256": "61d7b4ead8a834a25e85357dc55751a717d628082a772ebfd6750fe3886577d2"
+    },
+    {
+      "path": "docs/resolutions/2026-10-22-assignment-email.md",
+      "sha256": "b4180e9724873e39affbb2cbf726eb743498d90816ae10497ecf98c8e2f83346"
+    },
+    {
+      "path": "docs/resolutions/2026-10-22-microsoft-redirect.md",
+      "sha256": "a45509c0032b2f9c809251384fc3d166de313ebaeaff996a52e54b27625d5b4a"
+    },
+    {
+      "path": "docs/resolutions/2026-10-22-tutorial-origin.md",
+      "sha256": "f37a70f3e8d2df9708ea70e8ed8678d1f281a0ca9c1960171dc2adfd516c681a"
+    },
+    {
+      "path": "docs/resolutions/2026-10-25-digisol-sidebar.md",
+      "sha256": "c911d99b9a5d87b130539d918b9ce3101ae43f3df5ae11c01b9726849abcde4f"
+    },
+    {
+      "path": "docs/resolutions/2026-10-25-import-review.md",
+      "sha256": "7d7edde2aeb0f39d4c7c29ec12b9812eb48541ddddb60532112964898375a4e4"
+    },
+    {
+      "path": "docs/resolutions/2026-10-25-node-runtime.md",
+      "sha256": "066ef5d44a745261e5d7ea3c489b09dd9955432aca830c48b3a842f0f99fbc0a"
+    },
+    {
+      "path": "docs/resolutions/2026-10-25-osticket-migration.md",
+      "sha256": "61d43e1b4cd37fa94dcabadb6b910ec2d2e1b3ffd44bc7acc83a9a5c82a44efc"
+    },
+    {
+      "path": "docs/resolutions/2026-10-25-outlook-web.md",
+      "sha256": "2e06673f37aac57b89f6509b434e6268ffe20830aa594cc85c493e7f44e8e221"
+    },
+    {
+      "path": "docs/resolutions/2026-10-25-search-popup.md",
+      "sha256": "6296d4a4b90456850585e532d00c67c98225f747210535719b381a12fe0997e0"
+    },
+    {
+      "path": "docs/resolutions/2026-10-25-section-search.md",
+      "sha256": "a42ae061468e31f86dd75dbc6726ff3e1d89c4687b409745a37eca5d1c3f5d0e"
+    },
+    {
+      "path": "docs/resolutions/2026-10-25-subtask-checkbox.md",
+      "sha256": "ed1a22b129d0cec9a22a9b537af9740ee2863159641ead0b3837806c32e05388"
+    },
+    {
+      "path": "docs/resolutions/2026-10-25-ticket-search.md",
+      "sha256": "88b38e2c88e38baef39cf02f07a9747b06a7aa6a37e3a4ca9bf6878cc170ad50"
+    },
+    {
+      "path": "docs/resolutions/2026-10-26-customer-login.md",
+      "sha256": "fd94e969b957bfde6fdddbd30c696a05f71793cb417ce283f81ef166389069c6"
+    },
+    {
+      "path": "docs/resolutions/2026-10-26-customer-welcome.md",
+      "sha256": "6eeb625cfa9d2a5c2e6f7993a27cf0c44211d1dfb429dd2df3fd12973fa8b9dd"
+    },
+    {
+      "path": "docs/resolutions/2026-10-27-agreement-drafting.md",
+      "sha256": "d915f79e3bb84273e1037901f382079f6acd132c5a4d076135fdda4be8d584f9"
+    },
+    {
+      "path": "docs/resolutions/2026-10-27-domain-transition.md",
+      "sha256": "0801b84c75ec21cea12c556592e4c2c2eae3cee078828c1233d9fbc9a9eebcce"
+    },
+    {
+      "path": "docs/resolutions/2026-10-27-release-publishing.md",
+      "sha256": "b0c80ac20cb868f8ede7335e07095730614d9901d94410048e6ef60b1f22b542"
+    },
+    {
+      "path": "docs/resolutions/2026-10-29-feedback-release.md",
+      "sha256": "ac080b9b435debcbfbfcbbbd154f1c8cb25006ee1d90595580b8d7374aa50247"
+    },
+    {
+      "path": "docs/resolutions/2026-10-30-board-and-ui.md",
+      "sha256": "fb7a3ec11ec534771d59e76f9c2af35bf13ccb53b54d611203517c0046c62f01"
+    },
+    {
+      "path": "docs/resolutions/README.md",
+      "sha256": "09f6436c9831079cd496db05dbc8b35a30f09c456cd886c13e55afd76aba0cdb"
+    },
+    {
+      "path": "docs/resolutions/TEMPLATE.md",
+      "sha256": "b3d5e26172aa20aa91dbdbdc08784c6a36c202b70a2b96a64596b673caba5990"
+    },
+    {
+      "path": "docs/resolutions/assets/outlook-authorization-review.png",
+      "sha256": "32278fcdd82f6cec62fc3257122b82a3724ba9b77e2969edb48dec5e5653aef4"
+    },
+    {
+      "path": "docs/resolutions/assets/outlook-authorization-saved.png",
+      "sha256": "3bca8104ddeadd6cf3c61d576450bc097f611bc59b2b754517a6ace8d53f4d30"
+    }
+  ]
+}

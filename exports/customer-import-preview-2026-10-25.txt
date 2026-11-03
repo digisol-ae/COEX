@@ -1,0 +1,936 @@
+Browser tab: 1, Title: "Import and export · Worktello", URL: "https://coex.digisol.ae/setup/data-transfer".
+0 AXWebArea Import and export · Worktello, URL: coex.digisol.ae/setup/data-transfer
+	1 container Setup
+		2 container
+			3 heading Setup, Value: 1
+				4 text Setup
+			5 button Close setup
+		6 container Setup sections
+			7 tab group Setup tabs
+				8 tab (selectable, settable, boolean) Queues, Value: 0, ID: setup-tab-queues
+				9 tab (selectable, settable, boolean) Tutorials, Value: 0, ID: setup-tab-tutorials
+				10 tab (selectable, settable, boolean) Email, Value: 0, ID: setup-tab-email
+				11 tab (selectable, settable, boolean) Pipeline, Value: 0, ID: setup-tab-pipeline
+				12 tab (selectable, settable, boolean) WhatsApp, Value: 0, ID: setup-tab-whatsapp
+				13 tab (selectable, settable, boolean) Saved replies, Value: 0, ID: setup-tab-canned-replies
+				14 tab (selectable, settable, boolean) Tenant settings, Value: 0, ID: setup-tab-tenant
+				15 tab (selectable, settable, boolean) Custom fields, Value: 0, ID: setup-tab-fields
+				16 tab (selected, settable, boolean) Import and export, Value: 1, ID: setup-tab-data-transfer
+				17 tab (selectable, settable, boolean) Tenants, Value: 0, ID: setup-tab-tenants
+		18 container Description: Import and export, ID: setup-panel
+			19 heading Import and export, Value: 1
+				20 text Import and export
+			21 text Move core records using CSV files. Imports create new records and skip matches; they do not update existing records. Start with customers and products before importing linked contracts, tasks or tickets.
+			22 container
+				23 text Record type
+				24 pop up button (collapsed, settable) Description: Record type, Value: Customers, Secondary Actions: Expand
+					25 menu
+						26 Tasks
+						27 Tickets
+						28 (selected) Customers
+						29 Leads
+						30 Products
+						31 Contracts
+			32 container
+				33 heading 1. Prepare your file, Value: 2
+					34 text 1. Prepare your file
+				35 link Description: Download customers template, Value: coex.digisol.ae/api/data-transfer/customers?template=1
+				36 link Description: Export customers CSV, Value: coex.digisol.ae/api/data-transfer/customers
+				37 text Required columns: 
+				38 text name
+				39 text . Use the template headings exactly. Maximum 500 records and 2 MB per import.
+				40 button (collapsed) Columns and matching rules, Secondary Actions: Expand
+					41 text Columns and matching rules
+				42 text Exports contain core fields and current status for reference, up to 10,000 records. Attachments, conversation history and custom fields are excluded. Columns starting with _ are read-only and ignored on import. Imported tasks start unassigned in the first Space column, tickets start New and contracts start Draft. Lead ownership defaults to you. Existing assignment and alert rules still apply.
+			43 container
+				44 heading 2. Upload and preview, Value: 2
+					45 text 2. Upload and preview
+				46 button CSV file
+				47 text coex-customers-import-normalized-2026-10-25.csv
+				48 button Preview import
+			49 container
+				50 heading 3. Review and import, Value: 2
+					51 text 3. Review  and import
+				52 text 111  ready · 13  skipped · 0 errors ·  0  created
+				53 button Import 111 records
+					54 text Import 
+					55 text 111
+					56 text  records
+				57 table
+					58 row
+						59 cell
+							60 text Record
+						61 cell
+							62 text Name / subject
+						63 cell
+							64 text Result
+					65 row
+						66 cell
+							67 text 1
+						68 cell
+							69 text ADVANCED AMERICAN DENTAL
+						70 cell
+							71 text ready :  Ready to create
+					72 row
+						73 cell
+							74 text 2
+						75 cell
+							76 text BIO ZONE
+						77 cell
+							78 text ready :  Ready to create
+					79 row
+						80 cell
+							81 text 3
+						82 cell
+							83 text GULF AND WORLD TRADERS
+						84 cell
+							85 text ready :  Ready to create
+					86 row
+						87 cell
+							88 text 4
+						89 cell
+							90 text MICRIS DENTAL CLINIC LLC
+						91 cell
+							92 text ready :  Ready to create
+					93 row
+						94 cell
+							95 text 5
+						96 cell
+							97 text Park Dental Center
+						98 cell
+							99 text ready :  Ready to create
+					100 row
+						101 cell
+							102 text 6
+						103 cell
+							104 text NEW YORK DENTAL CLINIC
+						105 cell
+							106 text ready :  Ready to create
+					107 row
+						108 cell
+							109 text 7
+						110 cell
+							111 text Dental Studio - Al Wasl LLC
+						112 cell
+							113 text ready :  Ready to create
+					114 row
+						115 cell
+							116 text 8
+						117 cell
+							118 text Syna Clinic
+						119 cell
+							120 text ready :  Ready to create
+					121 row
+						122 cell
+							123 text 9
+						124 cell
+							125 text AL MANSOORI DENTAL
+						126 cell
+							127 text ready :  Ready to create
+					128 row
+						129 cell
+							130 text 10
+						131 cell
+							132 text Dr. Michaels Dental Clinic L.L.C.
+						133 cell
+							134 text duplicate :  Skipped: matching record already exists or is repeated in this file.
+					135 row
+						136 cell
+							137 text 11
+						138 cell
+							139 text Dr. Roze & Associates Dental Clinic LLC
+						140 cell
+							141 text ready :  Ready to create
+					142 row
+						143 cell
+							144 text 12
+						145 cell
+							146 text Ismile Dental
+						147 cell
+							148 text ready :  Ready to create
+					149 row
+						150 cell
+							151 text 13
+						152 cell
+							153 text Medical International Specialist Centre
+						154 cell
+							155 text ready :  Ready to create
+					156 row
+						157 cell
+							158 text 14
+						159 cell
+							160 text TECHIFY ALGORITHM TECHNOLOGIES L.L.C
+						161 cell
+							162 text ready :  Ready to create
+					163 row
+						164 cell
+							165 text 15
+						166 cell
+							167 text PREMIUM HEALTHCARE LTD
+						168 cell
+							169 text ready :  Ready to create
+					170 row
+						171 cell
+							172 text 16
+						173 cell
+							174 text Al Das Medical Clinic
+						175 cell
+							176 text ready :  Ready to create
+					177 row
+						178 cell
+							179 text 17
+						180 cell
+							181 text Asya's Nursery
+						182 cell
+							183 text ready :  Ready to create
+					184 row
+						185 cell
+							186 text 18
+						187 cell
+							188 text Harub Dental Surgery
+						189 cell
+							190 text ready :  Ready to create
+					191 row
+						192 cell
+							193 text 19
+						194 cell
+							195 text Medlink Clinic
+						196 cell
+							197 text ready :  Ready to create
+					198 row
+						199 cell
+							200 text 20
+						201 cell
+							202 text DENTAL STUDIO JBR L.L.C
+						203 cell
+							204 text ready :  Ready to create
+					205 row
+						206 cell
+							207 text 21
+						208 cell
+							209 text Muscat Dental Specialists
+						210 cell
+							211 text ready :  Ready to create
+					212 row
+						213 cell
+							214 text 22
+						215 cell
+							216 text Dental Studio Plus LLC
+						217 cell
+							218 text duplicate :  Skipped: matching record already exists or is repeated in this file.
+					219 row
+						220 cell
+							221 text 23
+						222 cell
+							223 text DENTAL STUDIO BEACH ROAD LLC
+						224 cell
+							225 text duplicate :  Skipped: matching record already exists or is repeated in this file.
+					226 row
+						227 cell
+							228 text 24
+						229 cell
+							230 text DR. SHAHLA DENTAL CENTRE
+						231 cell
+							232 text ready :  Ready to create
+					233 row
+						234 cell
+							235 text 25
+						236 cell
+							237 text ONYX MEDICAL CENTER
+						238 cell
+							239 text ready :  Ready to create
+					240 row
+						241 cell
+							242 text 26
+						243 cell
+							244 text Dr. Roze Biohealth Clinics LTD.
+						245 cell
+							246 text ready :  Ready to create
+					247 row
+						248 cell
+							249 text 27
+						250 cell
+							251 text Al Hayyan Medical Equipment & Surgical Instruments LLC
+						252 cell
+							253 text ready :  Ready to create
+					254 row
+						255 cell
+							256 text 28
+						257 cell
+							258 text ConfiDent Dental Clinic
+						259 cell
+							260 text ready :  Ready to create
+					261 row
+						262 cell
+							263 text 29
+						264 cell
+							265 text Mr Shuja
+						266 cell
+							267 text ready :  Ready to create
+					268 row
+						269 cell
+							270 text 30
+						271 cell
+							272 text Artier Dental Centre
+						273 cell
+							274 text duplicate :  Skipped: matching record already exists or is repeated in this file.
+					275 row
+						276 cell
+							277 text 31
+						278 cell
+							279 text APA AESTHETIC DENTAL & COSMETIC CENTER LLC
+						280 cell
+							281 text ready :  Ready to create
+					282 row
+						283 cell
+							284 text 32
+						285 cell
+							286 text Brite Medicare Medical Center LLC
+						287 cell
+							288 text ready :  Ready to create
+					289 row
+						290 cell
+							291 text 33
+						292 cell
+							293 text The Dental Studio L.L.C
+						294 cell
+							295 text ready :  Ready to create
+					296 row
+						297 cell
+							298 text 34
+						299 cell
+							300 text Pearly Gates Dental Clinic
+						301 cell
+							302 text ready :  Ready to create
+					303 row
+						304 cell
+							305 text 35
+						306 cell
+							307 text Syed Ali
+						308 cell
+							309 text ready :  Ready to create
+					310 row
+						311 cell
+							312 text 36
+						313 cell
+							314 text Royal Surge Clinic
+						315 cell
+							316 text ready :  Ready to create
+					317 row
+						318 cell
+							319 text 37
+						320 cell
+							321 text Invisalign Center
+						322 cell
+							323 text ready :  Ready to create
+					324 row
+						325 cell
+							326 text 38
+						327 cell
+							328 text DR TOSUN DENTAL CLINIC L.L.C
+						329 cell
+							330 text ready :  Ready to create
+					331 row
+						332 cell
+							333 text 39
+						334 cell
+							335 text Bay Avenue Dental Centre L.L.C
+						336 cell
+							337 text ready :  Ready to create
+					338 row
+						339 cell
+							340 text 40
+						341 cell
+							342 text DR ABURAS DENTAL CENTER L.L.C
+						343 cell
+							344 text ready :  Ready to create
+					345 row
+						346 cell
+							347 text 41
+						348 cell
+							349 text British Day Surgical Centre LLC
+						350 cell
+							351 text ready :  Ready to create
+					352 row
+						353 cell
+							354 text 42
+						355 cell
+							356 text Pure Health Medical Supplies
+						357 cell
+							358 text ready :  Ready to create
+					359 row
+						360 cell
+							361 text 43
+						362 cell
+							363 text Aravi Hotel Dubai
+						364 cell
+							365 text ready :  Ready to create
+					366 row
+						367 cell
+							368 text 44
+						369 cell
+							370 text Bin Drai Capital
+						371 cell
+							372 text ready :  Ready to create
+					373 row
+						374 cell
+							375 text 45
+						376 cell
+							377 text Vilafortuny Laser Center
+						378 cell
+							379 text ready :  Ready to create
+					380 row
+						381 cell
+							382 text 46
+						383 cell
+							384 text The Dome MedDental
+						385 cell
+							386 text ready :  Ready to create
+					387 row
+						388 cell
+							389 text 47
+						390 cell
+							391 text Bounce Back Tech
+						392 cell
+							393 text ready :  Ready to create
+					394 row
+						395 cell
+							396 text 48
+						397 cell
+							398 text Mr Adel Fawzy
+						399 cell
+							400 text ready :  Ready to create
+					401 row
+						402 cell
+							403 text 49
+						404 cell
+							405 text THE DENTAL STUDIO L.L.C DSP
+						406 cell
+							407 text ready :  Ready to create
+					408 row
+						409 cell
+							410 text 50
+						411 cell
+							412 text Mr. Jeff Thomas
+						413 cell
+							414 text ready :  Ready to create
+					415 row
+						416 cell
+							417 text 51
+						418 cell
+							419 text New Gen Clinic
+						420 cell
+							421 text duplicate :  Skipped: matching record already exists or is repeated in this file.
+					422 row
+						423 cell
+							424 text 52
+						425 cell
+							426 text Dr. Zeineb Kharouf
+						427 cell
+							428 text duplicate :  Skipped: matching record already exists or is repeated in this file.
+					429 row
+						430 cell
+							431 text 53
+						432 cell
+							433 text Dr. David Jean Paul Ghislain Roze
+						434 cell
+							435 text ready :  Ready to create
+					436 row
+						437 cell
+							438 text 54
+						439 cell
+							440 text umbreen Ali
+						441 cell
+							442 text ready :  Ready to create
+					443 row
+						444 cell
+							445 text 55
+						446 cell
+							447 text Gulf & World Traders
+						448 cell
+							449 text ready :  Ready to create
+					450 row
+						451 cell
+							452 text 56
+						453 cell
+							454 text WATAN RAMADAN INTERIOR DECORATION
+						455 cell
+							456 text ready :  Ready to create
+					457 row
+						458 cell
+							459 text 57
+						460 cell
+							461 text DENTIST DIRECT DS CLINIC L.L.C
+						462 cell
+							463 text ready :  Ready to create
+					464 row
+						465 cell
+							466 text 58
+						467 cell
+							468 text Dr. Roze Bio Health Poly Clinic LLC
+						469 cell
+							470 text ready :  Ready to create
+					471 row
+						472 cell
+							473 text 59
+						474 cell
+							475 text BEYOND 32 DENTAL AND MEDICAL CLINIC L.L.C
+						476 cell
+							477 text duplicate :  Skipped: matching record already exists or is repeated in this file.
+					478 row
+						479 cell
+							480 text 60
+						481 cell
+							482 text Dental Studio Marina Gate L.L.C
+						483 cell
+							484 text ready :  Ready to create
+					485 row
+						486 cell
+							487 text 61
+						488 cell
+							489 text Regale Dental and Cosmetology Innovation Center L.L.C
+						490 cell
+							491 text ready :  Ready to create
+					492 row
+						493 cell
+							494 text 62
+						495 cell
+							496 text My Dental Clinic L.L.C
+						497 cell
+							498 text ready :  Ready to create
+					499 row
+						500 cell
+							501 text 63
+						502 cell
+							503 text Dentaline Dental Clinic
+						504 cell
+							505 text ready :  Ready to create
+					506 row
+						507 cell
+							508 text 64
+						509 cell
+							510 text Harmony Medical Center LLC
+						511 cell
+							512 text ready :  Ready to create
+					513 row
+						514 cell
+							515 text 65
+						516 cell
+							517 text Ayurved Clinic FZ LLC
+						518 cell
+							519 text ready :  Ready to create
+					520 row
+						521 cell
+							522 text 66
+						523 cell
+							524 text iTack Solution
+						525 cell
+							526 text ready :  Ready to create
+					527 row
+						528 cell
+							529 text 67
+						530 cell
+							531 text Mirage Clinics
+						532 cell
+							533 text ready :  Ready to create
+					534 row
+						535 cell
+							536 text 68
+						537 cell
+							538 text SNAPPY CARE
+						539 cell
+							540 text ready :  Ready to create
+					541 row
+						542 cell
+							543 text 69
+						544 cell
+							545 text Levantine Dental Clinic
+						546 cell
+							547 text ready :  Ready to create
+					548 row
+						549 cell
+							550 text 70
+						551 cell
+							552 text Bounce Back Tech
+						553 cell
+							554 text duplicate :  Skipped: matching record already exists or is repeated in this file.
+					555 row
+						556 cell
+							557 text 71
+						558 cell
+							559 text Prana Psychology
+						560 cell
+							561 text ready :  Ready to create
+					562 row
+						563 cell
+							564 text 72
+						565 cell
+							566 text Delta Plus Clinic
+						567 cell
+							568 text ready :  Ready to create
+					569 row
+						570 cell
+							571 text 73
+						572 cell
+							573 text Digital Ears Audiology Centre
+						574 cell
+							575 text ready :  Ready to create
+					576 row
+						577 cell
+							578 text 74
+						579 cell
+							580 text Charme Day Surgery Center
+						581 cell
+							582 text ready :  Ready to create
+					583 row
+						584 cell
+							585 text 75
+						586 cell
+							587 text Now Marketing Management L.L.C
+						588 cell
+							589 text ready :  Ready to create
+					590 row
+						591 cell
+							592 text 76
+						593 cell
+							594 text Dr. Jumana Dental Clinic.
+						595 cell
+							596 text ready :  Ready to create
+					597 row
+						598 cell
+							599 text 77
+						600 cell
+							601 text Avance IT Store
+						602 cell
+							603 text ready :  Ready to create
+					604 row
+						605 cell
+							606 text 78
+						607 cell
+							608 text Elite Holistic L.L.C
+						609 cell
+							610 text ready :  Ready to create
+					611 row
+						612 cell
+							613 text 79
+						614 cell
+							615 text SAME DAY DENTAL CLINIC L.L.C
+						616 cell
+							617 text ready :  Ready to create
+					618 row
+						619 cell
+							620 text 80
+						621 cell
+							622 text Le Dente Dental Clinic
+						623 cell
+							624 text ready :  Ready to create
+					625 row
+						626 cell
+							627 text 81
+						628 cell
+							629 text Taghreed Dental Center
+						630 cell
+							631 text ready :  Ready to create
+					632 row
+						633 cell
+							634 text 82
+						635 cell
+							636 text Dr. Michaels Dental Clinic L.L.C BR
+						637 cell
+							638 text duplicate :  Skipped: matching record already exists or is repeated in this file.
+					639 row
+						640 cell
+							641 text 83
+						642 cell
+							643 text Drs. Nicolas & Asp
+						644 cell
+							645 text ready :  Ready to create
+					646 row
+						647 cell
+							648 text 84
+						649 cell
+							650 text Dr. Gad Clinic
+						651 cell
+							652 text ready :  Ready to create
+					653 row
+						654 cell
+							655 text 85
+						656 cell
+							657 text MedicBloom Clinic
+						658 cell
+							659 text ready :  Ready to create
+					660 row
+						661 cell
+							662 text 86
+						663 cell
+							664 text Guangdong Medical Center DMCC
+						665 cell
+							666 text ready :  Ready to create
+					667 row
+						668 cell
+							669 text 87
+						670 cell
+							671 text MHMY POLYCLINIC LLC
+						672 cell
+							673 text ready :  Ready to create
+					674 row
+						675 cell
+							676 text 88
+						677 cell
+							678 text Bin Drai Capital
+						679 cell
+							680 text duplicate :  Skipped: matching record already exists or is repeated in this file.
+					681 row
+						682 cell
+							683 text 89
+						684 cell
+							685 text HEY DENTAL CLINIC DMCC
+						686 cell
+							687 text ready :  Ready to create
+					688 row
+						689 cell
+							690 text 90
+						691 cell
+							692 text STANDARD MEDICAL CLINIC LLC
+						693 cell
+							694 text ready :  Ready to create
+					695 row
+						696 cell
+							697 text 91
+						698 cell
+							699 text WE3 IT SOLUTIONS L.L.C
+						700 cell
+							701 text ready :  Ready to create
+					702 row
+						703 cell
+							704 text 92
+						705 cell
+							706 text OMAN INTERNATIONAL HOSPITAL
+						707 cell
+							708 text ready :  Ready to create
+					709 row
+						710 cell
+							711 text 93
+						712 cell
+							713 text BOSSA NOVA MEDICAL CENTRE L.L.C
+						714 cell
+							715 text ready :  Ready to create
+					716 row
+						717 cell
+							718 text 94
+						719 cell
+							720 text TWINS INTERNATIONAL TECHNOLOGY LLC
+						721 cell
+							722 text ready :  Ready to create
+					723 row
+						724 cell
+							725 text 95
+						726 cell
+							727 text Zyva Dental and Aesthetic Clinic
+						728 cell
+							729 text ready :  Ready to create
+					730 row
+						731 cell
+							732 text 96
+						733 cell
+							734 text Dr. Antoine and Salma Dental Clinic
+						735 cell
+							736 text ready :  Ready to create
+					737 row
+						738 cell
+							739 text 97
+						740 cell
+							741 text Mr. Alay Raza
+						742 cell
+							743 text ready :  Ready to create
+					744 row
+						745 cell
+							746 text 98
+						747 cell
+							748 text Mr. Alay Raza
+						749 cell
+							750 text duplicate :  Skipped: matching record already exists or is repeated in this file.
+					751 row
+						752 cell
+							753 text 99
+						754 cell
+							755 text UNIVERSITY OF DOHA
+						756 cell
+							757 text ready :  Ready to create
+					758 row
+						759 cell
+							760 text 100
+						761 cell
+							762 text Dr. Nathir Al Midani
+						763 cell
+							764 text ready :  Ready to create
+					765 row
+						766 cell
+							767 text 101
+						768 cell
+							769 text COSMO DI AESTHETIC CLINIC
+						770 cell
+							771 text ready :  Ready to create
+					772 row
+						773 cell
+							774 text 102
+						775 cell
+							776 text Crescent Clinic
+						777 cell
+							778 text ready :  Ready to create
+					779 row
+						780 cell
+							781 text 103
+						782 cell
+							783 text DENTAL STUDIO JPE CLINIC L.L.C
+						784 cell
+							785 text duplicate :  Skipped: matching record already exists or is repeated in this file.
+					786 row
+						787 cell
+							788 text 104
+						789 cell
+							790 text Odontal Dental Clinic, Oman
+						791 cell
+							792 text ready :  Ready to create
+					793 row
+						794 cell
+							795 text 105
+						796 cell
+							797 text ACACIA MEDICAL CENTRE
+						798 cell
+							799 text ready :  Ready to create
+					800 row
+						801 cell
+							802 text 106
+						803 cell
+							804 text WASL LLC
+						805 cell
+							806 text ready :  Ready to create
+					807 row
+						808 cell
+							809 text 107
+						810 cell
+							811 text Mr. sandy
+						812 cell
+							813 text ready :  Ready to create
+					814 row
+						815 cell
+							816 text 108
+						817 cell
+							818 text Ms. Gordana Karic
+						819 cell
+							820 text ready :  Ready to create
+					821 row
+						822 cell
+							823 text 109
+						824 cell
+							825 text Ms. Gordana Karic
+						826 cell
+							827 text duplicate :  Skipped: matching record already exists or is repeated in this file.
+					828 row
+						829 cell
+							830 text 110
+						831 cell
+							832 text DENTZZ DENTAL DMCC
+						833 cell
+							834 text ready :  Ready to create
+					835 row
+						836 cell
+							837 text 111
+						838 cell
+							839 text Galinus Center for Physiotherapy & Rehabilitation
+						840 cell
+							841 text ready :  Ready to create
+					842 row
+						843 cell
+							844 text 112
+						845 cell
+							846 text Lumos Clinic
+						847 cell
+							848 text ready :  Ready to create
+					849 row
+						850 cell
+							851 text 113
+						852 cell
+							853 text DIBAMED DENTAL CLINIC
+						854 cell
+							855 text ready :  Ready to create
+					856 row
+						857 cell
+							858 text 114
+						859 cell
+							860 text APOLLO CLINIC
+						861 cell
+							862 text ready :  Ready to create
+					863 row
+						864 cell
+							865 text 115
+						866 cell
+							867 text Dr. Natalia
+						868 cell
+							869 text ready :  Ready to create
+					870 row
+						871 cell
+							872 text 116
+						873 cell
+							874 text Mr. Mohammad Ameen
+						875 cell
+							876 text ready :  Ready to create
+					877 row
+						878 cell
+							879 text 117
+						880 cell
+							881 text Ms. Aiswarya
+						882 cell
+							883 text ready :  Ready to create
+					884 row
+						885 cell
+							886 text 118
+						887 cell
+							888 text Spine And Glow Clinic
+						889 cell
+							890 text ready :  Ready to create
+					891 row
+						892 cell
+							893 text 119
+						894 cell
+							895 text IMPIGER TECHNOLOGY SOLUTION
+						896 cell
+							897 text ready :  Ready to create
+					898 row
+						899 cell
+							900 text 120
+						901 cell
+							902 text Legacy Of Smiles Aesthetic Dental Clinic FZ-LLC
+						903 cell
+							904 text ready :  Ready to create
+					905 row
+						906 cell
+							907 text 121
+						908 cell
+							909 text Taghreed Dental Centre
+						910 cell
+							911 text ready :  Ready to create
+					912 row
+						913 cell
+							914 text 122
+						915 cell
+							916 text BARRAQUER EYE HOSPITAL FZ
+						917 cell
+							918 text ready :  Ready to create
+					919 row
+						920 cell
+							921 text 123
+						922 cell
+							923 text Mr. Saj Krishan
+						924 cell
+							925 text ready :  Ready to create
+					926 row
+						927 cell
+							928 text 124
+						929 cell
+							930 text Calm Chair Dental Clinic L.L.C S.O.C
+						931 cell
+							932 text ready :  Ready to create
+
+The focused UI element is 0 AXWebArea Import and export · Worktello, URL: coex.digisol.ae/setup/data-transfer

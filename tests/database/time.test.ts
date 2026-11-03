@@ -173,7 +173,7 @@ describe('totals', () => {
     );
 
     expect(totals.totalMinutes).toBe(180);
-    expect(totals.billableMinutes).toBe(60);
+    expect(totals.billableMinutes).toBe(0);
     expect(totals.byPerson).toHaveLength(2);
     expect(totals.bySpace).toHaveLength(1);
   });

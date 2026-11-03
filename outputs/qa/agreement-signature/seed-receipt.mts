@@ -1,0 +1,28 @@
+import { readFileSync, writeFileSync } from 'node:fs';
+import mongoose from 'mongoose';
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { EmailOutboxModel } from '@coex/shared/core/models/email-outbox.model';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
+import { connectToDatabase } from '../../../apps/web/src/lib/db';
+import { runWithContext } from '../../../apps/web/src/lib/tenant-context';
+import { createContract } from '../../../apps/web/src/modules/crm/services/contract.service';
+import { generateAgreementDraft, getAgreementDraft, saveAgreementDraft } from '../../../apps/web/src/modules/crm/services/agreement.service';
+import { requestAgreementSignature } from '../../../apps/web/src/modules/crm/services/agreement-signature.service';
+if(process.env.MONGODB_URI!=='mongodb://127.0.0.1:27020/worktello_signature_qa') throw new Error('Isolated local QA only');
+await connectToDatabase();
+const f=JSON.parse(readFileSync('outputs/qa/agreement-signature/capture-fixture.json','utf8'));
+const user=(await UserModel.findOne({tenantId:f.tenantId,email:'capture-qa@example.test'}))!;
+const contact=(await ContactModel.findOne({tenantId:f.tenantId,email:'sam@example.test'}))!;
+await runWithContext({tenantId:user.tenantId,userId:user._id,isPlatformAdmin:false},async()=>{
+ const contractId=await createContract({organisationId:String(contact.organisationId),title:'Evidence receipt QA',type:'amc',startDate:'2026-11-03',endDate:'2027-11-02',billingFrequency:'yearly',value:'1200'});
+ await generateAgreementDraft(contractId,'builtin:it-basic',{},0);
+ const d=(await getAgreementDraft(contractId))!;
+ await saveAgreementDraft(contractId,'SYNTHETIC AGREEMENT — RECEIPT QA\n\nCustomer: Synthetic Customer Ltd\nProvider: Signature QA Ltd\n\nThis demonstration agreement has no legal or financial effect.\n\nThis copy tests the versioned receipt and its agreement reference.',true,d.revision);
+ const requestId=await requestAgreementSignature(contractId,String(contact._id),d.revision+1);
+ const email=(await EmailOutboxModel.findOne({messageId:`<agreement-signature-${requestId}@worktello.com>`}))!;
+ const signingUrl=email.text.match(/http:\/\/localhost:3126\/sign\/[A-Za-z0-9_-]{43}/)![0];
+ const fixture={tenantId:f.tenantId,contractId,requestId,signingUrl};
+ writeFileSync('outputs/qa/agreement-signature/receipt-fixture.json',JSON.stringify(fixture));
+ console.log(JSON.stringify(fixture));
+});
+await mongoose.disconnect();

@@ -1,0 +1,214 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Worktello task creation",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://coex.digisol.ae/api/integrations/copilot"
+    }
+  ],
+  "security": [
+    {
+      "microsoft": [
+        "api://coex.digisol.ae/0ee8f3f6-879a-4cf0-95d0-9321696f4473/access_as_user"
+      ]
+    }
+  ],
+  "paths": {
+    "/options": {
+      "get": {
+        "operationId": "GetWorktelloOptions",
+        "summary": "Get permitted task destinations and assignees, office timezone and current date.",
+        "x-openai-isConsequential": false,
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Review the task details."
+          },
+          "401": {
+            "description": "Sign in with a linked Worktello account."
+          },
+          "403": {
+            "description": "Current Worktello access does not allow this operation."
+          },
+          "409": {
+            "description": "Check the task list before retrying."
+          }
+        }
+      }
+    },
+    "/preview": {
+      "post": {
+        "operationId": "PreviewWorktelloTask",
+        "summary": "Validate task details and return a signed preview. Does not create tasks or send notifications.",
+        "x-openai-isConsequential": false,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "spaceId"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 240
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "spaceId": {
+                    "type": "string",
+                    "description": "Exact accessible space ID from GetWorktelloOptions. Ask if ambiguous."
+                  },
+                  "folderId": {
+                    "type": "string",
+                    "description": "Exact folder ID from options, or empty for no folder."
+                  },
+                  "assigneeIds": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 50,
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Accessible user IDs from options. Omit to assign the creator."
+                  },
+                  "priority": {
+                    "type": "string",
+                    "enum": [
+                      "low",
+                      "normal",
+                      "high",
+                      "urgent"
+                    ]
+                  },
+                  "dueDate": {
+                    "type": "string",
+                    "description": "YYYY-MM-DD in officeTimezone, or empty for no deadline."
+                  },
+                  "dueTime": {
+                    "type": "string",
+                    "description": "HH:mm in officeTimezone. Requires dueDate. Omit for 00:00."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Review the task details."
+          },
+          "401": {
+            "description": "Sign in with a linked Worktello account."
+          },
+          "403": {
+            "description": "Current Worktello access does not allow this operation."
+          },
+          "409": {
+            "description": "Check the task list before retrying."
+          }
+        }
+      }
+    },
+    "/create": {
+      "post": {
+        "operationId": "CreateWorktelloTask",
+        "summary": "Create exactly the task from a reviewed preview. Requires user confirmation and may send normal assignment notifications.",
+        "x-openai-isConsequential": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "previewToken"
+                ],
+                "properties": {
+                  "previewToken": {
+                    "type": "string",
+                    "maxLength": 24000,
+                    "description": "Exact opaque token returned by PreviewWorktelloTask. Never invent, change, display or put in URLs."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Review the task details."
+          },
+          "401": {
+            "description": "Sign in with a linked Worktello account."
+          },
+          "403": {
+            "description": "Current Worktello access does not allow this operation."
+          },
+          "409": {
+            "description": "Check the task list before retrying."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "microsoft": {
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://login.microsoftonline.com/3788e905-c187-4e8b-bafb-84b7e0ec3f1c/oauth2/v2.0/authorize",
+            "tokenUrl": "https://login.microsoftonline.com/3788e905-c187-4e8b-bafb-84b7e0ec3f1c/oauth2/v2.0/token",
+            "scopes": {
+              "api://coex.digisol.ae/0ee8f3f6-879a-4cf0-95d0-9321696f4473/access_as_user": "Use Worktello as the signed-in staff user"
+            }
+          }
+        }
+      }
+    }
+  }
+}

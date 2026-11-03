@@ -77,6 +77,9 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
               <Link className="text-sm font-medium underline" href={`/contracts/${id}/draft`}>
                 Draft agreement
               </Link>
+              <Link className="text-sm font-medium underline" href={`/contracts/${id}/signature`}>
+                Signatures
+              </Link>
               <Badge tone={STATUS_TONE[contract.status]}>{STATUS_LABEL[contract.status]}</Badge>
             </div>
           }

@@ -1,0 +1,36 @@
+{
+  "format": "worktello.signing-receipt",
+  "formatVersion": 1,
+  "evidenceVersion": 3,
+  "evidence": {
+    "version": 3,
+    "contractId": "6ae9cbf54e0d81779e64d304",
+    "contactId": "6ae9c70ef34d82ad68b0b843",
+    "contractNumber": "C-4",
+    "customerName": "Synthetic Customer Ltd",
+    "invitedName": "Sam Customer",
+    "draftRevision": 2,
+    "requestedBy": "6ae9c70ef34d82ad68b0b83f",
+    "requestedAt": "2026-11-03T11:56:37.725Z",
+    "invitationExpiresAt": "2026-11-17T11:56:37.723Z",
+    "requestId": "6ae9cbf54e0d81779e64d309",
+    "tenantId": "6ae9c70ef34d82ad68b0b83e",
+    "documentHash": "4459b8d041a59634e16ee35b24f4ef17746c2b44e65c8847d998980fc2af1fdd",
+    "bodyHash": "398c3aa88a655b43f9ea0d30775ef11ff403bb957d9e7441381fbb9d3e5def9a",
+    "email": "sam@example.test",
+    "name": "Sam Customer (Synthetic QA)",
+    "at": "2026-11-03T11:59:57.315Z",
+    "consent": "I have read this agreement, am authorised to sign on behalf of the customer, and agree to its terms. By applying my signature and selecting Sign agreement, I intend to sign this agreement electronically.",
+    "method": "typed",
+    "style": 0,
+    "signatureHash": null,
+    "verifiedAt": "2026-11-03T11:59:16.627Z",
+    "privacyNoticeVersion": "2026-11-03",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  "authentication": {
+    "algorithm": "HMAC-SHA256",
+    "code": "b85f107b5d42aa3b067383c6acb597573f61f358a05763fe4483c14cd563493e",
+    "scope": "Worktello server authentication; not an accredited signer certificate or independent trusted timestamp."
+  }
+}

@@ -9,6 +9,7 @@ import {
 } from '@/modules/crm/services/agreement.service';
 import { PageHeader } from '@/components/ui';
 import { AgreementEditor } from './agreement-editor';
+import { getTenantLetterhead } from '@/modules/crm/services/tenant-letterhead.service';
 export const metadata = { title: 'Draft agreement · Worktello' };
 export default async function DraftPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -18,6 +19,7 @@ export default async function DraftPage({ params }: { params: Promise<{ id: stri
   const [templates, draft, values] = await asUser(actor, () =>
     Promise.all([listAgreementTemplates(), getAgreementDraft(id), agreementValues(id)]),
   );
+  const letterhead = await asUser(actor, getTenantLetterhead);
   return (
     <div className="mx-auto max-w-6xl space-y-4">
       <Link className="text-sm underline" href={`/contracts/${id}`}>
@@ -35,6 +37,7 @@ export default async function DraftPage({ params }: { params: Promise<{ id: stri
         draft={draft}
         automaticValues={values}
         editable={actor.permissions.includes('contract.manage')}
+        letterhead={letterhead}
       />
     </div>
   );

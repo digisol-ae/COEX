@@ -1,0 +1,7 @@
+{
+  "sourceCommit": "a0dee8b69c68af5ce805fd06914bcdea7d9c560f",
+  "previousSource": "0539bad02ead05310bdff42939f258d1185f651e",
+  "commits": "a0dee8b Merge pull request #58 from digisol-ae/codex/manual-midnight-20261026\n2b72597 Refresh midnight manual from verified search and migration releases",
+  "changedFiles": "ai/MANUAL-CHECKPOINT-2026-10-26.md\ndocs/manual/QA.md\ndocs/manual/README.md\ndocs/manual/automation-state.json\ndocs/manual/content.js\ndocs/manual/content.json\noutputs/manual/Worktello-Manual-2026-10-26.zip",
+  "generatedAt": "2026-10-26T00:01:50.813766+05:00"
+}

@@ -42,6 +42,11 @@ export default async function TenantSettingsPage() {
             workingDays: tenant.workingDays ?? [1, 2, 3, 4, 5],
             dayStart: toTimeInput(tenant.dayStartMinutes ?? 540),
             dayEnd: toTimeInput(tenant.dayEndMinutes ?? 1080),
+            letterheadAddress: tenant.branding?.letterhead?.address ?? '',
+            letterheadContact: tenant.branding?.letterhead?.contact ?? '',
+            letterheadFooter: tenant.branding?.letterhead?.footer ?? '',
+            letterheadLogo: tenant.branding?.letterhead?.logoDataUrl ?? '',
+            letterheadColor: tenant.branding?.primaryColor ?? '#0f172a',
           }}
         />
       </SettingsDrawer>
