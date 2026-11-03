@@ -21,6 +21,7 @@ import { permissionsFor, type Role } from '@coex/shared/core/permissions';
  */
 
 export type OutboxKind =
+  | 'resource_share'
   | 'auto_reply'
   | 'ticket_reply'
   | 'ticket_assigned'
@@ -46,6 +47,7 @@ export type OutboxKind =
 export type SenderRole = 'standard' | 'alert' | 'admin' | 'contracts';
 
 const SENDER_FOR: Record<OutboxKind, SenderRole> = {
+  resource_share: 'standard',
   auto_reply: 'standard',
   ticket_reply: 'standard',
   test: 'standard',
@@ -564,6 +566,7 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
   if (!isEmailAddress(to)) return false;
 
   const allowed: Record<OutboxKind, boolean> = {
+    resource_share: true,
     auto_reply: settings.customer?.autoReplyEnabled ?? false,
     ticket_reply: settings.customer?.emailPublicReplies ?? true,
     ticket_assigned: settings.staff?.ticketAssigned ?? true,

@@ -19,6 +19,9 @@ export const ROLES = [...STAFF_ROLES, 'client_contact'] as const;
 export type Role = (typeof ROLES)[number];
 
 export const PERMISSIONS = [
+  'resource.read',
+  'resource.manage',
+  'resource.share',
   'tenant.read',
   'tenant.manage',
   'tenant.create',
@@ -55,6 +58,9 @@ export type Permission = (typeof PERMISSIONS)[number];
 const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   platform_admin: PERMISSIONS,
   tenant_admin: [
+    'resource.read',
+    'resource.share',
+    'resource.manage',
     'teams.tasks.read.others',
     'teams.tasks.assign.others',
     'tenant.read',
@@ -82,6 +88,9 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'ticket.manage',
   ],
   manager: [
+    'resource.read',
+    'resource.share',
+    'resource.manage',
     'tenant.read',
     'user.read',
     'customer.read',
@@ -108,6 +117,8 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   // sight of work that is not already theirs, so the elevation is the two read.all permissions.
   // Everyone's timesheets are left out: John grants timesheet.read.all per person.
   senior_agent: [
+    'resource.read',
+    'resource.share',
     'tenant.read',
     'customer.read',
     'products.read',
@@ -117,6 +128,8 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'ticket.manage',
   ],
   agent: [
+    'resource.read',
+    'resource.share',
     'tenant.read',
     'customer.read',
     'products.read',
