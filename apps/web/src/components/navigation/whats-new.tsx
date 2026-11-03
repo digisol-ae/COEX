@@ -8,26 +8,13 @@ import { groupReleaseTopicsByDate } from '@/modules/core/release-groups';
 import type { ReleaseNote } from '@/modules/core/release-notes';
 import { acknowledgeReleaseNotesAction } from '@/app/(app)/preferences/actions';
 
-/*
- * Whether the drawer is showing, shared with the avatar menu's "What's new". It opens by itself
- * once per sign-in while the newest release is not yet acknowledged; closing it without ticking
- * "I understand" keeps it closed for the rest of this sign-in, and it opens again at the next.
- */
-const DISMISSED_KEY = 'coex.whatsNew.dismissed';
+/* Whether the drawer is showing, shared with the avatar menu's "What's new". */
 const listeners = new Set<() => void>();
 let openedByHand = false;
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
   return () => listeners.delete(listener);
-}
-
-function dismissedThisSession(latestId: string | null): boolean {
-  try {
-    return window.sessionStorage.getItem(DISMISSED_KEY) === latestId;
-  } catch {
-    return false;
-  }
 }
 
 function notify() {
@@ -40,13 +27,8 @@ export function openWhatsNew(): void {
   notify();
 }
 
-function dismiss(latestId: string | null) {
+function dismiss() {
   openedByHand = false;
-  try {
-    if (latestId) window.sessionStorage.setItem(DISMISSED_KEY, latestId);
-  } catch {
-    // Without storage it may open again on the next page; harmless.
-  }
   notify();
 }
 
@@ -62,11 +44,11 @@ export function WhatsNew({
   const router = useRouter();
   const unseen = Boolean(latestId && seen !== latestId);
   function close() {
-    dismiss(latestId);
+    dismiss();
   }
   const open = useSyncExternalStore(
     subscribe,
-    () => openedByHand || (unseen && !dismissedThisSession(latestId)),
+    () => openedByHand,
     () => false,
   );
   const [understood, setUnderstood] = useState(false);
@@ -76,7 +58,7 @@ export function WhatsNew({
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') dismiss(latestId);
+      if (event.key === 'Escape') dismiss();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);

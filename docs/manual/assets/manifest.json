@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-25",
+  "updated": "2026-11-03",
   "privacy": "Blank, filtered or synthetic screens; no credentials/tokens/private customer documents.",
   "assets": [
     {
@@ -97,6 +97,30 @@
       "limitations": "Manual UI screenshot, not a production app transaction.",
       "sha256": "0e8341554044402e3ce59849880fdb0c0e86fb04adecc7a594117c0ba77aa8b4",
       "usage": "Selected complex-topic figure or manual/brand asset."
+    },
+    {
+      "file": "archive/resources-staff-library.jpg",
+      "date": "2026-11-03",
+      "source": "Actual isolated Customer Resources QA with labelled synthetic records",
+      "limitations": "Local only; no real SMTP delivery, production writes or external video playback verified.",
+      "sha256": "3a36a583e8f0214247416a4c1109620d9f0994418c132ba69460b08a5c571e70",
+      "usage": "Evidence archive only; not shown inline in reading guide."
+    },
+    {
+      "file": "archive/resources-customer-preview.jpg",
+      "date": "2026-11-03",
+      "source": "Actual isolated Customer Resources QA with labelled synthetic records",
+      "limitations": "Local only; no real SMTP delivery, production writes or external video playback verified.",
+      "sha256": "ef409c5245397f8a04bcc759d756e96f4ce4c0af0c895fa8cb3a3e2dc9793e22",
+      "usage": "Evidence archive only; not shown inline in reading guide."
+    },
+    {
+      "file": "archive/resources-customer-mobile.jpg",
+      "date": "2026-11-03",
+      "source": "Actual isolated Customer Resources QA with labelled synthetic records",
+      "limitations": "Local only; no real SMTP delivery, production writes or external video playback verified.",
+      "sha256": "77f11fc58e01d844009c80260187ed0e3309b63040442b921f71b66fe77b85fb",
+      "usage": "Evidence archive only; not shown inline in reading guide."
     }
   ]
 }

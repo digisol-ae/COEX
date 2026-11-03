@@ -1,6 +1,6 @@
 window.WORKTELLO_MANUAL = {
-  "version": "2026.10.30",
-  "updated": "30 October 2026",
+  "version": "2026.11.04",
+  "updated": "4 November 2026",
   "title": "Worktello field guide",
   "chapters": [
     {
@@ -689,6 +689,63 @@ window.WORKTELLO_MANUAL = {
       "status": "Documented workflow"
     },
     {
+      "id": "customer-resources",
+      "title": "Share customer resources",
+      "group": "Customer work",
+      "roles": [
+        "Agent",
+        "Admin",
+        "Customer"
+      ],
+      "intro": "Send customers selected tutorial documents and videos through email or a ticket. They verify an email code without creating or signing into an account.",
+      "steps": [
+        {
+          "title": "Maintain the library",
+          "text": "Open Support → Customer resources. Managers and administrators can add a document or supported video link, enter a title, description, product and category, then save a draft or publish it. Only published items can be shared."
+        },
+        {
+          "title": "Choose resources and recipient",
+          "text": "Select up to 20 published resources and choose Share resources. Find an existing customer/contact and review the recipient, subject and message. From a customer ticket, use Share resources above the reply box; it uses that ticket’s reply address."
+        },
+        {
+          "title": "Set the link expiry",
+          "text": "The default is 72 hours. Change the hours for this share if needed, between one hour and 365 days. Review the form before emailing. Requesting another code never extends the original expiry."
+        },
+        {
+          "title": "Open and verify",
+          "text": "The customer receives both a resource link and an eight-digit one-time code by email. Open the link and enter that code once. The verified browser retains access until expiry or revocation. A different browser needs a fresh code emailed to the original recipient."
+        },
+        {
+          "title": "View or download",
+          "text": "Use the PDF preview and page controls, open a document, download the original, or watch the linked video. Office documents download for opening in a suitable application. Video availability depends on the source provider."
+        },
+        {
+          "title": "Track and revoke",
+          "text": "Sharing history shows the recipient, expiry, code verification and downloads. Use Revoke access to stop future access from all browsers. Verification does not prove a document was read or a video watched."
+        }
+      ],
+      "notes": [
+        "For ticket shares, the public reply includes the link while the dedicated email contains the OTP. The code is not added to the ticket conversation or its CC notification.",
+        "Archive a resource to remove access from existing shares. To replace its content, create a new resource and archive the previous one.",
+        "Sharing uses configured outbound email. A queued email is not confirmation of inbox delivery."
+      ],
+      "sources": [
+        [
+          "Customer resources guide",
+          "../CUSTOMER-RESOURCES.md"
+        ],
+        [
+          "Local QA record",
+          "../qa/CUSTOMER-RESOURCES-2026-11-03.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "tickets"
+      ],
+      "status": "Prepared feature; local QA verified, production release pending"
+    },
+    {
       "id": "customers",
       "title": "Customers and contacts",
       "group": "Customer work",
@@ -931,6 +988,65 @@ window.WORKTELLO_MANUAL = {
         "transfer"
       ],
       "status": "Documented workflow"
+    },
+    {
+      "id": "contract-signing",
+      "title": "Send and sign customer agreements",
+      "group": "Customer work",
+      "roles": [
+        "Agent",
+        "Admin",
+        "Customer"
+      ],
+      "intro": "Send a reviewed agreement on your tenant letterhead and keep each request, revision and signing result traceable.",
+      "steps": [
+        {
+          "title": "Configure tenant letterhead",
+          "text": "An administrator opens Setup → Tenant settings and saves the tenant name, logo, address, contact details and footer. A logo and address are required before sending."
+        },
+        {
+          "title": "Save and review the agreement",
+          "text": "Open a contract, generate or edit its agreement and complete the review. The saved revision and letterhead are preserved with each request."
+        },
+        {
+          "title": "Choose the customer signer",
+          "text": "Open Signatures, select an active contact belonging to that customer, preview the saved agreement and choose Send for signature. The private invitation expires after 14 days."
+        },
+        {
+          "title": "Verify and sign",
+          "text": "The customer requests an email verification code before viewing the agreement. After verifying, review the complete agreement, draw with a finger/stylus, upload a signature image or type/style a full name, then explicitly accept and sign."
+        },
+        {
+          "title": "Keep the signed copy and receipt",
+          "text": "After signing, download the signed agreement and signing receipt, or print/save PDF. Authorised staff can download both from the contract history."
+        },
+        {
+          "title": "Track separate sends",
+          "text": "Open Contracts → Signature tracking to filter awaiting signature, signed, expired and cancelled requests. Each send retains its own reference, revision, recipient and timestamps. Cancel a pending request before sending a replacement for that contract."
+        }
+      ],
+      "notes": [
+        "Signing and contract activation are separate actions.",
+        "An email code verifies mailbox access rather than independently confirming identity or signing authority.",
+        "The native signing receipt is server-authenticated evidence, not a qualified signer certificate. Requirements differ by country and contract type.",
+        "Verification codes last 10 minutes and verified browser access lasts 30 minutes. Contact the sender if the invitation expires."
+      ],
+      "sources": [
+        [
+          "Open Signature tracking",
+          "https://worktello.com/contracts/signatures"
+        ],
+        [
+          "Signing and evidence guide",
+          "../../projects/crm-contracts/EVIDENCE-CONTROLS.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "contracts",
+        "customers"
+      ],
+      "status": "Locally verified; production release pending"
     },
     {
       "id": "agreement-drafting",
@@ -1571,6 +1687,17 @@ window.WORKTELLO_MANUAL = {
     }
   ],
   "resolutions": [
+    {
+      "id": "customer-resources",
+      "title": "Customer resources with expiring email-code access",
+      "date": "3 Nov 2026",
+      "symptom": "Customers need reusable tutorial documents and videos from email or ticket replies without account sign-in.",
+      "cause": "The existing staff tutorial supports one staff video, not a customer resource library.",
+      "fix": "Reusable documents/videos, customer-bound shares, one-time email code, default 72-hour expiry, browser verification and revocation.",
+      "verification": "455 unit tests, 20 focused Mongo/email tests and synthetic browser workflows passed.",
+      "status": "Local implementation; draft review, not deployed",
+      "record": "../resolutions/2026-11-03-customer-resources.md"
+    },
     {
       "id": "outlook-web",
       "title": "Outlook iframe refused to connect",

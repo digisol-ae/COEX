@@ -1,5 +1,6 @@
 'use client';
 
+import { ShareResourcesPanel } from '@/modules/resources/share-panel';
 import { useActionState, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { Button, Card, CardSection, Notice } from '@/components/ui';
@@ -37,8 +38,10 @@ export function ReplyBox({
   autoSignature = '',
   ccEmails = [],
   collaboratorOptions = [],
+  canShareResources = false,
 }: {
   /** Who is copied on public replies, edited from the reply box itself. */
+  canShareResources?: boolean;
   ccEmails?: string[];
   collaboratorOptions?: CollaboratorOption[];
   /** Added to the customer's email by the server; shown so the agent knows it is there. */
@@ -52,12 +55,13 @@ export function ReplyBox({
   cannedReplies: CannedReplySummary[];
   context: ReplyContext;
 }) {
-  const [visibility, setVisibility] = useState<'public' | 'internal'>('public');
+  const [visibility, setVisibility] = useState<'public' | 'internal' | 'resources'>('public');
   const [usedReplyId, setUsedReplyId] = useState('');
   const [state, formAction, pending] = useActionState(replyAction, initialState);
   const box = useRef<HTMLTextAreaElement>(null);
 
   const isInternal = visibility === 'internal';
+  const isResources = visibility === 'resources';
 
   function insert(reply: CannedReplySummary) {
     const element = box.current;
@@ -78,16 +82,32 @@ export function ReplyBox({
           <button
             type="button"
             onClick={() => setVisibility('public')}
-            aria-pressed={!isInternal}
+            aria-pressed={visibility === 'public'}
             className={clsx(
               'rounded-[var(--radius-control)] px-3 py-1.5 text-[13px] transition-colors',
-              !isInternal
+              visibility === 'public'
                 ? 'bg-[var(--color-surface-muted)] font-medium text-[var(--color-ink)]'
                 : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]',
             )}
           >
             Reply to customer
           </button>
+
+          {canShareResources ? (
+            <button
+              type="button"
+              onClick={() => setVisibility('resources')}
+              aria-pressed={isResources}
+              className={clsx(
+                'rounded-[var(--radius-control)] px-3 py-1.5 text-[13px] transition-colors',
+                isResources
+                  ? 'bg-[var(--color-surface-muted)] font-medium text-[var(--color-ink)]'
+                  : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]',
+              )}
+            >
+              Share resources
+            </button>
+          ) : null}
 
           <button
             type="button"
@@ -103,7 +123,7 @@ export function ReplyBox({
             Internal note
           </button>
 
-          {cannedReplies.length > 0 && !isInternal ? (
+          {cannedReplies.length > 0 && visibility === 'public' ? (
             <select
               value=""
               onChange={(event) => {
@@ -125,7 +145,7 @@ export function ReplyBox({
           ) : null}
         </div>
 
-        {!isInternal ? (
+        {!isInternal && !isResources ? (
           <CollaboratorsInline
             ticketId={ticketId}
             emails={ccEmails}
@@ -133,7 +153,16 @@ export function ReplyBox({
           />
         ) : null}
 
-        <form action={formAction} className="mt-3 space-y-2">
+        {isResources ? (
+          <ShareResourcesPanel
+            inline
+            ticketId={ticketId}
+            ticketRecipient={emailTo}
+            onShared={() => setVisibility('public')}
+          />
+        ) : null}
+
+        <form hidden={isResources} action={formAction} className="mt-3 space-y-2">
           <input type="hidden" name="ticketId" value={ticketId} />
           <input type="hidden" name="visibility" value={visibility} />
           <input type="hidden" name="cannedReplyId" value={isInternal ? '' : usedReplyId} />

@@ -3,9 +3,8 @@
  *
  * Describe user-facing features/UI improvements only; keep technical/backend details in handover docs.
  * Owner-requested maintenance entries show counts only.
- * Add a release at the top whenever something users will notice ships. The newest release's id is
- * what "I understand" records on a person's account, so a new entry at the top is all it takes for
- * the drawer to open by itself once more for everyone.
+ * Add a release at the top whenever something users will notice ships. The What's new drawer opens
+ * when a person chooses it from the user menu; its unread indicator remains until acknowledged.
  */
 
 export interface ReleaseNote {

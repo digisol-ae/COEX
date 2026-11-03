@@ -58,6 +58,7 @@ describe('section search boundaries', () => {
     expect(searchContext('/contracts')?.scope).toBe('contracts');
     expect(searchContext('/dashboard')?.scope).toBe('all');
     expect(searchContext('/setup/email')).toBeNull();
+    expect(searchContext('/support/resources')).toBeNull();
   });
   it.each([
     'tasks',

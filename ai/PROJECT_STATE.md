@@ -1,17 +1,29 @@
 # Worktello (formerly COEX) — Shared AI Project State
 
+## Native signing release integration — 4 November 2026
+
+Owner authorised deployment of committed changes. Release branch integrates commit 1ae7526 with current main, preserving the live Customer Resources feature. Native signing, tenant letterhead, independent history and versioned evidence receipts are included. Production cutover has not occurred yet; follow projects/crm-contracts/EVIDENCE-CONTROLS.md and the new dated release record.
+
 ## Customer Resources live — 4 November 2026
 
 PR #79 merged as `6f704035702d8a569e063e6cbedf75bc6a2c27dc`. Active `coex-app-customer-resources` id 10/PID 56939 serves loopback 3008 from `/srv/coex/releases/customer-resources-20261104` (Node 22.23.4). All four app vhosts target 3008; prior Board slot 3007 remains healthy rollback. PM2 saved; workers retained PIDs 906/907/908 with zero restarts. PR/main CI, 455 fresh unit tests, server production build, 20/20 HTTPS monitor and authenticated live library/share-form checks passed. No customer email/upload, data migration, password/account/session change. Real customer delivery remains pilot acceptance. Scope excludes separate local signing/features work. Full evidence and rollback: `ai/RELEASE-2026-11-04-CUSTOMER-RESOURCES.md`.
 
-## Customer Resources — 3 November 2026 (draft PR #79, not deployed)
+## Customer Resources — 3 November 2026 (local implementation history)
 
-Implemented and committed as `b74abf82ee8a6f70d33ea58cee5874a8fb320459` on `codex/customer-resources`, pushed for review at https://github.com/digisol-ae/COEX/pull/79. Source is isolated at `/Volumes/sd-mac/Developer/DigiSol/worktello-show-more-live`; do not assume this older mixed checkout contains the new feature or pull over its unrelated edits.
+Owner approved a customer document/video library, sharing by email or customer ticket, no account sign-in, single-use OTP emailed with the link, customizable expiry defaulting to 72 hours, and same-browser access until the original expiry. Implemented in isolated checkout `/Volumes/sd-mac/Developer/DigiSol/worktello-show-more-live`, branch `codex/customer-resources`; preserve the original mixed checkout.
 
-Approved behavior: reusable tutorial documents/video links, email or customer-ticket sharing, no account sign-in, single-use OTP emailed with the link, customizable expiry default 72 hours, and same-browser access until expiry/revocation. Customer library, PDF preview/download, permission/customer/tenant checks, history and revocation implemented. Local types/lint/format, 455 unit tests, 20 focused Mongo/email tests, production build and portable-manual validation passed. Browser upload, sharing, PDF/download, custom 24-hour ticket share, repeat access, revocation and phone layout passed with synthetic local data. Real email delivery, live customer upload and deployment have not occurred. GitHub CI run `41601701297` passed on the draft PR. Review preview is http://localhost:3123/support/resources; no mail worker is running for its dedicated `worktello_resources_local` database on local Mongo 27020.
+Staff can draft/publish/archive resources, select existing customer contacts, share with custom expiry and revoke access. Protected public pages support PDF preview and downloads after verification. Ticket sharing posts only the link; the OTP goes solely to the server-selected recipient. Local browser QA, 455 unit tests, 20 focused Mongo/email tests and production build passed. No real emails, production upload, migration, account change or deployment. Canonical requirements/implementation: `docs/CUSTOMER-RESOURCES.md`; QA: `docs/qa/CUSTOMER-RESOURCES-2026-11-03.md`.
 
-Definitive feature and QA guides are in the isolated checkout: `docs/CUSTOMER-RESOURCES.md` and `docs/qa/CUSTOMER-RESOURCES-2026-11-03.md`. PR includes updated task/state/handoff notes and the manual. Current primary worktree modifications, project planning, exports and backups were preserved.
 
+## UI improvements release live — 29 October 2026
+
+PR #73 merged as `93ec4211da581b99010e9e4ba0ca60b98155b3cb` and is active at `/srv/coex/releases/ui-improvements-20261029` on port 3005 (PM2 `coex-app-ui-improvements`, PID 544805; Node 22.23.4). All four Worktello/COEX app vhosts proxy to 3005. The prior feedback release on 3004 remains the immediate rollback; 3001/3002 also remain healthy. Workers 10/11/12 and osTicket remain untouched. See `ai/RELEASE-2026-10-29-UI-IMPROVEMENTS.md` for release checks and rollback.
+
+What's New includes the UI changes under Improvements but no longer auto-opens for all agents; they can open it from the user menu and the unread dot remains until acknowledged. No production task/time data, account or session was changed.
+
+## Security follow-up — 29 October 2026
+
+`npm audit --omit=dev --audit-level=critical` on the deployed dependency lock reports a critical Next.js advisory for the existing 16.3.8 version, plus 8 other production dependency advisories. PR #73 did not change package versions. Exposure conditions have not been fully evaluated; ship a separate patched Next.js dependency update after compatibility tests. Details are in the 29 October UI release record.
 
 ## Microsoft 365 workspace live; Copilot actions unaccepted — 25 October 2026
 

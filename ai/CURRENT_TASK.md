@@ -1,46 +1,37 @@
 # Worktello (formerly COEX) — Current AI Task
 
+## Native signing release integration — 4 November 2026
+
+Owner authorised deployment of committed changes. Release branch integrates commit 1ae7526 with current main, preserving the live Customer Resources feature. Native signing, tenant letterhead, independent history and versioned evidence receipts are included. Production cutover has not occurred yet; follow projects/crm-contracts/EVIDENCE-CONTROLS.md and the new dated release record.
+
 ## Customer Resources live — 4 November 2026
 
 PR #79 merged as `6f704035702d8a569e063e6cbedf75bc6a2c27dc`. Active `coex-app-customer-resources` id 10/PID 56939 serves loopback 3008 from `/srv/coex/releases/customer-resources-20261104` (Node 22.23.4). All four app vhosts target 3008; prior Board slot 3007 remains healthy rollback. PM2 saved; workers retained PIDs 906/907/908 with zero restarts. PR/main CI, 455 fresh unit tests, server production build, 20/20 HTTPS monitor and authenticated live library/share-form checks passed. No customer email/upload, data migration, password/account/session change. Real customer delivery remains pilot acceptance. Scope excludes separate local signing/features work. Full evidence and rollback: `ai/RELEASE-2026-11-04-CUSTOMER-RESOURCES.md`.
 
-## Customer Resources — 3 November 2026 (draft PR #79, not deployed)
+## Customer Resources — 3 November 2026 (local implementation history)
 
-Implemented and committed as `b74abf82ee8a6f70d33ea58cee5874a8fb320459` on `codex/customer-resources`, pushed for review at https://github.com/digisol-ae/COEX/pull/79. Source is isolated at `/Volumes/sd-mac/Developer/DigiSol/worktello-show-more-live`; do not assume this older mixed checkout contains the new feature or pull over its unrelated edits.
+Owner approved a customer document/video library, sharing by email or customer ticket, no account sign-in, single-use OTP emailed with the link, customizable expiry defaulting to 72 hours, and same-browser access until the original expiry. Implemented in isolated checkout `/Volumes/sd-mac/Developer/DigiSol/worktello-show-more-live`, branch `codex/customer-resources`; preserve the original mixed checkout.
 
-Approved behavior: reusable tutorial documents/video links, email or customer-ticket sharing, no account sign-in, single-use OTP emailed with the link, customizable expiry default 72 hours, and same-browser access until expiry/revocation. Customer library, PDF preview/download, permission/customer/tenant checks, history and revocation implemented. Local types/lint/format, 455 unit tests, 20 focused Mongo/email tests, production build and portable-manual validation passed. Browser upload, sharing, PDF/download, custom 24-hour ticket share, repeat access, revocation and phone layout passed with synthetic local data. Real email delivery, live customer upload and deployment have not occurred. GitHub CI run `41601701297` passed on the draft PR. Review preview is http://localhost:3123/support/resources; no mail worker is running for its dedicated `worktello_resources_local` database on local Mongo 27020.
-
-Definitive feature and QA guides are in the isolated checkout: `docs/CUSTOMER-RESOURCES.md` and `docs/qa/CUSTOMER-RESOURCES-2026-11-03.md`. PR includes updated task/state/handoff notes and the manual. Current primary worktree modifications, project planning, exports and backups were preserved.
+Staff can draft/publish/archive resources, select existing customer contacts, share with custom expiry and revoke access. Protected public pages support PDF preview and downloads after verification. Ticket sharing posts only the link; the OTP goes solely to the server-selected recipient. Local browser QA, 455 unit tests, 20 focused Mongo/email tests and production build passed. No real emails, production upload, migration, account change or deployment. Canonical requirements/implementation: `docs/CUSTOMER-RESOURCES.md`; QA: `docs/qa/CUSTOMER-RESOURCES-2026-11-03.md`.
 
 
-## Board columns fixed live — 29 October 2026
+## UI improvements release live — 29 October 2026
 
-PR #77 merged as `2312c21c4c43d426a37928206ed4e68aaffc0877`. Each Board status column has an independent ten-task window and Show more control; task edits retain expansion and new tasks reveal within their own column. Signed-in live Personal Board verified 5 To do, 7 In progress, 1 Blocked and initially 10 of 44 Done cards. Done expanded to 20 while To do remained 5. No production tasks changed.
+PR #73 merged as `93ec4211da581b99010e9e4ba0ca60b98155b3cb`. Active `coex-app-ui-improvements` PID 544805 serves loopback port 3005 from `/srv/coex/releases/ui-improvements-20261029`, using Node 22.23.4. All four Worktello/COEX application vhosts target 3005. The feedback release on 3004, green 3002 and blue 3001 remain online rollback slots. PM2 was saved; osTicket and workers 10/11/12 were untouched.
 
-Active `coex-app-board-columns` PID 559971, PM2 id 27, loopback 3007, `/srv/coex/releases/board-columns-20261029`. All four app vhosts target 3007. Prior `coex-app-show-more` PID 557684 on 3006 is immediate rollback. Workers retained PIDs/restart counts; PM2 saved. Local checks, 444 unit tests, local/server builds and PR/main CI passed; 20 HTTPS switch samples passed. Full evidence and rollback: `ai/RELEASE-2026-10-29-BOARD-COLUMNS.md`.
+The release adds the collapsible/sortable Team Activity Summary, supplied add-time/share icons, compact share action, Worktello W button wait state and an Improvements entry in What's New. What's New opens only when an agent selects it; the unread indicator remains until acknowledged. No database migration, task/time write, email, account change or session expiry was performed. Full evidence and rollback: `ai/RELEASE-2026-10-29-UI-IMPROVEMENTS.md`.
 
+PR CI run 40817396640 and merged-main CI run 40817646544 passed. Local typecheck, source lint, formatting, 441 unit tests and 83-route webpack build passed; the production server build passed. Candidate and post-switch HTTPS checks passed. No authenticated production UI flow was exercised.
 
-## Space Show more fix — 29 October 2026 (live)
+Security follow-up: production-only `npm audit` reports 1 critical Next.js advisory and 8 additional advisories in dependencies. The release did not change dependencies; the Next.js issue predates PR #73 and needs a separately tested security update. See the release record.
 
-Fixed Space Board/List pagination resetting when task ordering changes after edits, moves or refreshes. The window now resets on Space/view/folder/filter changes, and both inline and full-form creation return the saved task ID so the board expands through that task. Existing filters remain applied. PR #76 merged as `8ea8c87fa85837a36ff5f16fafcfd26fcd8a4bb9` and deployed on loopback 3006 (`coex-app-show-more`, PID 557684). All four app vhosts target 3006; prior 3005 remains warm rollback. Local types/lint/format, 441 unit tests, local/server builds and PR/main CI passed. Twenty HTTPS samples passed; signed-in live Board expanded 10 to 20 of 57. No production task write or worker restart. Preserve the mixed checkout. Release/rollback: `ai/RELEASE-2026-10-29-SHOW-MORE.md`; isolated mutation QA: `ai/SPACE-SHOW-MORE-2026-10-29.md`.
+## Completed feedback release live — 28 October 2026
 
-## 29 October 2026 release attempt — held before production switch
+PR #70 merged as `515649d3b9abddbf02b7990e035e368d29c6512e`; this release is retained on loopback port 3004 in `/srv/coex/releases/feedback-20261028` as the immediate rollback. The current UI improvements release is active on 3005. Green 3002 and blue 3001 also remain online fallbacks. Full original release record: `ai/RELEASE-2026-10-28-FEEDBACK.md`.
 
-Owner requested a night release and clarified 02:00 Pakistan time. The one-time Codex follow-up ran after that time and was deleted after the attempt. Earlier owner authorization permits release only after its scope and checks are verified. The release was **not committed, pushed, merged or deployed**. No production operations or data mutations occurred. Recent button/filter/loading and Team activity summary UI work is categorized under **Improvements** in What’s New.
+PR and merged-main CI passed; local clean install, 441 unit tests, types, lint, formatting and production build passed. Isolated database suite under `TZ=Asia/Dubai`: 265/266 passed; the one known unrelated expectation is `tests/database/time.test.ts:176` (omitted `billable` defaults false in the existing time service). Twenty public HTTPS samples returned login 200, Outlook pane 200 and unauthenticated Outlook task API 401. No authenticated workflow, task creation, mail, data migration or session expiry was performed. The feedback bundle does not include the deferred owner/admin task-assignment request.
 
-Current source checkout is `claude/footer-release-record` at `372bd2c`, with over 100 changed source/documentation files plus untracked QA, export, backup, contract-source and project material. Do not deploy the dirty checkout wholesale. At release time, inspect every candidate path, prepare a clean source-only release, preserve `projects/`, `docs/contracts_templates/`, `exports/`, `outputs/backup/`, generated QA/database assets and other unrelated material, and follow the current zero-downtime runbook. Last recorded production slot mapping is from 26 October and is stale: confirm active web slot, rollback health, vhosts, PM2 and workers live before any operation.
-
-Current preflight evidence:
-
-- Root typecheck passed after UI and note changes.
-- Source-only ESLint (`apps/web/src`, `apps/api/src`, `apps/api/tests`, `packages/shared/src`, `scripts`, `tests`, `--max-warnings=0`) passed. The broad `npm run lint` scanned generated `.next-pagination-qa` output and failed; one actual source immutability finding in the sortable table was fixed, as was an unused import. Re-run clean-source lint in the release worktree.
-- Unit suite: 68 files / 441 tests passed.
-- The first full Mongo-backed run on the dedicated local container found 3 SortableTable unit failures; the body offset calculation was corrected. Focused SortableTable tests then passed (3/3), and the API database file passed serially (14/14) after test expectation corrections. Root typecheck and source-only ESLint passed after the fix.
-- Full-suite reruns remain inconclusive due test-runner/database-worker instability: one run reported 725 passed with 9 skipped and a `desk.test.ts` connection hook timeout; the isolated desk file passes 9/9. A bounded-concurrency run was stopped after an API test took 170 seconds. A serial-file run reported 717 passed then failed to start the opportunities worker and timed out terminating the auth worker. Do not claim the full suite passed; resolve a stable repeatable full run before release.
-- Turbopack build could not bind its worker port (`Operation not permitted`). An isolated Webpack build passed after the final SortableTable offset fix, with all 83 static generation entries, using `COEX_NEXT_DIST_DIR=.next-release-qa`. Next rewrote `apps/web/tsconfig.json`; that generated rewrite was restored.
-- Source-only ESLint passed; broad `npm run lint` scanned generated `.next-pagination-qa` output and failed. `git diff --check` passed.
-
-Release note is added at the top of `apps/web/src/modules/core/release-notes.ts` as “Small improvements across Worktello”, section **Improvements**, dated 29 October. Preserve that grouping in a future release. The dirty working tree still has over 100 changed paths and private/unrelated material; no clean candidate, commit, PR, CI, live slot/backup check or authenticated production smoke was completed. Resume only after stabilizing the full suite, then prepare and verify a clean source-only candidate and inspect production state afresh. Keep workers and rollback slot intact.
+Outlook routes/static pane are deployed. The production-origin manifest is prepared at `outputs/microsoft/Worktello-Outlook-production/manifest.xml`; it still needs user/admin sideload and real Outlook acceptance. The reported multi-computer freezes remain unproven as resolved; monitor real staff traffic and correlate any remaining freeze/proxy-reset report separately.
 
 ## Footer release live; support.digisolteam.com moved page — 26 October 2026 (Claude)
 

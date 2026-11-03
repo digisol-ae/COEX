@@ -14,7 +14,10 @@ export function LetterheadHeader({ letterhead }: { letterhead: TenantLetterhead 
           style={{ maxWidth: 'min(260px, 100%)', maxHeight: 100, objectFit: 'contain' }}
         />
       )}
-      <div className="w-full min-w-0 sm:w-auto sm:flex-1 sm:text-right" style={{ overflowWrap: 'anywhere' }}>
+      <div
+        className="w-full min-w-0 sm:w-auto sm:flex-1 sm:text-right"
+        style={{ overflowWrap: 'anywhere' }}
+      >
         <p className="text-xl font-semibold" style={{ color: letterhead.color }}>
           {letterhead.name}
         </p>

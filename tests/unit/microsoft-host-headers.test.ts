@@ -7,6 +7,7 @@ describe('embedded Microsoft workspace headers', () => {
     expect(rules.map((rule) => rule.source).sort()).toEqual([
       '/integrations/outlook/:path*',
       '/integrations/teams/:path*',
+      '/sign/:path*',
     ]);
     const teams = rules.find((rule) => rule.source === '/integrations/teams/:path*')!;
     const outlook = rules.find((rule) => rule.source === '/integrations/outlook/:path*')!;
@@ -31,5 +32,12 @@ describe('embedded Microsoft workspace headers', () => {
     ]);
     expect(headers['Cache-Control']).toBe('no-store');
     expect(headers['Referrer-Policy']).toBe('no-referrer');
+    const signing = rules.find((rule) => rule.source === '/sign/:path*')!;
+    const signingHeaders = Object.fromEntries(
+      signing.headers.map(({ key, value }) => [key, value]),
+    );
+    expect(signingHeaders['Content-Security-Policy']).toBe("frame-ancestors 'none'");
+    expect(signingHeaders['Cache-Control']).toBe('no-store');
+    expect(signingHeaders['Referrer-Policy']).toBe('no-referrer');
   });
 });

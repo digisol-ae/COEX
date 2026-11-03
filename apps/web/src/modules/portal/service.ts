@@ -111,11 +111,7 @@ export async function portalTickets(search = '', page = 1, status = '', cumulati
       .select('number subject status createdAt lastActivityAt')
       .sort({ lastActivityAt: -1, _id: -1 })
       .skip(cumulative ? 0 : (safePage - 1) * RECORD_PAGE_SIZE)
-      .limit(
-        cumulative
-          ? Math.min(safePage * RECORD_PAGE_SIZE, 2147483647)
-          : RECORD_PAGE_SIZE,
-      ),
+      .limit(cumulative ? Math.min(safePage * RECORD_PAGE_SIZE, 2147483647) : RECORD_PAGE_SIZE),
     TicketModel.countDocuments(query),
   ]);
   return {

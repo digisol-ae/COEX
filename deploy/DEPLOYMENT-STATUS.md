@@ -1,19 +1,30 @@
 # COEX live deployment
 
-## Board columns fixed live — 29 October 2026
+## Customer Resources live — 4 November 2026
 
-PR #77 merged as `2312c21c4c43d426a37928206ed4e68aaffc0877`. Each Board status column has an independent ten-task window and Show more control; task edits retain expansion and new tasks reveal within their own column. Signed-in live Personal Board verified 5 To do, 7 In progress, 1 Blocked and initially 10 of 44 Done cards. Done expanded to 20 while To do remained 5. No production tasks changed.
+PR #79 merged as `6f704035702d8a569e063e6cbedf75bc6a2c27dc`. Active `coex-app-customer-resources` id 10/PID 56939 serves loopback 3008 from `/srv/coex/releases/customer-resources-20261104` (Node 22.23.4). All four app vhosts target 3008; prior Board slot 3007 remains healthy rollback. PM2 saved; workers retained PIDs 906/907/908 with zero restarts. PR/main CI, 455 fresh unit tests, server production build, 20/20 HTTPS monitor and authenticated live library/share-form checks passed. No customer email/upload, data migration, password/account/session change. Real customer delivery remains pilot acceptance. Scope excludes separate local signing/features work. Full evidence and rollback: `ai/RELEASE-2026-11-04-CUSTOMER-RESOURCES.md`.
 
-Active `coex-app-board-columns` PID 559971, PM2 id 27, loopback 3007, `/srv/coex/releases/board-columns-20261029`. All four app vhosts target 3007. Prior `coex-app-show-more` PID 557684 on 3006 is immediate rollback. Workers retained PIDs/restart counts; PM2 saved. Local checks, 444 unit tests, local/server builds and PR/main CI passed; 20 HTTPS switch samples passed. Full evidence and rollback: `ai/RELEASE-2026-10-29-BOARD-COLUMNS.md`.
+## Worktello UI improvements live — 29 October 2026
 
+PR #73 merged as `93ec4211da581b99010e9e4ba0ca60b98155b3cb`. Active `coex-app-ui-improvements` PID 544805 serves loopback port 3005 from `/srv/coex/releases/ui-improvements-20261029`, using Node 22.23.4. All four canonical app vhosts (`worktello.conf`, `worktello-le-ssl.conf`, `coex.conf`, `coex-le-ssl.conf`) proxy to 3005. Previous feedback release `coex-app-feedback` PID 515255 on 3004 remains warm rollback; green 3002 and blue 3001 remain online. PM2 saved. osTicket and workers 10/11/12 were not restarted.
 
-## Space Show more fix live — 29 October 2026
+PR CI run 40817396640 and merged-main CI run 40817646544 passed. Local typecheck, source lint, formatting, 441 unit tests and the 83-route webpack build passed. Production `npm ci` and Node 22.23.4 server build passed. The same server-action key as the prior release was preserved; prior hashed static assets were copied without overwrites. Candidate login, Outlook pane/dialog, add-time/share icons returned 200; unauthenticated Outlook task API returned 401. After switch, 20/20 HTTPS samples returned login 200, task pane 200, API 401, and both icons 200. Apache config test passed. Final public `/login`, `/time/activity`, Outlook pane and icons returned 200; API remained 401. Loopback ports 3001, 3002, 3004 and 3005 all returned login 200. No authenticated production workflow was performed.
 
-PR #76 merged as `8ea8c87fa85837a36ff5f16fafcfd26fcd8a4bb9`. Active `coex-app-show-more` PID 557684 serves loopback 3006 from `/srv/coex/releases/show-more-20261029`; all four app vhosts target 3006. Previous `coex-app-ui-improvements` PID 544805 on 3005 remains immediate rollback. Existing workers and slots unchanged; PM2 saved.
+No DB migration, task/time write, email, account change or session expiry was performed. Backup contains the private pre-switch PM2 dump and all four canonical vhost snapshots at `/srv/coex/shared/backups/worktello-ui-improvements-20261029/` (mode 0700 directory; snapshot files mode 0600). Release tree and prior slot remain available.
 
-Local types/lint/format, 441 unit tests, local/server production builds and PR/main CI passed. Server-action key and prior hashed assets retained. Fresh database/files/config backups verified at `/srv/coex/shared/backups/worktello-show-more-20261029/`. Twenty HTTPS samples passed. Signed-in live Board expanded 10 to 20 of 57; no production task write, migration, email, account/session change or worker restart. Full evidence and exact rollback: `ai/RELEASE-2026-10-29-SHOW-MORE.md`.
+Rollback: verify `http://127.0.0.1:3004/login` returns 200; restore `worktello.conf.before`, `worktello-le-ssl.conf.before`, `coex.conf.before`, and `coex-le-ssl.conf.before` from the private backup directory to `/etc/apache2/sites-available/`; run `sudo apache2ctl configtest`, then `sudo apache2ctl graceful`. Verify `https://worktello.com/login` and keep the 3005 process until rollback is confirmed. Do not restart workers or touch database/session state.
 
-Rollback: verify 3005/login returns 200; restore all four app `*.conf.before` snapshots from the backup directory to canonical sites-available files, run Apache configtest and graceful reload, then verify public HTTPS. Keep workers/data and the new process intact.
+Security follow-up: `npm audit --omit=dev --audit-level=critical` reports 1 critical advisory for the existing `next@16.3.8` dependency and 8 other production dependency advisories. PR #73 changed no package versions. A separate patched Next.js update requires compatibility validation and CI.
+
+## Completed Worktello feedback release live — 28 October 2026
+
+PR #70 merged to `main` as `515649d3b9abddbf02b7990e035e368d29c6512e`; its web process remains available as rollback on 3004 at `/srv/coex/releases/feedback-20261028`. Current traffic is on 3005; 3002 and 3001 are additional warm rollback slots.
+
+Backups and private Apache/PM2 snapshots: `/srv/coex/shared/backups/worktello-feedback-20261028/`; database archive `coex-2026-10-28-1602.archive.gz`, uploaded files `files-2026-10-28-1602.tar.gz`. Gzip and tar integrity checks passed. Twenty HTTPS samples returned `/login` 200, Outlook task pane 200 and unauthenticated Outlook task API 401. The three local web slots and public login answer 200. No DB migration or user/session mutation.
+
+Rollback: confirm `http://127.0.0.1:3002/login` returns 200; restore the four `*.before` vhost files from the private backup directory to `/etc/apache2/sites-available/`, run `sudo apache2ctl configtest`, then `sudo apache2ctl graceful`. Keep the 3004 release and PM2 process until the prior mapping is verified publicly. Workers and database stay untouched.
+
+Verification: PR and merged-main CI passed, 441 unit tests, workspace types/lint/format and local/server production builds passed. Isolated database suite (`TZ=Asia/Dubai`): 265 pass, one known unrelated billable-default expectation failure at `tests/database/time.test.ts:176`. Outlook add-in manifest is prepared but has not been sideloaded or tested in Outlook. No authenticated production UI workflow was performed. See `ai/RELEASE-2026-10-28-FEEDBACK.md` for full scope and limits.
 
 ## Footer release live; support.digisolteam.com moved page — 26 October 2026 (Claude)
 

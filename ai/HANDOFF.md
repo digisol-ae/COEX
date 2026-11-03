@@ -1,3 +1,22 @@
+## 29 October 2026 — UI improvements live
+
+## Customer Resources live — 4 November 2026
+
+PR #79 merged as `6f704035702d8a569e063e6cbedf75bc6a2c27dc`. Active `coex-app-customer-resources` id 10/PID 56939 serves loopback 3008 from `/srv/coex/releases/customer-resources-20261104` (Node 22.23.4). All four app vhosts target 3008; prior Board slot 3007 remains healthy rollback. PM2 saved; workers retained PIDs 906/907/908 with zero restarts. PR/main CI, 455 fresh unit tests, server production build, 20/20 HTTPS monitor and authenticated live library/share-form checks passed. No customer email/upload, data migration, password/account/session change. Real customer delivery remains pilot acceptance. Scope excludes separate local signing/features work. Full evidence and rollback: `ai/RELEASE-2026-11-04-CUSTOMER-RESOURCES.md`.
+
+PR #73 merged to main as `93ec4211da581b99010e9e4ba0ca60b98155b3cb`. Active web process is `coex-app-ui-improvements` PID 544805 on loopback port 3005 from `/srv/coex/releases/ui-improvements-20261029`; all four Worktello/COEX vhosts target 3005. Previous release `coex-app-feedback` PID 515255 on 3004 remains warm rollback; 3001 and 3002 are online. PM2 is saved. The three workers and osTicket were not restarted. Private switch backup: `/srv/coex/shared/backups/worktello-ui-improvements-20261029/`. See `ai/RELEASE-2026-10-29-UI-IMPROVEMENTS.md` for checks, scope and rollback steps.
+
+The new Improvements note is available from the user menu and does not open automatically for agents. No production records, accounts or sessions were changed. Authenticated agent UI and Outlook sideload acceptance were not performed.
+
+Security follow-up: production-only `npm audit` found 1 critical advisory affecting the existing Next.js 16.3.8 dependency, plus 8 additional production advisories. This release changed no dependencies. Plan a separate, tested dependency update; do not infer exploitability or remediation from this UI release.
+
+## Customer Resources — 3 November 2026 (local implementation history)
+
+Owner approved a customer document/video library, sharing by email or customer ticket, no account sign-in, single-use OTP emailed with the link, customizable expiry defaulting to 72 hours, and same-browser access until the original expiry. Implemented in isolated checkout `/Volumes/sd-mac/Developer/DigiSol/worktello-show-more-live`, branch `codex/customer-resources`; preserve the original mixed checkout.
+
+Staff can draft/publish/archive resources, select existing customer contacts, share with custom expiry and revoke access. Protected public pages support PDF preview and downloads after verification. Ticket sharing posts only the link; the OTP goes solely to the server-selected recipient. Local browser QA, 455 unit tests, 20 focused Mongo/email tests and production build passed. No real emails, production upload, migration, account change or deployment. Canonical requirements/implementation: `docs/CUSTOMER-RESOURCES.md`; QA: `docs/qa/CUSTOMER-RESOURCES-2026-11-03.md`.
+
+
 ## 25 October 2026 — guided imports and contacts (draft)
 
 ## Customer Resources live — 4 November 2026
