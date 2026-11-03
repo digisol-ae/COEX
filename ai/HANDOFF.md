@@ -6,6 +6,13 @@ The new Improvements note is available from the user menu and does not open auto
 
 Security follow-up: production-only `npm audit` found 1 critical advisory affecting the existing Next.js 16.3.8 dependency, plus 8 additional production advisories. This release changed no dependencies. Plan a separate, tested dependency update; do not infer exploitability or remediation from this UI release.
 
+## Customer Resources — 3 November 2026 (review, not deployed)
+
+Owner approved a customer document/video library, sharing by email or customer ticket, no account sign-in, single-use OTP emailed with the link, customizable expiry defaulting to 72 hours, and same-browser access until the original expiry. Implemented in isolated checkout `/Volumes/sd-mac/Developer/DigiSol/worktello-show-more-live`, branch `codex/customer-resources`; preserve the original mixed checkout.
+
+Staff can draft/publish/archive resources, select existing customer contacts, share with custom expiry and revoke access. Protected public pages support PDF preview and downloads after verification. Ticket sharing posts only the link; the OTP goes solely to the server-selected recipient. Local browser QA, 455 unit tests, 20 focused Mongo/email tests and production build passed. No real emails, production upload, migration, account change or deployment. Canonical requirements/implementation: `docs/CUSTOMER-RESOURCES.md`; QA: `docs/qa/CUSTOMER-RESOURCES-2026-11-03.md`.
+
+
 ## 25 October 2026 — guided imports and contacts (draft)
 
 Branch `codex/import-review-contacts`: seven templates with protected sample rows and formatting guidance; explicit match review with skip, customer/contact separate-create and targeted update; customer-linked contact import/export and review reports. Blank update fields preserved. 55 unit files/384 tests, workspace types/lint/format and local 75-page build passed; disposable Docker integration passed including tenant/portal protection, customer IDs and parent-name reuse proof invalidation. Browser permission at localhost:3111 was declined; no alternate UI workaround, no deployment or new live business writes. Do not call UI/live acceptance complete. Full record: `docs/resolutions/2026-10-25-import-review.md`. Prior 111-created/13-skipped customer import is separate; skipped rows need owner decisions. Private exports and unrelated projects/outputs remain untracked and excluded.

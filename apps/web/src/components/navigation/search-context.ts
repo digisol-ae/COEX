@@ -16,6 +16,8 @@ export function searchContext(
   pathname: string,
 ): { scope: SearchScope; label: string; hint: string } | null {
   const section = pathname.split('/').filter(Boolean)[0];
+  // The resource library has its own search; do not label it as a ticket search.
+  if (pathname === '/support/resources' || pathname.startsWith('/support/resources/')) return null;
   if (section === 'support')
     return {
       scope: 'tickets',

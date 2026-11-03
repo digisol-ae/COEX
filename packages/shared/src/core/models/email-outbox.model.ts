@@ -13,6 +13,7 @@ const emailOutboxSchema = new Schema(
     kind: {
       type: String,
       enum: [
+        'resource_share',
         'auto_reply',
         'ticket_reply',
         'ticket_assigned',

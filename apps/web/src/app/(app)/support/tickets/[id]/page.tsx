@@ -258,6 +258,7 @@ export default async function TicketPage({
 
         {canManage && !ticket.mergedIntoId ? (
           <ReplyBox
+            canShareResources={actor.permissions.includes('resource.share')}
             ccEmails={ticket.ccEmails}
             collaboratorOptions={collaboratorOptions}
             ticketId={ticket.id}

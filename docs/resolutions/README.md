@@ -4,6 +4,7 @@ Each resolution records its symptom, confirmed cause, scoped fix, verification a
 
 | Date           | Resolution                                                                          | Status                                                                                |
 | -------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| 3 Nov 2026     | [Customer resource sharing](2026-11-03-customer-resources.md)                       | Local implementation and QA complete; draft review, not deployed                      |
 | 26 Oct 2026    | [Customer migration welcome](2026-10-26-customer-welcome.md)                        | Live; friendly guidance and recovery links verified                                   |
 | 26 Oct 2026    | [Migrated customer passwords, email OTP and recovery](2026-10-26-customer-login.md) | Live; 13 passwords imported, isolated auth tests passed; real inbox delivery untested |
 | 25 Oct 2026    | [DigiSol sidebar logo](2026-10-25-digisol-sidebar.md)                               | Live; DigiSol/W visible and app-theme contrast corrected                              |

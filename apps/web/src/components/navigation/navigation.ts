@@ -71,6 +71,7 @@ export const GROUPS: NavigationGroup[] = [
     label: 'Support',
     items: [
       { href: '/support/tickets', label: 'Tickets', permission: 'ticket.read.own' },
+      { href: '/support/resources', label: 'Customer resources', permission: 'resource.read' },
       { href: '/support/metrics', label: 'Desk report', permission: 'ticket.read.all' },
       // Channels join here at M6: email threading and WhatsApp through XVERSE.
     ],

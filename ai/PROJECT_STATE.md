@@ -1,5 +1,12 @@
 # Worktello (formerly COEX) — Shared AI Project State
 
+## Customer Resources — 3 November 2026 (review, not deployed)
+
+Owner approved a customer document/video library, sharing by email or customer ticket, no account sign-in, single-use OTP emailed with the link, customizable expiry defaulting to 72 hours, and same-browser access until the original expiry. Implemented in isolated checkout `/Volumes/sd-mac/Developer/DigiSol/worktello-show-more-live`, branch `codex/customer-resources`; preserve the original mixed checkout.
+
+Staff can draft/publish/archive resources, select existing customer contacts, share with custom expiry and revoke access. Protected public pages support PDF preview and downloads after verification. Ticket sharing posts only the link; the OTP goes solely to the server-selected recipient. Local browser QA, 455 unit tests, 20 focused Mongo/email tests and production build passed. No real emails, production upload, migration, account change or deployment. Canonical requirements/implementation: `docs/CUSTOMER-RESOURCES.md`; QA: `docs/qa/CUSTOMER-RESOURCES-2026-11-03.md`.
+
+
 ## UI improvements release live — 29 October 2026
 
 PR #73 merged as `93ec4211da581b99010e9e4ba0ca60b98155b3cb` and is active at `/srv/coex/releases/ui-improvements-20261029` on port 3005 (PM2 `coex-app-ui-improvements`, PID 544805; Node 22.23.4). All four Worktello/COEX app vhosts proxy to 3005. The prior feedback release on 3004 remains the immediate rollback; 3001/3002 also remain healthy. Workers 10/11/12 and osTicket remain untouched. See `ai/RELEASE-2026-10-29-UI-IMPROVEMENTS.md` for release checks and rollback.
