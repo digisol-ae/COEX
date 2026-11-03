@@ -1,0 +1,155 @@
+QA Gantt - Tasks and Subtasks - Gantt
+12 tasks | 36 visible subtasks | Dubai time (UTC+04:00)
+16 Oct 2026 - 03 Nov 2026 | Saved dates | Dashed outline: parent window
+TASK / SUBTASK - STATUS & OWNER
+16 Oct
+19 Oct
+22 Oct
+25 Oct
+28 Oct
+31 Oct
+3 Nov
+T-3 [Gantt QA 01] Plan requirements
+To do | Local QA Administrator
+> T-3 / 1.1 Review scope
+Done | Local QA Administrator | parent window
+> T-3 / 1.2 Implement and verify
+Open | Local QA Administrator
+> T-3 / 1.3 Prepare acceptance notes
+Open | Unassigned | parent window
+T-4 [Gantt QA 02] Design interface
+Done | Local QA Administrator
+> T-4 / 2.1 Review scope
+Open | Local QA Administrator | parent window
+> T-4 / 2.2 Implement and verify
+Open | Local QA Administrator
+> T-4 / 2.3 Prepare acceptance notes
+Open | Unassigned | parent window
+T-5 [Gantt QA 03] Build task service
+To do | Local QA Administrator
+> T-5 / 3.1 Review scope
+Open | Local QA Administrator | parent window
+> T-5 / 3.2 Implement and verify
+Open | Local QA Administrator
+> T-5 / 3.3 Prepare acceptance notes
+Open | Unassigned | parent window
+T-6 [Gantt QA 04] Prepare customer review
+To do | Local QA Administrator
+> T-6 / 4.1 Review scope
+Done | Local QA Administrator | parent window
+Worktello | Generated 28 Oct 2026 | Blue: open | Green: completed | Red line: today
+1 / 4
+
+QA Gantt - Tasks and Subtasks - Gantt
+12 tasks | 36 visible subtasks | Dubai time (UTC+04:00)
+16 Oct 2026 - 03 Nov 2026 | Saved dates | Dashed outline: parent window
+TASK / SUBTASK - STATUS & OWNER
+16 Oct
+19 Oct
+22 Oct
+25 Oct
+28 Oct
+31 Oct
+3 Nov
+> T-6 / 4.2 Implement and verify
+Open | Local QA Administrator
+> T-6 / 4.3 Prepare acceptance notes
+Open | Unassigned | parent window
+T-7 [Gantt QA 05] Test access rules
+To do | Local QA Administrator
+> T-7 / 5.1 Review scope
+Open | Local QA Administrator | parent window
+> T-7 / 5.2 Implement and verify
+Open | Local QA Administrator
+> T-7 / 5.3 Prepare acceptance notes
+Open | Unassigned | parent window
+T-8 [Gantt QA 06] Review translations
+To do | Local QA Administrator
+> T-8 / 6.1 Review scope
+Open | Local QA Administrator | parent window
+> T-8 / 6.2 Implement and verify
+Open | Local QA Administrator
+> T-8 / 6.3 Prepare acceptance notes
+Open | Unassigned | parent window
+T-9 [Gantt QA 07] Check attachments
+To do | Local QA Administrator
+> T-9 / 7.1 Review scope
+Done | Local QA Administrator | parent window
+> T-9 / 7.2 Implement and verify
+Open | Local QA Administrator
+> T-9 / 7.3 Prepare acceptance notes
+Open | Unassigned | parent window
+Worktello | Generated 28 Oct 2026 | Blue: open | Green: completed | Red line: today
+2 / 4
+
+QA Gantt - Tasks and Subtasks - Gantt
+12 tasks | 36 visible subtasks | Dubai time (UTC+04:00)
+16 Oct 2026 - 03 Nov 2026 | Saved dates | Dashed outline: parent window
+TASK / SUBTASK - STATUS & OWNER
+16 Oct
+19 Oct
+22 Oct
+25 Oct
+28 Oct
+31 Oct
+3 Nov
+T-10 [Gantt QA 08] Run release checks
+To do | Local QA Administrator
+> T-10 / 8.1 Review scope
+Open | Local QA Administrator | parent window
+> T-10 / 8.2 Implement and verify
+Open | Local QA Administrator
+> T-10 / 8.3 Prepare acceptance notes
+Open | Unassigned | parent window
+T-11 [Gantt QA 09] Write handover
+To do | Local QA Administrator
+> T-11 / 9.1 Review scope
+Open | Local QA Administrator | parent window
+> T-11 / 9.2 Implement and verify
+Open | Local QA Administrator
+> T-11 / 9.3 Prepare acceptance notes
+Open | Unassigned | parent window
+T-12 [Gantt QA 10] Confirm schedule
+To do | Local QA Administrator
+> T-12 / 10.1 Review scope
+Done | Local QA Administrator | parent window
+> T-12 / 10.2 Implement and verify
+Open | Local QA Administrator
+> T-12 / 10.3 Prepare acceptance notes
+Open | Unassigned | parent window
+T-13 [Gantt QA 11] Independent subtask dates
+To do | Local QA Administrator | from subtasks
+> T-13 / 11.1 Review scope
+Open | Local QA Administrator
+Worktello | Generated 28 Oct 2026 | Blue: open | Green: completed | Red line: today
+3 / 4
+
+QA Gantt - Tasks and Subtasks - Gantt
+12 tasks | 36 visible subtasks | Dubai time (UTC+04:00)
+16 Oct 2026 - 03 Nov 2026 | Saved dates | Dashed outline: parent window
+TASK / SUBTASK - STATUS & OWNER
+16 Oct
+19 Oct
+22 Oct
+25 Oct
+28 Oct
+31 Oct
+3 Nov
+> T-13 / 11.2 Implement and verify
+Open | Local QA Administrator | parent window
+> T-13 / 11.3 Prepare acceptance notes
+Open | Unassigned | parent window
+T-14 [Gantt QA 12] Unscheduled backlog
+To do | Local QA Administrator
+Not scheduled
+> T-14 / 12.1 Review scope
+Open | Local QA Administrator | parent window
+Not scheduled
+> T-14 / 12.2 Implement and verify
+Open | Local QA Administrator | parent window
+Not scheduled
+> T-14 / 12.3 Prepare acceptance notes
+Open | Unassigned | parent window
+Not scheduled
+Worktello | Generated 28 Oct 2026 | Blue: open | Green: completed | Red line: today
+4 / 4

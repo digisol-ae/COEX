@@ -1,0 +1,7 @@
+{
+  "sourceCommit": "cb3e81b49bab53ca2863444ec278c0a04367f395",
+  "previousSource": "548c123",
+  "commits": "cb3e81b Merge pull request #69 from digisol-ae/codex/manual-20261027\n9d72c7b docs: refresh manual for agreements publishing and domain transition",
+  "changedFiles": "ai/MANUAL-CHECKPOINT-2026-10-27.md\ndocs/manual/automation-state.json\ndocs/manual/content.js\ndocs/manual/content.json\ndocs/resolutions/2026-10-27-agreement-drafting.md\ndocs/resolutions/2026-10-27-domain-transition.md\ndocs/resolutions/2026-10-27-release-publishing.md\ndocs/resolutions/README.md",
+  "generatedAt": "2026-10-27T14:03:59.040709+05:00"
+}

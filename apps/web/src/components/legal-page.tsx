@@ -3,7 +3,15 @@ import { BrandLogo } from './brand-logo';
 import type { ReactNode } from 'react';
 
 /** Public notices must remain readable without a COEX account or Teams session. */
-export function LegalPage({ title, children }: { title: string; children: ReactNode }) {
+export function LegalPage({
+  title,
+  children,
+  lastUpdated = '24 October 2026',
+}: {
+  title: string;
+  children: ReactNode;
+  lastUpdated?: string;
+}) {
   return (
     <main className="min-h-screen bg-[var(--color-surface)] px-5 py-8 text-[var(--color-ink)] sm:px-8 sm:py-12">
       <article className="mx-auto max-w-3xl">
@@ -11,7 +19,7 @@ export function LegalPage({ title, children }: { title: string; children: ReactN
           <BrandLogo className="h-9 w-auto" priority />
           <h1 className="mt-3 text-3xl font-bold">{title}</h1>
           <p className="mt-3 text-sm text-[var(--color-ink-muted)]">
-            Effective date: 22 October 2026 · Last updated: 24 October 2026
+            Effective date: 22 October 2026 · Last updated: {lastUpdated}
           </p>
           <nav aria-label="Policy pages" className="mt-5 flex flex-wrap gap-x-5 gap-y-3 text-sm">
             <Link className="underline underline-offset-4" href="/privacy">

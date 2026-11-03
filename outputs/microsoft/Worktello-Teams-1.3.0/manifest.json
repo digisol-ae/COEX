@@ -1,0 +1,69 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.19",
+  "version": "1.3.0",
+  "id": "0ee8f3f6-879a-4cf0-95d0-9321696f4473",
+  "developer": {
+    "name": "Digisol LLC-FZ",
+    "websiteUrl": "https://coex.digisol.ae",
+    "privacyUrl": "https://coex.digisol.ae/privacy",
+    "termsOfUseUrl": "https://coex.digisol.ae/terms"
+  },
+  "name": {
+    "short": "Worktello",
+    "full": "Worktello tasks for Microsoft Teams"
+  },
+  "description": {
+    "short": "Manage your Worktello tasks inside Teams.",
+    "full": "View your tasks, read and post updates, and create tasks inside Teams. Turn selected messages into tasks too. Requires a linked Worktello staff account."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#101827",
+  "staticTabs": [
+    {
+      "entityId": "coex-my-tasks",
+      "name": "My Tasks",
+      "contentUrl": "https://coex.digisol.ae/integrations/teams/app",
+      "websiteUrl": "https://coex.digisol.ae/tasks?mine=1",
+      "scopes": [
+        "personal"
+      ]
+    }
+  ],
+  "webApplicationInfo": {
+    "id": "0ee8f3f6-879a-4cf0-95d0-9321696f4473",
+    "resource": "api://coex.digisol.ae/0ee8f3f6-879a-4cf0-95d0-9321696f4473"
+  },
+  "composeExtensions": [
+    {
+      "botId": "0ee8f3f6-879a-4cf0-95d0-9321696f4473",
+      "canUpdateConfiguration": false,
+      "commands": [
+        {
+          "id": "createCoexTask",
+          "type": "action",
+          "title": "Create Worktello task",
+          "description": "Create a task from this message",
+          "fetchTask": true,
+          "context": [
+            "message"
+          ]
+        }
+      ]
+    }
+  ],
+  "copilotAgents": {
+    "declarativeAgents": [
+      {
+        "id": "worktelloTasks",
+        "file": "copilot-agent.json"
+      }
+    ]
+  },
+  "validDomains": [
+    "coex.digisol.ae"
+  ]
+}

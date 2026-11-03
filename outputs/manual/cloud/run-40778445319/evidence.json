@@ -1,0 +1,7 @@
+{
+  "sourceCommit": "db69da98f5a5175708e4e3a91c9bf2202ef9363b",
+  "previousSource": "4eb7f03",
+  "commits": "db69da9 Merge pull request #72 from digisol-ae/codex/manual-20261029\n9a9e667 docs: preserve canonical manual serialization\nd541a65 docs: refresh manual for feedback release evidence",
+  "changedFiles": "ai/MANUAL-CHECKPOINT-2026-10-29.md\ndocs/manual/automation-state.json\ndocs/manual/content.js\ndocs/manual/content.json\ndocs/resolutions/2026-10-29-feedback-release.md\ndocs/resolutions/README.md",
+  "generatedAt": "2026-10-29T03:14:59.443893+05:00"
+}

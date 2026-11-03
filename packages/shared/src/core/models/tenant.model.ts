@@ -19,6 +19,12 @@ const tenantSchema = new Schema(
     branding: {
       primaryColor: { type: String, default: '#0f172a' },
       logoUrl: { type: String, default: null },
+      letterhead: {
+        logoDataUrl: { type: String, default: '' },
+        address: { type: String, default: '' },
+        contact: { type: String, default: '' },
+        footer: { type: String, default: '' },
+      },
     },
 
     numbering: {

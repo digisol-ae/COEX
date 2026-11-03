@@ -1,0 +1,7 @@
+{
+  "sourceCommit": "c2361327d1ae0e4d8e9ec3aa388982b382576533",
+  "previousSource": "2312c21",
+  "commits": "c236132 docs: refresh manual for Board expansion and activity summary (#78)",
+  "changedFiles": "ai/MANUAL-CHECKPOINT-2026-10-30.md\nai/RELEASE-2026-10-29-BOARD-COLUMNS.md\nai/RELEASE-2026-10-29-SHOW-MORE.md\ndocs/manual/automation-state.json\ndocs/manual/content.js\ndocs/manual/content.json\ndocs/resolutions/2026-10-30-board-and-ui.md\ndocs/resolutions/README.md",
+  "generatedAt": "2026-11-03T06:27:37.153739+05:00"
+}

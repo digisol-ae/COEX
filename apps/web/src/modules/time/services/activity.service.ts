@@ -7,6 +7,7 @@ import { TaskModel } from '@coex/shared/tasks/models/task.model';
 import { SpaceModel } from '@coex/shared/tasks/models/space.model';
 import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
 import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
+import { startOfDay } from '@coex/shared/time/week';
 
 /**
  * Who is working on what (John, 9 Oct 2026): one row per person and task or ticket, with the stage
@@ -80,9 +81,11 @@ export async function listTeamActivity(filter: ActivityFilter): Promise<Activity
   await connectToDatabase();
   const { tenantId } = getContext();
 
-  const from = new Date(`${filter.fromDay}T00:00:00+04:00`);
-  // Through the end of the last day, so a work date stored at any hour of that day is included.
-  const until = new Date(new Date(`${filter.toDay}T00:00:00+04:00`).getTime() + 24 * 3600 * 1000);
+  // Use the same work-date normalisation as manual entries and timesheets. A separate fixed
+  // offset can otherwise exclude entries written at the host's local midnight.
+  const from = startOfDay(new Date(filter.fromDay));
+  const until = startOfDay(new Date(filter.toDay));
+  until.setDate(until.getDate() + 1);
 
   const found = await entries().find({
     workDate: { $gte: from, $lt: until },

@@ -1,6 +1,6 @@
 {
-  "version": "2026.11.03",
-  "updated": "3 November 2026",
+  "version": "2026.11.04",
+  "updated": "4 November 2026",
   "title": "Worktello field guide",
   "chapters": [
     {
@@ -988,6 +988,65 @@
         "transfer"
       ],
       "status": "Documented workflow"
+    },
+    {
+      "id": "contract-signing",
+      "title": "Send and sign customer agreements",
+      "group": "Customer work",
+      "roles": [
+        "Agent",
+        "Admin",
+        "Customer"
+      ],
+      "intro": "Send a reviewed agreement on your tenant letterhead and keep each request, revision and signing result traceable.",
+      "steps": [
+        {
+          "title": "Configure tenant letterhead",
+          "text": "An administrator opens Setup → Tenant settings and saves the tenant name, logo, address, contact details and footer. A logo and address are required before sending."
+        },
+        {
+          "title": "Save and review the agreement",
+          "text": "Open a contract, generate or edit its agreement and complete the review. The saved revision and letterhead are preserved with each request."
+        },
+        {
+          "title": "Choose the customer signer",
+          "text": "Open Signatures, select an active contact belonging to that customer, preview the saved agreement and choose Send for signature. The private invitation expires after 14 days."
+        },
+        {
+          "title": "Verify and sign",
+          "text": "The customer requests an email verification code before viewing the agreement. After verifying, review the complete agreement, draw with a finger/stylus, upload a signature image or type/style a full name, then explicitly accept and sign."
+        },
+        {
+          "title": "Keep the signed copy and receipt",
+          "text": "After signing, download the signed agreement and signing receipt, or print/save PDF. Authorised staff can download both from the contract history."
+        },
+        {
+          "title": "Track separate sends",
+          "text": "Open Contracts → Signature tracking to filter awaiting signature, signed, expired and cancelled requests. Each send retains its own reference, revision, recipient and timestamps. Cancel a pending request before sending a replacement for that contract."
+        }
+      ],
+      "notes": [
+        "Signing and contract activation are separate actions.",
+        "An email code verifies mailbox access rather than independently confirming identity or signing authority.",
+        "The native signing receipt is server-authenticated evidence, not a qualified signer certificate. Requirements differ by country and contract type.",
+        "Verification codes last 10 minutes and verified browser access lasts 30 minutes. Contact the sender if the invitation expires."
+      ],
+      "sources": [
+        [
+          "Open Signature tracking",
+          "https://worktello.com/contracts/signatures"
+        ],
+        [
+          "Signing and evidence guide",
+          "../../projects/crm-contracts/EVIDENCE-CONTROLS.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "contracts",
+        "customers"
+      ],
+      "status": "Locally verified; production release pending"
     },
     {
       "id": "agreement-drafting",

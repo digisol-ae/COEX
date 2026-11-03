@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Privacy Policy">
+    <LegalPage title="Privacy Policy" lastUpdated="3 November 2026">
       <section>
         <h2>1. Scope and responsibility</h2>
         <p>
@@ -128,6 +128,35 @@ export default function PrivacyPage() {
           such as remembering interface preferences. Choosing Remember me extends the sign-in
           session on that browser. You can sign out or clear browser data; disabling required
           cookies can prevent sign-in and other features from working.
+        </p>
+      </section>
+      <section>
+        <h2>Electronic agreement signing</h2>
+        <p>
+          When an organisation invites you to sign an agreement, Worktello processes your name,
+          invited email address, email verification events, the agreement and its tenant letterhead,
+          your explicit acceptance, chosen signature method, signing timestamp and browser
+          information. You may type and style your name, draw a signature, or upload a signature
+          image. Only the resulting image is retained for drawn signatures; pen pressure and stroke
+          timings are not recorded. Uploaded images are validated and re-encoded to remove image
+          metadata. Signature images are encrypted by the application when stored and are not added
+          to a reusable signature profile. No advertising service receives your signature as part of
+          this flow.
+        </p>
+        <p>
+          The invited mailbox receives a short-lived verification code. Access to an agreement is
+          limited by the private invitation, a verified browser session and its expiry, or by
+          authorised staff access within the sending organisation. Authorised staff can retain and
+          download the signed agreement and its signature evidence. Email verification establishes
+          access to the mailbox, rather than independently proving identity or authority to sign.
+        </p>
+        <p>
+          Signing evidence is retained with the agreement for the sending organisation’s business,
+          audit and legal obligations. Expiry or cancellation of an invitation does not delete its
+          history. There is no automatic signature-record deletion period. Contact the sending
+          organisation or DigiSol for access, export, correction or deletion requests; applicable
+          legal obligations and backup retention may limit deletion. This notice does not assert
+          that every contract or signature type meets every jurisdiction’s requirements.
         </p>
       </section>
       <section>

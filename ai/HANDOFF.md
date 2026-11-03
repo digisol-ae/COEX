@@ -19,9 +19,22 @@ Staff can draft/publish/archive resources, select existing customer contacts, sh
 
 ## 25 October 2026 — guided imports and contacts (draft)
 
+## Customer Resources live — 4 November 2026
+
+PR #79 merged as `6f704035702d8a569e063e6cbedf75bc6a2c27dc`. Active `coex-app-customer-resources` id 10/PID 56939 serves loopback 3008 from `/srv/coex/releases/customer-resources-20261104` (Node 22.23.4). All four app vhosts target 3008; prior Board slot 3007 remains healthy rollback. PM2 saved; workers retained PIDs 906/907/908 with zero restarts. PR/main CI, 455 fresh unit tests, server production build, 20/20 HTTPS monitor and authenticated live library/share-form checks passed. No customer email/upload, data migration, password/account/session change. Real customer delivery remains pilot acceptance. Scope excludes separate local signing/features work. Full evidence and rollback: `ai/RELEASE-2026-11-04-CUSTOMER-RESOURCES.md`.
+
 Branch `codex/import-review-contacts`: seven templates with protected sample rows and formatting guidance; explicit match review with skip, customer/contact separate-create and targeted update; customer-linked contact import/export and review reports. Blank update fields preserved. 55 unit files/384 tests, workspace types/lint/format and local 75-page build passed; disposable Docker integration passed including tenant/portal protection, customer IDs and parent-name reuse proof invalidation. Browser permission at localhost:3111 was declined; no alternate UI workaround, no deployment or new live business writes. Do not call UI/live acceptance complete. Full record: `docs/resolutions/2026-10-25-import-review.md`. Prior 111-created/13-skipped customer import is separate; skipped rows need owner decisions. Private exports and unrelated projects/outputs remain untracked and excluded.
 
 # Worktello (formerly COEX) — AI Handoff
+
+## Customer Resources — 3 November 2026 (draft PR #79, not deployed)
+
+Implemented and committed as `b74abf82ee8a6f70d33ea58cee5874a8fb320459` on `codex/customer-resources`, pushed for review at https://github.com/digisol-ae/COEX/pull/79. Source is isolated at `/Volumes/sd-mac/Developer/DigiSol/worktello-show-more-live`; do not assume this older mixed checkout contains the new feature or pull over its unrelated edits.
+
+Approved behavior: reusable tutorial documents/video links, email or customer-ticket sharing, no account sign-in, single-use OTP emailed with the link, customizable expiry default 72 hours, and same-browser access until expiry/revocation. Customer library, PDF preview/download, permission/customer/tenant checks, history and revocation implemented. Local types/lint/format, 455 unit tests, 20 focused Mongo/email tests, production build and portable-manual validation passed. Browser upload, sharing, PDF/download, custom 24-hour ticket share, repeat access, revocation and phone layout passed with synthetic local data. Real email delivery, live customer upload and deployment have not occurred. GitHub CI run `41601701297` passed on the draft PR. Review preview is http://localhost:3123/support/resources; no mail worker is running for its dedicated `worktello_resources_local` database on local Mongo 27020.
+
+Definitive feature and QA guides are in the isolated checkout: `docs/CUSTOMER-RESOURCES.md` and `docs/qa/CUSTOMER-RESOURCES-2026-11-03.md`. PR includes updated task/state/handoff notes and the manual. Current primary worktree modifications, project planning, exports and backups were preserved.
+
 
 ## Footer release live; support.digisolteam.com moved page — 26 October 2026 (Claude)
 
