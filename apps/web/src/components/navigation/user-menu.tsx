@@ -104,6 +104,9 @@ export function UserMenu({
           </div>
 
           <div className="py-1">
+            <MenuLink href="/install" onNavigate={() => setOpen(false)} icon={<InstallIcon />}>
+              Install Worktello
+            </MenuLink>
             <MenuLink
               href={portal ? '/portal/profile' : '/profile'}
               onNavigate={() => setOpen(false)}
@@ -256,6 +259,14 @@ const stroke = {
   strokeLinecap: 'round' as const,
   strokeLinejoin: 'round' as const,
 };
+
+function InstallIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M8 2v8m-3-3 3 3 3-3M3 11v3h10v-3" {...stroke} />
+    </svg>
+  );
+}
 
 function PersonIcon() {
   return (
