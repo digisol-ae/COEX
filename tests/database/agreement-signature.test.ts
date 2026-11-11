@@ -21,6 +21,7 @@ import {
   signatureWorkspace,
   listSignatureHistory,
   staffSignedAgreement,
+  emailSignedAgreement,
 } from '@/modules/crm/services/agreement-signature.service';
 import { AgreementSignatureModel } from '@coex/shared/crm/models/agreement-signature.model';
 import { EmailSettingsModel } from '@coex/shared/core/models/email-settings.model';
@@ -32,6 +33,7 @@ import {
   signingReceiptResponse,
 } from '@/modules/crm/signed-agreement';
 import sharp from 'sharp';
+import { completionPayload, signingMac } from '@/modules/crm/signature-evidence';
 import { openSecret } from '@/lib/secret-box';
 
 const context = {
@@ -604,4 +606,65 @@ it('preserves verification of historical version-two completion records', () =>
     expect(receipt.evidenceVersion).toBe(2);
     expect(receipt.evidence.contractId).toBeUndefined();
     expect(receipt.evidence.requestId).toBe(f.id);
+  }));
+
+it('queues both links only when staff sends the signed copy', () =>
+  within(async () => {
+    const f = await send();
+    const invoiceLink = 'https://zohosecurepay.com/books/Payment/secure?invoice=sample';
+    const draft = {
+      invoiceLink,
+      subject: 'Signed contract and invoice for your records',
+      message: 'Hello,\n\nPlease save these copies.',
+      signature: 'Regards,\nContracts & Billing',
+      sender: 'contracts',
+      cc: 'Billing@example.test, signer@example.test, billing@example.test',
+    };
+    await expect(emailSignedAgreement(f.contractId, f.id, draft)).rejects.toThrow(
+      'Signed agreement unavailable',
+    );
+    const signed = await signAgreement(f.token, acceptance);
+    const expiresAt = new Date(Date.now() - 1000);
+    const completionMac = signingMac(completionPayload({ ...signed.toObject(), expiresAt }));
+    await AgreementSignatureModel.collection.updateOne(
+      { _id: signed._id },
+      { $set: { expiresAt, completionMac, otpSentAt: null } },
+    );
+    expect(await publicSignatureRequest(f.token)).toBeNull();
+    expect(await EmailOutboxModel.countDocuments({ subject: /^Signed contract and invoice/ })).toBe(
+      0,
+    );
+
+    await expect(emailSignedAgreement(f.contractId, f.id, draft)).rejects.toThrow(
+      'Choose a configured From address',
+    );
+    await EmailSettingsModel.updateOne(
+      { tenantId: context.tenantId },
+      { $set: { 'senders.contracts.fromAddress': 'contracts@example.test' } },
+    );
+    await expect(
+      emailSignedAgreement(f.contractId, f.id, { ...draft, cc: 'invalid' }),
+    ).rejects.toThrow('Invalid CC email address');
+    await emailSignedAgreement(f.contractId, f.id, draft);
+    const emails = await EmailOutboxModel.find({ subject: /^Signed contract and invoice/ });
+    expect(emails).toHaveLength(1);
+    const [email] = emails;
+    expect(email.to).toBe('signer@example.test');
+    expect(email.subject).toBe(draft.subject);
+    expect(email.sender).toBe('contracts');
+    expect(email.cc).toEqual(['billing@example.test']);
+    expect(email.text).toContain(draft.message);
+    expect(email.text).toContain(draft.signature);
+    expect(email.html).toContain('Contracts &amp; Billing');
+    expect(email.html).toContain('Download copy of your contract');
+    expect(email.html).toContain(`href="${invoiceLink}">Download copy of your invoice`);
+    const token = email.text.match(/\/sign\/(copy-[a-f0-9-]+)/)![1];
+    const copy = await publicSignatureRequest(token);
+    expect(String(copy?._id)).toBe(f.id);
+    expect(hasSigningAccess(copy!)).toBe(false);
+    const accessToken = await verifiedAccess(token);
+    expect(hasSigningAccess((await publicSignatureRequest(token))!, accessToken)).toBe(true);
+    expect(
+      await publicSignatureRequest(token.replace(/.$/, (last) => (last === 'a' ? 'b' : 'a'))),
+    ).toBeNull();
   }));

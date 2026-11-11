@@ -543,6 +543,7 @@ export interface QueueEmailInput {
   to: string;
   subject: string;
   text: string;
+  html?: string;
   messageId?: string | null;
   inReplyTo?: string | null;
   references?: string[];
@@ -601,6 +602,7 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
     ),
     subject: input.subject,
     text: input.text,
+    html: input.html ?? null,
     messageId: input.messageId ?? null,
     inReplyTo: input.inReplyTo ?? null,
     references: input.references ?? [],
@@ -827,6 +829,7 @@ export async function deliverQueuedEmail(limit = 20): Promise<number> {
         cc: (row.cc as string[] | undefined)?.length ? (row.cc as string[]) : undefined,
         subject: String(row.subject),
         text: String(row.text),
+        html: typeof row.html === 'string' ? row.html : undefined,
         messageId: (row.messageId as string | null) ?? undefined,
         inReplyTo: (row.inReplyTo as string | null) ?? undefined,
         references: (row.references as string[] | undefined)?.length

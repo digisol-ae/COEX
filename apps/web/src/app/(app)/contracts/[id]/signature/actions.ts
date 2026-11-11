@@ -4,6 +4,7 @@ import { asUser, requirePermission } from '@/lib/session';
 import {
   requestAgreementSignature,
   cancelAgreementSignature,
+  emailSignedAgreement,
 } from '@/modules/crm/services/agreement-signature.service';
 
 export async function signatureMutation(input: {
@@ -29,5 +30,19 @@ export async function signatureMutation(input: {
     return {
       error: error instanceof Error ? error.message : 'Could not update signature request.',
     };
+  }
+}
+
+export async function sendSignedCopyAction(
+  contractId: string,
+  requestId: string,
+  draft: Parameters<typeof emailSignedAgreement>[2],
+) {
+  const actor = await requirePermission('contract.manage');
+  try {
+    await asUser(actor, () => emailSignedAgreement(contractId, requestId, draft));
+    return { queued: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not send the signed copy.' };
   }
 }
