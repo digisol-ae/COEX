@@ -12,7 +12,13 @@ import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { getContext, runWithContext } from '@/lib/tenant-context';
 import { recordAudit } from '@/modules/core/services/audit.service';
-import { appBaseUrl, queueEmail } from '@/modules/core/services/email.service';
+import { normaliseCc } from '@coex/shared/tickets/collaborators';
+import {
+  appBaseUrl,
+  contractEmailSenders,
+  queueEmail,
+} from '@/modules/core/services/email.service';
+import { escapeAgreementHtml as escape } from '../letterhead-html';
 import { getAgreementDraft } from './agreement.service';
 import { getContract } from './contract.service';
 import { getTenantLetterhead } from './tenant-letterhead.service';
@@ -121,7 +127,7 @@ export async function listSignatureHistory(
 export async function signatureWorkspace(contractId: string, page = 1) {
   const contract = await getContract(contractId);
   if (!contract) throw new Error('Contract not found.');
-  const [draft, contacts, ledger, letterhead, pendingRequest] = await Promise.all([
+  const [draft, contacts, ledger, letterhead, pendingRequest, emailSenders] = await Promise.all([
     getAgreementDraft(contractId),
     repository(ContactModel)
       .find({ organisationId: contract.organisationId, status: 'active' })
@@ -129,6 +135,7 @@ export async function signatureWorkspace(contractId: string, page = 1) {
     listSignatureHistory({ contractId, page }),
     getTenantLetterhead(),
     requests().findOne({ contractId, status: 'pending', expiresAt: { $gt: new Date() } }),
+    contractEmailSenders(),
   ]);
   let letterheadError = '';
   try {
@@ -140,6 +147,7 @@ export async function signatureWorkspace(contractId: string, page = 1) {
     ...ledger,
     letterhead,
     letterheadError,
+    emailSenders,
     draft,
     hasPending: Boolean(pendingRequest),
     contacts: contacts
@@ -279,13 +287,28 @@ export async function cancelAgreementSignature(contractId: string, requestId: st
 // This is the sole public database boundary. A 256-bit bearer capability resolves exactly one
 // snapshot; neither tenant, customer nor contract IDs are accepted from the unauthenticated caller.
 export async function publicSignatureRequest(token: string) {
-  if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return null;
+  const now = new Date();
+  const copy = /^copy-([a-f0-9]{24})-([0-9]{13})-([a-f0-9]{64})$/.exec(token);
+  if (copy) {
+    const [, requestId, expiry, mac] = copy;
+    if (
+      Number(expiry) <= now.getTime() ||
+      !equalDigest(mac, signingMac(`copy:${requestId}:${expiry}`))
+    )
+      return null;
+  } else if (!/^[A-Za-z0-9_-]{43}$/.test(token)) {
+    return null;
+  }
   await connectToDatabase();
   const request = await AgreementSignatureModel.findOne({
-    tokenHash: digest(token),
     deletedAt: null,
-    status: { $in: ['pending', 'signed'] },
-    expiresAt: { $gt: new Date() },
+    ...(copy
+      ? { _id: copy[1], status: 'signed' }
+      : {
+          tokenHash: digest(token),
+          status: { $in: ['pending', 'signed'] },
+          expiresAt: { $gt: now },
+        }),
   });
   if (request?.status === 'pending' && !request.letterhead) return null;
   if (!request || digest(request.body) !== request.bodyHash) return null;
@@ -338,7 +361,7 @@ export async function requestSigningCode(token: string) {
       _id: request._id,
       tenantId: request.tenantId,
       status: request.status,
-      expiresAt: { $gt: now },
+      ...(request.status === 'pending' ? { expiresAt: { $gt: now } } : {}),
       otpSentAt: request.otpSentAt ?? null,
       $or: [{ otpSendCount: request.otpSendCount }, { otpSendCount: { $exists: false } }],
     },
@@ -532,4 +555,68 @@ export async function signingPageDetails(request: AgreementSignature) {
     endDate: details.endDate,
     productNames,
   };
+}
+
+export async function emailSignedAgreement(
+  contractId: string,
+  requestId: string,
+  draft: {
+    invoiceLink: string;
+    subject: string;
+    message: string;
+    signature: string;
+    sender: string;
+    cc: string;
+  },
+) {
+  const { invoiceLink, subject, message, signature } = draft;
+  if (!subject.trim() || /[\r\n]/.test(subject) || !message.trim())
+    throw new Error('Enter a subject and message for the email.');
+  const invoice = URL.canParse(invoiceLink.trim()) ? new URL(invoiceLink.trim()) : null;
+  if (!invoice || invoice.protocol !== 'https:' || invoice.username || invoice.password) {
+    throw new Error('Paste the HTTPS customer share link from Zoho Books.');
+  }
+
+  const request = await staffSignedAgreement(contractId, requestId);
+  if (!request) throw new Error('Signed agreement unavailable.');
+
+  const sender = (await contractEmailSenders()).find(({ role }) => role === draft.sender);
+  if (!sender) throw new Error('Choose a configured From address.');
+  const cc = normaliseCc(
+    draft.cc
+      .split(/[,;\n]/)
+      .map((value) => value.trim())
+      .filter(Boolean),
+    request.signerEmail,
+  );
+  if (cc.length > 49) throw new Error('Use at most 49 CC addresses.');
+
+  const expiry = Date.now() + 14 * 86400000;
+  const id = String(request._id);
+  const mac = signingMac(`copy:${id}:${expiry}`);
+  const verificationUrl = `${appBaseUrl()}/sign/copy-${id}-${expiry}-${mac}`;
+  const note =
+    'The contract link is valid for 14 days. If prompted, verify your email to download it.';
+  const links = [
+    { label: 'Download copy of your contract', url: verificationUrl },
+    { label: 'Download copy of your invoice', url: invoice.href },
+  ];
+  const accepted = await queueEmail({
+    kind: 'contract_email',
+    sender: sender.role,
+    cc,
+    to: request.signerEmail,
+    subject: subject.trim(),
+    text: [
+      message.trim(),
+      ...links.map(({ label, url }) => `${label}: ${url}`),
+      note,
+      signature.trim(),
+    ]
+      .filter(Boolean)
+      .join('\n\n'),
+    html: `<p>${escape(message.trim()).replace(/\r?\n/g, '<br>')}</p><ul>${links.map(({ label, url }) => `<li><a href="${escape(url)}">${label}</a></li>`).join('')}</ul><p>${note}</p>${signature.trim() ? `<p>${escape(signature.trim()).replace(/\r?\n/g, '<br>')}</p>` : ''}`,
+  });
+  if (!accepted)
+    throw new Error('Email could not be queued. Check Setup, Email and the signer address.');
 }

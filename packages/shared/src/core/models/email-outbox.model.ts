@@ -43,6 +43,7 @@ const emailOutboxSchema = new Schema(
     cc: { type: [String], default: [] },
     subject: { type: String, required: true },
     text: { type: String, required: true },
+    html: { type: String, default: null },
     /** Our own Message-ID, chosen up front so a customer's answer threads back to the ticket. */
     messageId: { type: String, default: null },
     inReplyTo: { type: String, default: null },

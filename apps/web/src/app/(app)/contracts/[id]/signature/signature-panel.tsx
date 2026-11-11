@@ -1,10 +1,10 @@
 'use client';
-import { useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Button, Field, Select, Notice } from '@/components/ui';
+import { Button, Field, Input, Select, Textarea, Notice } from '@/components/ui';
 import type { signatureWorkspace } from '@/modules/crm/services/agreement-signature.service';
-import { signatureMutation } from './actions';
+import { sendSignedCopyAction, signatureMutation } from './actions';
 import { LetterheadHeader, LetterheadFooter } from '@/modules/crm/letterhead';
 
 export function SignaturePanel({
@@ -17,6 +17,8 @@ export function SignaturePanel({
   editable: boolean;
 }) {
   const [contactId, setContact] = useState(workspace.contacts[0]?.id ?? '');
+  const [emailRequestId, setEmailRequestId] = useState('');
+  const emailRequest = workspace.history.find(({ id }) => id === emailRequestId);
   const [message, setMessage] = useState('');
   const [pending, start] = useTransition();
   const router = useRouter();
@@ -204,6 +206,15 @@ export function SignaturePanel({
                 >
                   Download signing receipt
                 </a>
+                {editable && (
+                  <Button
+                    variant="secondary"
+                    disabled={pending}
+                    onClick={() => setEmailRequestId(r.id)}
+                  >
+                    Email contract and invoice
+                  </Button>
+                )}
               </div>
             )}
             {editable && r.status === 'pending' && (
@@ -226,6 +237,174 @@ export function SignaturePanel({
           )}
         </nav>
       </section>
+      {editable && emailRequest && (
+        <SignedCopyEmailDialog
+          contractId={contractId}
+          request={emailRequest}
+          companyName={workspace.letterhead?.name}
+          senders={workspace.emailSenders}
+          onClose={() => setEmailRequestId('')}
+          onQueued={() => {
+            setEmailRequestId('');
+            setMessage('Contract and invoice email queued.');
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+function SignedCopyEmailDialog({
+  contractId,
+  request,
+  companyName,
+  senders,
+  onClose,
+  onQueued,
+}: {
+  contractId: string;
+  request: Awaited<ReturnType<typeof signatureWorkspace>>['history'][number];
+  companyName?: string;
+  senders: Awaited<ReturnType<typeof signatureWorkspace>>['emailSenders'];
+  onClose: () => void;
+  onQueued: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [sender, setSender] = useState<string>(senders[0]?.role ?? '');
+  const [cc, setCc] = useState('');
+  const [subject, setSubject] = useState(`Signed contract and invoice — ${request.contractNumber}`);
+  const [message, setMessage] = useState(
+    `Hello ${request.signerName},\n\nYour signed contract ${request.contractNumber} and invoice are ready. You can access them using the links below.`,
+  );
+  const [signature, setSignature] = useState(`Kind regards,\n${companyName || 'Contracts Team'}`);
+  const [invoiceLink, setInvoiceLink] = useState('');
+  const [error, setError] = useState('');
+  const [pending, start] = useTransition();
+
+  useEffect(() => {
+    const element = dialog.current;
+    element?.showModal();
+    return () => element?.close();
+  }, []);
+
+  return (
+    <dialog
+      ref={dialog}
+      aria-labelledby="signed-copy-email-title"
+      className="popup-glass-gradient m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto p-5 backdrop:bg-black/40"
+      onCancel={(event) => {
+        event.preventDefault();
+        if (!pending) onClose();
+      }}
+    >
+      <h2 id="signed-copy-email-title" className="font-semibold">
+        Email contract and invoice
+      </h2>
+      <form
+        className="mt-4 space-y-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          start(async () => {
+            const result = await sendSignedCopyAction(contractId, request.id, {
+              subject,
+              message,
+              signature,
+              invoiceLink,
+              sender,
+              cc,
+            });
+            if (result.queued) onQueued();
+            else setError(result.error ?? 'Could not queue email.');
+          });
+        }}
+      >
+        {!senders.length && (
+          <Notice tone="warn">Configure a sending address in Setup → Email.</Notice>
+        )}
+        <Field label="From">
+          <Select
+            required
+            value={sender}
+            disabled={pending || !senders.length}
+            onChange={(e) => setSender(e.target.value)}
+          >
+            <option value="" disabled>
+              Choose sender
+            </option>
+            {senders.map(({ role, name, address }) => (
+              <option key={role} value={role}>
+                {name} · {address}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <p className="text-sm">To {request.signerEmail}</p>
+        <Field label="CC" hint="Separate multiple email addresses with commas.">
+          <Input value={cc} disabled={pending} onChange={(e) => setCc(e.target.value)} />
+        </Field>
+        <Field label="Subject">
+          <Input
+            required
+            value={subject}
+            disabled={pending}
+            onChange={(e) => setSubject(e.target.value)}
+          />
+        </Field>
+        <Field label="Message">
+          <Textarea
+            rows={4}
+            required
+            value={message}
+            disabled={pending}
+            onChange={(e) => setMessage(e.target.value)}
+          />
+        </Field>
+        <div className="space-y-2 rounded border p-3">
+          <p className="text-sm font-semibold">Download links</p>
+          <p className="text-sm">
+            Download copy of your contract <span className="text-xs">(added by Worktello)</span>
+          </p>
+          <Field
+            label="Zoho Books invoice share link"
+            hint="Included as Download copy of your invoice."
+          >
+            <Input
+              type="url"
+              required
+              value={invoiceLink}
+              disabled={pending}
+              onChange={(e) => setInvoiceLink(e.target.value)}
+            />
+          </Field>
+        </div>
+        <Field label="Email signature">
+          <Textarea
+            rows={2}
+            value={signature}
+            disabled={pending}
+            onChange={(e) => setSignature(e.target.value)}
+          />
+        </Field>
+        {error && (
+          <div role="alert">
+            <Notice tone="warn">{error}</Notice>
+          </div>
+        )}
+        <div className="flex justify-end gap-3">
+          <Button type="button" variant="secondary" onClick={onClose} disabled={pending}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            loading={pending}
+            disabled={
+              pending || !sender || !invoiceLink.trim() || !subject.trim() || !message.trim()
+            }
+          >
+            {pending ? 'Queuing email…' : 'Send email'}
+          </Button>
+        </div>
+      </form>
+    </dialog>
   );
 }
