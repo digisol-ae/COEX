@@ -8,6 +8,18 @@ const schema = new Schema(
     requestedBy: { type: Schema.Types.ObjectId, required: true },
     contractNumber: { type: String, required: true },
     customerName: { type: String, required: true },
+    coverDetails: {
+      type: new Schema(
+        {
+          title: { type: String, required: true },
+          startDate: { type: String, required: true },
+          endDate: { type: String, required: true },
+        },
+        { _id: false },
+      ),
+      default: null,
+      immutable: true,
+    },
     signerName: { type: String, required: true },
     signerEmail: { type: String, required: true },
     draftRevision: { type: Number, required: true },

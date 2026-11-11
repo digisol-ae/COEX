@@ -1,10 +1,12 @@
 import { cookies } from 'next/headers';
 import {
   publicSignatureRequest,
+  legacyAgreementCover,
   signingCookieName,
   hasSigningAccess,
 } from '@/modules/crm/services/agreement-signature.service';
 import { signedAgreementResponse } from '@/modules/crm/signed-agreement';
+import { signedAgreementDownload } from '@/modules/crm/signed-agreement-pdf';
 export async function GET(_request: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const agreement = await publicSignatureRequest(token);
@@ -17,5 +19,5 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
       status: 404,
       headers: { 'Cache-Control': 'no-store' },
     });
-  return signedAgreementResponse(agreement);
+  return signedAgreementDownload(agreement, signedAgreementResponse, legacyAgreementCover);
 }
