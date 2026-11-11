@@ -12,6 +12,7 @@ const schema = new Schema(
       type: new Schema(
         {
           title: { type: String, required: true },
+          productNames: { type: [String], default: undefined },
           startDate: { type: String, required: true },
           endDate: { type: String, required: true },
         },

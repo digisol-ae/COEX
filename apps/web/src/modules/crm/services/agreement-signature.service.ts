@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 import { AgreementSignatureModel } from '@coex/shared/crm/models/agreement-signature.model';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { getCurrentTenant } from '@/modules/core/services/tenant.service';
+import { ProductModel } from '@coex/shared/crm/models/product.model';
 import { ContractModel } from '@coex/shared/crm/models/contract.model';
 import { ContactModel } from '@coex/shared/crm/models/contact.model';
 import { EmailOutboxModel } from '@coex/shared/core/models/email-outbox.model';
@@ -171,6 +172,7 @@ export async function requestAgreementSignature(
   const letterhead = await getTenantLetterhead();
   validateLetterhead(letterhead);
   signingMac('configuration-check');
+  const productNames = await agreementProductNames(getContext().tenantId, contract.productIds);
   const now = new Date();
   // Retain expired requests as history while releasing the single-pending-request slot.
   await requests().updateOne(
@@ -191,6 +193,7 @@ export async function requestAgreementSignature(
       customerName: contract.organisationName,
       coverDetails: {
         title: contract.title,
+        productNames,
         startDate: contract.startDate,
         endDate: contract.endDate,
       },
@@ -496,4 +499,37 @@ export async function legacyAgreementCover(request: AgreementSignature) {
   return ContractModel.findOne({ _id: request.contractId, tenantId: request.tenantId })
     .select('title startDate endDate')
     .lean();
+}
+
+async function agreementProductNames(
+  tenantId: Types.ObjectId,
+  productIds: (string | Types.ObjectId)[],
+) {
+  if (!productIds.length) return [];
+  const products = await ProductModel.find({ tenantId, _id: { $in: productIds } })
+    .select('name')
+    .sort({ name: 1 })
+    .lean();
+  return products.map(({ name }) => name);
+}
+
+export async function signingPageDetails(request: AgreementSignature) {
+  const snapshot = request.coverDetails;
+  if (snapshot?.productNames) return snapshot;
+
+  const contract = await ContractModel.findOne({
+    _id: request.contractId,
+    tenantId: request.tenantId,
+  })
+    .select('title startDate endDate productIds')
+    .lean();
+  const details = snapshot ?? contract;
+  if (!details) return null;
+  const productNames = await agreementProductNames(request.tenantId, contract?.productIds ?? []);
+  return {
+    title: details.title,
+    startDate: details.startDate,
+    endDate: details.endDate,
+    productNames,
+  };
 }

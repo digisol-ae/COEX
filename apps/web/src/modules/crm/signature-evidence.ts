@@ -91,6 +91,7 @@ export function completionPayload(request: AgreementSignature & { _id: unknown }
       ? {
           coverDetails: {
             title: request.coverDetails.title,
+            productNames: request.coverDetails.productNames,
             startDate: request.coverDetails.startDate,
             endDate: request.coverDetails.endDate,
           },
