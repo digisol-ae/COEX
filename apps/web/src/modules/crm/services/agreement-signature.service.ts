@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 import { AgreementSignatureModel } from '@coex/shared/crm/models/agreement-signature.model';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { getCurrentTenant } from '@/modules/core/services/tenant.service';
+import { ContractModel } from '@coex/shared/crm/models/contract.model';
 import { ContactModel } from '@coex/shared/crm/models/contact.model';
 import { EmailOutboxModel } from '@coex/shared/core/models/email-outbox.model';
 import { assertAgreementComplete } from '@coex/shared/crm/contract-drafting';
@@ -188,6 +189,11 @@ export async function requestAgreementSignature(
       requestedBy: getContext().userId,
       contractNumber: contract.number,
       customerName: contract.organisationName,
+      coverDetails: {
+        title: contract.title,
+        startDate: contract.startDate,
+        endDate: contract.endDate,
+      },
       signerName: contact.name,
       signerEmail: contact.email,
       draftRevision: draft.revision,
@@ -483,4 +489,11 @@ export async function staffSignedAgreement(contractId: string, requestId: string
   const request = await requests().findOne({ _id: requestId, contractId, status: 'signed' });
   if (request) verifyCompletion(request);
   return request;
+}
+
+/** Older signature requests did not snapshot the cover fields. */
+export async function legacyAgreementCover(request: AgreementSignature) {
+  return ContractModel.findOne({ _id: request.contractId, tenantId: request.tenantId })
+    .select('title startDate endDate')
+    .lean();
 }

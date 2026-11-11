@@ -87,6 +87,15 @@ export function completionPayload(request: AgreementSignature & { _id: unknown }
           invitationExpiresAt: request.expiresAt.toISOString(),
         }
       : {}),
+    ...(request.coverDetails
+      ? {
+          coverDetails: {
+            title: request.coverDetails.title,
+            startDate: request.coverDetails.startDate,
+            endDate: request.coverDetails.endDate,
+          },
+        }
+      : {}),
     requestId: String(request._id),
     tenantId: String(request.tenantId),
     documentHash: request.documentHash,
