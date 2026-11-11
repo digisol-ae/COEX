@@ -6,7 +6,7 @@ import {
   signingCookieName,
   hasSigningAccess,
 } from '@/modules/crm/services/agreement-signature.service';
-import { SignForm, PrintSignedAgreement } from './sign-form';
+import { SignForm } from './sign-form';
 import { LetterheadHeader, LetterheadFooter } from '@/modules/crm/letterhead';
 import { SigningVerification } from './verification-form';
 import { signatureImage } from '@/modules/crm/signature-evidence';
@@ -98,21 +98,12 @@ export default async function SigningPage({ params }: { params: Promise<{ token:
               </>
             )}
           </p>
-          <div className="flex flex-wrap items-center gap-4 print:hidden">
-            <a
-              className="inline-flex min-h-12 items-center underline"
-              href={`/sign/${token}/download`}
-            >
-              Download signed copy
-            </a>
-            <a
-              className="inline-flex min-h-12 items-center underline"
-              href={`/sign/${token}/receipt`}
-            >
-              Download signing receipt
-            </a>
-            <PrintSignedAgreement />
-          </div>
+          <a
+            className="inline-flex min-h-12 items-center underline print:hidden"
+            href={`/sign/${token}/download`}
+          >
+            Download signed copy
+          </a>
         </section>
       ) : (
         <SignForm token={token} consentText={request.consentText} />

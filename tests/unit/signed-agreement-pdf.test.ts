@@ -8,11 +8,32 @@ import {
   decodePDFRawStream,
 } from 'pdf-lib';
 import sharp from 'sharp';
+import { renderToStaticMarkup } from 'react-dom/server';
+import SigningPage from '@/app/sign/[token]/page';
+import { GET as downloadCopy } from '@/app/sign/[token]/download/route';
+import { GET as downloadReceipt } from '@/app/sign/[token]/receipt/route';
+import { publicSignatureRequest } from '@/modules/crm/services/agreement-signature.service';
+
+vi.mock('next/headers', () => ({
+  cookies: async () => ({ get: () => ({ value: 'verified-session' }) }),
+}));
+vi.mock('@/modules/crm/services/agreement-signature.service', () => ({
+  publicSignatureRequest: vi.fn(),
+  signingCookieName: () => 'signing',
+  hasSigningAccess: () => true,
+  legacyAgreementCover: async () => null,
+}));
+vi.mock('@/app/sign/[token]/sign-form', () => ({
+  SignForm: () => null,
+}));
+vi.mock('@/app/sign/[token]/verification-form', () => ({ SigningVerification: () => null }));
+
 import { signedAgreementResponse } from '@/modules/crm/signed-agreement';
 
 // Evidence verification is covered by the database suite; here only the PDF layout is under test.
 vi.mock('@/modules/crm/signature-evidence', () => ({
   verifyCompletion: vi.fn(),
+  completionPayload: () => JSON.stringify({ requestId: 'sample' }),
   signatureImage: vi.fn(
     (request: { signatureImageForTest?: string }) => request.signatureImageForTest ?? null,
   ),
@@ -42,6 +63,7 @@ async function signed(overrides: Record<string, unknown> = {}) {
     signerName: 'Sample Signer',
     signerEmail: 'signer@example.test',
     signedName: 'Sample Signer',
+    expiresAt: new Date('2026-11-19T08:30:00Z'),
     signedAt: new Date('2026-11-05T08:30:00Z'),
     signerVerifiedAt: new Date('2026-11-05T08:25:00Z'),
     signatureMethod: 'typed',
@@ -154,4 +176,22 @@ describe('signed agreement PDF', () => {
     expect(lines.length).toBeGreaterThan(4);
     expect(lines.every((line) => font.widthOfTextAtSize(line, 10) <= 200)).toBe(true);
   });
+});
+
+it('offers only the signed copy on the customer screen', async () => {
+  vi.mocked(publicSignatureRequest).mockResolvedValue(await signed());
+  const token = 'sample-token';
+  const params = Promise.resolve({ token });
+  const request = new Request(`https://example.test/sign/${token}`);
+  const markup = renderToStaticMarkup(await SigningPage({ params }));
+  expect(markup).toContain(`href="/sign/${token}/download"`);
+  expect(markup).not.toContain(`href="/sign/${token}/receipt"`);
+  expect(markup).not.toContain('Print / Save PDF');
+
+  const copy = await downloadCopy(request, { params });
+  expect(copy.headers.get('Content-Type')).toBe('application/pdf');
+  expect(copy.headers.get('Content-Disposition')).toContain('-signed.pdf');
+  const receipt = await downloadReceipt(request, { params });
+  expect(receipt.headers.get('Content-Disposition')).toContain('-signing-receipt.json');
+  expect(await receipt.json()).toMatchObject({ format: 'worktello.signing-receipt' });
 });

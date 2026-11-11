@@ -260,10 +260,3 @@ export function SignForm({ token, consentText }: { token: string; consentText: s
     </form>
   );
 }
-export function PrintSignedAgreement() {
-  return (
-    <Button variant="secondary" className="min-h-12" onClick={() => window.print()}>
-      Print / Save PDF
-    </Button>
-  );
-}
