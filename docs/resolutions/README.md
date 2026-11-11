@@ -30,3 +30,5 @@ Interactive user guide: `../manual/index.html#resolutions`. Secrets and raw priv
 - [29 October: feedback release and acceptance limits](2026-10-29-feedback-release.md)
 
 - [30 October: Board expansion and activity summary](2026-10-30-board-and-ui.md)
+
+- [12 November: Signed contract copies and invoice email](2026-11-12-signed-contract-copies.md) — Merged; production acceptance pending.
