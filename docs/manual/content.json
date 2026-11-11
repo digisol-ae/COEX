@@ -1,6 +1,6 @@
 {
-  "version": "2026.11.04",
-  "updated": "4 November 2026",
+  "version": "2026.11.12",
+  "updated": "12 November 2026",
   "title": "Worktello field guide",
   "chapters": [
     {
@@ -1019,11 +1019,15 @@
         },
         {
           "title": "Choose the customer signer",
-          "text": "Open Signatures, select an active contact belonging to that customer, preview the saved agreement and choose Send for signature. The private invitation expires after 14 days."
+          "text": "Open Signatures, select an active contact belonging to that customer, preview the saved agreement and choose Send for signature. The private invitation expires after 14 days. The signing page shows Product and Period when available."
         },
         {
           "title": "Verify and sign",
-          "text": "The customer requests an email verification code before viewing the agreement. After verifying, review the complete agreement, draw with a finger/stylus, upload a signature image or type/style a full name, then explicitly accept and sign."
+          "text": "After signing, use Download signed copy. The PDF includes a contract-details cover. Authorised staff can download the signed copy and signing receipt from the contract history."
+        },
+        {
+          "title": "Email the signed contract and invoice",
+          "text": "On the signed request, open Email contract and invoice. Review the configured From address and signer, add CC recipients as needed, and edit the subject, message and signature. Worktello adds the contract link. Enter the required Zoho Books invoice share link, then send."
         },
         {
           "title": "Keep the signed copy and receipt",
@@ -1055,7 +1059,7 @@
         "contracts",
         "customers"
       ],
-      "status": "Locally verified; production release pending"
+      "status": "Signed-copy updates merged; production acceptance pending"
     },
     {
       "id": "agreement-drafting",
@@ -1696,6 +1700,17 @@
     }
   ],
   "resolutions": [
+    {
+      "id": "signed-contract-copies",
+      "title": "Signed contract copies and invoice email",
+      "date": "12 Nov 2026",
+      "symptom": "Customers need one clear download and staff need an editable delivery email.",
+      "cause": "The prior signing flow offered separate download actions and lacked the contract and invoice email composer.",
+      "fix": "Add a details cover, show product and period, simplify customer download, and add staff email composition.",
+      "verification": "Merged-main CI run 43035086524 passed. Production and real recipient delivery remain pending verification.",
+      "status": "Merged; production acceptance pending",
+      "record": "../resolutions/2026-11-12-signed-contract-copies.md"
+    },
     {
       "id": "customer-resources",
       "title": "Customer resources with expiring email-code access",
