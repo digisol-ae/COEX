@@ -5,10 +5,12 @@ import {
   publicSignatureRequest,
   signingCookieName,
   hasSigningAccess,
+  signingPageDetails,
 } from '@/modules/crm/services/agreement-signature.service';
 import { SignForm } from './sign-form';
 import { LetterheadHeader, LetterheadFooter } from '@/modules/crm/letterhead';
 import { SigningVerification } from './verification-form';
+import { agreementCoverText } from '@/modules/crm/agreement-cover';
 import { signatureImage } from '@/modules/crm/signature-evidence';
 import { SIGNATURE_STYLES } from '@coex/shared/crm/signature-capture';
 
@@ -40,6 +42,9 @@ export default async function SigningPage({ params }: { params: Promise<{ token:
       </main>
     );
   }
+  const details = await signingPageDetails(request);
+  const product = details?.productNames?.join(', ') || details?.title;
+  const { period } = agreementCoverText(details);
   const image = request.status === 'signed' ? signatureImage(request) : null;
   const style = SIGNATURE_STYLES[request.signatureStyle ?? 0] ?? SIGNATURE_STYLES[0];
   return (
@@ -50,6 +55,17 @@ export default async function SigningPage({ params }: { params: Promise<{ token:
         <h1 className="mt-2 text-2xl font-semibold">
           {request.contractNumber} · {request.customerName}
         </h1>
+        {details && (
+          <dl className="mt-3 space-y-1 break-words text-sm">
+            <div>
+              <dt className="inline font-semibold">Product</dt>{' '}
+              <dd className="inline">{product}</dd>
+            </div>
+            <div>
+              <dt className="inline font-semibold">Period</dt> <dd className="inline">{period}</dd>
+            </div>
+          </dl>
+        )}
         <p className="mt-3 text-sm">
           For {request.signerName} ({request.signerEmail}).{' '}
           {request.status === 'signed'

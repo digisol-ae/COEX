@@ -22,6 +22,7 @@ vi.mock('@/modules/crm/services/agreement-signature.service', () => ({
   signingCookieName: () => 'signing',
   hasSigningAccess: () => true,
   legacyAgreementCover: async () => null,
+  signingPageDetails: async (request: { coverDetails?: unknown }) => request.coverDetails,
 }));
 vi.mock('@/app/sign/[token]/sign-form', () => ({
   SignForm: () => null,
@@ -194,4 +195,24 @@ it('offers only the signed copy on the customer screen', async () => {
   const receipt = await downloadReceipt(request, { params });
   expect(receipt.headers.get('Content-Disposition')).toContain('-signing-receipt.json');
   expect(await receipt.json()).toMatchObject({ format: 'worktello.signing-receipt' });
+});
+
+it('shows the customer, product and contract period before signing', async () => {
+  vi.mocked(publicSignatureRequest).mockResolvedValue(
+    await signed({
+      status: 'pending',
+      coverDetails: {
+        title: 'Annual support agreement',
+        productNames: ['Dental Practice Management System'],
+        startDate: '2026-11-01',
+        endDate: '2027-10-31',
+      },
+    }),
+  );
+  const markup = renderToStaticMarkup(
+    await SigningPage({ params: Promise.resolve({ token: 'sample-token' }) }),
+  );
+  expect(markup).toContain('Sample Dental Clinic');
+  expect(markup).toContain('Dental Practice Management System');
+  expect(markup).toContain('1st November 2026 to 31st October 2027');
 });
