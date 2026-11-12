@@ -27,6 +27,14 @@ const tenantSchema = new Schema(
       },
     },
 
+    agreementDefaults: {
+      supportPortal: { type: String, default: '' },
+      supportEmail: { type: String, default: '' },
+      supportPhone: { type: String, default: '' },
+      supportWhatsapp: { type: String, default: '' },
+      providerSignerId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+    },
+
     numbering: {
       taskPrefix: { type: String, default: 'T' },
       ticketPrefix: { type: String, default: 'S' },

@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element -- Embedded tenant logo is part of the frozen agreement. */
+import { agreementFooterText } from './agreement-cover';
 import type { TenantLetterhead } from '@coex/shared/crm/letterhead';
 
 export function LetterheadHeader({ letterhead }: { letterhead: TenantLetterhead }) {
@@ -21,7 +22,6 @@ export function LetterheadHeader({ letterhead }: { letterhead: TenantLetterhead 
         <p className="text-xl font-semibold" style={{ color: letterhead.color }}>
           {letterhead.name}
         </p>
-        <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{letterhead.address}</p>
         {letterhead.contact && (
           <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed">{letterhead.contact}</p>
         )}
@@ -30,13 +30,19 @@ export function LetterheadHeader({ letterhead }: { letterhead: TenantLetterhead 
   );
 }
 
-export function LetterheadFooter({ letterhead }: { letterhead: TenantLetterhead }) {
+export function LetterheadFooter({
+  letterhead,
+  agreement = false,
+}: {
+  letterhead: TenantLetterhead;
+  agreement?: boolean;
+}) {
   return (
     <footer
       className="whitespace-pre-wrap break-words border-t pt-4 text-center text-xs"
       style={{ borderColor: letterhead.color }}
     >
-      {letterhead.footer || letterhead.name}
+      {agreement ? agreementFooterText(letterhead) : letterhead.footer || letterhead.name}
     </footer>
   );
 }

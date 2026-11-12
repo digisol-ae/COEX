@@ -46,6 +46,7 @@ const emailOutboxSchema = new Schema(
     html: { type: String, default: null },
     /** Our own Message-ID, chosen up front so a customer's answer threads back to the ticket. */
     messageId: { type: String, default: null },
+    signedCopyRequestId: { type: Schema.Types.ObjectId, default: null },
     inReplyTo: { type: String, default: null },
     references: { type: [String], default: [] },
     /** A public ticket reply: its files are added once stored, and read at send time. */
@@ -75,6 +76,10 @@ const emailOutboxSchema = new Schema(
   { timestamps: true },
 );
 
+emailOutboxSchema.index(
+  { tenantId: 1, signedCopyRequestId: 1 },
+  { partialFilterExpression: { signedCopyRequestId: { $type: 'objectId' } } },
+);
 emailOutboxSchema.index({ status: 1, sendAfter: 1 });
 emailOutboxSchema.index({ tenantId: 1, kind: 1, to: 1, createdAt: -1 });
 

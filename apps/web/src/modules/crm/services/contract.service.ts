@@ -22,7 +22,7 @@ import {
 } from '@/modules/core/services/email.service';
 import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import { recordActivity } from './activity.service';
-import { nextNumber } from '@/modules/core/services/numbering.service';
+import { nextSequence } from '@/modules/core/services/numbering.service';
 import {
   BILLING_FREQUENCIES,
   CONTRACT_TYPES,
@@ -230,13 +230,33 @@ function fields(
   };
 }
 
+async function nextContractNumber(organisationId: string | Types.ObjectId) {
+  const organisations = repository(OrganisationModel);
+  const customer = await organisations.findById(organisationId);
+  if (!customer) throw new Error('Customer not found.');
+  let customerNumber = customer.customerNumber;
+  if (customerNumber == null) {
+    const assigned = await organisations.updateOne(
+      { _id: customer._id, customerNumber: null },
+      { $set: { customerNumber: await nextSequence('customer') } },
+    );
+    customerNumber =
+      assigned?.customerNumber ?? (await organisations.findById(organisationId))?.customerNumber;
+  }
+  if (customerNumber == null) throw new Error('Could not assign a customer number.');
+  const tenant = await TenantModel.findById(getContext().tenantId).select('timezone');
+  const date = todayKey(new Date(), tenant?.timezone);
+  const series = await nextSequence('contract');
+  return `${date.slice(0, 4)}-${date.slice(5).replace('-', '')}-${String(customerNumber).padStart(4, '0')}-${String(series).padStart(3, '0')}`;
+}
+
 export async function createContract(input: ContractInput): Promise<string> {
   await connectToDatabase();
 
   const linked = await validate(input);
   const created = await contracts().create({
     ...fields(input, linked),
-    number: await nextNumber('contract'),
+    number: await nextContractNumber(input.organisationId),
     status: 'draft',
   });
 
@@ -456,7 +476,7 @@ export async function renewContract(id: string): Promise<string> {
     includedHoursPerPeriod: old.includedHoursPerPeriod,
     renewalReminderDays: old.renewalReminderDays,
     renewedFromId: old._id,
-    number: await nextNumber('contract'),
+    number: await nextContractNumber(old.organisationId),
     status: 'draft',
   });
 

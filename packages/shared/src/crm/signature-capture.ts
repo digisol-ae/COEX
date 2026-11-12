@@ -9,3 +9,6 @@ export interface SignatureCapture {
   style?: number;
   imageDataUrl?: string;
 }
+
+export const FIRST_PARTY_CONSENT =
+  'I am authorised to sign for the first party. I have reviewed this agreement and intend to sign it electronically on behalf of the first party.';

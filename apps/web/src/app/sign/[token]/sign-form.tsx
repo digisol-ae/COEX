@@ -3,10 +3,39 @@
 import { useRef, useState, useTransition, type PointerEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Notice } from '@/components/ui';
-import { SIGNATURE_STYLES, type SignatureMethod } from '@coex/shared/crm/signature-capture';
+import {
+  SIGNATURE_STYLES,
+  type SignatureMethod,
+  type SignatureCapture,
+} from '@coex/shared/crm/signature-capture';
 import { signAgreementAction } from './actions';
 
 export function SignForm({ token, consentText }: { token: string; consentText: string }) {
+  return (
+    <SignatureForm
+      consentText={consentText}
+      submit={(name, consent, capture) => signAgreementAction(token, name, consent, capture)}
+    />
+  );
+}
+
+export function SignatureForm({
+  consentText,
+  submit,
+  label = 'Sign agreement',
+  onSuccess,
+  title = 'Your signature',
+}: {
+  consentText: string;
+  submit: (
+    name: string,
+    consent: boolean,
+    capture: SignatureCapture,
+  ) => Promise<{ error?: string }>;
+  label?: string;
+  title?: string;
+  onSuccess?: () => void;
+}) {
   const [name, setName] = useState('');
   const [consent, setConsent] = useState(false);
   const [method, setMethod] = useState<SignatureMethod>('drawn');
@@ -71,7 +100,7 @@ export function SignForm({ token, consentText }: { token: string; consentText: s
           return;
         }
         start(async () => {
-          const result = await signAgreementAction(token, name, consent, {
+          const result = await submit(name, consent, {
             method,
             style: styleIndex,
             imageDataUrl:
@@ -85,12 +114,13 @@ export function SignForm({ token, consentText }: { token: string; consentText: s
           else {
             setUpload('');
             setMessage('Agreement signed.');
+            onSuccess?.();
             router.refresh();
           }
         });
       }}
     >
-      <h2 className="text-xl font-semibold">Your signature</h2>
+      <h2 className="text-xl font-semibold">{title}</h2>
       <label className="block space-y-2 text-sm font-medium">
         Your full name
         <input
@@ -254,7 +284,7 @@ export function SignForm({ token, consentText }: { token: string; consentText: s
         </a>
       </p>
       <Button className="min-h-12 w-full sm:w-auto" disabled={pending || !ready}>
-        {pending ? 'Signing…' : 'Sign agreement'}
+        {pending ? 'Signing…' : label}
       </Button>
       {message && <Notice>{message}</Notice>}
     </form>

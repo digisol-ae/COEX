@@ -1,8 +1,12 @@
 import { createHash, randomBytes, randomInt } from 'node:crypto';
+import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { Types } from 'mongoose';
 import { AgreementSignatureModel } from '@coex/shared/crm/models/agreement-signature.model';
 import { UserModel } from '@coex/shared/core/models/user.model';
-import { getCurrentTenant } from '@/modules/core/services/tenant.service';
+import {
+  getCurrentTenant,
+  listContractProviderSigners,
+} from '@/modules/core/services/tenant.service';
 import { ProductModel } from '@coex/shared/crm/models/product.model';
 import { ContractModel } from '@coex/shared/crm/models/contract.model';
 import { ContactModel } from '@coex/shared/crm/models/contact.model';
@@ -24,19 +28,25 @@ import { getContract } from './contract.service';
 import { getTenantLetterhead } from './tenant-letterhead.service';
 import { validateLetterhead, letterheadDocument } from '@coex/shared/crm/letterhead';
 import type { AgreementSignature } from '@coex/shared/crm/models/agreement-signature.model';
-import type { SignatureCapture } from '@coex/shared/crm/signature-capture';
+import { FIRST_PARTY_CONSENT, type SignatureCapture } from '@coex/shared/crm/signature-capture';
 import {
   signingMac,
   equalDigest,
   prepareSignature,
   completionPayload,
   verifyCompletion,
+  firstPartyMac,
+  verifyFirstParty,
 } from '../signature-evidence';
 
 const requests = () => repository(AgreementSignatureModel);
 const digest = (text: string) => createHash('sha256').update(text, 'utf8').digest('hex');
 const CONSENT =
   'I have read this agreement, am authorised to sign on behalf of the customer, and agree to its terms. By applying my signature and selecting Sign agreement, I intend to sign this agreement electronically.';
+const providerMessageId = (id: unknown) => `<agreement-first-party-${String(id)}@worktello.com>`;
+export function pendingProviderInvitation(request: AgreementSignature) {
+  return request.customerInvitedAt ? null : request.firstPartyInvitation;
+}
 const messageIdFor = (id: unknown) => `<agreement-signature-${String(id)}@worktello.com>`;
 
 export async function listSignatureHistory(
@@ -73,18 +83,48 @@ export async function listSignatureHistory(
     requests().count(filter),
     getCurrentTenant(),
   ]);
-  const [deliveries, senders] = await Promise.all([
+  const signedIds = rows.filter(({ status }) => status === 'signed').map(({ _id }) => _id);
+  const [deliveries, senders, copyEmails] = await Promise.all([
     EmailOutboxModel.find({
       tenantId: getContext().tenantId,
-      messageId: { $in: rows.map((r) => messageIdFor(r._id)) },
+      messageId: { $in: rows.flatMap((r) => [messageIdFor(r._id), providerMessageId(r._id)]) },
     }).select('messageId status sentAt'),
     UserModel.find({
       tenantId: getContext().tenantId,
       _id: { $in: rows.map((r) => r.requestedBy) },
     }).select('name'),
+    input.contractId && signedIds.length
+      ? EmailOutboxModel.find({
+          tenantId: getContext().tenantId,
+          kind: 'contract_email',
+          $or: [
+            { signedCopyRequestId: { $in: signedIds } },
+            // Earlier copies only stored the request ID inside the Worktello link.
+            {
+              signedCopyRequestId: null,
+              text: new RegExp(
+                '^Download copy of your contract: https?://[^/]+/sign/copy-(' +
+                  signedIds.join('|') +
+                  ')-',
+                'm',
+              ),
+            },
+          ],
+        })
+          .select('signedCopyRequestId to cc sender subject status createdAt sentAt text')
+          .sort({ createdAt: -1, _id: -1 })
+      : [],
   ]);
   const delivery = new Map(deliveries.map((d) => [d.messageId, d]));
   const names = new Map(senders.map((u) => [String(u._id), u.name]));
+  const copiesByRequest = Map.groupBy(
+    copyEmails,
+    (email) =>
+      email.signedCopyRequestId?.toString() ??
+      /^Download copy of your contract: https?:\/\/[^/]+\/sign\/copy-([a-f0-9]{24})-/m.exec(
+        email.text,
+      )?.[1],
+  );
   return {
     page,
     pageSize,
@@ -116,8 +156,21 @@ export async function listSignatureHistory(
           : r.status,
       deliveryStatus: delivery.get(messageIdFor(r._id))?.status ?? 'not_queued',
       sentAt: delivery.get(messageIdFor(r._id))?.sentAt?.toISOString() ?? null,
+      copyEmails: (copiesByRequest.get(String(r._id)) ?? []).map((email) => ({
+        id: String(email._id),
+        to: email.to,
+        cc: email.cc,
+        subject: email.subject,
+        status: email.status,
+        createdAt: email.createdAt.toISOString(),
+        sentAt: email.sentAt?.toISOString() ?? null,
+      })),
       signedAt: r.signedAt?.toISOString() ?? null,
       signedName: r.signedName,
+      firstPartyInviteEmail: r.firstPartyInvitation?.email ?? null,
+      firstPartyDeliveryStatus: delivery.get(providerMessageId(r._id))?.status ?? null,
+      customerInvited: !r.firstPartyInvitation || Boolean(r.customerInvitedAt),
+      firstPartySignedName: r.firstParty?.name ?? null,
       cancelledAt: r.cancelledAt?.toISOString() ?? null,
       needsLetterhead: !r.letterhead,
     })),
@@ -127,22 +180,31 @@ export async function listSignatureHistory(
 export async function signatureWorkspace(contractId: string, page = 1) {
   const contract = await getContract(contractId);
   if (!contract) throw new Error('Contract not found.');
-  const [draft, contacts, ledger, letterhead, pendingRequest, emailSenders] = await Promise.all([
-    getAgreementDraft(contractId),
-    repository(ContactModel)
-      .find({ organisationId: contract.organisationId, status: 'active' })
-      .sort({ name: 1 }),
-    listSignatureHistory({ contractId, page }),
-    getTenantLetterhead(),
-    requests().findOne({ contractId, status: 'pending', expiresAt: { $gt: new Date() } }),
-    contractEmailSenders(),
-  ]);
+  const [draft, contacts, ledger, letterhead, pendingRequest, emailSenders, staff, tenant] =
+    await Promise.all([
+      getAgreementDraft(contractId),
+      repository(ContactModel)
+        .find({ organisationId: contract.organisationId, status: 'active' })
+        .sort({ name: 1 }),
+      listSignatureHistory({ contractId, page }),
+      getTenantLetterhead(),
+      requests().findOne({ contractId, status: 'pending', expiresAt: { $gt: new Date() } }),
+      contractEmailSenders(),
+      listContractProviderSigners(),
+      getCurrentTenant(),
+    ]);
   let letterheadError = '';
   try {
     validateLetterhead(letterhead);
   } catch (error) {
     letterheadError = (error as Error).message;
   }
+  const eligible = contacts.filter((contact) => contact.email);
+  const linked = eligible.filter((contact) => contract.contactIds.includes(String(contact._id)));
+  const candidates = linked.length ? linked : eligible;
+  const primary = candidates.filter((contact) => contact.isPrimary);
+  const defaultContact =
+    primary.length === 1 ? primary[0] : candidates.length === 1 ? candidates[0] : undefined;
   return {
     ...ledger,
     letterhead,
@@ -150,9 +212,13 @@ export async function signatureWorkspace(contractId: string, page = 1) {
     emailSenders,
     draft,
     hasPending: Boolean(pendingRequest),
-    contacts: contacts
-      .filter((c) => c.email)
-      .map((c) => ({ id: String(c._id), name: c.name, email: c.email! })),
+    defaultContactId: defaultContact?._id.toString() ?? '',
+    defaultProviderSignerId:
+      staff
+        .find(({ _id }) => _id.equals(tenant.agreementDefaults?.providerSignerId ?? undefined))
+        ?._id.toString() ?? '',
+    staffSigners: staff.map(({ _id, name, email }) => ({ id: String(_id), name, email })),
+    contacts: eligible.map((c) => ({ id: String(c._id), name: c.name, email: c.email! })),
   };
 }
 
@@ -160,6 +226,8 @@ export async function requestAgreementSignature(
   contractId: string,
   contactId: string,
   revision: number,
+  provider?: { name: string; consent: boolean; capture: SignatureCapture },
+  providerUserId?: string,
 ) {
   await connectToDatabase();
   const contract = await getContract(contractId);
@@ -177,11 +245,40 @@ export async function requestAgreementSignature(
     status: 'active',
   });
   if (!contact?.email) throw new Error('Choose an active customer contact with an email address.');
+  const invitedProvider =
+    providerUserId && Types.ObjectId.isValid(providerUserId)
+      ? await UserModel.findOne({
+          _id: providerUserId,
+          tenantId: getContext().tenantId,
+          role: { $in: STAFF_ROLES },
+          status: 'active',
+          deletedAt: null,
+        }).select('name email')
+      : null;
+  if (providerUserId && (!invitedProvider?.email || provider))
+    throw new Error('Choose an active First Party signer.');
   const letterhead = await getTenantLetterhead();
   validateLetterhead(letterhead);
   signingMac('configuration-check');
   const productNames = await agreementProductNames(getContext().tenantId, contract.productIds);
   const now = new Date();
+  if (
+    provider &&
+    (typeof provider.name !== 'string' ||
+      provider.name.trim().length < 2 ||
+      provider.name.trim().length > 200 ||
+      provider.consent !== true)
+  )
+    throw new Error('Enter your full name and accept the first-party agreement.');
+  const firstParty = provider
+    ? {
+        userId: getContext().userId,
+        name: provider.name.trim(),
+        signedAt: now,
+        consent: FIRST_PARTY_CONSENT,
+        ...(await prepareSignature(provider.capture)),
+      }
+    : null;
   // Retain expired requests as history while releasing the single-pending-request slot.
   await requests().updateOne(
     { contractId, status: 'pending', expiresAt: { $lte: now } },
@@ -189,35 +286,45 @@ export async function requestAgreementSignature(
       $set: { status: 'cancelled', cancelledAt: now, cancellationReason: 'expired' },
     },
   );
+  const requestId = new Types.ObjectId();
+  const documentHash = digest(letterheadDocument(draft.body, letterhead));
   const token = randomBytes(32).toString('base64url');
   const expiresAt = new Date(now.getTime() + 14 * 86400000);
+  const input = {
+    _id: requestId,
+    contractId: new Types.ObjectId(contractId),
+    contactId: contact._id,
+    requestedBy: getContext().userId,
+    contractNumber: contract.number,
+    customerName: contract.organisationName,
+    coverDetails: {
+      title: contract.title,
+      productNames,
+      startDate: contract.startDate,
+      endDate: contract.endDate,
+    },
+    signerName: contact.name,
+    signerEmail: contact.email,
+    draftRevision: draft.revision,
+    body: draft.body,
+    bodyHash: digest(draft.body),
+    letterhead,
+    documentHash,
+    firstParty: firstParty
+      ? { ...firstParty, mac: firstPartyMac(requestId, documentHash, firstParty) }
+      : null,
+    firstPartyInvitation: invitedProvider
+      ? { userId: invitedProvider._id, name: invitedProvider.name, email: invitedProvider.email }
+      : null,
+    securityVersion: invitedProvider ? 5 : firstParty ? 4 : 3,
+    privacyNoticeVersion: '2026-11-03',
+    consentText: CONSENT,
+    tokenHash: digest(token),
+    expiresAt,
+  };
   let request;
   try {
-    request = await requests().create({
-      contractId: new Types.ObjectId(contractId),
-      contactId: contact._id,
-      requestedBy: getContext().userId,
-      contractNumber: contract.number,
-      customerName: contract.organisationName,
-      coverDetails: {
-        title: contract.title,
-        productNames,
-        startDate: contract.startDate,
-        endDate: contract.endDate,
-      },
-      signerName: contact.name,
-      signerEmail: contact.email,
-      draftRevision: draft.revision,
-      body: draft.body,
-      bodyHash: digest(draft.body),
-      letterhead,
-      documentHash: digest(letterheadDocument(draft.body, letterhead)),
-      securityVersion: 3,
-      privacyNoticeVersion: '2026-11-03',
-      consentText: CONSENT,
-      tokenHash: digest(token),
-      expiresAt,
-    });
+    request = await requests().create(input);
   } catch (error) {
     if ((error as { code?: number }).code === 11000)
       throw new Error(
@@ -228,10 +335,10 @@ export async function requestAgreementSignature(
   try {
     const queued = await queueEmail({
       kind: 'contract_email',
-      to: contact.email,
-      messageId: messageIdFor(request._id),
-      subject: `Signature requested: ${contract.number} — ${contract.title}`,
-      text: `Hello ${contact.name},\n\nPlease review and sign the agreement for ${contract.organisationName}:\n\n${appBaseUrl()}/sign/${token}\n\nThis private link expires on ${expiresAt.toISOString().slice(0, 10)}. Do not forward it. If you are not authorised to sign, contact the sender.\n\nYou can save a copy after signing.`,
+      to: invitedProvider?.email ?? contact.email,
+      messageId: invitedProvider ? providerMessageId(request._id) : messageIdFor(request._id),
+      subject: `${invitedProvider ? 'First Party signature requested' : 'Signature requested'}: ${contract.number} — ${contract.title}`,
+      text: `Hello ${invitedProvider?.name ?? contact.name},\n\nPlease review and sign the agreement for ${contract.organisationName}:\n\n${appBaseUrl()}/sign/${token}\n\nThis private link expires on ${expiresAt.toISOString().slice(0, 10)}. Do not forward it. If you are not authorised to sign, contact the sender.\n\nYou can save a copy after signing.`,
     });
     if (!queued)
       throw new Error(
@@ -256,13 +363,78 @@ export async function requestAgreementSignature(
     entityId: new Types.ObjectId(contractId),
     after: {
       requestId: String(request._id),
-      signerEmail: contact.email,
+      signerEmail: invitedProvider?.email ?? contact.email,
       draftRevision: draft.revision,
       bodyHash: request.bodyHash,
       documentHash: request.documentHash,
     },
   });
   return String(request._id);
+}
+
+export async function sendSecondPartyInvitation(contractId: string, requestId: string) {
+  await connectToDatabase();
+  if (!Types.ObjectId.isValid(requestId)) throw new Error('Signature request not found.');
+  const request = await requests().findOne({
+    _id: requestId,
+    contractId,
+    status: 'pending',
+    expiresAt: { $gt: new Date() },
+    firstPartyInvitation: { $ne: null },
+    firstParty: { $ne: null },
+    customerInvitedAt: null,
+  });
+  if (!request) throw new Error('The First Party must sign before sending to the Second Party.');
+  verifyFirstParty(request);
+  const token = Buffer.from(signingMac(`second-party:${request._id}`), 'hex').toString('base64url');
+  const messageId = messageIdFor(request._id);
+  const prior = await EmailOutboxModel.exists({ tenantId: request.tenantId, messageId });
+  if (
+    !prior &&
+    !(await queueEmail({
+      kind: 'contract_email',
+      to: request.signerEmail,
+      messageId,
+      outboxId: new Types.ObjectId(digest(messageId).slice(0, 24)),
+      subject: `Second Party signature requested: ${request.contractNumber}`,
+      text: `Hello ${request.signerName},
+
+Please review and sign your agreement:
+
+${appBaseUrl()}/sign/${token}
+
+This private link is valid for 14 days. Do not forward it.`,
+    }))
+  )
+    throw new Error('The customer invitation could not be queued. Check outbound email and retry.');
+  const now = new Date();
+  const updated = await requests().updateOne(
+    { _id: request._id, status: 'pending', customerInvitedAt: null, tokenHash: request.tokenHash },
+    {
+      $set: {
+        customerInvitedAt: now,
+        tokenHash: digest(token),
+        expiresAt: new Date(now.getTime() + 14 * 86400000),
+        otpCodeHash: null,
+        otpSentAt: null,
+        otpExpiresAt: null,
+        otpAttempts: 0,
+        otpSendCount: 0,
+        otpWindowStartedAt: null,
+        accessTokenHash: null,
+        accessExpiresAt: null,
+        verifiedAt: null,
+      },
+    },
+  );
+  if (!updated)
+    throw new Error('This request was already updated. Reload to see its current status.');
+  await recordAudit({
+    action: 'agreement.second_party_signature_requested',
+    entityType: 'Contract',
+    entityId: request.contractId,
+    after: { requestId, signerEmail: request.signerEmail, draftRevision: request.draftRevision },
+  });
 }
 
 export async function cancelAgreementSignature(contractId: string, requestId: string) {
@@ -318,12 +490,11 @@ export async function publicSignatureRequest(token: string) {
       digest(letterheadDocument(request.body, request.letterhead)) !== request.documentHash)
   )
     return null;
-  if (request.status === 'signed') {
-    try {
-      verifyCompletion(request);
-    } catch {
-      return null;
-    }
+  try {
+    if (request.status === 'signed') verifyCompletion(request);
+    else verifyFirstParty(request);
+  } catch {
+    return null;
   }
   return request;
 }
@@ -361,6 +532,7 @@ export async function requestSigningCode(token: string) {
       _id: request._id,
       tenantId: request.tenantId,
       status: request.status,
+      tokenHash: request.tokenHash,
       ...(request.status === 'pending' ? { expiresAt: { $gt: now } } : {}),
       otpSentAt: request.otpSentAt ?? null,
       $or: [{ otpSendCount: request.otpSendCount }, { otpSendCount: { $exists: false } }],
@@ -383,7 +555,7 @@ export async function requestSigningCode(token: string) {
     () =>
       queueEmail({
         kind: 'password_reset',
-        to: request.signerEmail,
+        to: pendingProviderInvitation(request)?.email ?? request.signerEmail,
         subject: `Your agreement verification code — ${request.contractNumber}`,
         text: `Your Worktello agreement verification code is ${code}. It expires in 10 minutes. This code permits access to the agreement and signing. Do not share it. If you did not request this, contact the sender.`,
       }),
@@ -408,6 +580,7 @@ export async function verifySigningCode(token: string, code: string) {
       _id: request._id,
       tenantId: request.tenantId,
       status: request.status,
+      tokenHash: request.tokenHash,
       otpCodeHash: { $ne: null },
       otpExpiresAt: { $gt: now },
       otpAttempts: { $lt: 5 },
@@ -424,6 +597,7 @@ export async function verifySigningCode(token: string, code: string) {
       _id: request._id,
       tenantId: request.tenantId,
       status: request.status,
+      tokenHash: request.tokenHash,
       otpCodeHash: codeHash,
       otpExpiresAt: { $gt: new Date() },
     },
@@ -467,6 +641,40 @@ export async function signAgreement(
     throw new Error('This request is already signed. Reload to see its status.');
   const signature = await prepareSignature(input.capture ?? { method: 'typed' });
   const signedAt = new Date();
+  const invitedProvider = pendingProviderInvitation(request);
+  if (invitedProvider) {
+    if (request.firstParty || !request.verifiedAt)
+      throw new Error('The First Party has already signed.');
+    const party = {
+      userId: invitedProvider.userId,
+      name: input.name.trim(),
+      signedAt,
+      consent: FIRST_PARTY_CONSENT,
+      invitedEmail: invitedProvider.email,
+      verifiedAt: request.verifiedAt,
+      ...signature,
+    };
+    const saved = await AgreementSignatureModel.findOneAndUpdate(
+      {
+        _id: request._id,
+        tenantId: request.tenantId,
+        tokenHash: digest(token),
+        status: 'pending',
+        firstParty: null,
+        expiresAt: { $gt: signedAt },
+        accessTokenHash: digest(input.accessToken!),
+        accessExpiresAt: { $gt: signedAt },
+      },
+      {
+        $set: {
+          firstParty: { ...party, mac: firstPartyMac(request._id, request.documentHash, party) },
+        },
+      },
+      { returnDocument: 'after' },
+    );
+    if (!saved) throw new Error('This request was already signed, cancelled or expired.');
+    return saved;
+  }
   const evidence = {
     ...request.toObject(),
     ...signature,
@@ -604,6 +812,7 @@ export async function emailSignedAgreement(
   const accepted = await queueEmail({
     kind: 'contract_email',
     sender: sender.role,
+    signedCopyRequestId: request._id,
     cc,
     to: request.signerEmail,
     subject: subject.trim(),

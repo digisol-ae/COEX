@@ -22,6 +22,7 @@ vi.mock('@/modules/crm/services/agreement-signature.service', () => ({
   signingCookieName: () => 'signing',
   hasSigningAccess: () => true,
   legacyAgreementCover: async () => null,
+  pendingProviderInvitation: () => null,
   signingPageDetails: async (request: { coverDetails?: unknown }) => request.coverDetails,
 }));
 vi.mock('@/app/sign/[token]/sign-form', () => ({

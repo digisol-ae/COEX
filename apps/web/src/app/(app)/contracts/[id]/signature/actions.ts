@@ -4,6 +4,7 @@ import { asUser, requirePermission } from '@/lib/session';
 import {
   requestAgreementSignature,
   cancelAgreementSignature,
+  sendSecondPartyInvitation,
   emailSignedAgreement,
 } from '@/modules/crm/services/agreement-signature.service';
 
@@ -12,17 +13,27 @@ export async function signatureMutation(input: {
   contactId?: string;
   revision?: number;
   cancelId?: string;
+  providerUserId?: string;
+  sendSecondPartyId?: string;
+  provider?: Parameters<typeof requestAgreementSignature>[3];
 }) {
   const actor = await requirePermission('contract.manage');
   try {
     await asUser(actor, async () => {
       if (input.cancelId) await cancelAgreementSignature(input.contractId, input.cancelId);
-      else
+      else if (input.sendSecondPartyId)
+        await sendSecondPartyInvitation(input.contractId, input.sendSecondPartyId);
+      else {
+        if (!input.provider && !input.providerUserId)
+          throw new Error('Choose the First Party signer.');
         await requestAgreementSignature(
           input.contractId,
           input.contactId ?? '',
           input.revision ?? 0,
+          input.provider,
+          input.providerUserId,
         );
+      }
     });
     revalidatePath(`/contracts/${input.contractId}/signature`);
     return { saved: true };

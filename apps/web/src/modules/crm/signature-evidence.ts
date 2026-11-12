@@ -71,11 +71,50 @@ export async function prepareSignature(capture: SignatureCapture) {
   };
 }
 
+type FirstParty = NonNullable<AgreementSignature['firstParty']>;
+
+export function firstPartyMac(
+  requestId: unknown,
+  documentHash: string | null | undefined,
+  party: Omit<FirstParty, 'mac'>,
+) {
+  return signingMac(
+    JSON.stringify([
+      'first-party',
+      String(requestId),
+      documentHash,
+      String(party.userId),
+      party.name,
+      party.signedAt.toISOString(),
+      party.consent,
+      party.signatureMethod,
+      party.signatureStyle,
+      party.signatureHash,
+      ...(party.invitedEmail ? [party.invitedEmail, party.verifiedAt?.toISOString()] : []),
+    ]),
+  );
+}
+
+export function verifyFirstParty(request: AgreementSignature & { _id: unknown }) {
+  const party = request.firstParty;
+  const waitingForProvider =
+    request.securityVersion === 5 &&
+    request.firstPartyInvitation &&
+    !request.customerInvitedAt &&
+    request.status === 'pending';
+  if (request.securityVersion >= 4 && !party && !waitingForProvider)
+    throw new Error('The first-party signature is missing.');
+  if (!party) return;
+  if (!equalDigest(party.mac, firstPartyMac(request._id, request.documentHash, party)))
+    throw new Error('The first-party signature could not be verified.');
+  signatureImage(party);
+}
+
 export function completionPayload(request: AgreementSignature & { _id: unknown }) {
   return JSON.stringify({
     ...(request.securityVersion >= 3
       ? {
-          version: 3,
+          version: request.securityVersion,
           contractId: String(request.contractId),
           contactId: String(request.contactId),
           contractNumber: request.contractNumber,
@@ -97,6 +136,25 @@ export function completionPayload(request: AgreementSignature & { _id: unknown }
           },
         }
       : {}),
+    ...(request.firstParty
+      ? {
+          firstParty: {
+            userId: String(request.firstParty.userId),
+            name: request.firstParty.name,
+            signedAt: request.firstParty.signedAt.toISOString(),
+            consent: request.firstParty.consent,
+            method: request.firstParty.signatureMethod,
+            style: request.firstParty.signatureStyle,
+            signatureHash: request.firstParty.signatureHash,
+            ...(request.firstParty.invitedEmail
+              ? {
+                  invitedEmail: request.firstParty.invitedEmail,
+                  verifiedAt: request.firstParty.verifiedAt?.toISOString(),
+                }
+              : {}),
+          },
+        }
+      : {}),
     requestId: String(request._id),
     tenantId: String(request.tenantId),
     documentHash: request.documentHash,
@@ -115,6 +173,7 @@ export function completionPayload(request: AgreementSignature & { _id: unknown }
 }
 export function verifyCompletion(request: AgreementSignature & { _id: unknown }) {
   verifySignaturePresence(request);
+  verifyFirstParty(request);
   const hash = (value: string) => createHash('sha256').update(value).digest('hex');
   if (
     !equalDigest(hash(request.body), request.bodyHash) ||
@@ -135,17 +194,24 @@ export function verifyCompletion(request: AgreementSignature & { _id: unknown })
     throw new Error('The signature record could not be verified. Contact the sender.');
 }
 
-function verifySignaturePresence(request: AgreementSignature) {
+type SignatureAppearance = Pick<
+  AgreementSignature,
+  'signatureMethod' | 'signatureSealed' | 'signatureHash'
+>;
+
+function verifySignaturePresence(
+  request: SignatureAppearance & Partial<Pick<AgreementSignature, 'status' | 'securityVersion'>>,
+) {
   const imageMethod = request.signatureMethod === 'drawn' || request.signatureMethod === 'uploaded';
   if (
     (imageMethod && (!request.signatureSealed || !request.signatureHash)) ||
     (!imageMethod && (request.signatureSealed || request.signatureHash)) ||
-    (request.securityVersion >= 2 && request.status === 'signed' && !request.signatureMethod)
+    ((request.securityVersion ?? 0) >= 2 && request.status === 'signed' && !request.signatureMethod)
   )
     throw new Error('The signature record is incomplete. Contact the sender.');
 }
 
-export function signatureImage(request: AgreementSignature) {
+export function signatureImage(request: Parameters<typeof verifySignaturePresence>[0]) {
   verifySignaturePresence(request);
   if (!request.signatureSealed) return null;
   const value = openSecret(request.signatureSealed);

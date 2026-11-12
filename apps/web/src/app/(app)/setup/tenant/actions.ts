@@ -59,6 +59,13 @@ export async function saveTenantSettingsAction(
         workingDays: formData.getAll('workingDays').map(Number),
         dayStartMinutes: toMinutes(String(formData.get('dayStart') ?? '09:00')),
         dayEndMinutes: toMinutes(String(formData.get('dayEnd') ?? '18:00')),
+        agreementDefaults: {
+          supportPortal: String(formData.get('agreementSupportPortal') ?? ''),
+          supportEmail: String(formData.get('agreementSupportEmail') ?? ''),
+          supportPhone: String(formData.get('agreementSupportPhone') ?? ''),
+          supportWhatsapp: String(formData.get('agreementSupportWhatsapp') ?? ''),
+          providerSignerId: String(formData.get('agreementProviderSignerId') ?? ''),
+        },
         letterhead: {
           address: String(formData.get('letterheadAddress') ?? ''),
           contact: String(formData.get('letterheadContact') ?? ''),

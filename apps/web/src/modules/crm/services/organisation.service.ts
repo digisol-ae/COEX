@@ -43,7 +43,14 @@ export async function listOrganisations(filter?: {
   if (filter?.search?.trim()) {
     // Escaped so a customer named "A+B (Ltd)" searches as text rather than as a pattern.
     const escaped = filter.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    query.name = { $regex: escaped, $options: 'i' };
+    const name = { $regex: escaped, $options: 'i' };
+    const text = filter.search.trim();
+    const number = Number(text);
+    if (/^\d+$/.test(text) && Number.isSafeInteger(number)) {
+      query.$or = [{ name }, { customerNumber: number }];
+    } else {
+      query.name = name;
+    }
   }
 
   const found = await organisations().find(query).sort({ name: 1 });
