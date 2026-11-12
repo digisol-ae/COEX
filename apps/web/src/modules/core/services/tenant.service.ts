@@ -1,3 +1,5 @@
+import { Types } from 'mongoose';
+import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { TenantModel } from '@coex/shared/core/models/tenant.model';
@@ -27,6 +29,14 @@ export async function getCurrentTenant() {
   return tenant;
 }
 
+export async function listContractProviderSigners() {
+  const { tenantId } = getContext();
+  return UserModel.find({ tenantId, role: { $in: STAFF_ROLES }, status: 'active', deletedAt: null })
+    .select('name email')
+    .sort({ name: 1 })
+    .lean();
+}
+
 export interface TenantSettingsInput {
   name: string;
   timezone: string;
@@ -40,6 +50,13 @@ export interface TenantSettingsInput {
   workingDays: number[];
   dayStartMinutes: number;
   dayEndMinutes: number;
+  agreementDefaults?: {
+    supportPortal: string;
+    supportEmail: string;
+    supportPhone: string;
+    supportWhatsapp: string;
+    providerSignerId: string;
+  };
   letterhead?: {
     address: string;
     contact: string;
@@ -51,7 +68,27 @@ export interface TenantSettingsInput {
 
 export async function updateTenantSettings(input: TenantSettingsInput): Promise<void> {
   const tenant = await getCurrentTenant();
-  const letterhead = input.letterhead;
+  const { letterhead, agreementDefaults: agreement, ...settings } = input;
+  if (
+    agreement?.providerSignerId &&
+    (!Types.ObjectId.isValid(agreement.providerSignerId) ||
+      !(await listContractProviderSigners()).some(
+        (staff) => String(staff._id) === agreement.providerSignerId,
+      ))
+  )
+    throw new Error('Choose an active staff member as the default First Party signer.');
+  const agreementDefaults = agreement && {
+    supportPortal: agreement.supportPortal.trim(),
+    supportEmail: agreement.supportEmail.trim(),
+    supportPhone: agreement.supportPhone.trim(),
+    supportWhatsapp: agreement.supportWhatsapp.trim(),
+    providerSignerId: agreement.providerSignerId
+      ? new Types.ObjectId(agreement.providerSignerId)
+      : null,
+  };
+  if (agreement && Object.values(agreement).some((value) => value.length > 300))
+    throw new Error('Agreement defaults must be at most 300 characters each.');
+
   if (letterhead) {
     if (
       letterhead.address.length > 2000 ||
@@ -82,6 +119,7 @@ export async function updateTenantSettings(input: TenantSettingsInput): Promise<
     workingDays: tenant.workingDays,
     dayStartMinutes: tenant.dayStartMinutes,
     dayEndMinutes: tenant.dayEndMinutes,
+    ...(agreement && { agreementDefaults: tenant.agreementDefaults }),
     ...(letterhead
       ? {
           letterhead: {
@@ -111,6 +149,7 @@ export async function updateTenantSettings(input: TenantSettingsInput): Promise<
         workingDays: input.workingDays,
         dayStartMinutes: input.dayStartMinutes,
         dayEndMinutes: input.dayEndMinutes,
+        ...(agreementDefaults && { agreementDefaults }),
         ...(letterhead
           ? {
               'branding.letterhead.address': letterhead.address.trim(),
@@ -131,7 +170,8 @@ export async function updateTenantSettings(input: TenantSettingsInput): Promise<
     entityType: 'Tenant',
     entityId: tenant._id,
     ...changedFields(before, {
-      ...input,
+      ...settings,
+      ...(agreementDefaults && { agreementDefaults }),
       name: input.name.trim(),
       ...(letterhead
         ? {

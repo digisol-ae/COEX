@@ -6,6 +6,7 @@ import {
   listAgreementTemplates,
   getAgreementDraft,
   agreementValues,
+  agreementSignerOptions,
 } from '@/modules/crm/services/agreement.service';
 import { PageHeader } from '@/components/ui';
 import { AgreementEditor } from './agreement-editor';
@@ -16,8 +17,13 @@ export default async function DraftPage({ params }: { params: Promise<{ id: stri
   const actor = await requirePermission('contract.read');
   const contract = await asUser(actor, () => getContract(id));
   if (!contract) notFound();
-  const [templates, draft, values] = await asUser(actor, () =>
-    Promise.all([listAgreementTemplates(), getAgreementDraft(id), agreementValues(id)]),
+  const [templates, draft, values, signers] = await asUser(actor, () =>
+    Promise.all([
+      listAgreementTemplates(),
+      getAgreementDraft(id),
+      agreementValues(id),
+      agreementSignerOptions(contract.organisationId),
+    ]),
   );
   const letterhead = await asUser(actor, getTenantLetterhead);
   return (
@@ -36,6 +42,7 @@ export default async function DraftPage({ params }: { params: Promise<{ id: stri
         templates={templates.filter((t) => t.type === contract.type)}
         draft={draft}
         automaticValues={values}
+        signerOptions={signers}
         editable={actor.permissions.includes('contract.manage')}
         letterhead={letterhead}
       />

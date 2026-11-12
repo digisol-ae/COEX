@@ -19,6 +19,7 @@ export function AgreementEditor({
   templates,
   draft,
   automaticValues,
+  signerOptions,
   editable,
   letterhead,
 }: {
@@ -27,6 +28,7 @@ export function AgreementEditor({
   templates: AgreementTemplate[];
   draft: DraftSummary | null;
   automaticValues: Record<string, string>;
+  signerOptions: Partial<Record<string, string[]>>;
   editable: boolean;
   letterhead: TenantLetterhead;
 }) {
@@ -36,10 +38,33 @@ export function AgreementEditor({
   const [reviewed, setReviewed] = useState(draft?.reviewed ?? false);
   const [message, setMessage] = useState('');
   const [pending, startTransition] = useTransition();
-  const [preview, setPreview] = useState(false);
+  const [preview, setPreview] = useState(true);
   const router = useRouter();
   const template = templates.find((t) => t.id === templateId);
   const merged = { ...automaticValues, ...values };
+  const templateFields = agreementTokens(template?.body ?? '');
+  const missingFields = templateFields.filter((key) => !automaticValues[key]?.trim());
+  const populatedFields = templateFields.filter((key) => automaticValues[key]?.trim());
+  function renderField(key: string) {
+    return (
+      <Field label={key.replaceAll('_', ' ')} key={key}>
+        <Input
+          aria-label={key.replaceAll('_', ' ')}
+          list={signerOptions[key]?.length ? `agreement-signers-${key}` : undefined}
+          value={merged[key] ?? ''}
+          placeholder="Complete this field"
+          onChange={(e) => setValues({ ...values, [key]: e.target.value })}
+        />
+        {Boolean(signerOptions[key]?.length) && (
+          <datalist id={`agreement-signers-${key}`}>
+            {signerOptions[key]?.map((name) => (
+              <option value={name} key={name} />
+            ))}
+          </datalist>
+        )}
+      </Field>
+    );
+  }
   const generatedPreview = template ? populateAgreement(template.body, merged) : '';
   const unresolved = agreementTokens(body);
   const dirty = body !== (draft?.body ?? '') || reviewed !== (draft?.reviewed ?? false);
@@ -119,23 +144,19 @@ export function AgreementEditor({
             contract. Check or complete the fields below before generating.
           </p>
           {template?.reviewNotes && <Notice tone="warn">{template.reviewNotes}</Notice>}
-          <details>
-            <summary className="cursor-pointer text-sm font-semibold">
-              Populate agreement fields
-            </summary>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              {agreementTokens(template?.body ?? '').map((key) => (
-                <Field label={key.replaceAll('_', ' ')} key={key}>
-                  <Input
-                    aria-label={key.replaceAll('_', ' ')}
-                    value={merged[key] ?? ''}
-                    placeholder="Complete this field"
-                    onChange={(e) => setValues({ ...values, [key]: e.target.value })}
-                  />
-                </Field>
-              ))}
-            </div>
-          </details>
+          {missingFields.length > 0 && (
+            <div className="grid gap-3 sm:grid-cols-2">{missingFields.map(renderField)}</div>
+          )}
+          {populatedFields.length > 0 && (
+            <details>
+              <summary className="cursor-pointer text-sm font-semibold">
+                Edit populated fields
+              </summary>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {populatedFields.map(renderField)}
+              </div>
+            </details>
+          )}
           <div className="flex gap-2">
             <Button disabled={pending || !template} onClick={() => mutate('generate')}>
               {draft ? 'Regenerate agreement' : 'Generate agreement'}

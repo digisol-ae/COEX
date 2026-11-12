@@ -23,7 +23,9 @@ const DAYS = [
 
 export function TenantSettingsForm({
   defaults,
+  staff,
 }: {
+  staff: { id: string; name: string }[];
   defaults: {
     name: string;
     slug: string;
@@ -38,6 +40,11 @@ export function TenantSettingsForm({
     workingDays: number[];
     dayStart: string;
     dayEnd: string;
+    agreementSupportPortal: string;
+    agreementSupportEmail: string;
+    agreementSupportPhone: string;
+    agreementSupportWhatsapp: string;
+    agreementProviderSignerId: string;
     letterheadAddress: string;
     letterheadContact: string;
     letterheadFooter: string;
@@ -70,6 +77,54 @@ export function TenantSettingsForm({
           </div>
         </CardSection>
 
+        <CardSection title="Agreement defaults">
+          <div className="space-y-4">
+            <Field label="Support portal">
+              <Input
+                name="agreementSupportPortal"
+                defaultValue={defaults.agreementSupportPortal}
+                maxLength={300}
+              />
+            </Field>
+            <Field label="Support email">
+              <Input
+                name="agreementSupportEmail"
+                type="email"
+                defaultValue={defaults.agreementSupportEmail}
+                maxLength={300}
+              />
+            </Field>
+            <Field label="Support phone">
+              <Input
+                name="agreementSupportPhone"
+                type="tel"
+                defaultValue={defaults.agreementSupportPhone}
+                maxLength={300}
+              />
+            </Field>
+            <Field label="Support WhatsApp">
+              <Input
+                name="agreementSupportWhatsapp"
+                type="tel"
+                defaultValue={defaults.agreementSupportWhatsapp}
+                maxLength={300}
+              />
+            </Field>
+            <Field label="Default First Party signer">
+              <Select
+                name="agreementProviderSignerId"
+                defaultValue={defaults.agreementProviderSignerId}
+              >
+                <option value="">Choose when drafting</option>
+                {staff.map(({ id, name }) => (
+                  <option value={id} key={id}>
+                    {name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </div>
+        </CardSection>
         <CardSection title="Contract letterhead">
           <p className="mb-4 text-sm">
             Customer contracts use this tenant’s name, logo, address and footer. Configure the logo

@@ -12,6 +12,7 @@ import {
 } from '@/modules/crm/services/agreement.service';
 import {
   requestAgreementSignature,
+  sendSecondPartyInvitation,
   publicSignatureRequest,
   signAgreement as completeSignature,
   requestSigningCode,
@@ -26,6 +27,7 @@ import {
 import { AgreementSignatureModel } from '@coex/shared/crm/models/agreement-signature.model';
 import { EmailSettingsModel } from '@coex/shared/core/models/email-settings.model';
 import { EmailOutboxModel } from '@coex/shared/core/models/email-outbox.model';
+import { UserModel } from '@coex/shared/core/models/user.model';
 import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import {
   signedAgreementHtml,
@@ -33,6 +35,8 @@ import {
   signingReceiptResponse,
 } from '@/modules/crm/signed-agreement';
 import sharp from 'sharp';
+import { PDFArray, PDFDocument, PDFName, PDFRawStream, decodePDFRawStream } from 'pdf-lib';
+import { signedAgreementPdf } from '@/modules/crm/signed-agreement-pdf';
 import { completionPayload, signingMac } from '@/modules/crm/signature-evidence';
 import { openSecret } from '@/lib/secret-box';
 
@@ -401,7 +405,7 @@ it('queues a private invitation, signs a frozen revision once, and exports exact
     expect(html).toContain('أحكام');
     expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
     expect(html).not.toContain('<script>');
-    expect(html).toContain(signed.bodyHash);
+    expect(html).not.toContain(signed.bodyHash);
     expect(html).not.toContain(f.token);
     expect(signedAgreementResponse(signed).headers.get('Cache-Control')).toBe('no-store');
     expect((await staffSignedAgreement(f.contractId, f.id))?.signedName).toBe(acceptance.name);
@@ -653,6 +657,20 @@ it('queues both links only when staff sends the signed copy', () =>
     expect(email.subject).toBe(draft.subject);
     expect(email.sender).toBe('contracts');
     expect(email.cc).toEqual(['billing@example.test']);
+    const getCopyLog = async () =>
+      (await listSignatureHistory({ contractId: f.contractId })).history[0].copyEmails;
+    expect(await getCopyLog()).toMatchObject([
+      { status: 'pending', to: email.to, cc: email.cc, subject: draft.subject },
+    ]);
+    const sentAt = new Date();
+    await EmailOutboxModel.updateOne(
+      { _id: email._id },
+      { $set: { status: 'sent', sentAt }, $unset: { signedCopyRequestId: 1 } },
+    );
+    // The link in older outbox rows still associates them with the signing request.
+    expect(await getCopyLog()).toMatchObject([{ status: 'sent', sentAt: sentAt.toISOString() }]);
+    expect(JSON.stringify(await getCopyLog())).not.toContain('/sign/copy-');
+
     expect(email.text).toContain(draft.message);
     expect(email.text).toContain(draft.signature);
     expect(email.html).toContain('Contracts &amp; Billing');
@@ -667,4 +685,111 @@ it('queues both links only when staff sends the signed copy', () =>
     expect(
       await publicSignatureRequest(token.replace(/.$/, (last) => (last === 'a' ? 'b' : 'a'))),
     ).toBeNull();
+  }));
+
+it('captures both parties and places them together in the signed PDF', () =>
+  within(async () => {
+    const f = await fixture();
+    await saveAgreementDraft(
+      f.contractId,
+      'This contract is entered on 2025-11-12. Sample agreement terms.',
+      true,
+      f.revision,
+    );
+    const draft = (await getAgreementDraft(f.contractId))!;
+    const id = await requestAgreementSignature(f.contractId, f.contactId, draft.revision, {
+      name: 'Provider Signer',
+      consent: true,
+      capture: { method: 'uploaded', imageDataUrl: await sampleSignature() },
+    });
+    const invitation = (await EmailOutboxModel.findOne({ kind: 'contract_email' }))!;
+    const token = invitation.text.match(/\/sign\/([A-Za-z0-9_-]{43})/)![1];
+    const pending = (await publicSignatureRequest(token))!;
+    expect(pending.firstParty?.name).toBe('Provider Signer');
+    expect(await staffSignedAgreement(f.contractId, id)).toBeNull();
+    const completed = await signAgreement(token, acceptance);
+    const pdf = await PDFDocument.load(await signedAgreementPdf(completed));
+    const pageStreams = pdf.getPages().map((page) => {
+      const streams = page.node.lookup(PDFName.of('Contents'), PDFArray);
+      return Buffer.from(decodePDFRawStream(streams.lookup(0, PDFRawStream)).decode()).toString(
+        'ascii',
+      );
+    });
+    const label = (text: string) => Buffer.from(text).toString('hex').toUpperCase();
+    expect(pageStreams[0]).not.toContain(label('Page 1'));
+    expect(pageStreams[0]).not.toContain(label('12 November 2025'));
+    expect(pageStreams[1]).toContain(label('Page 1'));
+    expect(pageStreams[1]).toContain(label('12 November 2025'));
+    for (const page of pageStreams) {
+      expect(page).toContain(label('QA Office Dubai | QA registration 123 | qa@example.test'));
+    }
+    const signatures = pageStreams.find((page) => page.includes(label('First Party')));
+    expect(signatures).toContain(label('Second Party'));
+    expect(signatures).toContain(label('Provider Signer'));
+    expect(signatures).toContain(label('Test Signer'));
+    expect(signedAgreementHtml(completed)).toContain('class="party-signatures"');
+    const receipt = await signingReceiptResponse(completed).json();
+    expect(receipt.evidence.firstParty.name).toBe('Provider Signer');
+
+    await AgreementSignatureModel.collection.updateOne(
+      { _id: completed._id },
+      { $set: { 'firstParty.name': 'Changed Provider' } },
+    );
+    expect(await publicSignatureRequest(token)).toBeNull();
+  }));
+
+it('sends each party a separate verified signing link for the same saved revision', () =>
+  within(async () => {
+    const f = await fixture();
+    await saveAgreementDraft(f.contractId, 'Sample agreement terms.', true, f.revision);
+    const draft = (await getAgreementDraft(f.contractId))!;
+    const provider = await UserModel.create({
+      tenantId: context.tenantId,
+      name: 'Invited Provider',
+      email: 'provider@example.test',
+      role: 'platform_admin',
+      status: 'active',
+    });
+    const id = await requestAgreementSignature(
+      f.contractId,
+      f.contactId,
+      draft.revision,
+      undefined,
+      String(provider._id),
+    );
+    const invitation = (await EmailOutboxModel.findOne({ kind: 'contract_email' }))!;
+    const providerToken = invitation.text.match(/\/sign\/([A-Za-z0-9_-]{43})/)![1];
+    expect(invitation.to).toBe(provider.email);
+    await expect(sendSecondPartyInvitation(f.contractId, id)).rejects.toThrow(
+      'First Party must sign',
+    );
+    const providerAccess = await verifiedAccess(providerToken);
+    expect(
+      await EmailOutboxModel.exists({ kind: 'password_reset', to: provider.email }),
+    ).toBeTruthy();
+    const firstSigned = await completeSignature(providerToken, {
+      ...acceptance,
+      name: provider.name,
+      accessToken: providerAccess,
+    });
+    expect(firstSigned.firstParty?.invitedEmail).toBe(provider.email);
+    expect(await staffSignedAgreement(f.contractId, id)).toBeNull();
+    await sendSecondPartyInvitation(f.contractId, id);
+    const customerInvite = (await EmailOutboxModel.findOne({
+      kind: 'contract_email',
+      to: 'signer@example.test',
+    }))!;
+    const customerToken = customerInvite.text.match(/\/sign\/([A-Za-z0-9_-]{43})/)![1];
+    expect(customerToken).not.toBe(providerToken);
+    expect(await publicSignatureRequest(providerToken)).toBeNull();
+    await expect(
+      completeSignature(customerToken, { ...acceptance, accessToken: providerAccess }),
+    ).rejects.toThrow('Verify your email');
+    const signed = await signAgreement(customerToken, acceptance);
+    expect(signed.status).toBe('signed');
+    expect(signed.firstParty?.name).toBe(provider.name);
+    expect(signed.signedName).toBe('Test Signer');
+    expect(signed.documentHash).toBe(firstSigned.documentHash);
+    expect(await staffSignedAgreement(f.contractId, id)).toBeTruthy();
+    await expect(signedAgreementPdf(signed)).resolves.toBeInstanceOf(Uint8Array);
   }));

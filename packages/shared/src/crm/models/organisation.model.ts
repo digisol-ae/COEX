@@ -12,6 +12,7 @@ const organisationSchema = new Schema(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
 
+    customerNumber: { type: Number },
     name: { type: String, required: true, trim: true },
     kind: {
       type: String,
@@ -46,6 +47,13 @@ const organisationSchema = new Schema(
 );
 
 organisationSchema.index({ tenantId: 1, name: 1 });
+organisationSchema.index(
+  { tenantId: 1, customerNumber: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { customerNumber: { $type: 'number' } },
+  },
+);
 
 export type Organisation = InferSchemaType<typeof organisationSchema>;
 

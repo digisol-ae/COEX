@@ -28,3 +28,36 @@ export function agreementCoverText(details?: AgreementCoverDetails | null) {
     period: details ? `${coverDate(details.startDate)} to ${coverDate(details.endDate)}` : '',
   };
 }
+
+export function agreementHeaderDate(body: string, details?: AgreementCoverDetails | null) {
+  const value =
+    body.match(/(?:entered(?: into)? on)\s+(\d{4}-\d{2}-\d{2})\b/i)?.[1] ?? details?.startDate;
+  if (!value) return '';
+  const date = new Date(value + 'T00:00:00Z');
+  return Number.isFinite(date.getTime())
+    ? new Intl.DateTimeFormat('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+      }).format(date)
+    : '';
+}
+
+export function agreementFooterText(
+  letterhead?: {
+    address: string;
+    contact: string;
+    footer: string;
+  } | null,
+) {
+  if (!letterhead) return '';
+  const parts = [letterhead.address, letterhead.footer, letterhead.contact]
+    .flatMap((value) => value.split(/\s*\|\s*/))
+    .map((value) => value.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+  const unique = [...new Set(parts)];
+  return unique
+    .filter((part) => !unique.some((other) => other !== part && other.includes(part)))
+    .join(' | ');
+}

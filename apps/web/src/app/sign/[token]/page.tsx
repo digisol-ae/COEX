@@ -1,3 +1,5 @@
+import { pendingProviderInvitation } from '@/modules/crm/services/agreement-signature.service';
+import { FIRST_PARTY_CONSENT } from '@coex/shared/crm/signature-capture';
 /* eslint-disable @next/next/no-img-element -- Private signature image is decrypted only after email verification. */
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
@@ -8,7 +10,7 @@ import {
   signingPageDetails,
 } from '@/modules/crm/services/agreement-signature.service';
 import { SignForm } from './sign-form';
-import { LetterheadHeader, LetterheadFooter } from '@/modules/crm/letterhead';
+import { LetterheadFooter } from '@/modules/crm/letterhead';
 import { SigningVerification } from './verification-form';
 import { agreementCoverText } from '@/modules/crm/agreement-cover';
 import { signatureImage } from '@/modules/crm/signature-evidence';
@@ -33,9 +35,10 @@ export default async function SigningPage({ params }: { params: Promise<{ token:
         </p>
       </main>
     );
+  const provider = pendingProviderInvitation(request);
   const accessToken = (await cookies()).get(signingCookieName(request._id))?.value;
   if (!hasSigningAccess(request, accessToken)) {
-    const [local, domain] = request.signerEmail.split('@');
+    const [local, domain] = (provider?.email ?? request.signerEmail).split('@');
     return (
       <main className="mx-auto max-w-4xl space-y-6 px-4 py-8">
         <SigningVerification token={token} maskedEmail={`${local.slice(0, 1)}***@${domain}`} />
@@ -49,9 +52,8 @@ export default async function SigningPage({ params }: { params: Promise<{ token:
   const style = SIGNATURE_STYLES[request.signatureStyle ?? 0] ?? SIGNATURE_STYLES[0];
   return (
     <main className="mx-auto max-w-4xl space-y-6 bg-white px-5 py-10 text-[#111111]">
-      {request.letterhead && <LetterheadHeader letterhead={request.letterhead} />}
       <header>
-        <p className="text-sm">Customer agreement</p>
+        <p className="text-sm">{provider ? 'First Party agreement' : 'Customer agreement'}</p>
         <h1 className="mt-2 text-2xl font-semibold">
           {request.contractNumber} · {request.customerName}
         </h1>
@@ -67,7 +69,7 @@ export default async function SigningPage({ params }: { params: Promise<{ token:
           </dl>
         )}
         <p className="mt-3 text-sm">
-          For {request.signerName} ({request.signerEmail}).{' '}
+          For {provider?.name ?? request.signerName} ({provider?.email ?? request.signerEmail}).{' '}
           {request.status === 'signed'
             ? 'This agreement has been signed.'
             : 'Review the complete agreement below before signing.'}
@@ -76,6 +78,14 @@ export default async function SigningPage({ params }: { params: Promise<{ token:
       <article className="whitespace-pre-wrap break-words text-sm leading-relaxed">
         {request.body}
       </article>
+      {request.firstParty && (
+        <p className="text-sm">
+          First Party signed by {request.firstParty.name}.{' '}
+          {request.status === 'pending' && !provider && (
+            <> You are signing for {request.customerName} as the Second Party.</>
+          )}
+        </p>
+      )}
       {request.status === 'signed' ? (
         <section className="space-y-3 border-t pt-5">
           <h2 className="text-lg font-semibold">Electronic signature record</h2>
@@ -121,10 +131,17 @@ export default async function SigningPage({ params }: { params: Promise<{ token:
             Download signed copy
           </a>
         </section>
+      ) : provider && request.firstParty ? (
+        <p role="status">
+          First Party signature recorded. Staff can now send the agreement to the Second Party.
+        </p>
       ) : (
-        <SignForm token={token} consentText={request.consentText} />
+        <SignForm
+          token={token}
+          consentText={provider ? FIRST_PARTY_CONSENT : request.consentText}
+        />
       )}
-      {request.letterhead && <LetterheadFooter letterhead={request.letterhead} />}
+      {request.letterhead && <LetterheadFooter letterhead={request.letterhead} agreement />}
       <p className="text-xs print:hidden">
         This private link expires on {request.expiresAt.toISOString().slice(0, 10)}. Keep a copy of
         your signed agreement.

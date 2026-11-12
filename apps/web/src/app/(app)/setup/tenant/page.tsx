@@ -1,6 +1,9 @@
 import { SettingsDrawer } from '@/components/ui/settings-drawer';
 import { asUser, requirePermission } from '@/lib/session';
-import { getCurrentTenant } from '@/modules/core/services/tenant.service';
+import {
+  getCurrentTenant,
+  listContractProviderSigners,
+} from '@/modules/core/services/tenant.service';
 import { PageHeader } from '@/components/ui';
 import { TenantSettingsForm } from './settings-form';
 
@@ -14,7 +17,9 @@ function toTimeInput(minutes: number): string {
 
 export default async function TenantSettingsPage() {
   const actor = await requirePermission('tenant.manage');
-  const tenant = await asUser(actor, getCurrentTenant);
+  const [tenant, staff] = await asUser(actor, () =>
+    Promise.all([getCurrentTenant(), listContractProviderSigners()]),
+  );
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -28,6 +33,7 @@ export default async function TenantSettingsPage() {
         summary="Numbering, working hours, currency and retention"
       >
         <TenantSettingsForm
+          staff={staff.map(({ _id, name }) => ({ id: String(_id), name }))}
           defaults={{
             name: tenant.name,
             slug: tenant.slug,
@@ -42,6 +48,11 @@ export default async function TenantSettingsPage() {
             workingDays: tenant.workingDays ?? [1, 2, 3, 4, 5],
             dayStart: toTimeInput(tenant.dayStartMinutes ?? 540),
             dayEnd: toTimeInput(tenant.dayEndMinutes ?? 1080),
+            agreementSupportPortal: tenant.agreementDefaults?.supportPortal ?? '',
+            agreementSupportEmail: tenant.agreementDefaults?.supportEmail ?? '',
+            agreementSupportPhone: tenant.agreementDefaults?.supportPhone ?? '',
+            agreementSupportWhatsapp: tenant.agreementDefaults?.supportWhatsapp ?? '',
+            agreementProviderSignerId: String(tenant.agreementDefaults?.providerSignerId ?? ''),
             letterheadAddress: tenant.branding?.letterhead?.address ?? '',
             letterheadContact: tenant.branding?.letterhead?.contact ?? '',
             letterheadFooter: tenant.branding?.letterhead?.footer ?? '',

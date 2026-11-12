@@ -66,7 +66,16 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
           titleExtra={
             <Badge tone={organisation.kind === 'client' ? 'ok' : 'info'}>{organisation.kind}</Badge>
           }
-          description={organisation.industry ?? undefined}
+          description={
+            [
+              organisation.customerNumber != null
+                ? `Customer no. ${String(organisation.customerNumber).padStart(4, '0')}`
+                : null,
+              organisation.industry,
+            ]
+              .filter(Boolean)
+              .join(' · ') || undefined
+          }
           action={
             <div className="ml-auto flex items-center justify-end gap-3">
               <LiveRefresh />

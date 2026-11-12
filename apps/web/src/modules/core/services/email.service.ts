@@ -544,7 +544,9 @@ export interface QueueEmailInput {
   subject: string;
   text: string;
   html?: string;
+  signedCopyRequestId?: Types.ObjectId;
   messageId?: string | null;
+  outboxId?: Types.ObjectId;
   inReplyTo?: string | null;
   references?: string[];
   ticketMessageId?: Types.ObjectId | string | null;
@@ -592,7 +594,7 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
   };
   if (!allowed[input.kind]) return false;
 
-  await EmailOutboxModel.create({
+  const message = {
     tenantId,
     kind: input.kind,
     sender: input.sender ?? null,
@@ -603,6 +605,7 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
     subject: input.subject,
     text: input.text,
     html: input.html ?? null,
+    signedCopyRequestId: input.signedCopyRequestId ?? null,
     messageId: input.messageId ?? null,
     inReplyTo: input.inReplyTo ?? null,
     references: input.references ?? [],
@@ -611,7 +614,17 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
       : null,
     attachments: input.attachments ?? [],
     sendAfter: new Date(Date.now() + (input.delaySeconds ?? 0) * 1000),
-  });
+  };
+
+  if (input.outboxId) {
+    await EmailOutboxModel.updateOne(
+      { _id: input.outboxId, tenantId },
+      { $setOnInsert: message },
+      { upsert: true, timestamps: { createdAt: true, updatedAt: false } },
+    );
+  } else {
+    await EmailOutboxModel.create(message);
+  }
 
   return true;
 }

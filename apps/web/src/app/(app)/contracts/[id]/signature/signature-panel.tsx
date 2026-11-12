@@ -5,7 +5,24 @@ import Link from 'next/link';
 import { Button, Field, Input, Select, Textarea, Notice } from '@/components/ui';
 import type { signatureWorkspace } from '@/modules/crm/services/agreement-signature.service';
 import { sendSignedCopyAction, signatureMutation } from './actions';
-import { LetterheadHeader, LetterheadFooter } from '@/modules/crm/letterhead';
+import { SignatureForm } from '@/app/sign/[token]/sign-form';
+import { FIRST_PARTY_CONSENT } from '@coex/shared/crm/signature-capture';
+import { LetterheadFooter } from '@/modules/crm/letterhead';
+
+function deliveryLabel(status: string | null) {
+  switch (status) {
+    case 'sent':
+      return 'Sent';
+    case 'failed':
+      return 'Delivery failed — check Setup, Email';
+    case 'sending':
+      return 'Sending';
+    case 'pending':
+      return 'Queued';
+    default:
+      return 'Not queued';
+  }
+}
 
 export function SignaturePanel({
   contractId,
@@ -16,7 +33,9 @@ export function SignaturePanel({
   workspace: Awaited<ReturnType<typeof signatureWorkspace>>;
   editable: boolean;
 }) {
-  const [contactId, setContact] = useState(workspace.contacts[0]?.id ?? '');
+  const [providerUserId, setProviderUserId] = useState(workspace.defaultProviderSignerId);
+  const [showProviderForm, setShowProviderForm] = useState(false);
+  const [contactId, setContact] = useState(workspace.defaultContactId);
   const [emailRequestId, setEmailRequestId] = useState('');
   const emailRequest = workspace.history.find(({ id }) => id === emailRequestId);
   const [message, setMessage] = useState('');
@@ -29,29 +48,11 @@ export function SignaturePanel({
       dateStyle: 'medium',
       timeStyle: 'short',
     }).format(new Date(value));
-  const signer = workspace.contacts.find((c) => c.id === contactId);
-  const mutate = (cancelId?: string) => {
-    if (
-      !confirm(
-        cancelId
-          ? 'Cancel this signing link? The customer will no longer be able to sign it.'
-          : `Send agreement revision ${workspace.draft?.revision} to ${signer?.name} (${signer?.email}) for signature?`,
-      )
-    )
-      return;
+  const cancel = (cancelId: string) => {
+    if (!confirm('Cancel this signing request? Its active link will stop working.')) return;
     start(async () => {
-      const result = await signatureMutation({
-        contractId,
-        contactId,
-        revision: workspace.draft?.revision,
-        cancelId,
-      });
-      setMessage(
-        result.error ??
-          (cancelId
-            ? 'Signature request cancelled.'
-            : 'Signature email queued. Delivery is handled by the email worker.'),
-      );
+      const result = await signatureMutation({ contractId, cancelId });
+      setMessage(result.error ?? 'Signature request cancelled.');
       router.refresh();
     });
   };
@@ -61,8 +62,8 @@ export function SignaturePanel({
         <section className="space-y-4 rounded border p-5">
           <h2 className="font-semibold">Send for signature</h2>
           <p className="text-sm">
-            Send a private link valid for 14 days. The customer signs the saved, reviewed agreement
-            shown below. Later draft edits do not change that copy.
+            Send a private signing link to the First Party. Once they sign, send a separate link to
+            the Second Party. Both sign the saved agreement revision shown below.
           </p>
           <Field label="Customer signer">
             <Select
@@ -80,6 +81,44 @@ export function SignaturePanel({
               ))}
             </Select>
           </Field>
+          <Field label="First Party signer">
+            <Select
+              value={providerUserId}
+              onChange={(e) => setProviderUserId(e.target.value)}
+              disabled={pending || active}
+            >
+              <option value="">Choose a staff member</option>
+              {workspace.staffSigners.map((staff) => (
+                <option value={staff.id} key={staff.id}>
+                  {staff.name} — {staff.email}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Button
+            disabled={
+              pending ||
+              active ||
+              !providerUserId ||
+              !contactId ||
+              !workspace.draft?.reviewed ||
+              Boolean(workspace.letterheadError)
+            }
+            onClick={() =>
+              start(async () => {
+                const result = await signatureMutation({
+                  contractId,
+                  contactId,
+                  revision: workspace.draft?.revision,
+                  providerUserId,
+                });
+                setMessage(result.error ?? 'First Party invitation queued.');
+                router.refresh();
+              })
+            }
+          >
+            Send to First Party for signature
+          </Button>
           {!workspace.contacts.length && (
             <Notice>Add an active customer contact with an email address first.</Notice>
           )}
@@ -112,9 +151,9 @@ export function SignaturePanel({
               !workspace.draft?.reviewed ||
               Boolean(workspace.letterheadError)
             }
-            onClick={() => mutate()}
+            onClick={() => setShowProviderForm(true)}
           >
-            Send for signature
+            Add first-party signature
           </Button>
           {workspace.draft && (
             <details>
@@ -122,13 +161,31 @@ export function SignaturePanel({
                 Review saved agreement · revision {workspace.draft.revision}
               </summary>
               <div className="mt-3 space-y-5 rounded border bg-white p-5 text-[#111111]">
-                <LetterheadHeader letterhead={workspace.letterhead} />
                 <pre className="whitespace-pre-wrap break-words text-sm leading-relaxed">
                   {workspace.draft.body}
                 </pre>
-                <LetterheadFooter letterhead={workspace.letterhead} />
+                <LetterheadFooter letterhead={workspace.letterhead} agreement />
               </div>
             </details>
+          )}
+          {showProviderForm && contactId && workspace.draft?.reviewed && !active && (
+            <SignatureForm
+              title="First Party signature"
+              consentText={FIRST_PARTY_CONSENT}
+              label="Sign and send to customer"
+              submit={async (name, consent, capture) =>
+                signatureMutation({
+                  contractId,
+                  contactId,
+                  revision: workspace.draft?.revision,
+                  provider: { name, consent, capture },
+                })
+              }
+              onSuccess={() => {
+                setShowProviderForm(false);
+                setMessage('First Party signed. Customer signature email queued.');
+              }}
+            />
           )}
         </section>
       )}
@@ -164,33 +221,80 @@ export function SignaturePanel({
             <p className="break-words">
               {r.signerName} · {r.signerEmail}
             </p>
-            <p>
-              Email:{' '}
-              {r.deliveryStatus === 'sent'
-                ? 'Sent'
-                : r.deliveryStatus === 'failed'
-                  ? 'Delivery failed — check Setup, Email'
-                  : r.deliveryStatus === 'sending'
-                    ? 'Sending'
-                    : r.deliveryStatus === 'pending'
-                      ? 'Queued'
-                      : 'Not queued'}
-            </p>
+            {r.customerInvited && (
+              <p>Second Party invitation · {deliveryLabel(r.deliveryStatus)}</p>
+            )}
             <p>
               Requested {timestamp(r.createdAt)} by {r.requestedBy} · Link expires{' '}
               {timestamp(r.expiresAt)}
             </p>
+            {r.firstPartyInviteEmail && (
+              <p>
+                First Party invitation to {r.firstPartyInviteEmail} ·{' '}
+                {deliveryLabel(r.firstPartyDeliveryStatus)}
+              </p>
+            )}
+            {!r.customerInvited && r.status === 'pending' && (
+              <p>
+                {r.firstPartySignedName
+                  ? 'Second Party invitation ready to send.'
+                  : 'Waiting for the First Party to sign.'}
+              </p>
+            )}
+            {editable && !r.customerInvited && r.firstPartySignedName && r.status === 'pending' && (
+              <Button
+                disabled={pending}
+                onClick={() =>
+                  start(async () => {
+                    const result = await signatureMutation({ contractId, sendSecondPartyId: r.id });
+                    setMessage(result.error ?? 'Second Party invitation queued.');
+                    router.refresh();
+                  })
+                }
+              >
+                Send to Second Party for signature
+              </Button>
+            )}
+            {r.firstPartySignedName && <p>First Party signed by {r.firstPartySignedName}</p>}
             {r.signedAt && (
               <p>
                 Signed by {r.signedName} · {timestamp(r.signedAt)}
               </p>
             )}
-            {r.sentAt && <p>Email sent {timestamp(r.sentAt)}</p>}
+            {r.sentAt && <p>Invitation sent {timestamp(r.sentAt)}</p>}
             {r.cancelledAt && r.status === 'cancelled' && (
               <p>Cancelled {timestamp(r.cancelledAt)}</p>
             )}
             {r.needsLetterhead && r.status === 'pending' && (
               <Notice>Cancel this earlier request and send it again on tenant letterhead.</Notice>
+            )}
+            {r.status === 'signed' && (
+              <div className="mt-3 space-y-2 border-t pt-3">
+                <p className="font-semibold">Contract copy email log</p>
+                {r.copyEmails.length === 0 && <p>No contract copy emails yet.</p>}
+                <ul className="space-y-2">
+                  {r.copyEmails.map((email) => (
+                    <li key={email.id} className="break-words">
+                      <p className="font-medium">{email.subject}</p>
+                      <p>
+                        To {email.to}
+                        {email.cc.length ? ` · CC ${email.cc.join(', ')}` : ''}
+                      </p>
+                      <p>
+                        {email.status === 'sent'
+                          ? 'Sent'
+                          : email.status === 'failed'
+                            ? 'Failed'
+                            : email.status === 'sending'
+                              ? 'Sending'
+                              : 'Queued'}
+                        {' · '}
+                        {timestamp(email.sentAt ?? email.createdAt)}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
             {r.status === 'signed' && r.evidenceValid && (
               <div className="flex flex-wrap gap-4">
@@ -218,7 +322,7 @@ export function SignaturePanel({
               </div>
             )}
             {editable && r.status === 'pending' && (
-              <Button variant="secondary" disabled={pending} onClick={() => mutate(r.id)}>
+              <Button variant="secondary" disabled={pending} onClick={() => cancel(r.id)}>
                 Cancel request
               </Button>
             )}
@@ -247,6 +351,7 @@ export function SignaturePanel({
           onQueued={() => {
             setEmailRequestId('');
             setMessage('Contract and invoice email queued.');
+            router.refresh();
           }}
         />
       )}

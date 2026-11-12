@@ -2,6 +2,10 @@ import { Types } from 'mongoose';
 import { AgreementTemplateModel } from '@coex/shared/crm/models/agreement-template.model';
 import { AgreementDraftModel } from '@coex/shared/crm/models/agreement-draft.model';
 import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
+import { listContractProviderSigners } from '@/modules/core/services/tenant.service';
+import { ContactModel } from '@coex/shared/crm/models/contact.model';
+import { EmailSettingsModel } from '@coex/shared/core/models/email-settings.model';
+import { appBaseUrl } from '@/modules/core/services/email.service';
 import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import { DEFAULT_AGREEMENT_TEMPLATES } from '@coex/shared/crm/agreement-defaults';
 import {
@@ -82,14 +86,53 @@ export async function archiveAgreementTemplate(id: string) {
     entityId: saved._id,
   });
 }
+export async function agreementSignerOptions(organisationId: string) {
+  const [staff, contacts] = await Promise.all([
+    listContractProviderSigners(),
+    repository(ContactModel)
+      .find({ organisationId, status: 'active' })
+      .select('name')
+      .sort({ name: 1 }),
+  ]);
+  return {
+    provider_signatory: [...new Set(staff.map(({ name }) => name))],
+    customer_signatory: [...new Set(contacts.map(({ name }) => name))],
+  };
+}
+
 export async function agreementValues(id: string): Promise<Record<string, string>> {
   const contract = await getContract(id);
   if (!contract) throw new Error('Contract not found.');
-  const [customer, tenant, products] = await Promise.all([
+  const { tenantId } = getContext();
+  const [customer, tenant, products, email, contacts, staff] = await Promise.all([
     repository(OrganisationModel).findById(contract.organisationId),
-    TenantModel.findById(getContext().tenantId).select('name'),
+    TenantModel.findById(tenantId).select('name branding.letterhead timezone agreementDefaults'),
     listProducts(true),
+    EmailSettingsModel.findOne({ tenantId }).select('inbound.username'),
+    repository(ContactModel).find({
+      organisationId: contract.organisationId,
+      status: 'active',
+      email: { $type: 'string', $ne: '' },
+      ...(contract.contactIds.length ? { _id: { $in: contract.contactIds } } : {}),
+    }),
+    listContractProviderSigners(),
   ]);
+  const primaryContacts = contacts.filter(({ isPrimary }) => isPrimary);
+  const signer =
+    primaryContacts.length === 1
+      ? primaryContacts[0]
+      : contacts.length === 1
+        ? contacts[0]
+        : undefined;
+  const letterhead = tenant?.branding?.letterhead;
+  const contactDetails = [letterhead?.contact, letterhead?.footer].filter(Boolean).join(' | ');
+  const phone = contactDetails
+    .split(/[|\n]/)
+    .find((part) => /^\s*(?:tel(?:ephone)?[: ]*)?\+?[\d ()-]{7,}\s*$/i.test(part));
+  const whatsapp = contactDetails.match(/\bwhatsapp\s*:?\s*(\+?[\d ()-]{7,})/i)?.[1];
+  const supportEmail = email?.inbound?.username;
+  const defaults = tenant?.agreementDefaults;
+  const provider = staff.find(({ _id }) => _id.equals(defaults?.providerSignerId ?? undefined));
   const names = new Map(products.map((p) => [p.id, p.name]));
   const amount = (minor: number) => `${contract.currency} ${(minor / 100).toFixed(2)}`;
   return {
@@ -98,6 +141,20 @@ export async function agreementValues(id: string): Promise<Record<string, string
     customer_name: contract.organisationName,
     customer_address: customer?.address ?? '',
     provider_name: tenant?.name ?? '',
+    provider_address: letterhead?.address ?? '',
+    support_portal: defaults?.supportPortal || appBaseUrl(),
+    support_email: defaults?.supportEmail || (supportEmail?.includes('@') ? supportEmail : ''),
+    support_phone:
+      defaults?.supportPhone || (phone?.replace(/^\s*tel(?:ephone)?[: ]*/i, '').trim() ?? ''),
+    support_whatsapp: defaults?.supportWhatsapp || (whatsapp?.trim() ?? ''),
+    provider_signatory: provider?.name ?? '',
+    customer_signatory: signer?.name ?? '',
+    date: new Intl.DateTimeFormat('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: tenant?.timezone ?? 'Asia/Dubai',
+    }).format(new Date()),
     start_date: contract.startDate,
     end_date: contract.endDate,
     agreement_date: contract.startDate,

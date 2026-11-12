@@ -47,6 +47,38 @@ const schema = new Schema(
     expiresAt: { type: Date, required: true },
     status: { type: String, enum: ['pending', 'signed', 'cancelled'], default: 'pending' },
     signedAt: { type: Date, default: null },
+    firstPartyInvitation: {
+      type: new Schema(
+        {
+          userId: { type: Schema.Types.ObjectId, required: true },
+          name: { type: String, required: true },
+          email: { type: String, required: true },
+        },
+        { _id: false },
+      ),
+      default: null,
+      immutable: true,
+    },
+    customerInvitedAt: { type: Date, default: null },
+    firstParty: {
+      type: new Schema(
+        {
+          userId: { type: Schema.Types.ObjectId, required: true },
+          name: { type: String, required: true },
+          signedAt: { type: Date, required: true },
+          consent: { type: String, required: true },
+          verifiedAt: { type: Date },
+          invitedEmail: { type: String },
+          mac: { type: String, required: true },
+          signatureMethod: { type: String, enum: ['typed', 'drawn', 'uploaded'], required: true },
+          signatureStyle: { type: Number, required: true },
+          signatureSealed: { type: String, default: null },
+          signatureHash: { type: String, default: null },
+        },
+        { _id: false },
+      ),
+      default: null,
+    },
     signedName: { type: String, default: null },
     signerUserAgent: { type: String, default: null },
     signatureMethod: { type: String, enum: ['typed', 'drawn', 'uploaded', null], default: null },

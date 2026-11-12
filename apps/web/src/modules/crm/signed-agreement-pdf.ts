@@ -8,6 +8,8 @@ import {
 } from 'pdf-lib';
 import sharp from 'sharp';
 import {
+  agreementFooterText,
+  agreementHeaderDate,
   agreementCoverBlue,
   agreementCoverHeading,
   agreementCoverRed,
@@ -101,15 +103,18 @@ class Writer {
   page!: PDFPage;
   y = 0;
   readonly width = A4.width - MARGIN * 2;
-  constructor(private readonly pdf: PDFDocument) {
+  constructor(
+    private readonly pdf: PDFDocument,
+    private readonly footerSpace: number,
+  ) {
     this.newPage();
   }
   newPage() {
     this.page = this.pdf.addPage([A4.width, A4.height]);
-    this.y = A4.height - MARGIN;
+    this.y = A4.height - MARGIN - 24;
   }
   ensure(height: number) {
-    if (this.y - height < MARGIN + FOOTER_SPACE) this.newPage();
+    if (this.y - height < MARGIN + this.footerSpace) this.newPage();
   }
   text(
     value: string,
@@ -199,9 +204,104 @@ async function drawCover(
   text(agreementCoverHeading.toUpperCase(), 88, 14, bold, INK, true);
   text(subtitle, 105, 12, bold, red, true);
   const logo = await pdf.embedPng(Buffer.from(agreementCoverLogo.split(',')[1], 'base64'));
-  page.drawImage(logo, { x: logoRight - 138, y: A4.height - 425, width: 138, height: 121 });
+  const logoWidth = 138;
+  const logoHeight = logo.height * (logoWidth / logo.width);
+  page.drawImage(logo, {
+    x: logoRight - logoWidth,
+    y: A4.height - 304 - logoHeight,
+    width: logoWidth,
+    height: logoHeight,
+  });
   text(period, 584, 13, serif, red, true);
   text(customerName, 610, 13, serif, blue, false);
+}
+
+async function drawPartySignatures(
+  pdf: PDFDocument,
+  writer: Writer,
+  request: Signed,
+  first: NonNullable<Signed['firstParty']>,
+  signedName: string,
+  signedAt: Date,
+  bold: PDFFont,
+  regular: PDFFont,
+) {
+  const width = writer.width;
+  const boxHeight = 56;
+  const blockHeight = 129;
+  const partyDetails = [
+    {
+      role: 'First Party',
+      company: request.letterhead?.name ?? 'First Party',
+      name: first.name,
+      date: first.signedAt,
+      style: first.signatureStyle,
+      data: signatureImage(first),
+    },
+    {
+      role: 'Second Party',
+      company: request.customerName,
+      name: signedName,
+      date: signedAt,
+      style: request.signatureStyle,
+      data: signatureImage(request),
+    },
+  ];
+  writer.ensure(2 * blockHeight + 31);
+  writer.text('Acceptance and signatures', bold, 13, { gap: 8 });
+  for (const party of partyDetails) {
+    const top = writer.y;
+    const boxY = top - 54 - boxHeight;
+    const x = MARGIN;
+    const { page } = writer;
+    function fitted(value: string, y: number, font: PDFFont, maxSize: number, maxWidth = width) {
+      const text = value.replace(/[\r\n\t]/g, ' ');
+      const size = Math.min(
+        maxSize,
+        (maxSize * maxWidth) / (font.widthOfTextAtSize(text, maxSize) || 1),
+      );
+      page.drawText(text, { x, y, font, size, color: INK });
+    }
+    fitted(party.role, top - 10, bold, 10);
+    fitted(party.company, top - 26, bold, 11);
+    fitted(party.name, top - 43, regular, 10);
+    fitted(`Signed ${party.date.toISOString().slice(0, 10)} UTC`, boxY - 12, regular, 9);
+    page.drawRectangle({
+      x,
+      y: boxY,
+      width,
+      height: boxHeight,
+      borderWidth: 0.7,
+      borderColor: rgb(0.55, 0.58, 0.62),
+      color: rgb(0.96, 0.97, 0.98),
+    });
+    const image = await embedDataUrlImage(pdf, party.data);
+    if (image) {
+      const scale = Math.min(1, (width - 20) / image.width, (boxHeight - 20) / image.height);
+      const imageWidth = image.width * scale;
+      const imageHeight = image.height * scale;
+      page.drawImage(image, {
+        x: x + (width - imageWidth) / 2,
+        y: boxY + (boxHeight - imageHeight) / 2,
+        width: imageWidth,
+        height: imageHeight,
+      });
+    } else {
+      const font = await pdf.embedFont(
+        party.style === 2 ? StandardFonts.HelveticaOblique : StandardFonts.TimesRomanItalic,
+      );
+      const name = party.name.replace(/[\r\n\t]/g, ' ');
+      const size = Math.min(26, (26 * (width - 20)) / font.widthOfTextAtSize(name, 26));
+      page.drawText(name, {
+        x: x + (width - font.widthOfTextAtSize(name, size)) / 2,
+        y: boxY + (boxHeight - size) / 2,
+        size,
+        font,
+        color: INK,
+      });
+    }
+    writer.y -= blockHeight;
+  }
 }
 
 /** Builds the signed agreement PDF from verified evidence only. */
@@ -225,7 +325,8 @@ export async function signedAgreementPdf(
   );
   const coverDetails = request.coverDetails ?? legacyCover;
   const { subtitle, period } = agreementCoverText(coverDetails);
-  const footerText = letterhead ? letterhead.footer || letterhead.name : '';
+  const footerText = agreementFooterText(letterhead);
+  const headerDate = agreementHeaderDate(request.body, coverDetails);
   assertDrawable(regular, [
     request.body,
     subtitle,
@@ -233,11 +334,11 @@ export async function signedAgreementPdf(
     request.contractNumber,
     request.customerName,
     request.signedName,
+    request.firstParty?.name ?? '',
     request.signerName,
     request.signerEmail,
     request.consentText,
     letterhead?.name ?? '',
-    letterhead?.address ?? '',
     letterhead?.contact ?? '',
     footerText,
   ]);
@@ -249,28 +350,17 @@ export async function signedAgreementPdf(
 
   const colour = colourOf(letterhead?.color);
   await drawCover(pdf, request.customerName, coverDetails, bold);
-  const w = new Writer(pdf);
-
-  if (letterhead) {
-    const logo = await embedDataUrlImage(pdf, letterhead.logoDataUrl).catch(() => null);
-    const top = w.y;
-    if (logo) {
-      const scale = Math.min(1, 180 / logo.width, 70 / logo.height);
-      w.page.drawImage(logo, {
-        x: MARGIN,
-        y: top - logo.height * scale,
-        width: logo.width * scale,
-        height: logo.height * scale,
-      });
-    }
-    const width = logo ? w.width - 200 : w.width;
-    w.text(letterhead.name, bold, 15, { color: colour, align: 'right', gap: 2, width });
-    w.text(letterhead.address, regular, 9, { align: 'right', gap: 2, width });
-    if (letterhead.contact.trim())
-      w.text(letterhead.contact, regular, 8, { align: 'right', width });
-    if (logo) w.y = Math.min(w.y, top - Math.min(70, logo.height * Math.min(1, 180 / logo.width)));
-    w.rule(colour, 2, 14);
-  }
+  const footerWidth = A4.width - MARGIN * 2 - 42;
+  const [address, ...channels] = footerText.split(' | ');
+  const footerLines = !footerText
+    ? []
+    : channels.length > 0 && regular.widthOfTextAtSize(footerText, 8) > footerWidth
+      ? [
+          ...wrapText(address, regular, 8, footerWidth),
+          ...wrapText(channels.join(' | '), regular, 8, footerWidth),
+        ]
+      : wrapText(footerText, regular, 8, footerWidth);
+  const w = new Writer(pdf, Math.max(FOOTER_SPACE, 18 + footerLines.length * 10));
 
   w.text('Signed agreement', bold, 17, { gap: 2 });
   w.text(`${request.contractNumber} · ${request.customerName}`, regular, 10.5, {
@@ -279,21 +369,30 @@ export async function signedAgreementPdf(
   });
   w.text(request.body, regular, 10.5, { gap: 6 });
 
-  // Keep the signature record together rather than leaving its heading alone at a page end.
-  w.ensure(220);
-  w.rule(rgb(0.73, 0.73, 0.73), 1, 14);
-  w.text('Electronic signature record', bold, 13, { gap: 6 });
-  const image = signature ? await embedDataUrlImage(pdf, signature) : null;
-  if (image) w.image(image, 260, 110);
-  else w.text(request.signedName, typedFont, 24, { gap: 6 });
+  if (request.firstParty) {
+    await drawPartySignatures(
+      pdf,
+      w,
+      request,
+      request.firstParty,
+      request.signedName,
+      request.signedAt,
+      bold,
+      regular,
+    );
+  } else {
+    // Keep the signature record together rather than leaving its heading alone at a page end.
+    w.ensure(220);
+    w.rule(rgb(0.73, 0.73, 0.73), 1, 14);
+    w.text('Electronic signature record', bold, 13, { gap: 6 });
+    const image = signature ? await embedDataUrlImage(pdf, signature) : null;
+    if (image) w.image(image, 260, 110);
+    else w.text(request.signedName, typedFont, 24, { gap: 6 });
+  }
   const evidence = [
     `Signed by: ${request.signedName}`,
     `Invited signer: ${request.signerName} (${request.signerEmail})`,
     `Signed at (UTC): ${request.signedAt.toISOString()}`,
-    `Agreement revision: ${request.draftRevision}`,
-    `Request reference: ${String(request._id)}`,
-    `Agreement SHA-256: ${request.bodyHash}`,
-    ...(request.documentHash ? [`Document with letterhead SHA-256: ${request.documentHash}`] : []),
   ];
   for (const line of evidence) w.text(line, regular, 9);
   w.y -= 6;
@@ -309,27 +408,49 @@ export async function signedAgreementPdf(
     { color: MUTED },
   );
 
-  const pages = pdf.getPages();
-  pages.forEach((page, index) => {
-    if (index === 0) return;
-    const label = `Page ${index + 1} of ${pages.length}`;
-    if (footerText) {
-      const line = wrapText(footerText, regular, 8, A4.width - MARGIN * 2 - 80)[0] ?? '';
+  const right = A4.width - MARGIN;
+  const mark = await embedDataUrlImage(pdf, letterhead?.logoDataUrl).catch(() => null);
+  pdf.getPages().forEach((page, index) => {
+    if (index > 0) {
+      const y = A4.height - MARGIN;
+      page.drawText(`Page ${index}`, { x: MARGIN, y, size: 9, font: regular, color: MUTED });
+      if (headerDate)
+        page.drawText(headerDate, {
+          x: right - regular.widthOfTextAtSize(headerDate, 9),
+          y,
+          size: 9,
+          font: regular,
+          color: MUTED,
+        });
       page.drawLine({
-        start: { x: MARGIN, y: MARGIN + 22 },
-        end: { x: A4.width - MARGIN, y: MARGIN + 22 },
+        start: { x: MARGIN, y: y - 8 },
+        end: { x: right, y: y - 8 },
         thickness: 0.75,
         color: colour,
       });
-      page.drawText(line, { x: MARGIN, y: MARGIN + 8, size: 8, font: regular, color: MUTED });
     }
-    page.drawText(label, {
-      x: A4.width - MARGIN - regular.widthOfTextAtSize(label, 8),
-      y: MARGIN + 8,
-      size: 8,
-      font: regular,
-      color: MUTED,
+    const footerY = MARGIN + 8;
+    footerLines.forEach((line, lineIndex) => {
+      page.drawText(line, {
+        x: (A4.width - regular.widthOfTextAtSize(line, 8)) / 2,
+        y: footerY + (footerLines.length - 1 - lineIndex) * 10,
+        size: 8,
+        font: regular,
+        color: MUTED,
+      });
     });
+    if (index > 0 && mark && Math.abs(mark.width / mark.height - 1) < 0.05) {
+      page.drawImage(mark, { x: right - 19, y: footerY - 4, width: 19, height: 19 });
+    } else if (index > 0) {
+      page.drawRectangle({
+        x: right - 19,
+        y: footerY - 4,
+        width: 19,
+        height: 19,
+        color: colourOf(agreementCoverRed),
+      });
+      page.drawText('d.', { x: right - 15, y: footerY, size: 13, font: bold, color: rgb(1, 1, 1) });
+    }
   });
   return pdf.save();
 }

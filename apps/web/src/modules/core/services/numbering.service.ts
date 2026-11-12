@@ -18,7 +18,7 @@ import { TenantModel } from '@coex/shared/core/models/tenant.model';
 
 export type Series = 'task' | 'ticket' | 'contract' | 'lead' | 'opportunity';
 
-export async function nextNumber(series: Series): Promise<string> {
+export async function nextSequence(series: Series | 'customer'): Promise<number> {
   await connectToDatabase();
 
   const { tenantId } = getContext();
@@ -33,6 +33,12 @@ export async function nextNumber(series: Series): Promise<string> {
     throw new Error(`The ${series} number counter did not return a value.`);
   }
 
+  return counter.nextValue;
+}
+
+export async function nextNumber(series: Series): Promise<string> {
+  const value = await nextSequence(series);
+  const { tenantId } = getContext();
   const tenant = await TenantModel.findOne({ _id: tenantId });
 
   const prefixes: Record<Series, string> = {
@@ -44,5 +50,5 @@ export async function nextNumber(series: Series): Promise<string> {
   };
   const prefix = prefixes[series];
 
-  return `${prefix}-${counter.nextValue}`;
+  return `${prefix}-${value}`;
 }

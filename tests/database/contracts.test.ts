@@ -92,7 +92,9 @@ describe('contracts', () => {
     });
 
     const found = await inOne(() => listContracts());
-    expect(found.map((contract) => contract.number).sort()).toEqual(['C-1', 'C-2']);
+    const numbers = found.map((contract) => contract.number).sort();
+    expect(numbers[0]).toMatch(/^\d{4}-\d{4}-0001-001$/);
+    expect(numbers[1]).toMatch(/^\d{4}-\d{4}-0002-002$/);
     expect(found[0]?.valueMinorUnits).toBe(125050);
     expect(found[0]?.currency).toBe('USD');
     expect(found[0]?.storedStatus).toBe('draft');
@@ -365,7 +367,7 @@ describe('emailing contract contacts', () => {
     expect(queued[0]).toMatchObject({ kind: 'contract_email' });
     expect(queued[0]?.text).toContain('Dear Person 1,');
     expect(queued[1]?.text).toContain('Dear Person 2,');
-    expect(queued[0]?.subject).toMatch(/^Renew C-\d+$/);
+    expect(queued[0]?.subject).toMatch(/^Renew \d{4}-\d{4}-\d{4}-\d{3}$/);
 
     const sender = await import('@/modules/core/services/email.service');
     expect(sender.senderRoleFor('contract_email')).toBe('contracts');
