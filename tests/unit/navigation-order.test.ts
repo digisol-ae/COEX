@@ -16,7 +16,15 @@ describe('a person’s menu order', () => {
 
   it('still shows a group added after the order was saved, in its standard place', () => {
     const ordered = ids(orderGroups(GROUPS, ['setup', 'support', 'crm', 'tasks']));
-    expect(ordered).toEqual(['setup', 'support', 'crm', 'tasks', 'time', 'security']);
+    expect(ordered).toEqual([
+      'setup',
+      'support',
+      'crm',
+      'tasks',
+      'time',
+      'administration',
+      'security',
+    ]);
   });
 
   it('ignores ids that no longer exist', () => {
