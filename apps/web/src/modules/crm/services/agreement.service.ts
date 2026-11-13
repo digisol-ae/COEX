@@ -1,3 +1,4 @@
+import { displayDate, displayTimestamp } from '@coex/shared/crm/display-date';
 import { Types } from 'mongoose';
 import { AgreementTemplateModel } from '@coex/shared/crm/models/agreement-template.model';
 import { AgreementDraftModel } from '@coex/shared/crm/models/agreement-draft.model';
@@ -21,6 +22,9 @@ import { getContext } from '@/lib/tenant-context';
 import { recordAudit } from '@/modules/core/services/audit.service';
 import { getContract } from './contract.service';
 import { listProducts } from './product.service';
+
+const formatAgreementDates = (body: string) =>
+  body.replace(/(?<![\w-])\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])(?![\w-])/g, displayDate);
 
 const templates = () => repository(AgreementTemplateModel);
 const drafts = () => repository(AgreementDraftModel);
@@ -149,15 +153,10 @@ export async function agreementValues(id: string): Promise<Record<string, string
     support_whatsapp: defaults?.supportWhatsapp || (whatsapp?.trim() ?? ''),
     provider_signatory: provider?.name ?? '',
     customer_signatory: signer?.name ?? '',
-    date: new Intl.DateTimeFormat('en-GB', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      timeZone: tenant?.timezone ?? 'Asia/Dubai',
-    }).format(new Date()),
-    start_date: contract.startDate,
-    end_date: contract.endDate,
-    agreement_date: contract.startDate,
+    date: displayTimestamp(new Date(), tenant?.timezone ?? 'Asia/Dubai').split(' ')[0],
+    start_date: displayDate(contract.startDate),
+    end_date: displayDate(contract.endDate),
+    agreement_date: displayDate(contract.startDate),
     amount: amount(contract.valueMinorUnits),
     billing_cycle: {
       monthly: 'Monthly',
@@ -229,10 +228,12 @@ export async function generateAgreementDraft(
     Object.values(values).some((v) => typeof v !== 'string' || v.length > 20000)
   )
     throw new Error('Invalid placeholder values.');
-  const body = populateAgreement(template.body, {
-    ...(await agreementValues(contractId)),
-    ...values,
-  });
+  const body = formatAgreementDates(
+    populateAgreement(template.body, {
+      ...(await agreementValues(contractId)),
+      ...values,
+    }),
+  );
   validateAgreement(body);
   const fields = {
     templateId,
@@ -264,6 +265,7 @@ export async function saveAgreementDraft(
   revision: number,
 ) {
   if (!(await getContract(contractId))) throw new Error('Contract not found.');
+  body = formatAgreementDates(body);
   validateAgreement(body);
   if (reviewed) assertAgreementComplete(body);
   const saved = await drafts().updateOne(

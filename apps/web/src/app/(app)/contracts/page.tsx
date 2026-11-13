@@ -1,3 +1,4 @@
+import { displayDate } from '@coex/shared/crm/display-date';
 import { LiveRefresh } from '@/components/ui/live-refresh';
 import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
@@ -257,7 +258,7 @@ export default async function ContractsPage({
                     </Badge>
                   </Td>
                   <Td className="text-[var(--color-ink-muted)]">
-                    {contract.startDate} to {contract.endDate}
+                    {displayDate(contract.startDate)} to {displayDate(contract.endDate)}
                   </Td>
                   <Td className="text-[var(--color-ink-muted)]">
                     {FREQUENCY_LABEL[contract.billingFrequency]}

@@ -1,3 +1,4 @@
+import { displayDate } from '@coex/shared/crm/display-date';
 import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import {
   serviceTerms,
@@ -614,8 +615,8 @@ async function emailValues(
     customer: contract.organisationName,
     contract_title: contract.title,
     contract_number: contract.number,
-    start_date: contract.startDate,
-    end_date: contract.endDate,
+    start_date: displayDate(contract.startDate),
+    end_date: displayDate(contract.endDate),
     // The days left only mean something while the contract runs; after the end it reads as 0.
     days_left: String(Math.max(0, daysBetween(todayKey(), contract.endDate))),
     amount: formatAmount(contract.valueMinorUnits, contract.currency),

@@ -1,3 +1,4 @@
+import { displayTimestamp } from '@coex/shared/crm/display-date';
 import Link from 'next/link';
 import { asUser, requirePermission } from '@/lib/session';
 import { listSignatureHistory } from '@/modules/crm/services/agreement-signature.service';
@@ -14,12 +15,7 @@ export default async function SignatureTrackingPage({
   const ledger = await asUser(actor, () =>
     listSignatureHistory({ page: Number(query.page ?? 1), status: query.status }),
   );
-  const timestamp = (value: string) =>
-    new Intl.DateTimeFormat('en-GB', {
-      timeZone: ledger.timezone,
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(new Date(value));
+  const timestamp = (value: string) => displayTimestamp(value, ledger.timezone);
   const labels: Record<string, string> = {
     pending: 'Awaiting signature',
     signed: 'Signed',

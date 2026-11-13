@@ -717,9 +717,9 @@ it('captures both parties and places them together in the signed PDF', () =>
     });
     const label = (text: string) => Buffer.from(text).toString('hex').toUpperCase();
     expect(pageStreams[0]).not.toContain(label('Page 1'));
-    expect(pageStreams[0]).not.toContain(label('12 November 2025'));
+    expect(pageStreams[0]).not.toContain(label('12-11-2025'));
     expect(pageStreams[1]).toContain(label('Page 1'));
-    expect(pageStreams[1]).toContain(label('12 November 2025'));
+    expect(pageStreams[1]).toContain(label('12-11-2025'));
     for (const page of pageStreams) {
       expect(page).toContain(label('QA Office Dubai | QA registration 123 | qa@example.test'));
     }

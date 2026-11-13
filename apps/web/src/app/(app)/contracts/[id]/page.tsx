@@ -1,3 +1,4 @@
+import { displayDate } from '@coex/shared/crm/display-date';
 import Link from 'next/link';
 import { LiveRefresh } from '@/components/ui/live-refresh';
 import { notFound } from 'next/navigation';
@@ -70,7 +71,7 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
         <PageHeader
           descriptionInline
           title={contract.title}
-          description={`${contract.organisationName} · ${contract.startDate} to ${contract.endDate}`}
+          description={`${contract.organisationName} · ${displayDate(contract.startDate)} to ${displayDate(contract.endDate)}`}
           action={
             <div className="flex items-center gap-3">
               <LiveRefresh />
@@ -109,7 +110,9 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
                 <FactBadge
                   icon="clock"
                   label={`Support hours this billing period${
-                    current ? ` (${current.startDate} to ${current.endDate})` : ''
+                    current
+                      ? ` (${displayDate(current.startDate)} to ${displayDate(current.endDate)})`
+                      : ''
                   }`}
                   tone={usedMinutes > includedMinutes ? 'warn' : undefined}
                 >
@@ -138,8 +141,8 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
             }
           >
             <p className="text-sm">
-              Agreement: {contract.startDate} to {contract.endDate} · Billing cycle:{' '}
-              {contract.billingFrequency}
+              Agreement: {displayDate(contract.startDate)} to {displayDate(contract.endDate)} ·
+              Billing cycle: {contract.billingFrequency}
             </p>
             {contract.pricingMethod === 'licence_percentage' ? (
               <p className="mt-2 text-sm">
@@ -224,7 +227,7 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
                   return (
                     <tr key={period.index}>
                       <Td>
-                        {period.startDate} to {period.endDate}
+                        {displayDate(period.startDate)} to {displayDate(period.endDate)}
                       </Td>
                       <Td className={overdue ? 'text-[var(--color-status-alert)]' : undefined}>
                         {period.dueDate}

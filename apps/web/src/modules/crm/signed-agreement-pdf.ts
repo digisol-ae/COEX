@@ -1,3 +1,4 @@
+import { displayDate, displayTimestamp } from '@coex/shared/crm/display-date';
 import {
   PDFDocument,
   StandardFonts,
@@ -265,7 +266,12 @@ async function drawPartySignatures(
     fitted(party.role, top - 10, bold, 10);
     fitted(party.company, top - 26, bold, 11);
     fitted(party.name, top - 43, regular, 10);
-    fitted(`Signed ${party.date.toISOString().slice(0, 10)} UTC`, boxY - 12, regular, 9);
+    fitted(
+      `Signed ${displayDate(party.date.toISOString().slice(0, 10))} UTC`,
+      boxY - 12,
+      regular,
+      9,
+    );
     page.drawRectangle({
       x,
       y: boxY,
@@ -392,7 +398,7 @@ export async function signedAgreementPdf(
   const evidence = [
     `Signed by: ${request.signedName}`,
     `Invited signer: ${request.signerName} (${request.signerEmail})`,
-    `Signed at (UTC): ${request.signedAt.toISOString()}`,
+    `Signed at (UTC): ${displayTimestamp(request.signedAt)}`,
   ];
   for (const line of evidence) w.text(line, regular, 9);
   w.y -= 6;
@@ -400,7 +406,7 @@ export async function signedAgreementPdf(
   w.text(
     `Signing method: ${request.signatureMethod ?? 'typed'}; ${
       request.signerVerifiedAt
-        ? `invited email verified at ${request.signerVerifiedAt.toISOString()}`
+        ? `invited email verified at ${displayTimestamp(request.signerVerifiedAt)}`
         : 'private invitation link'
     }; explicit acceptance.`,
     regular,

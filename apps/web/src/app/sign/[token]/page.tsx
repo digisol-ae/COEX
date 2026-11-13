@@ -1,3 +1,4 @@
+import { displayDate, displayTimestamp } from '@coex/shared/crm/display-date';
 import { pendingProviderInvitation } from '@/modules/crm/services/agreement-signature.service';
 import { FIRST_PARTY_CONSENT } from '@coex/shared/crm/signature-capture';
 /* eslint-disable @next/next/no-img-element -- Private signature image is decrypted only after email verification. */
@@ -104,12 +105,13 @@ export default async function SigningPage({ params }: { params: Promise<{ token:
             </p>
           )}
           <p>
-            Signed by {request.signedName} on {request.signedAt?.toISOString()} (UTC).
+            Signed by {request.signedName} on{' '}
+            {request.signedAt && displayTimestamp(request.signedAt)} (UTC).
           </p>
           <p className="text-sm">{request.consentText}</p>
           {request.signerVerifiedAt && (
             <p className="text-xs">
-              Invited email verified {request.signerVerifiedAt.toISOString()} (UTC) · Signature
+              Invited email verified {displayTimestamp(request.signerVerifiedAt)} (UTC) · Signature
               method: {request.signatureMethod ?? 'typed'}
             </p>
           )}
@@ -143,8 +145,8 @@ export default async function SigningPage({ params }: { params: Promise<{ token:
       )}
       {request.letterhead && <LetterheadFooter letterhead={request.letterhead} agreement />}
       <p className="text-xs print:hidden">
-        This private link expires on {request.expiresAt.toISOString().slice(0, 10)}. Keep a copy of
-        your signed agreement.
+        This private link expires on {displayDate(request.expiresAt.toISOString().slice(0, 10))}.
+        Keep a copy of your signed agreement.
       </p>
     </main>
   );
