@@ -1,3 +1,7 @@
+## Contract drafting and two-party signing — 13 November documentation checkpoint
+
+PR #87 merged as `31b69cb`. The PR records local checks of both signing stages and PDF download. Deployment and real inbox delivery were not verified during the manual run. See [resolution](../docs/resolutions/2026-11-13-two-party-signing.md).
+
 ## PWA installation live — 4 November 2026
 
 PR #80 merged as `5657097385434b0e66b267f613c415bb4d4b5cdb` and deployed at 01:18 PKT on 4 November 2026. Active `coex-app-pwa` id 12/PID 61787 serves loopback 3010 from `/srv/coex/releases/pwa-20261104` using Node 22.23.4 / Next 16.4.5. All four app vhosts target 3010; PM2 saved. Native signing on 3009 remains healthy immediate rollback. Workers retained PIDs 906/907/908 with zero restarts.
