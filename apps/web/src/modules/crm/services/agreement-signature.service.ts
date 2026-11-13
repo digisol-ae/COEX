@@ -615,6 +615,69 @@ export async function verifySigningCode(token: string, code: string) {
   return { requestId: String(request._id), accessToken };
 }
 
+function myProviderRequests() {
+  return {
+    'firstPartyInvitation.userId': getContext().userId,
+    status: 'pending' as const,
+    firstParty: null,
+    customerInvitedAt: null,
+    expiresAt: { $gt: new Date() },
+  };
+}
+
+export async function myContractSigningRequests() {
+  await connectToDatabase();
+  return requests()
+    .find(myProviderRequests())
+    .select('contractNumber customerName')
+    .sort({ createdAt: -1 });
+}
+
+export async function myContractSigningRequest(id: string) {
+  await connectToDatabase();
+  return Types.ObjectId.isValid(id)
+    ? requests().findOne({ _id: id, ...myProviderRequests() })
+    : null;
+}
+
+export async function signFirstPartyInWorktello(
+  id: string,
+  consent: boolean,
+  capture: SignatureCapture,
+) {
+  if (consent !== true) throw new Error('Accept the First Party agreement before signing.');
+  const request = await myContractSigningRequest(id);
+  if (
+    !request?.firstPartyInvitation ||
+    !request.letterhead ||
+    digest(request.body) !== request.bodyHash ||
+    digest(letterheadDocument(request.body, request.letterhead)) !== request.documentHash
+  )
+    throw new Error('This signing request is unavailable.');
+  const party = {
+    userId: getContext().userId,
+    name: request.firstPartyInvitation.name,
+    signedAt: new Date(),
+    consent: FIRST_PARTY_CONSENT,
+    ...(await prepareSignature(capture)),
+  };
+  const saved = await requests().updateOne(
+    { _id: request._id, ...myProviderRequests(), documentHash: request.documentHash },
+    {
+      $set: {
+        firstParty: { ...party, mac: firstPartyMac(request._id, request.documentHash, party) },
+      },
+    },
+  );
+  if (!saved) throw new Error('This request has already been signed, cancelled or expired.');
+  await recordAudit({
+    action: 'agreement.first_party_signed_in_worktello',
+    entityType: 'Contract',
+    entityId: request.contractId,
+    after: { requestId: id },
+  });
+}
+
 export async function signAgreement(
   token: string,
   input: {

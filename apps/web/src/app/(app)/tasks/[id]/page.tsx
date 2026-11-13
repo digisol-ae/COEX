@@ -1,3 +1,5 @@
+import { UserModel } from '@coex/shared/core/models/user.model';
+import { reviewTaskRequest } from '../../requests/actions';
 import { parallel } from '@/lib/parallel';
 import { TeamsShare } from '@/components/tasks/teams-share';
 import { TaskAddTime } from '@/modules/time/components/ticket-add-time';
@@ -99,6 +101,20 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
     )
     .map((user) => ({ id: user.id, name: user.name }));
 
+  const awaitingReview = Boolean(task.review?.reviewerId && !task.review.reviewedAt);
+  const reviewers =
+    canManage && !awaitingReview
+      ? await UserModel.find({
+          tenantId: actor.tenantId,
+          _id: { $ne: actor.id },
+          status: 'active',
+          deletedAt: null,
+          role: { $in: ['tenant_admin', 'platform_admin'] },
+        })
+          .select('name')
+          .sort({ name: 1 })
+          .lean()
+      : [];
   return (
     <div className="mx-auto max-w-6xl">
       <Link
@@ -343,6 +359,37 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
             />
           </TaskTimeSummary>
 
+          <section className="space-y-2 rounded border p-4">
+            <h2 className="font-semibold">Task review</h2>
+            {task.review?.reviewedAt && <p>Reviewed</p>}
+            {awaitingReview && <p>Review requested</p>}
+            {awaitingReview && String(task.review?.reviewerId) === actor.id && (
+              <form action={reviewTaskRequest}>
+                <input type="hidden" name="taskId" value={id} />
+                <input type="hidden" name="operation" value="complete" />
+                <button className="rounded border px-3 py-2">Mark reviewed</button>
+              </form>
+            )}
+            {reviewers.length > 0 && (
+              <form action={reviewTaskRequest} className="flex flex-wrap gap-2">
+                <input type="hidden" name="taskId" value={id} />
+                <select
+                  required
+                  name="reviewerId"
+                  aria-label="Administrator"
+                  className="rounded border px-3 py-2"
+                >
+                  <option value="">Choose an administrator</option>
+                  {reviewers.map((reviewer) => (
+                    <option key={String(reviewer._id)} value={String(reviewer._id)}>
+                      {reviewer.name}
+                    </option>
+                  ))}
+                </select>
+                <button className="rounded border px-3 py-2">Request review</button>
+              </form>
+            )}
+          </section>
           <TaskComments
             taskId={id}
             canComment={canManage}

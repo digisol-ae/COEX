@@ -60,6 +60,12 @@ const taskSchema = new Schema(
       index: true,
     },
 
+    review: {
+      reviewerId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+      requestedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+      requestedAt: { type: Date, default: null },
+      reviewedAt: { type: Date, default: null },
+    },
     assigneeIds: { type: [Schema.Types.ObjectId], ref: 'User', default: [], index: true },
     /**
      * Who put each current assignee on the task, and when (John, 1 Oct 2026: people could not tell
