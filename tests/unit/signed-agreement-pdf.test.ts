@@ -116,7 +116,7 @@ describe('signed agreement PDF', () => {
     const instructions = Buffer.from(decodePDFRawStream(stream).decode()).toString('ascii');
     for (const line of [
       'For Dental Practice Management System',
-      '1st November 2026 to 31st October 2027',
+      '01-11-2026 to 31-10-2027',
       'Sample Dental Clinic',
     ]) {
       expect(instructions).toContain(Buffer.from(line).toString('hex').toUpperCase());
@@ -127,9 +127,7 @@ describe('signed agreement PDF', () => {
     );
     const copy = await html.text();
     expect(copy).toContain('For Dental Practice Management System');
-    expect(copy.indexOf('1st November 2026 to 31st October 2027')).toBeLessThan(
-      copy.indexOf('أحكام'),
-    );
+    expect(copy.indexOf('01-11-2026 to 31-10-2027')).toBeLessThan(copy.indexOf('أحكام'));
   });
 
   it('embeds a drawn signature image and accepts a WebP letterhead logo', async () => {
@@ -215,5 +213,5 @@ it('shows the customer, product and contract period before signing', async () =>
   );
   expect(markup).toContain('Sample Dental Clinic');
   expect(markup).toContain('Dental Practice Management System');
-  expect(markup).toContain('1st November 2026 to 31st October 2027');
+  expect(markup).toContain('01-11-2026 to 31-10-2027');
 });

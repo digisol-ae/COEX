@@ -15,6 +15,7 @@ export async function signatureMutation(input: {
   cancelId?: string;
   providerUserId?: string;
   sendSecondPartyId?: string;
+  invitation?: Parameters<typeof sendSecondPartyInvitation>[2];
   provider?: Parameters<typeof requestAgreementSignature>[3];
 }) {
   const actor = await requirePermission('contract.manage');
@@ -22,7 +23,11 @@ export async function signatureMutation(input: {
     await asUser(actor, async () => {
       if (input.cancelId) await cancelAgreementSignature(input.contractId, input.cancelId);
       else if (input.sendSecondPartyId)
-        await sendSecondPartyInvitation(input.contractId, input.sendSecondPartyId);
+        await sendSecondPartyInvitation(
+          input.contractId,
+          input.sendSecondPartyId,
+          input.invitation,
+        );
       else {
         if (!input.provider && !input.providerUserId)
           throw new Error('Choose the First Party signer.');

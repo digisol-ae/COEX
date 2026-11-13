@@ -7,6 +7,7 @@ import { asUser, requirePermission } from '@/lib/session';
 import { repository } from '@/lib/repository';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { TaskModel } from '@coex/shared/tasks/models/task.model';
+import { appBaseUrl, queueEmail } from '@/modules/core/services/email.service';
 import { getTask } from '@/modules/tasks/services/task.service';
 import { signFirstPartyInWorktello } from '@/modules/crm/services/agreement-signature.service';
 import type { SignatureCapture } from '@coex/shared/crm/signature-capture';
@@ -37,15 +38,15 @@ export async function reviewTaskRequest(form: FormData) {
         { $set: { 'review.reviewedAt': new Date() } },
       );
     } else if (Types.ObjectId.isValid(reviewerId) && reviewerId !== actor.id) {
-      const reviewer = await UserModel.exists({
+      const reviewer = await UserModel.findOne({
         _id: reviewerId,
         tenantId: actor.tenantId,
         status: 'active',
         deletedAt: null,
         role: { $in: ['tenant_admin', 'platform_admin'] },
-      });
+      }).select('email');
       if (!reviewer) return;
-      await tasks.updateOne(
+      const saved = await tasks.updateOne(
         {
           _id: task._id,
           $or: [{ 'review.reviewerId': null }, { 'review.reviewedAt': { $ne: null } }],
@@ -61,6 +62,25 @@ export async function reviewTaskRequest(form: FormData) {
           },
         },
       );
+      if (saved) {
+        const queued = await queueEmail({
+          kind: 'task_review_requested',
+          to: reviewer.email,
+          subject: `Task review requested: ${task.number} — ${task.title}`,
+          text: `${actor.name} requested your review of ${task.number} — ${task.title}.\n\nOpen the task in Worktello:\n${appBaseUrl()}/tasks/${id}`,
+        }).catch(() => false);
+        if (!queued) {
+          await tasks.updateOne(
+            {
+              _id: task._id,
+              'review.requestedAt': saved.review?.requestedAt,
+              'review.reviewedAt': null,
+            },
+            { $set: { review: task.review ?? null } },
+          );
+          throw new Error('The review email could not be queued. Check outbound email and retry.');
+        }
+      }
     }
   });
   revalidatePath('/requests');

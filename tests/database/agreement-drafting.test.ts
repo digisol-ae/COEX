@@ -47,7 +47,7 @@ it('isolates custom templates and preserves independently edited customer snapsh
     const id = await saveAgreementTemplate(input);
     await generateAgreementDraft(contractId, id, {}, 0);
     const first = (await getAgreementDraft(contractId))!;
-    expect(first.body).toContain('QA Agreement Customer AED 250.00 2026-11-01 {{custom}}');
+    expect(first.body).toContain('QA Agreement Customer AED 250.00 01-11-2026 {{custom}}');
     await expect(saveAgreementDraft(contractId, first.body, true, first.revision)).rejects.toThrow(
       'placeholder',
     );

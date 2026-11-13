@@ -1,3 +1,4 @@
+import { displayDate } from '@coex/shared/crm/display-date';
 import { createHash, randomBytes, randomInt } from 'node:crypto';
 import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { Types } from 'mongoose';
@@ -147,6 +148,7 @@ export async function listSignatureHistory(
       requestedBy: names.get(String(r.requestedBy)) ?? String(r.requestedBy),
       signerName: r.signerName,
       signerEmail: r.signerEmail,
+      contactId: String(r.contactId),
       revision: r.draftRevision,
       createdAt: r.createdAt.toISOString(),
       expiresAt: r.expiresAt.toISOString(),
@@ -338,7 +340,7 @@ export async function requestAgreementSignature(
       to: invitedProvider?.email ?? contact.email,
       messageId: invitedProvider ? providerMessageId(request._id) : messageIdFor(request._id),
       subject: `${invitedProvider ? 'First Party signature requested' : 'Signature requested'}: ${contract.number} — ${contract.title}`,
-      text: `Hello ${invitedProvider?.name ?? contact.name},\n\nPlease review and sign the agreement for ${contract.organisationName}:\n\n${appBaseUrl()}/sign/${token}\n\nThis private link expires on ${expiresAt.toISOString().slice(0, 10)}. Do not forward it. If you are not authorised to sign, contact the sender.\n\nYou can save a copy after signing.`,
+      text: `Hello ${invitedProvider?.name ?? contact.name},\n\nPlease review and sign the agreement for ${contract.organisationName}:\n\n${appBaseUrl()}/sign/${token}${invitedProvider ? `\n\nYou can also sign from Requests and Approvals in Worktello:\n${appBaseUrl()}/requests/${request._id}` : ''}\n\nThis private link expires on ${displayDate(expiresAt.toISOString().slice(0, 10))}. Do not forward it. If you are not authorised to sign, contact the sender.\n\nYou can save a copy after signing.`,
     });
     if (!queued)
       throw new Error(
@@ -372,7 +374,18 @@ export async function requestAgreementSignature(
   return String(request._id);
 }
 
-export async function sendSecondPartyInvitation(contractId: string, requestId: string) {
+export async function sendSecondPartyInvitation(
+  contractId: string,
+  requestId: string,
+  draft?: {
+    contactId: string;
+    sender: string;
+    cc: string;
+    subject: string;
+    message: string;
+    signature: string;
+  },
+) {
   await connectToDatabase();
   if (!Types.ObjectId.isValid(requestId)) throw new Error('Signature request not found.');
   const request = await requests().findOne({
@@ -388,30 +401,76 @@ export async function sendSecondPartyInvitation(contractId: string, requestId: s
   verifyFirstParty(request);
   const token = Buffer.from(signingMac(`second-party:${request._id}`), 'hex').toString('base64url');
   const messageId = messageIdFor(request._id);
-  const prior = await EmailOutboxModel.exists({ tenantId: request.tenantId, messageId });
+  const contact =
+    draft && Types.ObjectId.isValid(draft.contactId)
+      ? await repository(ContactModel).findOne({
+          _id: draft.contactId,
+          organisationId: (await getContract(contractId))?.organisationId,
+          status: 'active',
+        })
+      : null;
+  const sender = draft && (await contractEmailSenders()).find(({ role }) => role === draft.sender);
+  if (draft && (!contact?.email || !sender))
+    throw new Error('Choose an active customer signer and a configured sender.');
+  if (
+    draft &&
+    (!draft.subject.trim() ||
+      /[\r\n]/.test(draft.subject) ||
+      draft.subject.length > 250 ||
+      !draft.message.trim() ||
+      draft.message.length > 10000 ||
+      draft.signature.length > 2000 ||
+      draft.cc.length > 10000)
+  )
+    throw new Error('Check the subject, message, CC and email signature.');
+  const recipient = contact?.email ?? request.signerEmail;
+  const cc = draft
+    ? normaliseCc(
+        draft.cc
+          .split(/[,;\n]/)
+          .map((value) => value.trim())
+          .filter(Boolean),
+        recipient,
+      )
+    : [];
+  if (cc.length > 49) throw new Error('Use at most 49 CC addresses.');
+  const prior = await EmailOutboxModel.findOne({ tenantId: request.tenantId, messageId }).select(
+    'to',
+  );
+  if (prior && prior.to !== recipient)
+    throw new Error('An invitation was already queued for a different signer.');
   if (
     !prior &&
     !(await queueEmail({
       kind: 'contract_email',
-      to: request.signerEmail,
+      to: recipient,
+      cc,
+      sender: sender ? sender.role : undefined,
       messageId,
       outboxId: new Types.ObjectId(digest(messageId).slice(0, 24)),
-      subject: `Second Party signature requested: ${request.contractNumber}`,
-      text: `Hello ${request.signerName},
-
-Please review and sign your agreement:
+      subject:
+        draft?.subject.trim() ?? `Second Party signature requested: ${request.contractNumber}`,
+      text: `${draft?.message.trim() ?? `Hello ${request.signerName},\n\nPlease review and sign your agreement:`}
 
 ${appBaseUrl()}/sign/${token}
 
-This private link is valid for 14 days. Do not forward it.`,
+This private link is valid for 14 days. Do not forward it.${draft?.signature.trim() ? `\n\n${draft.signature.trim()}` : ''}`,
     }))
   )
     throw new Error('The customer invitation could not be queued. Check outbound email and retry.');
+  const queued = await EmailOutboxModel.findOne({ tenantId: request.tenantId, messageId }).select(
+    'to',
+  );
+  if (queued?.to !== recipient)
+    throw new Error('An invitation was already queued for a different signer.');
   const now = new Date();
   const updated = await requests().updateOne(
     { _id: request._id, status: 'pending', customerInvitedAt: null, tokenHash: request.tokenHash },
     {
       $set: {
+        ...(contact
+          ? { contactId: contact._id, signerName: contact.name, signerEmail: recipient }
+          : {}),
         customerInvitedAt: now,
         tokenHash: digest(token),
         expiresAt: new Date(now.getTime() + 14 * 86400000),
@@ -433,7 +492,7 @@ This private link is valid for 14 days. Do not forward it.`,
     action: 'agreement.second_party_signature_requested',
     entityType: 'Contract',
     entityId: request.contractId,
-    after: { requestId, signerEmail: request.signerEmail, draftRevision: request.draftRevision },
+    after: { requestId, signerEmail: recipient, draftRevision: request.draftRevision },
   });
 }
 

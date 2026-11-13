@@ -1,4 +1,5 @@
 'use client';
+import { displayTimestamp } from '@coex/shared/crm/display-date';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -36,18 +37,15 @@ export function SignaturePanel({
   const [providerUserId, setProviderUserId] = useState(workspace.defaultProviderSignerId);
   const [showProviderForm, setShowProviderForm] = useState(false);
   const [contactId, setContact] = useState(workspace.defaultContactId);
+  const [invitationId, setInvitationId] = useState('');
+  const invitation = workspace.history.find(({ id }) => id === invitationId);
   const [emailRequestId, setEmailRequestId] = useState('');
   const emailRequest = workspace.history.find(({ id }) => id === emailRequestId);
   const [message, setMessage] = useState('');
   const [pending, start] = useTransition();
   const router = useRouter();
   const active = workspace.hasPending;
-  const timestamp = (value: string) =>
-    new Intl.DateTimeFormat('en-GB', {
-      timeZone: workspace.timezone,
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(new Date(value));
+  const timestamp = (value: string) => displayTimestamp(value, workspace.timezone);
   const cancel = (cancelId: string) => {
     if (!confirm('Cancel this signing request? Its active link will stop working.')) return;
     start(async () => {
@@ -242,16 +240,7 @@ export function SignaturePanel({
               </p>
             )}
             {editable && !r.customerInvited && r.firstPartySignedName && r.status === 'pending' && (
-              <Button
-                disabled={pending}
-                onClick={() =>
-                  start(async () => {
-                    const result = await signatureMutation({ contractId, sendSecondPartyId: r.id });
-                    setMessage(result.error ?? 'Second Party invitation queued.');
-                    router.refresh();
-                  })
-                }
-              >
+              <Button disabled={pending} onClick={() => setInvitationId(r.id)}>
                 Send to Second Party for signature
               </Button>
             )}
@@ -341,6 +330,19 @@ export function SignaturePanel({
           )}
         </nav>
       </section>
+      {editable && invitation && (
+        <InvitationDialog
+          contractId={contractId}
+          request={invitation}
+          workspace={workspace}
+          onClose={() => setInvitationId('')}
+          onQueued={() => {
+            setInvitationId('');
+            setMessage('Second Party invitation queued.');
+            router.refresh();
+          }}
+        />
+      )}
       {editable && emailRequest && (
         <SignedCopyEmailDialog
           contractId={contractId}
@@ -507,6 +509,141 @@ function SignedCopyEmailDialog({
             }
           >
             {pending ? 'Queuing email…' : 'Send email'}
+          </Button>
+        </div>
+      </form>
+    </dialog>
+  );
+}
+
+function InvitationDialog({
+  contractId,
+  request,
+  workspace,
+  onClose,
+  onQueued,
+}: {
+  contractId: string;
+  request: Awaited<ReturnType<typeof signatureWorkspace>>['history'][number];
+  workspace: Awaited<ReturnType<typeof signatureWorkspace>>;
+  onClose: () => void;
+  onQueued: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [contactId, setContactId] = useState(
+    workspace.contacts.some(({ id }) => id === request.contactId)
+      ? request.contactId
+      : workspace.defaultContactId,
+  );
+  const [sender, setSender] = useState<string>(workspace.emailSenders[0]?.role ?? '');
+  const [template, setTemplate] = useState('standard');
+  const [cc, setCc] = useState('');
+  const [signature, setSignature] = useState(`Kind regards,\n${workspace.letterhead.name}`);
+  const [error, setError] = useState('');
+  const [pending, start] = useTransition();
+  const contact = workspace.contacts.find(({ id }) => id === contactId);
+  const subject =
+    template === 'formal'
+      ? `Agreement for signature — ${request.contractNumber}`
+      : `Second Party signature requested: ${request.contractNumber}`;
+  const message =
+    template === 'formal'
+      ? `Dear ${contact?.name ?? 'customer'},\n\nPlease review agreement ${request.contractNumber} and sign it using the secure link below.`
+      : `Hello ${contact?.name ?? 'customer'},\n\nPlease review and sign your agreement using the link below.`;
+
+  useEffect(() => {
+    const element = dialog.current;
+    element?.showModal();
+    return () => element?.close();
+  }, []);
+
+  return (
+    <dialog
+      ref={dialog}
+      aria-labelledby="invitation-title"
+      className="popup-glass-gradient m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto p-5 backdrop:bg-black/40"
+      onCancel={(event) => {
+        event.preventDefault();
+        if (!pending) onClose();
+      }}
+    >
+      <h2 id="invitation-title" className="font-semibold">
+        Send to Second Party for signature
+      </h2>
+      <form
+        className="mt-4 space-y-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          start(async () => {
+            const result = await signatureMutation({
+              contractId,
+              sendSecondPartyId: request.id,
+              invitation: { contactId, sender, cc, subject, message, signature },
+            });
+            if (result.error) setError(result.error);
+            else onQueued();
+          });
+        }}
+      >
+        <Field label="Customer signatory">
+          <Select
+            required
+            disabled={pending}
+            value={contactId}
+            onChange={(e) => setContactId(e.target.value)}
+          >
+            <option value="">Choose a customer contact</option>
+            {workspace.contacts.map(({ id, name, email }) => (
+              <option key={id} value={id}>
+                {name} · {email}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field label="From">
+          <Select
+            required
+            disabled={pending}
+            value={sender}
+            onChange={(e) => setSender(e.target.value)}
+          >
+            <option value="">Choose a sender</option>
+            {workspace.emailSenders.map(({ role, name, address }) => (
+              <option key={role} value={role}>
+                {name} · {address}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field label="Email template">
+          <Select disabled={pending} value={template} onChange={(e) => setTemplate(e.target.value)}>
+            <option value="standard">Standard signature invitation</option>
+            <option value="formal">Formal signature invitation</option>
+          </Select>
+        </Field>
+        <Field label="CC" hint="Separate multiple email addresses with commas.">
+          <Input disabled={pending} value={cc} onChange={(e) => setCc(e.target.value)} />
+        </Field>
+        <Field label="Sender signature">
+          <Textarea
+            disabled={pending}
+            value={signature}
+            onChange={(e) => setSignature(e.target.value)}
+            rows={3}
+          />
+        </Field>
+        <section aria-label="Email preview" className="space-y-2 rounded border p-3 text-sm">
+          <p className="font-semibold">{subject}</p>
+          <p className="whitespace-pre-wrap">{message}</p>
+          <p>The private signing link will be added when you send.</p>
+        </section>
+        {error && <Notice tone="warn">{error}</Notice>}
+        <div className="flex gap-2">
+          <Button type="button" variant="secondary" disabled={pending} onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={pending || !contactId || !sender}>
+            {pending ? 'Sending…' : 'Send invitation'}
           </Button>
         </div>
       </form>

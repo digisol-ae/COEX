@@ -377,7 +377,7 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
                   required
                   name="reviewerId"
                   aria-label="Administrator"
-                  className="rounded border px-3 py-2"
+                  className="rounded border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-3 py-2 text-[var(--color-ink)] [&>option]:bg-[var(--color-surface)] [&>option]:text-[var(--color-ink)]"
                 >
                   <option value="">Choose an administrator</option>
                   {reviewers.map((reviewer) => (

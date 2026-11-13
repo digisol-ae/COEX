@@ -26,6 +26,7 @@ export type OutboxKind =
   | 'ticket_reply'
   | 'ticket_assigned'
   | 'customer_replied'
+  | 'task_review_requested'
   | 'task_assigned'
   | 'mentioned'
   | 'contract_renewal'
@@ -54,6 +55,7 @@ const SENDER_FOR: Record<OutboxKind, SenderRole> = {
   ticket_created: 'alert',
   ticket_assigned: 'alert',
   customer_replied: 'alert',
+  task_review_requested: 'alert',
   task_assigned: 'alert',
   mentioned: 'alert',
   contract_renewal: 'alert',
@@ -73,6 +75,7 @@ export function senderRoleFor(kind: OutboxKind): SenderRole {
 type StaffAlert =
   | 'ticket_assigned'
   | 'customer_replied'
+  | 'task_review_requested'
   | 'task_assigned'
   | 'mentioned'
   | 'ticket_created'
@@ -574,6 +577,7 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
     ticket_reply: settings.customer?.emailPublicReplies ?? true,
     ticket_assigned: settings.staff?.ticketAssigned ?? true,
     customer_replied: settings.staff?.customerReplied ?? true,
+    task_review_requested: true,
     task_assigned: settings.staff?.taskAssigned ?? true,
     mentioned: settings.staff?.mentioned ?? true,
     contract_renewal: settings.staff?.contractRenewal ?? true,
