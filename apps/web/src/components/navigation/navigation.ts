@@ -52,7 +52,6 @@ export const GROUPS: NavigationGroup[] = [
       { href: '/time', label: 'My timesheet', permission: 'task.read.own' },
       { href: '/time/all', label: 'All timesheets', permission: 'timesheet.read.all' },
       { href: '/time/report', label: 'Time report', permission: 'timesheet.read.all' },
-      { href: '/time/activity', label: 'Team activity', permission: 'timesheet.read.all' },
     ],
   },
   {
@@ -74,6 +73,14 @@ export const GROUPS: NavigationGroup[] = [
       { href: '/support/resources', label: 'Customer resources', permission: 'resource.read' },
       { href: '/support/metrics', label: 'Desk report', permission: 'ticket.read.all' },
       // Channels join here at M6: email threading and WhatsApp through XVERSE.
+    ],
+  },
+  {
+    id: 'administration',
+    label: 'Administration',
+    items: [
+      { href: '/requests', label: 'Requests and Approvals', permission: 'task.read.own' },
+      { href: '/time/activity', label: 'Team Activity', permission: 'timesheet.read.all' },
     ],
   },
   {
