@@ -4,6 +4,7 @@ Each resolution records its symptom, confirmed cause, scoped fix, verification a
 
 | Date           | Resolution                                                                          | Status                                                                                |
 | -------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| 13 Nov 2026 | [Agreement drafting and two-party signing](2026-11-13-two-party-signing.md) | Merged; local signing and PDF checks recorded |
 | 26 Oct 2026 | [Add contacts from ticket people](2026-10-26-contacts-from-tickets.md) | Local only; unit/build passed, DB test and UI acceptance pending |
 | 3 Nov 2026     | [Customer resource sharing](2026-11-03-customer-resources.md)                       | Local implementation and QA complete; draft review, not deployed                      |
 | 26 Oct 2026    | [Customer migration welcome](2026-10-26-customer-welcome.md)                        | Live; friendly guidance and recovery links verified                                   |
