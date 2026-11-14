@@ -1,3 +1,7 @@
+## Administration requests and signing invitations — 14 November documentation checkpoint
+
+PRs #89 and #90 merged through `a12e0ffa`. The manual covers the Administration request inbox, task review notifications, customer invitation composer and contract dates. Deployment, signed-in acceptance and real inbox delivery remain unverified. See [resolution](../docs/resolutions/2026-11-14-requests-and-invitations.md).
+
 ## Contract drafting and two-party signing — 13 November documentation checkpoint
 
 PR #87 merged as `31b69cb`. The PR records local checks of both signing stages and PDF download. Deployment and real inbox delivery were not verified during the manual run. See [resolution](../docs/resolutions/2026-11-13-two-party-signing.md).

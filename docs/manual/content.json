@@ -1,6 +1,6 @@
 {
-  "version": "2026.11.13",
-  "updated": "13 November 2026",
+  "version": "2026.11.14",
+  "updated": "14 November 2026",
   "title": "Worktello field guide",
   "chapters": [
     {
@@ -606,7 +606,7 @@
         },
         {
           "title": "Review latest recorded activity",
-          "text": "Team Activity can show staff latest activity with its exact timestamp and elapsed period. This reflects recorded work and running timers, not keyboard activity or online presence; No recorded activity means there is no matching work record."
+          "text": "Administration → Team Activity can show staff latest activity with its exact timestamp and elapsed period. This reflects recorded work and running timers, not keyboard activity or online presence; No recorded activity means there is no matching work record."
         },
         {
           "title": "Sort the activity summary",
@@ -977,6 +977,10 @@
         {
           "title": "Review the draft and contract reference",
           "text": "The drafting changes merged in PR #87 prefill agreement details and assign a reference to new contracts using the date, customer number and contract sequence. Check the populated agreement against the contract before sending."
+        },
+        {
+          "title": "Read contract dates",
+          "text": "Contract dates are displayed as DD-MM-YYYY."
         }
       ],
       "notes": [
@@ -1022,12 +1026,12 @@
           "text": "Open a contract, generate or edit its agreement and complete the review. The saved revision and letterhead are preserved with each request."
         },
         {
-          "title": "Send to the First Party",
-          "text": "In the two-party flow merged in PR #87, select an active customer contact in Signatures and review the saved agreement. Choose Send to First Party for signature to start with your organisation’s signer."
+          "title": "Start with the First Party",
+          "text": "In Signatures, choose the First Party signer and select Send to First Party for signature. The designated signer can also open the request under Administration → Requests and Approvals while signed in."
         },
         {
-          "title": "Invite the customer after the First Party signs",
-          "text": "Each signer uses a separate private invitation and verifies their email before signing. If the customer invitation is still ready to send after First Party signing, choose Send to Second Party for signature in the request history."
+          "title": "Send the customer invitation",
+          "text": "After First Party signing, select Send to Second Party for signature in the request history when the invitation is ready. Choose the customer signatory, configured sender and email template. Review the preview, CC and sender signature, then select Send invitation. Worktello adds the private link. The customer verifies their email before signing."
         },
         {
           "title": "Email the signed contract and invoice",
@@ -1701,9 +1705,52 @@
         "access"
       ],
       "status": "Documented workflow"
+    },
+    {
+      "group": "Customer work",
+      "id": "requests-approvals",
+      "title": "Review requests in Administration",
+      "intro": "Use Requests and Approvals to find task reviews and First Party agreement requests assigned to you.",
+      "roles": [
+        "Staff",
+        "Administrators"
+      ],
+      "status": "Merged",
+      "steps": [
+        {
+          "title": "Request a task review",
+          "text": "Open the task, select an eligible administrator as reviewer and choose Request review. Worktello queues an email with the task link. The task keeps its existing assignees."
+        },
+        {
+          "title": "Open your requests",
+          "text": "Open Administration → Requests and Approvals. Open the relevant task or First Party signing request."
+        }
+      ],
+      "notes": [],
+      "images": [],
+      "related": [
+        "contract-signing"
+      ],
+      "sources": [
+        [
+          "Resolution record",
+          "../resolutions/2026-11-14-requests-and-invitations.md"
+        ]
+      ]
     }
   ],
   "resolutions": [
+    {
+      "id": "requests-and-invitations",
+      "title": "Administration requests and signing invitations",
+      "date": "14 Nov 2026",
+      "symptom": "Staff needed a place to find assigned reviews and control the customer signing invitation.",
+      "cause": "The earlier flow lacked the Administration request inbox and Second Party invitation composer.",
+      "fix": "PRs #89 and #90 added the inbox, task review emails, the invitation composer and DD-MM-YYYY contract dates.",
+      "verification": "Reviewed merged code. Live workflow and inbox delivery remain unverified.",
+      "status": "Merged",
+      "record": "../resolutions/2026-11-14-requests-and-invitations.md"
+    },
     {
       "id": "two-party-signing",
       "title": "Agreement drafting and two-party signing",
