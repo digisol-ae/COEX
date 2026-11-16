@@ -352,3 +352,7 @@ Validation: full workspace types/lint, formatting, 227 unit tests and local/serv
 Remaining: earlier QA findings in compact context, tiny-image 0 KB display; full database regression if needed for follow-up changes. Separate dOne project files remain untracked and excluded.
 
 Read [release evidence](RELEASE-2026-10-21.md), [deployment status](../deploy/DEPLOYMENT-STATUS.md), and [compact context](CONTEXT-2026-10-21.md). Await next user task; do not infer new release authority from this completed run.
+
+## 17 November — Unsigned contract PDF handover
+
+PR #92 merged at `8bba1b18`. Staff can download the saved unsigned agreement and verified recipients can download the pending invitation snapshot. See the [resolution record](../docs/resolutions/2026-11-17-unsigned-contract-pdfs.md) for PR verification. Production acceptance remains pending.
