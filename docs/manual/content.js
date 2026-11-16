@@ -1,6 +1,6 @@
 window.WORKTELLO_MANUAL = {
-  "version": "2026.11.14",
-  "updated": "14 November 2026",
+  "version": "2026.11.17",
+  "updated": "17 November 2026",
   "title": "Worktello field guide",
   "chapters": [
     {
@@ -1044,6 +1044,10 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Track separate sends",
           "text": "Open Contracts → Signature tracking to filter awaiting signature, signed, expired and cancelled requests. Each send retains its own reference, revision, recipient and timestamps. Cancel a pending request before sending a replacement for that contract."
+        },
+        {
+          "title": "Download the invitation draft",
+          "text": "After verification, choose Download draft PDF on a pending invitation to save the exact agreement sent for signing. Each page is marked DRAFT - UNSIGNED."
         }
       ],
       "notes": [
@@ -1094,6 +1098,10 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Export and attach",
           "text": "Print/save PDF or download text. Attach the signed document through the existing Microsoft 365 document link."
+        },
+        {
+          "title": "Download the saved draft",
+          "text": "Save any edits, then choose Download draft PDF to review the agreement as a PDF. Each page is marked DRAFT - UNSIGNED."
         }
       ],
       "notes": [
@@ -1740,6 +1748,17 @@ window.WORKTELLO_MANUAL = {
     }
   ],
   "resolutions": [
+    {
+      "id": "unsigned-contract-pdfs",
+      "title": "Unsigned contract PDF downloads",
+      "date": "17 Nov 2026",
+      "symptom": "Staff and invited recipients needed a PDF before signing.",
+      "cause": "The saved agreement and pending invitation lacked a draft PDF download.",
+      "fix": "PR #92 added draft PDFs for saved agreements and verified pending invitations, with DRAFT - UNSIGNED on every page.",
+      "verification": "The PR reports 467 unit tests, type checks, lint and a five-page A4 sample review. Production acceptance is pending.",
+      "status": "Merged",
+      "record": "../resolutions/2026-11-17-unsigned-contract-pdfs.md"
+    },
     {
       "id": "requests-and-invitations",
       "title": "Administration requests and signing invitations",

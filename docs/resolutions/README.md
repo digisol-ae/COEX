@@ -34,3 +34,5 @@ Interactive user guide: `../manual/index.html#resolutions`. Secrets and raw priv
 - [30 October: Board expansion and activity summary](2026-10-30-board-and-ui.md)
 
 - [12 November: Signed contract copies and invoice email](2026-11-12-signed-contract-copies.md) — Merged; production acceptance pending.
+
+- [17 November — Unsigned contract PDF downloads](2026-11-17-unsigned-contract-pdfs.md) — Merged. Production acceptance pending.
