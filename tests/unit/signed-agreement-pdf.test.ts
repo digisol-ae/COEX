@@ -9,18 +9,42 @@ import {
 } from 'pdf-lib';
 import sharp from 'sharp';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { GET as downloadStaffDraft } from '@/app/(app)/contracts/[id]/draft/download/route';
+import { requirePermission } from '@/lib/session';
+import { getAgreementDraft } from '@/modules/crm/services/agreement.service';
+import { getContract } from '@/modules/crm/services/contract.service';
 import SigningPage from '@/app/sign/[token]/page';
+import { GET as downloadDraft } from '@/app/sign/[token]/draft/route';
 import { GET as downloadCopy } from '@/app/sign/[token]/download/route';
 import { GET as downloadReceipt } from '@/app/sign/[token]/receipt/route';
-import { publicSignatureRequest } from '@/modules/crm/services/agreement-signature.service';
+import {
+  hasSigningAccess,
+  publicSignatureRequest,
+} from '@/modules/crm/services/agreement-signature.service';
 
+vi.mock('@/lib/session', () => ({
+  requirePermission: vi.fn(),
+  asUser: (_actor: unknown, work: () => Promise<unknown>) => work(),
+}));
+vi.mock('@/modules/crm/services/agreement.service', () => ({ getAgreementDraft: vi.fn() }));
+vi.mock('@/modules/crm/services/contract.service', () => ({ getContract: vi.fn() }));
+vi.mock('@/modules/crm/services/tenant-letterhead.service', () => ({
+  getTenantLetterhead: async () => ({
+    name: 'DigiSol LLC-FZ',
+    address: '',
+    contact: '',
+    footer: '',
+    logoDataUrl: '',
+    color: '#0f172a',
+  }),
+}));
 vi.mock('next/headers', () => ({
   cookies: async () => ({ get: () => ({ value: 'verified-session' }) }),
 }));
 vi.mock('@/modules/crm/services/agreement-signature.service', () => ({
   publicSignatureRequest: vi.fn(),
   signingCookieName: () => 'signing',
-  hasSigningAccess: () => true,
+  hasSigningAccess: vi.fn(() => true),
   legacyAgreementCover: async () => null,
   pendingProviderInvitation: () => null,
   signingPageDetails: async (request: { coverDetails?: unknown }) => request.coverDetails,
@@ -214,4 +238,115 @@ it('shows the customer, product and contract period before signing', async () =>
   expect(markup).toContain('Sample Dental Clinic');
   expect(markup).toContain('Dental Practice Management System');
   expect(markup).toContain('01-11-2026 to 31-10-2027');
+  expect(markup).toContain('href="/sign/sample-token/draft"');
+});
+
+it('downloads the verified invitation snapshot as an unsigned PDF before signing', async () => {
+  vi.mocked(publicSignatureRequest).mockResolvedValue(
+    await signed({
+      status: 'pending',
+      body: 'Sample terms for review.',
+      firstParty: { name: 'Provider signer' },
+    }),
+  );
+  const params = Promise.resolve({ token: 'sample-token' });
+  const request = new Request('https://example.test/sign/sample-token/draft');
+  const response = await downloadDraft(request, { params });
+  expect(response.headers.get('Content-Type')).toBe('application/pdf');
+  expect(response.headers.get('Content-Disposition')).toContain('DGS-AMC-0042-draft.pdf');
+  expect(response.headers.get('Cache-Control')).toBe('no-store');
+  const pdf = await PDFDocument.load(await response.arrayBuffer());
+  expect(pdf.getTitle()).toBe('DGS-AMC-0042 — draft agreement');
+  const pageContent = pdf.getPages().map((page) => {
+    const contents = page.node.Contents() as PDFArray;
+    return Buffer.from(decodePDFRawStream(contents.lookup(0, PDFRawStream)).decode()).toString(
+      'ascii',
+    );
+  });
+  const hex = (text: string) => Buffer.from(text).toString('hex').toUpperCase();
+  for (const content of pageContent) expect(content).toContain(hex('DRAFT - UNSIGNED'));
+  expect(pageContent[1]).toContain(hex('Sample terms for review.'));
+  expect(pageContent[1]).not.toContain(hex('Provider signer'));
+});
+
+it('keeps the draft download behind pending invitation access', async () => {
+  const params = Promise.resolve({ token: 'sample-token' });
+  const request = new Request('https://example.test/sign/sample-token/draft');
+  vi.mocked(publicSignatureRequest).mockResolvedValue(await signed({ status: 'pending' }));
+  vi.mocked(hasSigningAccess).mockReturnValueOnce(false);
+  expect((await downloadDraft(request, { params })).status).toBe(404);
+
+  vi.mocked(publicSignatureRequest).mockResolvedValue(await signed());
+  expect((await downloadDraft(request, { params })).status).toBe(404);
+
+  vi.mocked(publicSignatureRequest).mockResolvedValue(null);
+  expect((await downloadDraft(request, { params })).status).toBe(404);
+});
+
+it('aligns wrapped draft clauses after their list markers and inside the page margins', async () => {
+  vi.mocked(publicSignatureRequest).mockResolvedValue(
+    await signed({
+      status: 'pending',
+      body: [
+        ...Array.from({ length: 38 }, () => 'Terms of service.'),
+        '1. Service coverage',
+        `    1.2. ${'Quarterly support coverage and maintenance '.repeat(5)}end of clause.`,
+      ].join('\n'),
+    }),
+  );
+  const params = Promise.resolve({ token: 'sample-token' });
+  const request = new Request('https://example.test/sign/sample-token/draft');
+  const response = await downloadDraft(request, { params });
+  const pdf = await PDFDocument.load(await response.arrayBuffer());
+  expect(pdf.getPageCount()).toBe(3);
+  const page = pdf.getPage(2);
+  const stream = (page.node.Contents() as PDFArray).lookup(0, PDFRawStream);
+  const instructions = Buffer.from(decodePDFRawStream(stream).decode()).toString('ascii');
+  expect(instructions).toContain(Buffer.from('1. Service coverage').toString('hex').toUpperCase());
+  const lines = Array.from(
+    instructions.matchAll(/1 0 0 1 ([\d.]+) ([\d.]+) Tm\n<([0-9A-F]+)> Tj/g),
+    ([, x, y, content]) => ({
+      x: Number(x),
+      y: Number(y),
+      text: Buffer.from(content, 'hex').toString('ascii'),
+    }),
+  ).filter(({ text }) => text.includes('support coverage') || text.endsWith('end of clause.'));
+  const font = await pdf.embedFont(StandardFonts.Helvetica);
+  expect(lines.length).toBeGreaterThan(1);
+  expect(lines[0].x).toBeCloseTo(56.7);
+  const indent = font.widthOfTextAtSize('    1.2. ', 10.5);
+  for (const line of lines.slice(1)) expect(line.x).toBeCloseTo(lines[0].x + indent);
+  for (const { x, y, text } of lines) {
+    expect(x + font.widthOfTextAtSize(text, 10.5)).toBeLessThanOrEqual(page.getWidth() - 56.7);
+    expect(y).toBeLessThan(page.getHeight() - 56.7 - 24);
+  }
+});
+
+it('lets staff with contract read access download a saved draft before internal review', async () => {
+  vi.mocked(getContract).mockResolvedValue({
+    number: 'DGS-AMC-0042',
+    organisationName: 'Sample Dental Clinic',
+    title: 'Annual support agreement',
+    startDate: '2026-11-01',
+    endDate: '2027-10-31',
+  } as NonNullable<Awaited<ReturnType<typeof getContract>>>);
+  vi.mocked(getAgreementDraft).mockResolvedValue({
+    id: 'draft',
+    templateId: 'template',
+    templateName: 'Support agreement',
+    templateRevision: 1,
+    body: 'Saved contract terms.',
+    reviewNotes: 'Internal note',
+    reviewed: false,
+    revision: 1,
+  });
+
+  const params = Promise.resolve({ id: 'contract' });
+  const request = new Request('https://example.test/contracts/contract/draft/download');
+  const response = await downloadStaffDraft(request, { params });
+  expect(requirePermission).toHaveBeenCalledWith('contract.read');
+  expect(response.headers.get('Content-Disposition')).toContain('DGS-AMC-0042-draft.pdf');
+
+  vi.mocked(getAgreementDraft).mockResolvedValue(null);
+  expect((await downloadStaffDraft(request, { params })).status).toBe(404);
 });

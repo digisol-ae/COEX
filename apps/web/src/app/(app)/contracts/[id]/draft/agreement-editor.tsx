@@ -212,6 +212,11 @@ export function AgreementEditor({
                 Save agreement
               </Button>
             )}
+            <form action={`/contracts/${contractId}/draft/download`}>
+              <Button type="submit" variant="secondary" disabled={dirty || pending} loading={false}>
+                Download draft PDF
+              </Button>
+            </form>
             <Button variant="secondary" disabled={dirty || pending} onClick={printAgreement}>
               Print / Save PDF
             </Button>

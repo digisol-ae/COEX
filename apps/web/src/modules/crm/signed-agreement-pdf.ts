@@ -34,6 +34,8 @@ export class UnsupportedPdfText extends Error {}
 const A4 = { width: 595.28, height: 841.89 };
 const MARGIN = 56.7; // 20 mm
 const FOOTER_SPACE = 48;
+const HEADER_RULE_OFFSET = 8;
+const HEADER_GAP = 16;
 const INK = rgb(0.067, 0.067, 0.067);
 const MUTED = rgb(0.33, 0.33, 0.33);
 
@@ -61,7 +63,13 @@ function assertDrawable(font: PDFFont, values: string[]) {
 }
 
 /** Wraps on spaces, keeps blank lines, and splits words (hashes, URLs) wider than the line. */
-export function wrapText(text: string, font: PDFFont, size: number, width: number): string[] {
+export function wrapText(
+  text: string,
+  font: PDFFont,
+  size: number,
+  width: number,
+  continuationWidth = width,
+): string[] {
   const lines: string[] = [];
   for (const paragraph of text.replace(/\r\n?/g, '\n').replace(/\t/g, '    ').split('\n')) {
     if (!paragraph.trim()) {
@@ -69,20 +77,25 @@ export function wrapText(text: string, font: PDFFont, size: number, width: numbe
       continue;
     }
     let line = '';
+    let available = width;
     for (const word of paragraph.split(/(?<= )/)) {
       const candidate = line + word;
-      if (font.widthOfTextAtSize(candidate.trimEnd(), size) <= width) {
+      if (font.widthOfTextAtSize(candidate.trimEnd(), size) <= available) {
         line = candidate;
         continue;
       }
-      if (line.trim()) lines.push(line.trimEnd());
+      if (line.trim()) {
+        lines.push(line.trimEnd());
+        available = continuationWidth;
+      }
       line = '';
       let rest = word;
-      while (font.widthOfTextAtSize(rest.trimEnd(), size) > width) {
+      while (font.widthOfTextAtSize(rest.trimEnd(), size) > available) {
         let cut = rest.length - 1;
-        while (cut > 1 && font.widthOfTextAtSize(rest.slice(0, cut), size) > width) cut--;
+        while (cut > 1 && font.widthOfTextAtSize(rest.slice(0, cut), size) > available) cut--;
         lines.push(rest.slice(0, cut));
         rest = rest.slice(cut);
+        available = continuationWidth;
       }
       line = rest;
     }
@@ -112,7 +125,7 @@ class Writer {
   }
   newPage() {
     this.page = this.pdf.addPage([A4.width, A4.height]);
-    this.y = A4.height - MARGIN - 24;
+    this.y = A4.height - MARGIN - HEADER_RULE_OFFSET - HEADER_GAP;
   }
   ensure(height: number) {
     if (this.y - height < MARGIN + this.footerSpace) this.newPage();
@@ -126,14 +139,23 @@ class Writer {
       align?: 'left' | 'right';
       gap?: number;
       width?: number;
+      continuationIndent?: number;
+      keepOpeningLines?: boolean;
     } = {},
   ) {
     const leading = size * 1.45;
-    for (const line of wrapText(value, font, size, options.width ?? this.width)) {
+    const width = options.width ?? this.width;
+    const indent = options.continuationIndent ?? 0;
+    const lines = wrapText(value, font, size, width, width - indent);
+    if (options.keepOpeningLines) this.ensure(Math.min(2, lines.length) * leading);
+    for (const [index, line] of lines.entries()) {
       this.ensure(leading);
       const lineWidth = font.widthOfTextAtSize(line, size);
       this.page.drawText(line, {
-        x: options.align === 'right' ? MARGIN + this.width - lineWidth : MARGIN,
+        x:
+          options.align === 'right'
+            ? MARGIN + this.width - lineWidth
+            : MARGIN + (index ? indent : 0),
         y: this.y - size,
         size,
         font,
@@ -142,6 +164,34 @@ class Writer {
       this.y -= leading;
     }
     this.y -= options.gap ?? 0;
+  }
+  draftBody(body: string, font: PDFFont) {
+    const size = 10.5;
+    const leading = size * 1.45;
+    const paragraphs = body.replace(/\r\n?/g, '\n').replace(/\t/g, '    ').trimEnd().split('\n');
+    for (const [index, paragraph] of paragraphs.entries()) {
+      // Keep wrapped clause text aligned with the first word after the list marker.
+      const prefix =
+        /^ *(?:(?:\d+(?:\.\d+)*[.)]|\d+(?:\.\d+)+|[a-zA-Z][.)]|[-•]) +)?/.exec(paragraph)?.[0] ??
+        '';
+      const continuationIndent = Math.min(this.width / 4, font.widthOfTextAtSize(prefix, size));
+      if (!paragraph.trim() && this.y - leading < MARGIN + this.footerSpace) continue;
+      const next = paragraphs[index + 1];
+      const section = /^ *(\d+(?:\.\d+)*)[.)]? +\S/.exec(paragraph)?.[1];
+      const subclause = /^ *(\d+(?:\.\d+)+)[.)]? +\S/.exec(next ?? '')?.[1];
+      if (section && subclause?.startsWith(`${section}.`)) {
+        const headingLines = wrapText(
+          paragraph,
+          font,
+          size,
+          this.width,
+          this.width - continuationIndent,
+        ).length;
+        const subclauseLines = wrapText(next, font, size, this.width).length;
+        this.ensure((headingLines + Math.min(2, subclauseLines)) * leading);
+      }
+      this.text(paragraph, font, size, { continuationIndent, keepOpeningLines: true });
+    }
   }
   rule(colour: ReturnType<typeof rgb>, thickness = 1, gap = 12) {
     this.ensure(gap * 2);
@@ -169,13 +219,14 @@ async function drawCover(
   customerName: string,
   details: AgreementCoverDetails | null | undefined,
   bold: PDFFont,
+  draft: boolean,
 ) {
   const serif = await pdf.embedFont(StandardFonts.TimesRomanBold);
   const page = pdf.addPage([A4.width, A4.height]);
   const red = colourOf(agreementCoverRed);
   const blue = colourOf(agreementCoverBlue);
-  const right = 504;
-  const logoRight = 492;
+  const right = draft ? A4.width - MARGIN : 504;
+  const logoRight = draft ? right : 492;
   const { subtitle, period } = agreementCoverText(details);
 
   function text(
@@ -200,8 +251,21 @@ async function drawCover(
     });
   }
 
-  page.drawRectangle({ x: MARGIN, y: A4.height - 64, width: 419, height: 4.5, color: red });
-  page.drawRectangle({ x: 483, y: A4.height - 63, width: 9, height: 3, color: blue });
+  const blueX = draft ? right - 9 : 483;
+  page.drawRectangle({
+    x: MARGIN,
+    y: A4.height - 64,
+    width: draft ? blueX - 10 - MARGIN : 419,
+    height: 4.5,
+    color: red,
+  });
+  page.drawRectangle({
+    x: blueX,
+    y: A4.height - (draft ? 64 : 63),
+    width: 9,
+    height: draft ? 4.5 : 3,
+    color: blue,
+  });
   text(agreementCoverHeading.toUpperCase(), 88, 14, bold, INK, true);
   text(subtitle, 105, 12, bold, red, true);
   const logo = await pdf.embedPng(Buffer.from(agreementCoverLogo.split(',')[1], 'base64'));
@@ -310,26 +374,28 @@ async function drawPartySignatures(
   }
 }
 
-/** Builds the signed agreement PDF from verified evidence only. */
-export async function signedAgreementPdf(
-  request: Signed,
-  legacyCover?: AgreementCoverDetails | null,
+type AgreementPdfContent = Pick<
+  AgreementSignature,
+  'body' | 'contractNumber' | 'customerName' | 'letterhead'
+> & { coverDetails?: AgreementCoverDetails | null };
+
+async function renderAgreementPdf(
+  request: AgreementPdfContent,
+  coverDetails: AgreementCoverDetails | null | undefined,
+  signatureEvidence?: {
+    at: Date;
+    extraText: string[];
+    draw: (pdf: PDFDocument, writer: Writer, bold: PDFFont, regular: PDFFont) => Promise<void>;
+  },
 ): Promise<Uint8Array> {
-  if (request.status !== 'signed' || !request.signedAt || !request.signedName)
-    throw new Error('The agreement has not been signed.');
-  verifyCompletion(request);
-  const signature = signatureImage(request);
+  const title = signatureEvidence ? 'Signed agreement' : 'Draft agreement';
+  const draft = !signatureEvidence;
+  const extraText = signatureEvidence?.extraText ?? [];
   const letterhead = request.letterhead ?? null;
 
   const pdf = await PDFDocument.create();
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const typedFont = await pdf.embedFont(
-    (request.signatureStyle ?? 0) === 2
-      ? StandardFonts.HelveticaOblique
-      : StandardFonts.TimesRomanItalic,
-  );
-  const coverDetails = request.coverDetails ?? legacyCover;
   const { subtitle, period } = agreementCoverText(coverDetails);
   const footerText = agreementFooterText(letterhead);
   const headerDate = agreementHeaderDate(request.body, coverDetails);
@@ -339,24 +405,20 @@ export async function signedAgreementPdf(
     period,
     request.contractNumber,
     request.customerName,
-    request.signedName,
-    request.firstParty?.name ?? '',
-    request.signerName,
-    request.signerEmail,
-    request.consentText,
     letterhead?.name ?? '',
     letterhead?.contact ?? '',
     footerText,
+    ...extraText,
   ]);
-  pdf.setTitle(`${request.contractNumber} — signed agreement`);
-  pdf.setSubject(`Signed agreement for ${request.customerName}`);
+  pdf.setTitle(`${request.contractNumber} — ${title.toLowerCase()}`);
+  pdf.setSubject(`${title} for ${request.customerName}`);
   pdf.setCreator('Worktello');
   pdf.setProducer('Worktello');
-  pdf.setCreationDate(request.signedAt);
+  if (signatureEvidence) pdf.setCreationDate(signatureEvidence.at);
 
   const colour = colourOf(letterhead?.color);
-  await drawCover(pdf, request.customerName, coverDetails, bold);
-  const footerWidth = A4.width - MARGIN * 2 - 42;
+  await drawCover(pdf, request.customerName, coverDetails, bold, draft);
+  const footerWidth = A4.width - MARGIN * 2 - (draft ? 60 : 42);
   const [address, ...channels] = footerText.split(' | ');
   const footerLines = !footerText
     ? []
@@ -368,51 +430,15 @@ export async function signedAgreementPdf(
       : wrapText(footerText, regular, 8, footerWidth);
   const w = new Writer(pdf, Math.max(FOOTER_SPACE, 18 + footerLines.length * 10));
 
-  w.text('Signed agreement', bold, 17, { gap: 2 });
+  w.text(title, bold, 17, { gap: 2 });
   w.text(`${request.contractNumber} · ${request.customerName}`, regular, 10.5, {
     color: MUTED,
     gap: 10,
   });
-  w.text(request.body, regular, 10.5, { gap: 6 });
+  if (draft) w.draftBody(request.body, regular);
+  else w.text(request.body, regular, 10.5, { gap: 6 });
 
-  if (request.firstParty) {
-    await drawPartySignatures(
-      pdf,
-      w,
-      request,
-      request.firstParty,
-      request.signedName,
-      request.signedAt,
-      bold,
-      regular,
-    );
-  } else {
-    // Keep the signature record together rather than leaving its heading alone at a page end.
-    w.ensure(220);
-    w.rule(rgb(0.73, 0.73, 0.73), 1, 14);
-    w.text('Electronic signature record', bold, 13, { gap: 6 });
-    const image = signature ? await embedDataUrlImage(pdf, signature) : null;
-    if (image) w.image(image, 260, 110);
-    else w.text(request.signedName, typedFont, 24, { gap: 6 });
-  }
-  const evidence = [
-    `Signed by: ${request.signedName}`,
-    `Invited signer: ${request.signerName} (${request.signerEmail})`,
-    `Signed at (UTC): ${displayTimestamp(request.signedAt)}`,
-  ];
-  for (const line of evidence) w.text(line, regular, 9);
-  w.y -= 6;
-  w.text(request.consentText, regular, 9, { gap: 4 });
-  w.text(
-    `Signing method: ${request.signatureMethod ?? 'typed'}; ${
-      request.signerVerifiedAt
-        ? `invited email verified at ${displayTimestamp(request.signerVerifiedAt)}`
-        : 'private invitation link'
-    }; explicit acceptance.`,
-    regular,
-    9,
-    { color: MUTED },
-  );
+  await signatureEvidence?.draw(pdf, w, bold, regular);
 
   const right = A4.width - MARGIN;
   const mark = await embedDataUrlImage(pdf, letterhead?.logoDataUrl).catch(() => null);
@@ -429,10 +455,20 @@ export async function signedAgreementPdf(
           color: MUTED,
         });
       page.drawLine({
-        start: { x: MARGIN, y: y - 8 },
-        end: { x: right, y: y - 8 },
+        start: { x: MARGIN, y: y - HEADER_RULE_OFFSET },
+        end: { x: right, y: y - HEADER_RULE_OFFSET },
         thickness: 0.75,
         color: colour,
+      });
+    }
+    if (draft) {
+      const label = 'DRAFT - UNSIGNED';
+      page.drawText(label, {
+        x: (A4.width - bold.widthOfTextAtSize(label, 10)) / 2,
+        y: A4.height - (index === 0 ? 42 : MARGIN),
+        size: 10,
+        font: bold,
+        color: colourOf(agreementCoverRed),
       });
     }
     const footerY = MARGIN + 8;
@@ -461,7 +497,85 @@ export async function signedAgreementPdf(
   return pdf.save();
 }
 
-const fileStem = (request: Signed) => request.contractNumber.replace(/[^a-zA-Z0-9-]/g, '');
+/** Builds the signed agreement PDF from verified evidence only. */
+export async function signedAgreementPdf(
+  request: Signed,
+  legacyCover?: AgreementCoverDetails | null,
+): Promise<Uint8Array> {
+  if (request.status !== 'signed' || !request.signedAt || !request.signedName)
+    throw new Error('The agreement has not been signed.');
+  verifyCompletion(request);
+  const signature = signatureImage(request);
+  const { signedAt, signedName } = request;
+  return renderAgreementPdf(request, request.coverDetails ?? legacyCover, {
+    at: signedAt,
+    extraText: [
+      signedName,
+      request.firstParty?.name ?? '',
+      request.signerName,
+      request.signerEmail,
+      request.consentText,
+    ],
+    async draw(pdf, w, bold, regular) {
+      const typedFont = await pdf.embedFont(
+        (request.signatureStyle ?? 0) === 2
+          ? StandardFonts.HelveticaOblique
+          : StandardFonts.TimesRomanItalic,
+      );
+      if (request.firstParty) {
+        await drawPartySignatures(
+          pdf,
+          w,
+          request,
+          request.firstParty,
+          signedName,
+          signedAt,
+          bold,
+          regular,
+        );
+      } else {
+        // Keep the signature record together rather than leaving its heading alone at a page end.
+        w.ensure(220);
+        w.rule(rgb(0.73, 0.73, 0.73), 1, 14);
+        w.text('Electronic signature record', bold, 13, { gap: 6 });
+        const image = signature ? await embedDataUrlImage(pdf, signature) : null;
+        if (image) w.image(image, 260, 110);
+        else w.text(signedName, typedFont, 24, { gap: 6 });
+      }
+      const evidence = [
+        `Signed by: ${signedName}`,
+        `Invited signer: ${request.signerName} (${request.signerEmail})`,
+        `Signed at (UTC): ${displayTimestamp(signedAt)}`,
+      ];
+      for (const line of evidence) w.text(line, regular, 9);
+      w.y -= 6;
+      w.text(request.consentText, regular, 9, { gap: 4 });
+      w.text(
+        `Signing method: ${request.signatureMethod ?? 'typed'}; ${
+          request.signerVerifiedAt
+            ? `invited email verified at ${displayTimestamp(request.signerVerifiedAt)}`
+            : 'private invitation link'
+        }; explicit acceptance.`,
+        regular,
+        9,
+        { color: MUTED },
+      );
+    },
+  });
+}
+
+export async function draftAgreementDownload(request: AgreementPdfContent) {
+  try {
+    const bytes = await renderAgreementPdf(request, request.coverDetails);
+    return agreementPdfResponse(bytes, request.contractNumber, 'draft');
+  } catch (error) {
+    if (!(error instanceof UnsupportedPdfText)) throw error;
+    return new Response(
+      'The PDF font does not support some characters in this agreement. Use your browser’s print dialog to save the agreement page as a PDF.',
+      { status: 422, headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
+}
 
 /** PDF when every character is drawable; otherwise the faithful HTML copy, never altered text. */
 export async function signedAgreementDownload(
@@ -477,10 +591,15 @@ export async function signedAgreementDownload(
     if (error instanceof UnsupportedPdfText) return htmlFallback(request, legacyCover);
     throw error;
   }
+  return agreementPdfResponse(bytes, request.contractNumber, 'signed');
+}
+
+function agreementPdfResponse(bytes: Uint8Array, contractNumber: string, kind: 'draft' | 'signed') {
+  const fileStem = contractNumber.replace(/[^a-zA-Z0-9-]/g, '') || 'agreement';
   return new Response(Buffer.from(bytes), {
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${fileStem(request)}-signed.pdf"`,
+      'Content-Disposition': `attachment; filename="${fileStem}-${kind}.pdf"`,
       'Cache-Control': 'no-store',
       'Referrer-Policy': 'no-referrer',
       'X-Content-Type-Options': 'nosniff',

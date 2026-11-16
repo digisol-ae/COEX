@@ -75,6 +75,14 @@ export default async function SigningPage({ params }: { params: Promise<{ token:
             ? 'This agreement has been signed.'
             : 'Review the complete agreement below before signing.'}
         </p>
+        {request.status === 'pending' && (
+          <a
+            className="mt-2 inline-flex min-h-12 items-center text-sm font-medium underline print:hidden"
+            href={`/sign/${token}/draft`}
+          >
+            Download draft PDF
+          </a>
+        )}
       </header>
       <article className="whitespace-pre-wrap break-words text-sm leading-relaxed">
         {request.body}
