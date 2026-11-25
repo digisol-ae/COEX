@@ -103,7 +103,7 @@ beforeEach(() => {
   mocks.task.mockResolvedValue({ _id: taskId, assigneeIds: [actorId], spaceId, folderId: null });
   mocks.comments.mockResolvedValue([]);
   mocks.allowed.mockResolvedValue(null);
-  mocks.tenant.mockResolvedValue({ modules: { tasks: true } });
+  mocks.tenant.mockResolvedValue({ status: 'active', modules: { tasks: true } });
   mocks.form.mockResolvedValue({
     actorId,
     spaces: [{ id: spaceId, name: 'Space', memberIds: [] }],
@@ -116,6 +116,15 @@ it('requires verified identity before database actor lookup', async () => {
   mocks.verify.mockRejectedValue(new Error());
   await expect(readTeamsTab('bad', { action: 'list' })).rejects.toMatchObject({ status: 401 });
   expect(mocks.users).not.toHaveBeenCalled();
+});
+it('blocks Teams tab data access after trial expiry', async () => {
+  mocks.tenant.mockResolvedValue({
+    status: 'active',
+    modules: { tasks: true },
+    commercial: { status: 'trialing', trialEndsAt: new Date(0) },
+  });
+  await expect(readTeamsTab('token', { action: 'list' })).rejects.toMatchObject({ status: 403 });
+  expect(mocks.list).not.toHaveBeenCalled();
 });
 it('maps only the configured tenant and verified oid, and scopes task reads', async () => {
   mocks.list.mockImplementation(async () => {
@@ -357,4 +366,14 @@ it('routes Copilot creation through current permission checks and existing recei
       assigneeIds: [actorId],
     }),
   );
+});
+
+it('refuses task reads when the assigned plan excludes Tasks even if tenant flags allow it', async () => {
+  mocks.tenant.mockResolvedValue({
+    status: 'active',
+    modules: { tasks: true },
+    commercial: { planSnapshot: { modules: { tasks: false } } },
+  });
+  await expect(readTeamsTab('token', { action: 'list' })).rejects.toMatchObject({ status: 403 });
+  expect(mocks.list).not.toHaveBeenCalled();
 });

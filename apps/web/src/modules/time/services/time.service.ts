@@ -1,3 +1,8 @@
+import { lockSubscription } from '@/modules/core/services/subscription.service';
+import { effectiveModules } from '@coex/shared/core/modules';
+import { workspaceAccess } from '@coex/shared/core/saas';
+import type { TimeEntry } from '@coex/shared/time/models/time-entry.model';
+import { moduleAvailable, assertModuleAccess } from '@/modules/core/services/module-access.service';
 import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
@@ -33,6 +38,7 @@ export interface RunningTimer {
 }
 
 export async function getRunningTimer(userId?: string): Promise<RunningTimer | null> {
+  if (!(await moduleAvailable('tasks'))) return null;
   await connectToDatabase();
 
   const context = getContext();
@@ -57,6 +63,7 @@ export async function getRunningTimer(userId?: string): Promise<RunningTimer | n
     };
   }
 
+  if (!(await moduleAvailable('tickets'))) return null;
   const ticket = await TicketModel.findOne({ _id: running.ticketId, tenantId: context.tenantId });
 
   return {
@@ -79,6 +86,7 @@ export async function getRunningTimer(userId?: string): Promise<RunningTimer | n
  * stay on the task page for those allowed to see them (`listTaskTimeByPerson`).
  */
 export async function loggedMinutesForTask(taskId: string, userId?: string): Promise<number> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const found = await entries().find({
@@ -113,6 +121,7 @@ export async function listTaskTimeByPerson(
   taskId: string,
   options: { onlyUserId?: string } = {},
 ): Promise<TaskTimeByPerson[]> {
+  await assertModuleAccess('tasks');
   return timeByPerson({ taskId: toObjectId(taskId) }, options);
 }
 
@@ -121,6 +130,7 @@ export async function listTicketTimeByPerson(
   ticketId: string,
   options: { onlyUserId?: string } = {},
 ): Promise<TaskTimeByPerson[]> {
+  if (!(await moduleAvailable('tasks')) || !(await moduleAvailable('tickets'))) return [];
   return timeByPerson({ ticketId: toObjectId(ticketId) }, options);
 }
 
@@ -176,6 +186,7 @@ async function timeByPerson(
 
 /** Time one person recorded against one ticket, the signed-in person unless told otherwise. */
 export async function loggedMinutesForTicket(ticketId: string, userId?: string): Promise<number> {
+  if (!(await moduleAvailable('tasks')) || !(await moduleAvailable('tickets'))) return 0;
   await connectToDatabase();
 
   const found = await entries().find({
@@ -196,6 +207,7 @@ export async function loggedTicketMinutesForOrganisation(
   fromDay: string,
   toDay: string,
 ): Promise<number> {
+  if (!(await moduleAvailable('tasks')) || !(await moduleAvailable('tickets'))) return 0;
   await connectToDatabase();
 
   const from = new Date(`${fromDay}T00:00:00+04:00`);
@@ -230,12 +242,18 @@ export interface TodayTimer {
 }
 
 export async function listTodaysTimers(): Promise<TodayTimer[]> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const context = getContext();
   const today = startOfDay(new Date());
 
-  const found = await entries().find({ userId: context.userId, workDate: today, source: 'timer' });
+  const found = await entries().find({
+    userId: context.userId,
+    workDate: today,
+    source: 'timer',
+    ...(!(await moduleAvailable('tickets')) ? { ticketId: null } : {}),
+  });
 
   const [tasks, tickets] = await Promise.all([
     TaskModel.find({
@@ -309,7 +327,24 @@ export async function listTodaysTimers(): Promise<TodayTimer[]> {
     .sort((a, b) => Number(b.running) - Number(a.running) || b.minutes - a.minutes);
 }
 
+async function createRunningTimer(input: Partial<TimeEntry>) {
+  const db = await connectToDatabase();
+  const { tenantId } = getContext();
+  await db.connection.transaction(async (session) => {
+    const tenant = await lockSubscription(String(tenantId), session);
+    const modules = effectiveModules(tenant);
+    if (
+      workspaceAccess(tenant.status, tenant.commercial) !== 'allowed' ||
+      !modules.tasks ||
+      (input.ticketId && !modules.tickets)
+    )
+      throw new Error('This module is not available for this workspace.');
+    await TimeEntryModel.create([{ ...input, tenantId }], { session });
+  });
+}
+
 export async function startTimer(taskId: string): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const context = getContext();
@@ -339,7 +374,7 @@ export async function startTimer(taskId: string): Promise<void> {
   const now = new Date();
   await assertWeekOpen(now);
 
-  await entries().create({
+  await createRunningTimer({
     userId: context.userId,
     taskId: task._id,
     spaceId: task.spaceId,
@@ -368,6 +403,8 @@ export async function startTimer(taskId: string): Promise<void> {
  * holds, enforced the same way, by the same database index, whichever kind was running before.
  */
 export async function startTicketTimer(ticketId: string): Promise<void> {
+  await assertModuleAccess('tickets');
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const context = getContext();
@@ -388,7 +425,7 @@ export async function startTicketTimer(ticketId: string): Promise<void> {
   const now = new Date();
   await assertWeekOpen(now);
 
-  await entries().create({
+  await createRunningTimer({
     userId: context.userId,
     ticketId: ticket._id,
     organisationId: ticket.organisationId ?? null,
@@ -408,6 +445,7 @@ export async function startTicketTimer(ticketId: string): Promise<void> {
 }
 
 export async function stopTimer(entryId?: string): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const context = getContext();
@@ -445,6 +483,8 @@ export interface ManualEntryInput {
 }
 
 export async function addManualEntry(input: ManualEntryInput): Promise<void> {
+  if (input.ticketId) await assertModuleAccess('tickets');
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const context = getContext();
@@ -539,12 +579,14 @@ function requiredReason(reason: string | undefined): string {
  * mid flight would make the stop write over whatever was entered.
  */
 export async function updateEntry(entryId: string, input: UpdateEntryInput): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const context = getContext();
 
   const before = await entries().findById(entryId);
   if (!before) throw new Error('Entry not found.');
+  if (before.ticketId) await assertModuleAccess('tickets');
   if (before.lockedAt) throw new Error('That week is locked, so the entry cannot be changed.');
   if (before.running) throw new Error('Stop the timer before editing this entry.');
 
@@ -639,10 +681,12 @@ export async function removeEntry(
   mayEditOthers = false,
   reasonGiven = '',
 ): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const entry = await entries().findById(entryId);
   if (!entry) throw new Error('Entry not found.');
+  if (entry.ticketId) await assertModuleAccess('tickets');
   if (entry.lockedAt) throw new Error('That week is locked, so the entry cannot be removed.');
 
   if (String(entry.userId) !== String(getContext().userId) && !mayEditOthers) {

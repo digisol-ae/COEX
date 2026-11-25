@@ -58,13 +58,15 @@ export function NavigationTree({
           onNavigate={onNavigate}
           heading
         />
-        <NavigationLink
-          href={DESK.href}
-          label={DESK.label}
-          active={isActive(DESK.href)}
-          onNavigate={onNavigate}
-          heading
-        />
+        {groups.some((group) => group.id === 'tasks') && (
+          <NavigationLink
+            href={DESK.href}
+            label={DESK.label}
+            active={isActive(DESK.href)}
+            onNavigate={onNavigate}
+            heading
+          />
+        )}
       </div>
 
       {groups.map((group) => {

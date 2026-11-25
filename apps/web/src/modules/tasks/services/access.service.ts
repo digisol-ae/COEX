@@ -1,9 +1,13 @@
+import { permissionModule } from '@coex/shared/core/modules';
+import { moduleAvailable } from '@/modules/core/services/module-access.service';
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { getContext } from '@/lib/tenant-context';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { permissionsFor, type Permission, type Role } from '@coex/shared/core/permissions';
 
 /** Tenant administrators remain able to administer private task areas. */
 export async function actorIsAdministrator(): Promise<boolean> {
+  await assertModuleAccess('tasks');
   const context = getContext();
   if (context.isPlatformAdmin) return true;
   const user = await UserModel.findOne({ _id: context.userId }).select('role');
@@ -15,6 +19,9 @@ export async function actorIsAdministrator(): Promise<boolean> {
  * from the caller, so a service can refuse on its own even when a screen forgets to check.
  */
 export async function actorHasPermission(permission: Permission): Promise<boolean> {
+  const requiredModule = permissionModule(permission);
+  if (requiredModule && !(await moduleAvailable(requiredModule))) return false;
+  await assertModuleAccess('tasks');
   const context = getContext();
   if (context.isPlatformAdmin) return true;
   const user = await UserModel.findOne({ _id: context.userId }).select(

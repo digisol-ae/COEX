@@ -1,3 +1,6 @@
+import { portalAccountScope, tokenMatchesPortal } from '@/modules/portal/tenant';
+import { portalAuthPath } from '@coex/shared/core/portal-links';
+import { appBaseUrl } from './email.service';
 import { createHash, createHmac, randomInt, randomBytes } from 'node:crypto';
 import { connectToDatabase } from '@/lib/db';
 import { hashPassword } from '@/lib/password';
@@ -13,8 +16,11 @@ function codeHash(userId: string, code: string) {
   if (!process.env.AUTH_SECRET) throw new Error('Account activation is unavailable.');
   return createHmac('sha256', process.env.AUTH_SECRET).update(`${userId}:${code}`).digest('hex');
 }
-async function eligible(email: string) {
+async function eligible(email: string, tenantSlug?: string) {
+  const scope = await portalAccountScope(tenantSlug);
+  if (!scope) return null;
   const matches = await UserModel.find({
+    ...scope,
     email: email.trim().toLowerCase(),
     deletedAt: null,
   }).limit(2);
@@ -26,13 +32,16 @@ async function eligible(email: string) {
     !user.mustChangePassword
   )
     return null;
-  if (!(await TenantModel.exists({ _id: user.tenantId, status: 'active' }))) return null;
+  if (!(await TenantModel.exists({ _id: user.tenantId, status: 'active', deletedAt: null })))
+    return null;
   return user;
 }
-export async function requestActivation(email: string) {
+export async function requestActivation(email: string, tenantSlug?: string) {
   await connectToDatabase();
-  const user = await eligible(email);
+  const user = await eligible(email, tenantSlug);
   if (!user) return;
+  const tenant = await TenantModel.findById(user.tenantId).select('slug name');
+  if (!tenant) return;
   const now = new Date();
   const code = String(randomInt(100000, 1000000));
   const challenge = {
@@ -65,15 +74,15 @@ export async function requestActivation(email: string) {
         kind: 'password_reset',
         to: user.email,
         subject: 'Your Worktello activation code',
-        text: `Your Worktello activation code is ${code}. It expires in 10 minutes. After verification, choose your password. If you did not request this, ignore this email.`,
+        text: `Your Worktello activation code is ${code}. For ${tenant.name}. Continue at ${appBaseUrl()}${portalAuthPath('/activate', tenant.slug)}.  It expires in 10 minutes. After verification, choose your password. If you did not request this, ignore this email.`,
       }),
   );
   if (!queued) await ActivationModel.deleteOne({ userId: user._id, codeHash: challenge.codeHash });
 }
-export async function verifyActivation(email: string, code: string) {
+export async function verifyActivation(email: string, code: string, tenantSlug?: string) {
   await connectToDatabase();
   if (!/^\d{6}$/.test(code)) throw new Error('Enter the six-digit code from your email.');
-  const user = await eligible(email);
+  const user = await eligible(email, tenantSlug);
   if (!user) throw new Error('Code is invalid or expired.');
   const challenge = await ActivationModel.findOneAndUpdate(
     {
@@ -96,7 +105,7 @@ export async function verifyActivation(email: string, code: string) {
   if (claimed.modifiedCount !== 1) throw new Error('Code was already used.');
   return token;
 }
-export async function finishActivation(token: string, password: string) {
+export async function finishActivation(token: string, password: string, tenantSlug?: string) {
   await connectToDatabase();
   const challenge = await ActivationModel.findOne({
     tokenHash: tokenHash(token),
@@ -104,7 +113,8 @@ export async function finishActivation(token: string, password: string) {
     usedAt: null,
     expiresAt: { $gt: new Date() },
   });
-  if (!challenge) throw new Error('Activation expired. Request a new code.');
+  if (!challenge || !(await tokenMatchesPortal(challenge.tenantId, tenantSlug)))
+    throw new Error('Activation expired. Request a new code.');
   const user = await UserModel.findOne({
     _id: challenge.userId,
     tenantId: challenge.tenantId,
@@ -113,7 +123,10 @@ export async function finishActivation(token: string, password: string) {
     mustChangePassword: true,
     deletedAt: null,
   });
-  if (!user || !(await TenantModel.exists({ _id: user.tenantId, status: 'active' })))
+  if (
+    !user ||
+    !(await TenantModel.exists({ _id: user.tenantId, status: 'active', deletedAt: null }))
+  )
     throw new Error('Account is unavailable.');
   const problem = passwordProblem(password, { email: user.email, name: user.name });
   if (problem) throw new Error(problem);

@@ -1,18 +1,32 @@
 'use client';
+import { portalAuthPath } from '@coex/shared/core/portal-links';
 import Link from 'next/link';
 import { useActionState, useState } from 'react';
 import { Button, Field, Input, Notice } from '@/components/ui';
 import { Captcha } from '@/components/ui/captcha';
 import { emailLoginAction, type EmailLoginState } from './actions';
-export function EmailLoginForm() {
+export function EmailLoginForm({ tenantSlug }: { tenantSlug?: string }) {
   const [revision, setRevision] = useState(0);
-  return <EmailLoginSteps key={revision} onRestart={() => setRevision((value) => value + 1)} />;
+  return (
+    <EmailLoginSteps
+      tenantSlug={tenantSlug}
+      key={revision}
+      onRestart={() => setRevision((value) => value + 1)}
+    />
+  );
 }
-function EmailLoginSteps({ onRestart }: { onRestart: () => void }) {
+function EmailLoginSteps({
+  onRestart,
+  tenantSlug,
+}: {
+  onRestart: () => void;
+  tenantSlug?: string;
+}) {
   const [state, action, pending] = useActionState(emailLoginAction, {} as EmailLoginState);
   const step = state.step ?? 'request';
   return (
     <form action={action} className="mt-8 space-y-4">
+      {tenantSlug !== undefined && <input type="hidden" name="tenant" value={tenantSlug} />}
       <input type="hidden" name="step" value={step} />
       {step === 'request' ? (
         <>
@@ -60,12 +74,12 @@ function EmailLoginSteps({ onRestart }: { onRestart: () => void }) {
         </p>
       ) : null}
       <p className="text-center text-sm">
-        <Link href="/login" className="underline">
+        <Link href={portalAuthPath('/login', tenantSlug)} className="underline">
           Sign in with a password
         </Link>
       </p>
       <p className="text-center text-sm">
-        <Link href="/forgot-password" className="underline">
+        <Link href={portalAuthPath('/forgot-password', tenantSlug)} className="underline">
           Forgot password? Set a new password
         </Link>
       </p>

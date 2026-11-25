@@ -123,10 +123,20 @@ export function orderGroups<T extends { id: string }>(groups: T[], order: string
   return [...groups].sort((a, b) => rank(a.id) - rank(b.id));
 }
 
+export function navigationItemAllowed(item: NavigationItem, permissions: Permission[]) {
+  if (item.permission && !permissions.includes(item.permission)) return false;
+  if (
+    ['/setup/queues', '/setup/whatsapp'].includes(item.href) &&
+    !permissions.includes('ticket.manage')
+  )
+    return false;
+  return true;
+}
+
 /** Groups the signed in person may actually open, with empty groups dropped entirely. */
 export function visibleGroups(permissions: Permission[]): NavigationGroup[] {
   return GROUPS.map((group) => ({
     ...group,
-    items: group.items.filter((item) => !item.permission || permissions.includes(item.permission)),
+    items: group.items.filter((item) => navigationItemAllowed(item, permissions)),
   })).filter((group) => group.items.length > 0);
 }

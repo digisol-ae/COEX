@@ -1,3 +1,5 @@
+import { effectiveModules } from '@coex/shared/core/modules';
+import { workspaceAccess } from '@coex/shared/core/saas';
 import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { Schema, model, models } from 'mongoose';
 import { UserModel } from '@coex/shared/core/models/user.model';
@@ -128,12 +130,14 @@ export async function withTeamsTabActor<T>(
       status: 'active',
       deletedAt: null,
     }).limit(2),
-    TenantModel.findOne({ _id: settings.tenantId, status: 'active' }),
+    TenantModel.findOne({ _id: settings.tenantId, status: 'active', deletedAt: null }),
   ]);
   const actor = actors.length === 1 ? actors[0] : null;
   if (
     !actor ||
-    !tenant?.modules?.tasks ||
+    !tenant ||
+    !effectiveModules(tenant).tasks ||
+    workspaceAccess(tenant.status, tenant.commercial) !== 'allowed' ||
     actor.role === 'client_contact' ||
     !permissionsFor({
       role: actor.role as Role,

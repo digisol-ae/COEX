@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { assertStaffAdditions } from '@/modules/core/services/staff.service';
 import {
   assertUsedStatusesPreserved,
@@ -64,6 +65,7 @@ export interface SpaceSummary {
 }
 
 export async function visibleSpaceIds(): Promise<import('mongoose').Types.ObjectId[] | null> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   // Personal work is private even from an administrator. It is an individual's capture pad, not
   // a private project a manager needs access to administer.
@@ -81,11 +83,13 @@ export async function visibleSpaceIds(): Promise<import('mongoose').Types.Object
 }
 
 export async function visibleSpaceFilter(field = '_id'): Promise<Record<string, unknown>> {
+  await assertModuleAccess('tasks');
   const ids = await visibleSpaceIds();
   return ids === null ? {} : { [field]: { $in: ids } };
 }
 
 export async function canOpenSpace(id: string): Promise<boolean> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const space = await spaces().findById(id);
   if (!space) return false;
@@ -98,12 +102,14 @@ export async function canOpenSpace(id: string): Promise<boolean> {
 }
 
 export async function assignableSpaceMemberIds(id: string): Promise<string[] | null> {
+  await assertModuleAccess('tasks');
   const space = await spaces().findById(id);
   if (!space || space.memberIds.length === 0) return null;
   return space.memberIds.map(String);
 }
 
 export async function listSpaces(): Promise<SpaceSummary[]> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const found = await spaces()
@@ -158,6 +164,7 @@ export async function listSpaces(): Promise<SpaceSummary[]> {
 }
 
 export async function getSpace(id: string) {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   if (!(await canOpenSpace(id))) return null;
   return spaces().findById(id);
@@ -173,6 +180,7 @@ export interface SpaceInput {
 }
 
 export async function createSpace(input: SpaceInput): Promise<string> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const name = input.name.trim();
@@ -203,6 +211,7 @@ export async function createSpace(input: SpaceInput): Promise<string> {
  * task for themselves.
  */
 export async function personalSpaceForCurrentUser(): Promise<string> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const userId = getContext().userId;
   // Never adopt a normal Space merely because somebody happened to call it “My tasks”. That was
@@ -221,6 +230,7 @@ export async function personalSpaceForCurrentUser(): Promise<string> {
 }
 
 export async function renameSpace(id: string, name: string): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const trimmed = name.trim();
@@ -238,6 +248,7 @@ export async function renameSpace(id: string, name: string): Promise<void> {
 }
 
 export async function updateSpace(id: string, input: SpaceInput): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const space = await spaces().findById(id);
   if (!space) throw new Error('Space not found.');
@@ -292,6 +303,7 @@ export async function updateSpace(id: string, input: SpaceInput): Promise<void> 
  * the person in the first place.
  */
 export async function reorderSpaces(orderedIds: string[]): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const visible = await visibleSpaceIds();
@@ -312,6 +324,7 @@ export interface ArchiveSummary {
 
 /** What archiving would take with it, for the confirmation before anyone commits to it. */
 export async function archiveImpact(id: string): Promise<ArchiveSummary> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const { tenantId } = getContext();
   const space = await spaces().findById(id);
@@ -330,6 +343,7 @@ export async function archiveImpact(id: string): Promise<ArchiveSummary> {
  * still running inside the Space stops the archive, so nobody's clock ends up on hidden work.
  */
 export async function archiveSpace(id: string): Promise<ArchiveSummary> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const { tenantId } = getContext();
 
@@ -379,6 +393,7 @@ export async function archiveSpace(id: string): Promise<ArchiveSummary> {
 
 /** Brings a Space back with exactly what was archived with it; earlier archives stay archived. */
 export async function restoreSpace(id: string): Promise<ArchiveSummary> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const { tenantId } = getContext();
 
@@ -427,6 +442,7 @@ export interface ArchivedSpace {
 
 /** Archived spaces the person could open, newest first, for the Restore list. */
 export async function listArchivedSpaces(): Promise<ArchivedSpace[]> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const { tenantId, userId } = getContext();
   const administrator = await actorIsAdministrator();

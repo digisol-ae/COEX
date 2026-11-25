@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { toObjectId } from '@/lib/ids';
@@ -102,6 +103,7 @@ export async function loadDeskMetrics(input: {
   to: Date;
   queueId?: string;
 }): Promise<DeskMetrics> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const query: Record<string, unknown> = {
@@ -206,6 +208,7 @@ export function metPercent(met: number, missed: number): number | null {
 
 /** The same badge question for the support rail: how much open work is mine. */
 export async function countMyOpenTickets(userId: string): Promise<number> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   return tickets().count({
@@ -237,6 +240,7 @@ export interface DeskSnapshot {
  * breach that nobody has noticed is the one that turns into a phone call.
  */
 export async function loadDeskSnapshot(scope: { userId: string }): Promise<DeskSnapshot> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const openFilter = { mergedIntoId: null, status: { $in: OPEN_STATUSES } };

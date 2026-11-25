@@ -71,7 +71,7 @@ it('uses the customer email, persists CC, and queues CC only for public replies'
       runWithContext({ ...context, tenantId: new Types.ObjectId() }, () =>
         setTicketCollaborators(id, ['other@example.com']),
       ),
-    ).rejects.toThrow('Ticket not found');
+    ).rejects.toThrow(/Ticket not found|module is not available/);
   });
 });
 

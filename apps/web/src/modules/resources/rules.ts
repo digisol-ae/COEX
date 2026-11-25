@@ -40,7 +40,6 @@ export function documentType(fileName: string, bytes: Buffer) {
   if (!type?.[1]) throw new Error('Use a valid PDF, Word, Excel, PowerPoint, text or image file.');
   return type[0];
 }
-export const previewable = (type: string) =>
-  type === 'application/pdf' || type.startsWith('image/') || type.startsWith('text/plain');
+export { previewable } from './preview-types';
 export const safeFileName = (name: string) =>
   name.replace(/[\x00-\x1f\x7f-\uffff"\\/]/g, '_').slice(0, 180) || 'document';

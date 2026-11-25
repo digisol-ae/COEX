@@ -1,3 +1,4 @@
+import { moduleAvailable, assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { randomBytes, randomInt, randomUUID, timingSafeEqual } from 'node:crypto';
 import { Types } from 'mongoose';
 import {
@@ -8,7 +9,6 @@ import {
 import { OrganisationModel } from '@coex/shared/crm/models/organisation.model';
 import { ContactModel } from '@coex/shared/crm/models/contact.model';
 import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
-import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import { connectToDatabase } from '@/lib/db';
 import { getContext, runWithContext } from '@/lib/tenant-context';
 import { fileStorage } from '@/lib/storage';
@@ -38,6 +38,7 @@ export interface ResourceView {
   videoUrl: string | null;
 }
 export async function listResources(search = '', publishedOnly = false): Promise<ResourceView[]> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const rows = await ResourceModel.find({
     tenantId: getContext().tenantId,
@@ -76,6 +77,7 @@ export async function saveResource(input: {
   status?: string;
   file?: { name: string; body: Buffer };
 }) {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const { tenantId, userId } = getContext();
   const title = input.title.trim();
@@ -141,6 +143,7 @@ export async function saveResource(input: {
   return String(id);
 }
 export async function staffResourceFile(id: string) {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const row = await ResourceModel.findOne({
     _id: objectId(id),
@@ -155,6 +158,7 @@ export async function staffResourceFile(id: string) {
   };
 }
 export async function resourceRecipients(search: string) {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   if (search.trim().length < 2) return [];
   const tenantId = getContext().tenantId;
@@ -215,6 +219,7 @@ export async function ticketShareTarget(
   ticketId: string,
   actor: { id: string; permissions: readonly string[] },
 ) {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const ticket = await TicketModel.findOne({
     _id: objectId(ticketId),
@@ -256,6 +261,7 @@ export async function createResourceShare(
   input: ShareInput,
   actor: { id: string; permissions: readonly string[] },
 ) {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   await ResourceShareModel.init();
   const { tenantId, userId } = getContext();
@@ -403,6 +409,7 @@ export async function createResourceShare(
   }
 }
 export async function shareHistory() {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const rows = await ResourceShareModel.find({ tenantId: getContext().tenantId })
     .sort({ createdAt: -1 })
@@ -421,6 +428,7 @@ export async function shareHistory() {
   }));
 }
 export async function revokeResourceShare(id: string) {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const row = await ResourceShareModel.findOneAndUpdate(
     { _id: objectId(id), tenantId: getContext().tenantId, revokedAt: null },
@@ -444,7 +452,7 @@ export async function publicShare(token: string) {
     revokedAt: null,
     deliveryStatus: 'queued',
   });
-  if (!share || !(await TenantModel.exists({ _id: share.tenantId, status: 'active' }))) return null;
+  if (!share || !(await moduleAvailable('tickets', String(share.tenantId)))) return null;
   return share;
 }
 export async function verifiedShare(token: string, browserToken?: string) {

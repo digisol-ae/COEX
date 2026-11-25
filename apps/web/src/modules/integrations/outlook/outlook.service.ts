@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { createHash } from 'node:crypto';
 import { Schema, model, models, Types } from 'mongoose';
@@ -19,6 +20,7 @@ const Receipts =
     new Schema({ _id: String, taskId: String, state: String }, { timestamps: true }),
   );
 export async function outlookChoices(canReadCustomers: boolean) {
+  await assertModuleAccess('tasks');
   const { tenantId, userId } = getContext();
   const [spaces, folders, people, customers] = await Promise.all([
     listSpaces(),
@@ -42,6 +44,7 @@ export async function outlookChoices(canReadCustomers: boolean) {
   };
 }
 export async function createOutlookTask(raw: unknown, canReadCustomers: boolean) {
+  await assertModuleAccess('tasks');
   const parsed = outlookTaskSchema.safeParse(raw);
   if (!parsed.success) throw new Error('Check the title, destination, email and due date.');
   const input = parsed.data;

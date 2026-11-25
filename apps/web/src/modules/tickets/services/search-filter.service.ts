@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import type { QueryFilter } from 'mongoose';
 import type { Ticket } from '@coex/shared/tickets/models/ticket.model';
 import { getContext } from '@/lib/tenant-context';
@@ -11,6 +12,7 @@ export async function ticketSearchClauses(
   input: string,
   publicOnly = false,
 ): Promise<QueryFilter<Ticket>[]> {
+  await assertModuleAccess('tickets');
   const { tenantId } = getContext();
   return Promise.all(
     ticketSearchTerms(input).map(async (term) => {

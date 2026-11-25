@@ -1,3 +1,4 @@
+import { moduleAvailable, assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { assertStaffAdditions } from '@/modules/core/services/staff.service';
 import { taskTeamsSource, teamsMessageLink } from '@coex/shared/tasks/teams-sharing';
 import { fileStorage } from '@/lib/storage';
@@ -120,6 +121,7 @@ export interface TaskFilter {
 export async function listNewAssignmentsToMe(
   since: Date,
 ): Promise<{ id: string; number: string; title: string; assignedByName: string; at: Date }[]> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const me = getContext().userId;
@@ -166,6 +168,7 @@ export async function listNewAssignmentsToMe(
 }
 
 export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const query: Record<string, unknown> = {};
@@ -319,6 +322,7 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
  * worth a slow screen.
  */
 export async function countMyOpenTasks(userId: string): Promise<number> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const conditions = [
@@ -334,6 +338,7 @@ export async function countMyOpenTasks(userId: string): Promise<number> {
 }
 
 export async function getTask(id: string) {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const task = await tasks().findById(id);
   if (!task || !(await canOpenSpace(String(task.spaceId)))) return null;
@@ -343,6 +348,7 @@ export async function getTask(id: string) {
 
 /** Personal completion never closes the shared task or removes its assignee. */
 export async function setMySubtaskDone(taskId: string, done: boolean): Promise<void> {
+  await assertModuleAccess('tasks');
   const task = await getTask(taskId);
   const actor = getContext().userId;
   if (!task || !task.assigneeIds.some((id) => String(id) === String(actor))) {
@@ -381,6 +387,7 @@ async function sourceTicketIdFor(task: {
   _id: Types.ObjectId;
   sourceTicketId?: Types.ObjectId | null;
 }): Promise<Types.ObjectId | null> {
+  if (!(await moduleAvailable('tickets'))) return null;
   if (task.sourceTicketId) return task.sourceTicketId;
   const ticket = await TicketModel.findOne({
     tenantId: getContext().tenantId,
@@ -396,6 +403,7 @@ export async function sourceTicketFor(task: {
   _id: Types.ObjectId;
   sourceTicketId?: Types.ObjectId | null;
 }): Promise<{ id: string; number: string; subject: string } | null> {
+  await assertModuleAccess('tasks');
   const ticketId = await sourceTicketIdFor(task);
   if (!ticketId) return null;
   const ticket = await TicketModel.findOne({ _id: ticketId, tenantId: getContext().tenantId })
@@ -424,6 +432,7 @@ export async function taskOrigin(task: {
   createdAt?: Date | null;
   assignments?: Iterable<Assignment> | null;
 }): Promise<TaskOrigin> {
+  await assertModuleAccess('tasks');
   const assignments = Array.from(task.assignments ?? []);
   const ids = [
     ...(task.createdById ? [String(task.createdById)] : []),
@@ -448,6 +457,7 @@ export async function taskOrigin(task: {
 }
 
 export async function taskUpdateImage(taskId: string, attachmentId: string) {
+  await assertModuleAccess('tasks');
   const task = await getTask(taskId);
   if (!task) return null;
   const sourceTicketId = await sourceTicketIdFor(task);
@@ -473,6 +483,7 @@ export async function taskUpdateImage(taskId: string, attachmentId: string) {
 }
 
 export async function listTaskComments(taskId: string): Promise<TaskCommentView[]> {
+  await assertModuleAccess('tasks');
   const task = await getTask(taskId);
   if (!task) return [];
 
@@ -553,6 +564,7 @@ export async function editTaskUpdate(
   commentId: string,
   body: string,
 ): Promise<void> {
+  await assertModuleAccess('tasks');
   const text = body.trim();
   if (!text) throw new Error('An update cannot be empty. Delete it instead.');
   if (text.length > 4_000) throw new Error('A comment can be up to 4,000 characters.');
@@ -613,6 +625,7 @@ export async function editTaskUpdate(
  * ticket's internal notes and a ticket's record is never erased.
  */
 export async function deleteTaskUpdate(taskId: string, commentId: string): Promise<void> {
+  await assertModuleAccess('tasks');
   const task = await getTask(taskId);
   if (!task) throw new Error('Task not found.');
   if (await sourceTicketIdFor(task)) {
@@ -643,6 +656,7 @@ export async function deleteTaskUpdate(taskId: string, commentId: string): Promi
 
 /** Who may be @mentioned on a task: its private members if it has any, otherwise all staff. */
 export async function mentionableForTask(taskId: string): Promise<MentionableUser[]> {
+  await assertModuleAccess('tasks');
   const task = await getTask(taskId);
   if (!task) return [];
   const members = await assignableUserIdsForTask(task);
@@ -656,6 +670,7 @@ export async function addTaskComment(
   mentionIds: string[] = [],
   images: IncomingFile[] = [],
 ): Promise<void> {
+  await assertModuleAccess('tasks');
   const text = body.trim() || (images.length ? 'Image update' : '');
   if (!text) throw new Error('Write a comment before posting it.');
   if (text.length > 4_000) throw new Error('A comment can be up to 4,000 characters.');
@@ -791,6 +806,7 @@ export async function assignableUserIdsForTask(task: {
   spaceId: Types.ObjectId | string;
   folderId?: Types.ObjectId | string | null;
 }): Promise<string[] | null> {
+  await assertModuleAccess('tasks');
   const [spaceMembers, folderMembers] = await Promise.all([
     assignableSpaceMemberIds(String(task.spaceId)),
     assignableMemberIds(task.folderId ? String(task.folderId) : null),
@@ -810,11 +826,13 @@ export async function assignableUserIdsForSubtask(task: {
   folderId?: Types.ObjectId | string | null;
   assigneeIds: (Types.ObjectId | string)[];
 }): Promise<string[] | null> {
+  await assertModuleAccess('tasks');
   if (task.assigneeIds.length > 0) return task.assigneeIds.map(String);
   return assignableUserIdsForTask(task);
 }
 
 export async function createTask(input: CreateTaskInput): Promise<string> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const space = await SpaceModel.findOne({
@@ -936,6 +954,7 @@ export async function moveTaskToSpace(
   id: string,
   input: { spaceId: string; folderId?: string | null },
 ): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const context = getContext();
@@ -1072,6 +1091,7 @@ async function createNextRecurringTask(task: HydratedDocument<Task>): Promise<vo
 }
 
 export async function moveTask(id: string, status: string): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const task = await tasks().findById(id);
@@ -1156,6 +1176,7 @@ export interface UpdateTaskInput {
 }
 
 export async function updateTask(id: string, input: UpdateTaskInput): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const before = await tasks().findById(id);
@@ -1262,6 +1283,7 @@ export interface TaskPatch {
 }
 
 export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const before = await tasks().findById(id);
@@ -1359,6 +1381,7 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
 }
 
 export async function addSubtask(taskId: string, title: string): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const task = await tasks().updateOne(
@@ -1378,6 +1401,7 @@ export async function toggleSubtask(
   subtaskId: string,
   done: boolean,
 ): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const task = await tasks().findById(taskId);
@@ -1407,6 +1431,7 @@ export async function setSubtaskAssignee(
   subtaskId: string,
   assigneeId: string | null,
 ): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const task = await tasks().findById(taskId);
@@ -1466,6 +1491,7 @@ export async function addDocumentLink(
   rawUrl: string,
   title?: string,
 ): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const parsed = parseDocumentLink(rawUrl);
@@ -1496,6 +1522,7 @@ export async function addDocumentLink(
 }
 
 export async function removeDocumentLink(taskId: string, linkId: string): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   await tasks().updateOne(
@@ -1517,6 +1544,7 @@ export async function moveTaskToPosition(
   afterTaskId: string | null,
   beforeTaskId: string | null,
 ): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const task = await tasks().findById(id);
@@ -1550,6 +1578,7 @@ export async function moveTaskToPosition(
 }
 
 export async function archiveTask(id: string): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const removed = await tasks().softDelete({ _id: toObjectId(id) });

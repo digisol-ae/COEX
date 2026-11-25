@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
@@ -57,6 +58,7 @@ export async function searchTicketPeople(
   organisationId: string,
   rawQuery: string,
 ): Promise<TicketPeopleResult> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const { tenantId } = getContext();
   const tickets = repository(TicketModel);
@@ -241,6 +243,7 @@ export async function linkTicketPeople(
   selections: TicketPersonSelection[],
   moveExisting: boolean,
 ): Promise<LinkTicketPeopleResult> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const contacts = repository(ContactModel);
   const organisation = await repository(OrganisationModel).findById(organisationId);

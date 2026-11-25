@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { assertStaffAdditions } from '@/modules/core/services/staff.service';
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
@@ -78,6 +79,7 @@ function targetsOf(stored: QueueTarget[] | undefined): QueueTarget[] {
 export async function listQueues(
   options: { includeArchived?: boolean } = {},
 ): Promise<QueueSummary[]> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const found = await queues()
@@ -130,6 +132,7 @@ export async function listQueues(
 }
 
 export async function getQueue(id: string) {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   return queues().findById(id);
 }
@@ -147,6 +150,7 @@ export interface QueueInput {
 }
 
 export async function createQueue(input: QueueInput): Promise<string> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const name = input.name.trim();
@@ -190,6 +194,7 @@ export async function createQueue(input: QueueInput): Promise<string> {
 }
 
 export async function updateQueue(id: string, input: QueueInput): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const before = await queues().findById(id);
@@ -242,6 +247,7 @@ export async function updateQueue(id: string, input: QueueInput): Promise<void> 
  * and a support desk that silently stops accepting work is worse than one that refuses the change.
  */
 export async function archiveQueue(id: string): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const queue = await queues().findById(id);
@@ -278,6 +284,7 @@ export async function archiveQueue(id: string): Promise<void> {
 }
 
 export async function restoreQueue(id: string): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const queue = await queues().findById(id);
@@ -288,6 +295,7 @@ export async function restoreQueue(id: string): Promise<void> {
 
 /** Where a ticket goes when nobody chose a queue. */
 export async function defaultQueueId(): Promise<string | null> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const found =

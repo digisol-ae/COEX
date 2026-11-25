@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { assertStaffAdditions } from '@/modules/core/services/staff.service';
 import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
@@ -46,6 +47,7 @@ export interface FolderSummary {
 /** A tenant administrator sees everything; anyone else sees open folders and their own. */
 /** The ids of every folder this person may open, or null meaning no restriction applies. */
 export async function visibleFolderIds(): Promise<Types.ObjectId[] | null> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   if (await actorIsAdministrator()) return null;
@@ -65,6 +67,7 @@ export async function visibleFolderIds(): Promise<Types.ObjectId[] | null> {
  * claimed to be private.
  */
 export async function visibleFolderFilter(): Promise<Record<string, unknown>> {
+  await assertModuleAccess('tasks');
   const ids = await visibleFolderIds();
 
   if (ids === null) return {};
@@ -74,6 +77,7 @@ export async function visibleFolderFilter(): Promise<Record<string, unknown>> {
 
 /** Whether one folder may be opened, used before showing or writing anything inside it. */
 export async function canOpenFolder(folderId: string): Promise<boolean> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const folder = await folders().findById(folderId);
@@ -85,6 +89,7 @@ export async function canOpenFolder(folderId: string): Promise<boolean> {
 }
 
 export async function listFolders(spaceId?: string): Promise<FolderSummary[]> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const ids = await visibleFolderIds();
@@ -137,6 +142,7 @@ export async function listFolders(spaceId?: string): Promise<FolderSummary[]> {
 }
 
 export async function getFolder(id: string) {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   return folders().findById(id);
 }
@@ -149,6 +155,7 @@ export interface FolderInput {
 }
 
 export async function createFolder(input: FolderInput): Promise<string> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const name = input.name.trim();
@@ -183,6 +190,7 @@ export async function updateFolder(
   id: string,
   input: { name: string; description?: string | null; memberIds?: string[] },
 ): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const folder = await folders().findById(id);
@@ -244,6 +252,7 @@ export async function updateFolder(
  * if a bad id somehow ended up in the list sent from the client.
  */
 export async function reorderFolders(spaceId: string, orderedIds: string[]): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   await Promise.all(
@@ -269,6 +278,7 @@ export async function archiveFolder(
   id: string,
   options: { withTasks?: boolean } = {},
 ): Promise<{ tasks: number }> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const folder = await folders().findById(id);
@@ -321,6 +331,7 @@ export async function archiveFolder(
 
 /** Who may be given work inside this folder: everyone, or its members when it is private. */
 export async function assignableMemberIds(folderId: string | null): Promise<string[] | null> {
+  await assertModuleAccess('tasks');
   if (!folderId) return null;
 
   await connectToDatabase();

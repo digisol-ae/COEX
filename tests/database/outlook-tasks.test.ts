@@ -9,6 +9,7 @@ import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
 import { createOutlookTask, outlookChoices } from '@/modules/integrations/outlook/outlook.service';
 import { taskUpdateImage, listTaskComments } from '@/modules/tasks/services/task.service';
 import { latestTeamWork } from '@/modules/time/services/activity.service';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
 const context = {
   tenantId: new Types.ObjectId(),
   userId: new Types.ObjectId(),
@@ -20,6 +21,7 @@ beforeAll(() => connectForTests('outlook_feedback'));
 afterAll(disconnectFromTests);
 beforeEach(async () => {
   await clearDatabase();
+  await TenantModel.create({ _id: context.tenantId, name: 'Outlook test', slug: 'outlook-test' });
   await UserModel.create({
     _id: context.userId,
     tenantId: context.tenantId,

@@ -1,3 +1,5 @@
+import { moduleAvailable } from '@/modules/core/services/module-access.service';
+import { workspaceAccess } from '@coex/shared/core/saas';
 import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { toObjectId } from '@/lib/ids';
@@ -297,6 +299,7 @@ export async function processPendingSupportInbound(limit = 50): Promise<{
   failed: number;
 }> {
   const { tenantId } = getContext();
+  if (!(await moduleAvailable('tickets'))) return { processed: 0, failed: 0 };
   await connectToDatabase();
   const waiting = await ChannelMessageModel.find({
     tenantId,
@@ -348,6 +351,13 @@ export async function processAllPendingSupportInbound(): Promise<{
   for (const settings of tenants) {
     const actor = settings.actorUserId ?? settings.updatedById;
     if (!actor) continue;
+    const tenant = await TenantModel.findOne({ _id: settings.tenantId, deletedAt: null });
+    if (
+      !tenant ||
+      !(await moduleAvailable('tickets', String(settings.tenantId))) ||
+      workspaceAccess(tenant.status, tenant.commercial) !== 'allowed'
+    )
+      continue;
     const result = await runWithContext(
       { tenantId: settings.tenantId, userId: actor, isPlatformAdmin: false },
       () => processPendingSupportInbound(),

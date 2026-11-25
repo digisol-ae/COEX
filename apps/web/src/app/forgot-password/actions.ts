@@ -15,6 +15,11 @@ export async function forgotPasswordAction(
   formData: FormData,
 ): Promise<ForgotState> {
   const email = String(formData.get('email') ?? '').trim();
-  if (email) await requestPasswordReset(email);
+  if (email)
+    await requestPasswordReset(
+      email,
+      formData.has('tenant') ? String(formData.get('tenant')) : undefined,
+      formData.get('accountKind') === 'staff' ? 'staff' : undefined,
+    );
   return { sent: true };
 }

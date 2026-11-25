@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { requireStaffUser } from '@/lib/session';
-import { GROUPS } from '@/components/navigation/navigation';
+import { GROUPS, navigationItemAllowed } from '@/components/navigation/navigation';
 import { SetupWorkspace } from '@/components/navigation/setup-workspace';
 import Queues from './queues/page';
 import Tutorials from './tutorials/page';
@@ -28,8 +28,8 @@ const PAGES = {
 };
 export async function setupTabs() {
   const user = await requireStaffUser();
-  return GROUPS.find((group) => group.id === 'setup')!.items.filter(
-    (tab) => !tab.permission || user.permissions.includes(tab.permission),
+  return GROUPS.find((group) => group.id === 'setup')!.items.filter((tab) =>
+    navigationItemAllowed(tab, user.permissions),
   );
 }
 export async function SetupContent({ section }: { section?: string }) {

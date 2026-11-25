@@ -9,11 +9,15 @@ import { CustomerWelcome } from './customer-welcome';
 export function LoginEntry({
   entraEnabled,
   entraError,
+  staff,
 }: {
   entraEnabled: boolean;
   entraError?: string;
+  staff?: boolean;
 }) {
-  const [mode, setMode] = useState<'customer' | 'agent'>(entraError ? 'agent' : 'customer');
+  const [mode, setMode] = useState<'customer' | 'agent'>(
+    entraError || staff ? 'agent' : 'customer',
+  );
   const customer = mode === 'customer';
   return (
     <AuthShell
@@ -56,6 +60,14 @@ export function LoginEntry({
           </Link>
         </p>
       ) : null}
+      {!customer && (
+        <p className="mt-4 text-center text-sm text-[var(--color-ink-muted)]">
+          New company?{' '}
+          <Link href="/register" className="font-semibold underline">
+            Apply for a trial
+          </Link>
+        </p>
+      )}
     </AuthShell>
   );
 }

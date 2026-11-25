@@ -33,7 +33,7 @@ export async function updateProfileAction(
 /** Sends the signed-in person a link to change their password, at their registered email. */
 export async function emailPasswordLinkAction(): Promise<ProfileFormState> {
   const user = await requireUser();
-  const result = await requestPasswordReset(user.email);
+  const result = await requestPasswordReset(user.email, undefined, 'staff');
   if (result === 'sent') return { saved: true };
   if (result === 'too_many') {
     return { error: 'Three links were sent in the last hour. Use one of those, or try later.' };

@@ -1,3 +1,5 @@
+import { effectiveModules } from '@coex/shared/core/modules';
+import { workspaceAccess } from '@coex/shared/core/saas';
 import { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { runWithContext } from '@/lib/tenant-context';
@@ -22,7 +24,15 @@ export async function sendOpportunityRemindersForTenant(
   today = todayKey(),
   now = new Date(),
 ): Promise<number> {
-  const tenant = await TenantModel.findOne({ _id: tenantId }).select('opportunityStaleDays');
+  const tenant = await TenantModel.findOne({ _id: tenantId, deletedAt: null }).select(
+    'opportunityStaleDays status commercial modules',
+  );
+  if (
+    !tenant ||
+    !effectiveModules(tenant).crm ||
+    workspaceAccess(tenant.status, tenant.commercial) !== 'allowed'
+  )
+    return 0;
   const staleDays = tenant?.opportunityStaleDays ?? DEFAULT_STALE_DAYS;
 
   // No signed in person; a fresh id means nobody is skipped as "the person acting".

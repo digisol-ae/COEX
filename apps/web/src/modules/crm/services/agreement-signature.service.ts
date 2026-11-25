@@ -1,3 +1,4 @@
+import { assertModuleAccess, moduleAvailable } from '@/modules/core/services/module-access.service';
 import { displayDate } from '@coex/shared/crm/display-date';
 import { createHash, randomBytes, randomInt } from 'node:crypto';
 import { STAFF_ROLES } from '@coex/shared/core/permissions';
@@ -53,6 +54,7 @@ const messageIdFor = (id: unknown) => `<agreement-signature-${String(id)}@workte
 export async function listSignatureHistory(
   input: { contractId?: string; page?: number; status?: string } = {},
 ) {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   const page =
     Number.isSafeInteger(input.page) && input.page! > 0 ? Math.min(input.page!, 100000) : 1;
@@ -180,6 +182,7 @@ export async function listSignatureHistory(
 }
 
 export async function signatureWorkspace(contractId: string, page = 1) {
+  await assertModuleAccess('crm');
   const contract = await getContract(contractId);
   if (!contract) throw new Error('Contract not found.');
   const [draft, contacts, ledger, letterhead, pendingRequest, emailSenders, staff, tenant] =
@@ -231,6 +234,7 @@ export async function requestAgreementSignature(
   provider?: { name: string; consent: boolean; capture: SignatureCapture },
   providerUserId?: string,
 ) {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   const contract = await getContract(contractId);
   if (!contract) throw new Error('Contract not found.');
@@ -386,6 +390,7 @@ export async function sendSecondPartyInvitation(
     signature: string;
   },
 ) {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   if (!Types.ObjectId.isValid(requestId)) throw new Error('Signature request not found.');
   const request = await requests().findOne({
@@ -497,6 +502,7 @@ This private link is valid for 14 days. Do not forward it.${draft?.signature.tri
 }
 
 export async function cancelAgreementSignature(contractId: string, requestId: string) {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   if (!Types.ObjectId.isValid(requestId)) throw new Error('Signature request not found.');
   const saved = await requests().updateOne(
@@ -542,6 +548,7 @@ export async function publicSignatureRequest(token: string) {
         }),
   });
   if (request?.status === 'pending' && !request.letterhead) return null;
+  if (request && !(await moduleAvailable('crm', String(request.tenantId)))) return null;
   if (!request || digest(request.body) !== request.bodyHash) return null;
   if (
     request.letterhead &&
@@ -685,6 +692,7 @@ function myProviderRequests() {
 }
 
 export async function myContractSigningRequests() {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   return requests()
     .find(myProviderRequests())
@@ -693,6 +701,7 @@ export async function myContractSigningRequests() {
 }
 
 export async function myContractSigningRequest(id: string) {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   return Types.ObjectId.isValid(id)
     ? requests().findOne({ _id: id, ...myProviderRequests() })
@@ -704,6 +713,7 @@ export async function signFirstPartyInWorktello(
   consent: boolean,
   capture: SignatureCapture,
 ) {
+  await assertModuleAccess('crm');
   if (consent !== true) throw new Error('Accept the First Party agreement before signing.');
   const request = await myContractSigningRequest(id);
   if (
@@ -840,6 +850,7 @@ export async function signAgreement(
 }
 
 export async function staffSignedAgreement(contractId: string, requestId: string) {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   if (!Types.ObjectId.isValid(requestId)) return null;
   const request = await requests().findOne({ _id: requestId, contractId, status: 'signed' });
@@ -849,6 +860,7 @@ export async function staffSignedAgreement(contractId: string, requestId: string
 
 /** Older signature requests did not snapshot the cover fields. */
 export async function legacyAgreementCover(request: AgreementSignature) {
+  await assertModuleAccess('crm', String(request.tenantId));
   return ContractModel.findOne({ _id: request.contractId, tenantId: request.tenantId })
     .select('title startDate endDate')
     .lean();
@@ -867,6 +879,7 @@ async function agreementProductNames(
 }
 
 export async function signingPageDetails(request: AgreementSignature) {
+  await assertModuleAccess('crm', String(request.tenantId));
   const snapshot = request.coverDetails;
   if (snapshot?.productNames) return snapshot;
 
@@ -899,6 +912,7 @@ export async function emailSignedAgreement(
     cc: string;
   },
 ) {
+  await assertModuleAccess('crm');
   const { invoiceLink, subject, message, signature } = draft;
   if (!subject.trim() || /[\r\n]/.test(subject) || !message.trim())
     throw new Error('Enter a subject and message for the email.');

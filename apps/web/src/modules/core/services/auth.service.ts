@@ -9,6 +9,7 @@ import { UserModel } from '@coex/shared/core/models/user.model';
 import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import { createSession, revokeSession } from './session.service';
 import { recordUnauthenticatedAudit } from './audit.service';
+import { portalAccountScope } from '@/modules/portal/tenant';
 
 /**
  * Password sign in.
@@ -34,6 +35,8 @@ export async function signInWithPassword(input: {
   ipAddress?: string | null;
   userAgent?: string | null;
   rememberMe?: boolean;
+  tenantSlug?: string;
+  accountKind?: 'staff' | 'portal';
 }): Promise<SignInResult> {
   await connectToDatabase();
 
@@ -41,7 +44,16 @@ export async function signInWithPassword(input: {
 
   if (!email || email.length > 254 || input.password.length > 128)
     return { ok: false, error: GENERIC_FAILURE };
+  const scope = await portalAccountScope(input.tenantSlug);
+  if (!scope || (input.tenantSlug !== undefined && input.accountKind === 'staff'))
+    return { ok: false, error: GENERIC_FAILURE };
   const matches = await UserModel.find({
+    ...(input.accountKind === 'staff'
+      ? { role: { $ne: 'client_contact' } }
+      : input.accountKind === 'portal'
+        ? { role: 'client_contact' }
+        : {}),
+    ...scope,
     deletedAt: null,
     $or: [
       { email },
@@ -58,7 +70,7 @@ export async function signInWithPassword(input: {
 
   if (
     user.status !== 'active' ||
-    !(await TenantModel.exists({ _id: user.tenantId, status: 'active' }))
+    !(await TenantModel.exists({ _id: user.tenantId, status: 'active', deletedAt: null }))
   )
     return { ok: false, error: GENERIC_FAILURE };
   const legacy =
@@ -94,7 +106,11 @@ export async function signInWithPassword(input: {
     return { ok: false, error: 'This account is not active. Ask an administrator to enable it.' };
   }
 
-  const tenant = await TenantModel.findOne({ _id: user.tenantId, status: 'active' });
+  const tenant = await TenantModel.findOne({
+    _id: user.tenantId,
+    status: 'active',
+    deletedAt: null,
+  });
 
   if (!tenant) {
     return { ok: false, error: 'This account belongs to a suspended tenant.' };
@@ -131,9 +147,17 @@ export async function signInWithEntra(input: {
 }): Promise<SignInResult> {
   await connectToDatabase();
   const email = input.email.trim().toLowerCase();
-  let user = await UserModel.findOne({ entraObjectId: input.entraObjectId, deletedAt: null });
+  let user = await UserModel.findOne({
+    entraObjectId: input.entraObjectId,
+    role: { $ne: 'client_contact' },
+    deletedAt: null,
+  });
   if (!user) {
-    const matches = await UserModel.find({ email, deletedAt: null }).limit(2);
+    const matches = await UserModel.find({
+      email,
+      role: { $ne: 'client_contact' },
+      deletedAt: null,
+    }).limit(2);
     if (matches.length !== 1)
       return {
         ok: false,
@@ -150,7 +174,11 @@ export async function signInWithEntra(input: {
   }
   if (user.status !== 'active')
     return { ok: false, error: 'This account is not active. Ask an administrator to enable it.' };
-  const tenant = await TenantModel.findOne({ _id: user.tenantId, status: 'active' });
+  const tenant = await TenantModel.findOne({
+    _id: user.tenantId,
+    status: 'active',
+    deletedAt: null,
+  });
   if (!tenant) return { ok: false, error: 'This account belongs to a suspended tenant.' };
   const session = await createSession({
     userId: user._id,

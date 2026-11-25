@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useActionState } from 'react';
 import { Button, Field, Input, Notice } from '@/components/ui';
 import { loginAction, type LoginState } from './actions';
+import { portalAuthPath } from '@coex/shared/core/portal-links';
 
 const initialState: LoginState = {};
 
@@ -13,16 +14,20 @@ export function LoginForm({
   customer = false,
   entraEnabled = false,
   entraError,
+  tenantSlug,
 }: {
   customer?: boolean;
   entraEnabled?: boolean;
   entraError?: string;
+  tenantSlug?: string;
 }) {
   const [state, formAction, pending] = useActionState(loginAction, initialState);
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <form action={formAction} className="mt-8 space-y-4">
+      {tenantSlug !== undefined && <input type="hidden" name="tenant" value={tenantSlug} />}
+      <input type="hidden" name="accountKind" value={customer ? 'portal' : 'staff'} />
       {entraError ? (
         <Notice tone="alert">
           {entraError === 'account'
@@ -90,14 +95,20 @@ export function LoginForm({
 
       {customer ? (
         <p className="text-center text-sm">
-          <Link href="/email-login" className="font-semibold underline">
+          <Link
+            href={portalAuthPath('/email-login', tenantSlug)}
+            className="font-semibold underline"
+          >
             Sign in with an email code
           </Link>
         </p>
       ) : null}
       <p className="text-center text-sm">
         <Link
-          href="/forgot-password"
+          href={portalAuthPath(
+            customer ? '/forgot-password' : '/forgot-password?view=staff',
+            tenantSlug,
+          )}
           className="text-[var(--color-ink-muted)] underline-offset-4 hover:text-[var(--color-ink)] hover:underline"
         >
           Forgot your password?

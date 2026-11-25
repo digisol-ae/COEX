@@ -18,6 +18,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     return Response.json({ error: 'Sign in first.' }, { status: 401 });
   }
 
+  if (!user.permissions.includes('task.read.own'))
+    return Response.json({ error: 'Not allowed.' }, { status: 403 });
   const { id } = await params;
 
   const groups = await asUser(user, async () => {

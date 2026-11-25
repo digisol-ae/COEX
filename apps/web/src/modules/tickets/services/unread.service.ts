@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
@@ -20,6 +21,7 @@ const OPEN_STATUSES = ['new', 'open', 'pending_customer', 'escalated'] as const;
 
 /** Opening a ticket counts as having seen everything on it so far. */
 export async function markTicketRead(ticketId: string): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const { tenantId, userId } = getContext();
   await TicketReadModel.updateOne(
@@ -37,6 +39,7 @@ interface UnreadCandidate {
 
 /** Which of these tickets carry a mark for the current person. */
 export async function unreadAmong(found: UnreadCandidate[]): Promise<Set<string>> {
+  await assertModuleAccess('tickets');
   const { tenantId, userId } = getContext();
   const candidates = found.filter(
     (ticket) =>
@@ -67,6 +70,7 @@ export async function unreadAmong(found: UnreadCandidate[]): Promise<Set<string>
  * desk, because an agent limited to their own tickets could not open them anyway.
  */
 export async function countUnreadTickets(options: { includeUnassigned: boolean }): Promise<number> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const { tenantId, userId } = getContext();
 

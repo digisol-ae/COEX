@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
@@ -188,6 +189,7 @@ async function prepare(input: OpportunityInput) {
 }
 
 export async function createOpportunity(input: OpportunityInput): Promise<string> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requireManage();
 
@@ -229,6 +231,7 @@ export async function createOpportunity(input: OpportunityInput): Promise<string
 }
 
 export async function updateOpportunity(id: string, input: OpportunityInput): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requireManage();
 
@@ -303,6 +306,7 @@ export async function moveOpportunity(
   stageId: string,
   options: { lostReason?: string; reopenReason?: string } = {},
 ): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requireManage();
 
@@ -383,6 +387,7 @@ export async function moveOpportunity(
 
 /** Nothing deletes: an archived opportunity leaves the lists but stays in the history. */
 export async function archiveOpportunity(id: string): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requireManage();
 
@@ -413,6 +418,7 @@ function escapePattern(value: string): string {
 export async function listOpportunities(
   filter: OpportunityFilter = {},
 ): Promise<OpportunitySummary[]> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const query: Record<string, unknown> = {};
@@ -492,6 +498,7 @@ export async function listOpportunities(
 }
 
 export async function getOpportunity(id: string): Promise<OpportunitySummary | null> {
+  await assertModuleAccess('crm');
   if (!Types.ObjectId.isValid(id)) return null;
   return (await listOpportunities({ id }))[0] ?? null;
 }
@@ -510,6 +517,7 @@ export interface OpportunitySnapshot {
  * dashboard answers "what do I have to do".
  */
 export async function loadOpportunitySnapshot(): Promise<OpportunitySnapshot> {
+  await assertModuleAccess('crm');
   const mine = await listOpportunities({ status: 'open', ownerId: String(getContext().userId) });
   const today = todayKey();
   const stageList = (await listStages()).filter((stage) => stage.kind === 'open');

@@ -1,6 +1,11 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { dirname, join, resolve, sep } from 'node:path';
+import { TenantModel } from '@coex/shared/core/models/tenant.model';
+import { DEFAULT_STORAGE_LIMIT_BYTES } from '@coex/shared/core/saas';
+import { connectToDatabase } from './db';
+import { getContext, peekContext } from './tenant-context';
+import { assertWorkspaceAccess } from '@/modules/core/services/workspace-access.service';
 
 /**
  * Where uploaded files live.
@@ -48,9 +53,90 @@ function safePath(key: string): string {
 
   // A key is generated here, never supplied by a caller, but a traversal check costs nothing and
   // turns a future mistake into an error rather than a file read from outside the store.
-  if (!full.startsWith(root)) throw new Error('That file key is not inside the store.');
+  if (!full.startsWith(root + sep)) throw new Error('That file key is not inside the store.');
 
   return full;
+}
+
+function tenantFromKey(key: string) {
+  const parts = key.split('/');
+  if (parts.some((part) => !part || part === '.' || part === '..' || part.includes('\\')))
+    throw new Error('Invalid storage key.');
+  const tenantId = parts[0];
+  if (!/^[a-f0-9]{24}$/i.test(tenantId)) throw new Error('Invalid storage tenant.');
+  const context = peekContext();
+  if (context && String(context.tenantId) !== tenantId)
+    throw new Error('This file belongs to another workspace.');
+  return tenantId;
+}
+
+/** Count existing files once before the first reservation. CAS prevents competing initialisers
+ * from overwriting reservations. All writers must share the same storage backend. */
+async function diskUsage(directory: string): Promise<number> {
+  let entries;
+  try {
+    entries = await readdir(directory, { withFileTypes: true });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return 0;
+    throw error;
+  }
+  let bytes = 0;
+  for (const entry of entries) {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) bytes += await diskUsage(path);
+    else if (entry.isFile()) bytes += (await stat(path)).size;
+  }
+  return bytes;
+}
+
+export async function initialiseStorageUsage(tenantId: string): Promise<number> {
+  if (!/^[a-f0-9]{24}$/i.test(tenantId)) throw new Error('Invalid storage tenant.');
+  await connectToDatabase();
+  let tenant = await TenantModel.findOne({ _id: tenantId, deletedAt: null });
+  if (!tenant) throw new Error('Workspace not found.');
+  if (tenant.storageUsedBytes == null) {
+    const bytes = await diskUsage(safePath(tenantId));
+    await TenantModel.updateOne(
+      { _id: tenantId, storageUsedBytes: null },
+      { $set: { storageUsedBytes: bytes } },
+    );
+    tenant = await TenantModel.findById(tenantId);
+  }
+  return tenant?.storageUsedBytes ?? 0;
+}
+
+async function reserveStorage(tenantId: string, bytes: number) {
+  await assertWorkspaceAccess(tenantId);
+  await initialiseStorageUsage(tenantId);
+  const result = await TenantModel.updateOne(
+    {
+      _id: tenantId,
+      deletedAt: null,
+      status: 'active',
+      $expr: {
+        $lte: [
+          { $add: ['$storageUsedBytes', bytes] },
+          { $ifNull: ['$storageLimitBytes', DEFAULT_STORAGE_LIMIT_BYTES] },
+        ],
+      },
+    },
+    { $inc: { storageUsedBytes: bytes } },
+  );
+  if (result.modifiedCount !== 1 && bytes !== 0)
+    throw new Error(
+      'Your workspace storage limit has been reached. Ask the platform owner to increase it.',
+    );
+  if (result.matchedCount !== 1)
+    throw new Error(
+      'Your workspace storage limit has been reached. Ask the platform owner to increase it.',
+    );
+}
+
+async function releaseStorage(tenantId: string, bytes: number) {
+  await TenantModel.updateOne(
+    { _id: tenantId, storageUsedBytes: { $gte: bytes } },
+    { $inc: { storageUsedBytes: -bytes } },
+  );
 }
 
 /** Keeps the original name for the download while making the stored name unguessable. */
@@ -66,11 +152,25 @@ function keyFor(tenantId: string, fileName: string): string {
 
 const localStorage: FileStorage = {
   async put({ tenantId, fileName, body }) {
+    if (String(getContext().tenantId) !== tenantId)
+      throw new Error('This file belongs to another workspace.');
+    if (!/^[a-f0-9]{24}$/i.test(tenantId)) throw new Error('Invalid storage tenant.');
     const key = keyFor(tenantId, fileName);
     const path = safePath(key);
 
-    await mkdir(dirname(path), { recursive: true });
-    await writeFile(path, body);
+    await reserveStorage(tenantId, body.byteLength);
+    try {
+      await mkdir(dirname(path), { recursive: true });
+      await writeFile(path, body, { flag: 'wx' });
+    } catch (error) {
+      // A failed write can leave a partial file. Remove it before releasing its reservation.
+      await rm(path, { force: true }).catch((cleanupError: NodeJS.ErrnoException) => {
+        // mkdir can fail because a parent is a file; then no partial file could exist.
+        if (!['ENOENT', 'ENOTDIR'].includes(cleanupError.code ?? '')) throw cleanupError;
+      });
+      await releaseStorage(tenantId, body.byteLength);
+      throw error;
+    }
 
     return {
       key,
@@ -80,11 +180,25 @@ const localStorage: FileStorage = {
   },
 
   async get(key) {
+    tenantFromKey(key);
     return readFile(safePath(key));
   },
 
   async remove(key) {
-    await rm(safePath(key), { force: true });
+    const tenantId = tenantFromKey(key);
+    await initialiseStorageUsage(tenantId);
+    const path = safePath(key);
+    const tombstone = `${path}.removing-${randomUUID()}`;
+    // Atomic rename gives exactly one remover ownership, avoiding a double quota refund.
+    try {
+      await rename(path, tombstone);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return;
+      throw error;
+    }
+    const bytes = (await stat(tombstone)).size;
+    await rm(tombstone);
+    await releaseStorage(tenantId, bytes);
   },
 };
 

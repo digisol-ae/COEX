@@ -11,13 +11,14 @@ export const metadata = { title: 'Queues · Worktello' };
 
 export default async function QueuesPage() {
   const actor = await requirePermission('tenant.manage');
+  await requirePermission('ticket.manage');
 
   const { queues, users, products, from } = await asUser(actor, () =>
     parallel({
       from: standardSenderLabel(),
       queues: listQueues({ includeArchived: true }),
       users: listStaffUsers(),
-      products: listProducts(),
+      products: actor.permissions.includes('products.read') ? listProducts() : [],
     }),
   );
 

@@ -11,6 +11,8 @@ export async function GET() {
     return Response.json({ error: 'Sign in first.' }, { status: 401 });
   }
 
+  if (!user.permissions.includes('task.read.own'))
+    return Response.json({ error: 'This module is unavailable.' }, { status: 403 });
   const timers = await asUser(user, listTodaysTimers);
 
   return Response.json({ timers });

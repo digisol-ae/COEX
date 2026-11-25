@@ -1,3 +1,4 @@
+import { moduleAvailable, assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { repository } from '@/lib/repository';
@@ -20,6 +21,7 @@ const entries = () => repository(TimeEntryModel);
 
 /** Latest recorded work per person across all dates, independent of the report's day range. */
 export async function latestTeamWork() {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const now = new Date();
   const rows = await TimeEntryModel.aggregate<{
@@ -27,7 +29,7 @@ export async function latestTeamWork() {
     at: Date;
     running: number;
   }>([
-    { $match: entries().scope() },
+    { $match: entries().scope((await moduleAvailable('tickets')) ? {} : { ticketId: null }) },
     {
       $group: {
         _id: '$userId',
@@ -78,6 +80,7 @@ export interface ActivityRow {
 }
 
 export async function listTeamActivity(filter: ActivityFilter): Promise<ActivityRow[]> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const { tenantId } = getContext();
 
@@ -89,6 +92,7 @@ export async function listTeamActivity(filter: ActivityFilter): Promise<Activity
 
   const found = await entries().find({
     workDate: { $gte: from, $lt: until },
+    ...(!(await moduleAvailable('tickets')) ? { ticketId: null } : {}),
     ...(filter.userIds?.length ? { userId: { $in: filter.userIds.map(toObjectId) } } : {}),
   });
 

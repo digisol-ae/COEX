@@ -1,3 +1,4 @@
+import { moduleAvailable, assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { repository } from '@/lib/repository';
@@ -51,6 +52,7 @@ export interface Timesheet {
 }
 
 export async function loadTimesheet(week: Date, userId?: string): Promise<Timesheet> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const context = getContext();
@@ -58,7 +60,11 @@ export async function loadTimesheet(week: Date, userId?: string): Promise<Timesh
   const weekStart = startOfWeek(week);
 
   const found = await entries()
-    .find({ userId: owner, workDate: { $gte: weekStart, $lt: endOfWeek(week) } })
+    .find({
+      userId: owner,
+      workDate: { $gte: weekStart, $lt: endOfWeek(week) },
+      ...(!(await moduleAvailable('tickets')) ? { ticketId: null } : {}),
+    })
     .sort({ workDate: 1, createdAt: 1 });
 
   const [tasks, tickets, spaces, organisations, user, lock, edits] = await Promise.all([
@@ -154,10 +160,16 @@ export interface TimeTotals {
  * to travel across the wire to be added up.
  */
 export async function loadTotals(from: Date, to: Date): Promise<TimeTotals> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const { tenantId } = getContext();
-  const match = { tenantId, deletedAt: null, workDate: { $gte: from, $lt: to } };
+  const match = {
+    tenantId,
+    deletedAt: null,
+    workDate: { $gte: from, $lt: to },
+    ...(!(await moduleAvailable('tickets')) ? { ticketId: null } : {}),
+  };
 
   async function group(field: string) {
     return TimeEntryModel.aggregate<{
@@ -219,6 +231,7 @@ export async function loadTotals(from: Date, to: Date): Promise<TimeTotals> {
 }
 
 export async function lockWeek(week: Date): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const context = getContext();
@@ -251,6 +264,7 @@ export async function lockWeek(week: Date): Promise<void> {
 }
 
 export async function unlockWeek(week: Date, reason: string): Promise<void> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
 
   const context = getContext();

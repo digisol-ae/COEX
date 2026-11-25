@@ -1,3 +1,4 @@
+import { moduleAvailable } from '@/modules/core/services/module-access.service';
 import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { runWithContext } from '@/lib/tenant-context';
@@ -20,6 +21,7 @@ export async function closeOfficeDay(at = new Date()): Promise<{
   let users = 0;
   const failures: { userId: string; message: string }[] = [];
   for (const owner of owners) {
+    if (!(await moduleAvailable('tasks', String(owner._id.tenantId)))) continue;
     try {
       await runWithContext(
         { tenantId: owner._id.tenantId, userId: owner._id.userId, isPlatformAdmin: false },

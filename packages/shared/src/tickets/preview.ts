@@ -10,6 +10,7 @@ export interface TicketPreviewData {
   brief: string;
   latest: { body: string; author: string; internal: boolean } | null;
   attachmentCount: number;
+  timeAvailable?: boolean;
   loggedMinutes: number;
   lastActivityAt: string;
 }

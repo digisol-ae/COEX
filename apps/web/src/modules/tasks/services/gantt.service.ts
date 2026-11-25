@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { Types } from 'mongoose';
 import { TaskModel } from '@coex/shared/tasks/models/task.model';
 import { validSchedule } from '@coex/shared/tasks/gantt';
@@ -16,6 +17,7 @@ export interface GanttScheduleInput {
 }
 /** Visible-task authorization and an atomic date comparison protect drag edits and Undo. */
 export async function saveGanttSchedule(input: GanttScheduleInput) {
+  await assertModuleAccess('tasks');
   if (!(await actorCan('task.manage'))) throw new Error('You may not change task dates.');
   if (!Types.ObjectId.isValid(input.id) || !Types.ObjectId.isValid(input.spaceId))
     throw new Error('Task not found.');

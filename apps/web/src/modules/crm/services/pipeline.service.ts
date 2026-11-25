@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { getContext } from '@/lib/tenant-context';
@@ -46,6 +47,7 @@ async function ensureDefaultStages(): Promise<void> {
 }
 
 export async function listStages(): Promise<StageSummary[]> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await ensureDefaultStages();
 
@@ -76,6 +78,7 @@ async function nameTaken(name: string, exceptId?: string): Promise<boolean> {
 
 /** A new stage is always an open one, placed just before Won so the outcomes stay at the end. */
 export async function addStage(input: { name: string; probability: number }): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requirePipelineManage();
   await ensureDefaultStages();
@@ -114,6 +117,7 @@ export async function updateStage(
   id: string,
   input: { name: string; probability: number },
 ): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requirePipelineManage();
 
@@ -147,6 +151,7 @@ export async function updateStage(
 
 /** Moves an open stage one place; Won and Lost stay at the end, in that order. */
 export async function moveStage(id: string, direction: 'up' | 'down'): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requirePipelineManage();
 
@@ -172,6 +177,7 @@ export async function moveStage(id: string, direction: 'up' | 'down'): Promise<v
 
 /** Won and Lost can never be removed, and no stage can be while a deal sits in it. */
 export async function removeStage(id: string): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requirePipelineManage();
 
@@ -193,12 +199,14 @@ export async function removeStage(id: string): Promise<void> {
 }
 
 export async function listLostReasons(): Promise<string[]> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   const tenant = await TenantModel.findOne({ _id: getContext().tenantId });
   return tenant?.lostReasons ?? [];
 }
 
 export async function saveLostReasons(reasons: string[]): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requirePipelineManage();
 
@@ -217,12 +225,14 @@ export async function saveLostReasons(reasons: string[]): Promise<void> {
 }
 
 export async function getStaleDays(): Promise<number> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   const tenant = await TenantModel.findOne({ _id: getContext().tenantId });
   return tenant?.opportunityStaleDays ?? DEFAULT_STALE_DAYS;
 }
 
 export async function saveStaleDays(days: number): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requirePipelineManage();
 

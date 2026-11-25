@@ -1,3 +1,4 @@
+import { createTestTenants } from '../setup';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
@@ -304,8 +305,10 @@ describe('opportunities', () => {
     expect(await asManager(() => listOpportunities())).toHaveLength(0);
 
     await asManager(async () => createOpportunity(await input({ title: 'Ours' })));
+    const foreignTenant = new Types.ObjectId();
+    await createTestTenants(foreignTenant);
     expect(
-      await runWithContext(as(managerId, new Types.ObjectId()), () => listOpportunities()),
+      await runWithContext(as(managerId, foreignTenant), () => listOpportunities()),
     ).toHaveLength(0);
   });
 });

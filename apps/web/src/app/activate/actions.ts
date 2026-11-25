@@ -16,6 +16,7 @@ export async function activationAction(
   form: FormData,
 ): Promise<ActivationState> {
   try {
+    const tenantSlug = form.has('tenant') ? String(form.get('tenant')) : undefined;
     const email = String(form.get('email') ?? '')
       .trim()
       .toLowerCase();
@@ -24,19 +25,19 @@ export async function activationAction(
       await verifyCaptcha(form, 'activation');
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
         throw new Error('Enter a valid email address.');
-      await requestActivation(email);
+      await requestActivation(email, tenantSlug);
       return { step: 'code', email };
     }
     if (step === 'code')
       return {
         step: 'password',
         email,
-        token: await verifyActivation(email, String(form.get('code') ?? '')),
+        token: await verifyActivation(email, String(form.get('code') ?? ''), tenantSlug),
       };
     if (step === 'password') {
       const password = String(form.get('password') ?? '');
       if (password !== form.get('confirm')) throw new Error('Passwords do not match.');
-      await finishActivation(String(form.get('token') ?? ''), password);
+      await finishActivation(String(form.get('token') ?? ''), password, tenantSlug);
       return { step: 'done' };
     }
     throw new Error('Invalid activation step.');

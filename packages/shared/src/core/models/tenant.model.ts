@@ -1,4 +1,6 @@
+import { planTermsSchema } from './subscription-plan.model';
 import { Schema, model, models, type InferSchemaType, type Model } from 'mongoose';
+import { DEFAULT_STORAGE_LIMIT_BYTES } from '../saas';
 
 /**
  * A tenant is one customer of the platform. DigiSol itself is the first tenant; client companies
@@ -64,12 +66,29 @@ const tenantSchema = new Schema(
       crm: { type: Boolean, default: true },
     },
 
-    /** Inert until a billing model is chosen. Recorded so that no migration is needed later. */
+    /** Platform-owned subscription data. Tenant settings must never accept these fields. */
     commercial: {
+      status: {
+        type: String,
+        enum: ['legacy', 'trialing', 'active', 'past_due', 'expired', 'canceled'],
+        default: 'legacy',
+      },
       plan: { type: String, default: null },
+      planSnapshot: { type: planTermsSchema, default: null },
       seats: { type: Number, default: null },
       startedAt: { type: Date, default: null },
+      trialEndsAt: { type: Date, default: null },
+      accessEndsAt: { type: Date, default: null },
+      billingProvider: { type: String, default: null },
+      billingCustomerId: { type: String, default: null },
+      billingSubscriptionId: { type: String, default: null },
     },
+
+    seatRevision: { type: Number, default: 0 },
+
+    storageLimitBytes: { type: Number, default: DEFAULT_STORAGE_LIMIT_BYTES, min: 1 },
+    // Null means the existing store has not been counted yet. Reservations are atomic.
+    storageUsedBytes: { type: Number, default: null, min: 0 },
 
     attachmentRetentionMonths: { type: Number, default: 24 },
 

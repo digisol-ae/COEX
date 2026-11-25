@@ -1,4 +1,5 @@
 import { displayDate } from '@coex/shared/crm/display-date';
+import { moduleAvailable, assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import {
   serviceTerms,
@@ -252,6 +253,7 @@ async function nextContractNumber(organisationId: string | Types.ObjectId) {
 }
 
 export async function createContract(input: ContractInput): Promise<string> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const linked = await validate(input);
@@ -272,6 +274,7 @@ export async function createContract(input: ContractInput): Promise<string> {
 }
 
 export async function updateContract(id: string, input: ContractInput): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const before = await contracts().findById(id);
@@ -328,6 +331,7 @@ export async function setContractStatus(
   id: string,
   status: Exclude<StoredContractStatus, 'renewed'>,
 ): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const before = await contracts().findById(id);
@@ -356,6 +360,7 @@ export async function setContractStatus(
 
 /** Nothing deletes: an archived contract leaves the list but its history stays. */
 export async function archiveContract(id: string): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const contract = await contracts().updateOne({ _id: id }, { $set: { deletedAt: new Date() } });
@@ -372,6 +377,7 @@ export async function listContracts(filter?: {
   organisationId?: string;
   id?: string;
 }): Promise<ContractSummary[]> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const found = await contracts()
@@ -442,6 +448,7 @@ export async function listContracts(filter?: {
  * stays as it was until the renewal is activated, so abandoning a draft loses nothing.
  */
 export async function renewContract(id: string): Promise<string> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const old = await contracts().findById(id);
@@ -493,11 +500,13 @@ export async function renewContract(id: string): Promise<string> {
 
 /** Active contracts that have reached their warning window or passed their end date. */
 export async function listRenewalsDue(): Promise<ContractSummary[]> {
+  await assertModuleAccess('crm');
   const all = await listContracts();
   return all.filter((contract) => contract.status === 'expiring' || contract.status === 'expired');
 }
 
 export async function getContract(id: string): Promise<ContractSummary | null> {
+  await assertModuleAccess('crm');
   if (!Types.ObjectId.isValid(id)) return null;
   return (await listContracts({ id }))[0] ?? null;
 }
@@ -508,6 +517,7 @@ export async function setPeriodInvoiced(
   periodIndex: number,
   invoiced: boolean,
 ): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   if (!Number.isInteger(periodIndex) || periodIndex < 0) throw new Error('Unknown billing period.');
@@ -546,6 +556,7 @@ export interface ContractNotice {
 export async function contractNoticeFor(
   organisationId: string | Types.ObjectId | null | undefined,
 ): Promise<ContractNotice | null> {
+  if (!(await moduleAvailable('crm'))) return null;
   if (!organisationId) return null;
   await connectToDatabase();
 
@@ -583,6 +594,7 @@ export async function contractNoticeFor(
  * date. The same set as the Renewals due list, so the badge and the page it opens always agree.
  */
 export async function countContractsNeedingRenewal(): Promise<number> {
+  await assertModuleAccess('crm');
   return (await listRenewalsDue()).length;
 }
 
@@ -663,6 +675,7 @@ async function recipientsOf(contract: ContractSummary): Promise<ContractEmailRec
 
 /** What the send popup needs: who will be emailed, the three templates and a preview's values. */
 export async function prepareContractEmail(id: string): Promise<ContractEmailDraft> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const contract = await getContract(id);
@@ -713,6 +726,7 @@ export async function sendContractEmail(
   id: string,
   input: { subject: string; body: string; to?: string[]; cc?: string[]; sender?: string },
 ): Promise<{ queued: number; skipped: string[] }> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   if (!input.subject.trim() || !input.body.trim()) {

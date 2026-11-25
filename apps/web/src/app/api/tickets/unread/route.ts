@@ -6,7 +6,10 @@ export async function GET() {
   const user = await getSignedInUser();
 
   if (!user || !user.permissions.includes('ticket.read.own')) {
-    return Response.json({ error: 'Sign in first.' }, { status: 401 });
+    return Response.json(
+      { error: user ? 'Not allowed.' : 'Sign in first.' },
+      { status: user ? 403 : 401 },
+    );
   }
 
   const count = await asUser(user, () =>

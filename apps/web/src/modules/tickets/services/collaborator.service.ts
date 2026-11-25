@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
@@ -11,6 +12,7 @@ import { TicketModel } from '@coex/shared/tickets/models/ticket.model';
 import { normaliseCc, type CollaboratorOption } from '@coex/shared/tickets/collaborators';
 
 export async function listCollaboratorOptions(): Promise<CollaboratorOption[]> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const tenantId = getContext().tenantId;
   const [contacts, organisations, locations, users] = await Promise.all([
@@ -48,6 +50,7 @@ export async function listCollaboratorOptions(): Promise<CollaboratorOption[]> {
 }
 
 export async function setTicketCollaborators(ticketId: string, addresses: string[]): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const tickets = repository(TicketModel);
   const ticket = await tickets.findById(ticketId);

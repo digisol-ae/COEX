@@ -1,3 +1,6 @@
+import { portalAccountScope } from '@/modules/portal/tenant';
+import { portalAuthPath } from '@coex/shared/core/portal-links';
+import { appBaseUrl } from './email.service';
 import { createHmac, randomInt } from 'node:crypto';
 import { connectToDatabase } from '@/lib/db';
 import { runWithContext } from '@/lib/tenant-context';
@@ -14,11 +17,15 @@ function codeHash(userId: string, code: string) {
     .update(`login:${userId}:${code}`)
     .digest('hex');
 }
-async function eligible(email: string) {
+async function eligible(email: string, tenantSlug?: string) {
+  const scope = await portalAccountScope(tenantSlug);
+  if (!scope) return null;
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return null;
-  const found = await UserModel.find({ email: email.trim().toLowerCase(), deletedAt: null }).limit(
-    2,
-  );
+  const found = await UserModel.find({
+    ...scope,
+    email: email.trim().toLowerCase(),
+    deletedAt: null,
+  }).limit(2);
   const user = found.length === 1 ? found[0] : null;
   if (
     !user ||
@@ -31,14 +38,17 @@ async function eligible(email: string) {
       ))
   )
     return null;
-  if (!(await TenantModel.exists({ _id: user.tenantId, status: 'active' }))) return null;
+  if (!(await TenantModel.exists({ _id: user.tenantId, status: 'active', deletedAt: null })))
+    return null;
   return user;
 }
-export async function requestLoginOtp(email: string): Promise<void> {
+export async function requestLoginOtp(email: string, tenantSlug?: string): Promise<void> {
   await connectToDatabase();
   await LoginOtpModel.init();
-  const user = await eligible(email.trim().toLowerCase());
+  const user = await eligible(email.trim().toLowerCase(), tenantSlug);
   if (!user) return;
+  const tenant = await TenantModel.findById(user.tenantId).select('slug name');
+  if (!tenant) return;
   const now = new Date();
   const code = String(randomInt(100000, 1000000));
   const challenge = {
@@ -68,7 +78,7 @@ export async function requestLoginOtp(email: string): Promise<void> {
         kind: 'password_reset',
         to: user.email,
         subject: 'Your Worktello sign-in code',
-        text: `Your Worktello sign-in code is ${code}. It works once and expires in 10 minutes. If you did not request this, ignore this email.`,
+        text: `Your Worktello sign-in code is ${code}. For ${tenant.name}. Continue at ${appBaseUrl()}${portalAuthPath('/email-login', tenant.slug)}.  It works once and expires in 10 minutes. If you did not request this, ignore this email.`,
       }),
   );
   if (!queued) await LoginOtpModel.deleteOne({ userId: user._id, codeHash: challenge.codeHash });
@@ -77,12 +87,13 @@ export async function signInWithEmailOtp(input: {
   email: string;
   code: string;
   rememberMe?: boolean;
+  tenantSlug?: string;
   ipAddress?: string | null;
   userAgent?: string | null;
 }) {
   await connectToDatabase();
   if (!/^\d{6}$/.test(input.code)) throw new Error('Code is invalid or expired.');
-  const user = await eligible(input.email.trim().toLowerCase());
+  const user = await eligible(input.email.trim().toLowerCase(), input.tenantSlug);
   if (!user) throw new Error('Code is invalid or expired.');
   const challenge = await LoginOtpModel.findOneAndUpdate(
     { userId: user._id, usedAt: null, attempts: { $lt: 5 }, expiresAt: { $gt: new Date() } },
@@ -107,7 +118,10 @@ export async function signInWithEmailOtp(input: {
     { $set: { status: 'active', mustChangePassword: false, lastSignedInAt: new Date() } },
     { returnDocument: 'after' },
   );
-  if (!available || !(await TenantModel.exists({ _id: user.tenantId, status: 'active' })))
+  if (
+    !available ||
+    !(await TenantModel.exists({ _id: user.tenantId, status: 'active', deletedAt: null }))
+  )
     throw new Error('Account is unavailable.');
   const session = await createSession({
     userId: user._id,

@@ -222,15 +222,17 @@ export default async function TicketPage({
           spaces={spaces.map((space) => ({ id: space.id, name: space.name }))}
           canManage={canManage}
           timer={
-            <>
-              <TicketTimerButton
-                compact
-                ticketId={ticket.id}
-                running={timerRunning}
-                startedAt={timerRunning ? runningTimer.startedAt.toISOString() : null}
-              />
-              <TicketAddTime compact ticketId={ticket.id} />
-            </>
+            actor.permissions.includes('task.read.own') ? (
+              <>
+                <TicketTimerButton
+                  compact
+                  ticketId={ticket.id}
+                  running={timerRunning}
+                  startedAt={timerRunning ? runningTimer.startedAt.toISOString() : null}
+                />
+                <TicketAddTime compact ticketId={ticket.id} />
+              </>
+            ) : null
           }
           loggedLabel={
             timeByPerson.length > 0

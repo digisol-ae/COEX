@@ -1,4 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest';
+vi.mock('@/modules/core/services/module-access.service', () => ({
+  moduleAvailable: vi.fn(async () => true),
+}));
 
 const mocked = vi.hoisted(() => ({
   connect: vi.fn(),

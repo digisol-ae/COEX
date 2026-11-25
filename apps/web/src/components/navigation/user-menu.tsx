@@ -6,6 +6,7 @@ import { logoutAction } from '@/app/login/actions';
 import { Avatar } from '@/components/ui/avatar';
 import { openWhatsNew } from './whats-new';
 import { useNotificationSwitch } from './browser-notifications';
+import { portalPath, portalAuthPath } from '@coex/shared/core/portal-links';
 
 /**
  * The person's own menu, at the top right: their avatar opens a menu holding the profile, the menu
@@ -19,8 +20,10 @@ export function UserMenu({
   newsUnseen = false,
   portal = false,
   notificationScope = '',
+  portalTenantSlug,
 }: {
   portal?: boolean;
+  portalTenantSlug?: string;
   notificationScope?: string;
   name: string;
   email: string;
@@ -108,7 +111,7 @@ export function UserMenu({
               Install Worktello
             </MenuLink>
             <MenuLink
-              href={portal ? '/portal/profile' : '/profile'}
+              href={portal ? `${portalPath(portalTenantSlug)}/profile` : '/profile'}
               onNavigate={() => setOpen(false)}
               icon={<PersonIcon />}
             >
@@ -117,7 +120,7 @@ export function UserMenu({
             {portal ? (
               <>
                 <MenuLink
-                  href="/forgot-password"
+                  href={portalAuthPath('/forgot-password', portalTenantSlug)}
                   onNavigate={() => setOpen(false)}
                   icon={<PersonIcon />}
                 >
@@ -213,6 +216,9 @@ export function UserMenu({
           </div>
 
           <form action={logoutAction} className="border-t border-[var(--color-line)] pt-1">
+            {portal && portalTenantSlug && (
+              <input type="hidden" name="tenant" value={portalTenantSlug} />
+            )}
             <button
               type="submit"
               role="menuitem"

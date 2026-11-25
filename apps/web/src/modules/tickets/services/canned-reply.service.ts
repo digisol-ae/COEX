@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { connectToDatabase } from '@/lib/db';
 import { repository } from '@/lib/repository';
 import { toOptionalObjectId } from '@/lib/ids';
@@ -35,6 +36,7 @@ export interface CannedReplySummary {
 export async function listCannedReplies(
   options: { queueId?: string | null; includeArchived?: boolean } = {},
 ): Promise<CannedReplySummary[]> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const filter: Record<string, unknown> = {};
@@ -65,6 +67,7 @@ export interface CannedReplyInput {
 }
 
 export async function createCannedReply(input: CannedReplyInput): Promise<string> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const title = input.title.trim();
@@ -91,6 +94,7 @@ export async function createCannedReply(input: CannedReplyInput): Promise<string
 }
 
 export async function updateCannedReply(id: string, input: CannedReplyInput): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const title = input.title.trim();
@@ -108,6 +112,7 @@ export async function updateCannedReply(id: string, input: CannedReplyInput): Pr
 }
 
 export async function archiveCannedReply(id: string): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const updated = await replies().updateOne({ _id: id }, { $set: { status: 'archived' } });
@@ -115,6 +120,7 @@ export async function archiveCannedReply(id: string): Promise<void> {
 }
 
 export async function restoreCannedReply(id: string): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   await replies().updateOne({ _id: id }, { $set: { status: 'active' } });
@@ -122,6 +128,7 @@ export async function restoreCannedReply(id: string): Promise<void> {
 
 /** Counted when a reply is actually sent, not when it is inserted into the box and then deleted. */
 export async function recordCannedReplyUse(id: string): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   await replies().updateOne({ _id: id }, { $inc: { useCount: 1 } });

@@ -439,6 +439,11 @@ it('enforces tenant and customer boundaries for reads, signers, cancellation and
     await expect(requestAgreementSignature(f.contractId, wrongContact, f.revision)).rejects.toThrow(
       'customer contact',
     );
+    await TenantModel.updateOne(
+      { _id: other.tenantId },
+      { $setOnInsert: { name: 'Other tenant', slug: 'other' } },
+      { upsert: true },
+    );
     await runWithContext(other, async () => {
       await expect(signatureWorkspace(f.contractId)).rejects.toThrow('not found');
       await expect(
@@ -792,4 +797,16 @@ it('sends each party a separate verified signing link for the same saved revisio
     expect(signed.documentHash).toBe(firstSigned.documentHash);
     expect(await staffSignedAgreement(f.contractId, id)).toBeTruthy();
     await expect(signedAgreementPdf(signed)).resolves.toBeInstanceOf(Uint8Array);
+  }));
+
+it('pauses existing signing links before issuing codes when Sales CRM is disabled', () =>
+  within(async () => {
+    const request = await send();
+    const before = await EmailOutboxModel.countDocuments();
+    await TenantModel.updateOne({ _id: context.tenantId }, { $set: { 'modules.crm': false } });
+    expect(await publicSignatureRequest(request.token)).toBeNull();
+    await expect(requestSigningCode(request.token)).rejects.toThrow(/unavailable|expired/);
+    expect(await EmailOutboxModel.countDocuments()).toBe(before);
+    await TenantModel.updateOne({ _id: context.tenantId }, { $set: { 'modules.crm': true } });
+    expect(await publicSignatureRequest(request.token)).not.toBeNull();
   }));

@@ -1,3 +1,5 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
+import { assertWorkspaceAccess } from '@/modules/core/services/workspace-access.service';
 import type { ImapFlow } from 'imapflow';
 import { simpleParser } from 'mailparser';
 import {
@@ -19,6 +21,9 @@ const MAX_ATTEMPTS = 3;
  */
 export async function syncMailbox(client: ImapFlow, initial: MailboxConfig): Promise<number> {
   const config = (await mailboxConfig(initial.settingsId)) ?? initial;
+  // Check before touching mailbox progress; expired tenants must not lose queued mail.
+  await assertWorkspaceAccess(String(config.tenantId));
+  await assertModuleAccess('tickets', String(config.tenantId));
   const mailbox = client.mailbox;
   if (!mailbox) throw new Error('The inbox is not open.');
 
