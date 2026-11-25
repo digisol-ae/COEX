@@ -155,6 +155,7 @@ const taskSchema = new Schema(
   { timestamps: true },
 );
 
+taskSchema.index({ tenantId: 1, 'subtasks.assigneeId': 1, isClosed: 1 });
 taskSchema.index({ tenantId: 1, number: 1 }, { unique: true });
 taskSchema.index({ tenantId: 1, spaceId: 1, status: 1 });
 taskSchema.index({ tenantId: 1, isClosed: 1, endAt: 1 });

@@ -1,8 +1,14 @@
 'use client';
 import { UI_LABELS } from '@/components/ui/labels';
 
-import { useRef, type ReactNode } from 'react';
+import { createContext, useContext, useRef, type ReactNode } from 'react';
 import { IconButton, type IconName } from './icon-button';
+
+const DetailPopupClose = createContext<(() => void) | undefined>(undefined);
+
+export function useDetailPopupClose() {
+  return useContext(DetailPopupClose);
+}
 
 /** Shared one-click detail/history popup. Native dialogs handle focus, Escape and nested panels. */
 export function DetailPopup({
@@ -40,7 +46,9 @@ export function DetailPopup({
             onClick={() => dialog.current?.close()}
           />
         </div>
-        {children}
+        <DetailPopupClose.Provider value={() => dialog.current?.close()}>
+          {children}
+        </DetailPopupClose.Provider>
       </dialog>
     </>
   );

@@ -1,3 +1,4 @@
+import { taskAssigneeIds } from '@coex/shared/tasks/assignees';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { reviewTaskRequest } from '../../requests/actions';
 import { parallel } from '@/lib/parallel';
@@ -181,8 +182,8 @@ export default async function TaskPage({ params }: { params: Promise<{ id: strin
         <div className="space-y-3">
           <section className="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-transparent px-3 py-2">
             <div className="coex-filters flex flex-wrap items-center gap-2">
-              <DeskTaskButton taskId={id} assigneeIds={assignedIds} />
-              {assignedIds.includes(actor.id) ? (
+              <DeskTaskButton taskId={id} assigneeIds={taskAssigneeIds(task)} />
+              {taskAssigneeIds(task).includes(actor.id) ? (
                 <MySubtaskDone
                   taskId={id}
                   done={(task.mySubtaskDoneByIds ?? []).some((value) => String(value) === actor.id)}

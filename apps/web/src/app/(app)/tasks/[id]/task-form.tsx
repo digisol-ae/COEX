@@ -1,7 +1,9 @@
 'use client';
 import { UI_LABELS } from '@/components/ui/labels';
 
-import { useActionState, useState } from 'react';
+import { useState } from 'react';
+import { useSaveCloseAction } from '@/components/ui/use-save-close-action';
+import { useDetailPopupClose } from '@/components/ui/detail-popup';
 import { Button, Field, Input, Notice, Select } from '@/components/ui';
 import { archiveTaskAction, updateTaskAction, type TaskFormState } from '../actions';
 import { TASK_RECURRENCES, type TaskRecurrence } from '@coex/shared/tasks/recurrence';
@@ -33,7 +35,11 @@ export function TaskForm({
   users: { id: string; name: string }[];
   task: TaskFields;
 }) {
-  const [state, formAction, pending] = useActionState(updateTaskAction, initialState);
+  const { state, formAction, pending, saved, markEdited } = useSaveCloseAction(
+    updateTaskAction,
+    initialState,
+  );
+  const close = useDetailPopupClose();
 
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description);
@@ -89,7 +95,7 @@ export function TaskForm({
 
   return (
     <div className="space-y-4">
-      <form action={formAction} className="space-y-3">
+      <form action={formAction} onChange={markEdited} className="space-y-3">
         <input type="hidden" name="id" value={task.id} />
 
         <Field label="Title">
@@ -230,10 +236,14 @@ export function TaskForm({
         </div>
 
         <div className="flex items-center gap-3">
-          <Button type="submit" disabled={pending}>
-            {pending ? UI_LABELS.saving : UI_LABELS.save}
+          <Button
+            type={saved && close ? 'button' : 'submit'}
+            disabled={pending}
+            onClick={saved ? close : undefined}
+          >
+            {pending ? UI_LABELS.saving : saved && close ? UI_LABELS.close : UI_LABELS.save}
           </Button>
-          {state.saved ? <Notice tone="ok">Saved.</Notice> : null}
+          {saved ? <Notice tone="ok">Saved.</Notice> : null}
           {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
         </div>
       </form>

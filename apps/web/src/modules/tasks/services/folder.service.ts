@@ -1,3 +1,5 @@
+import { lockSubscription } from '@/modules/core/services/subscription.service';
+import { taskAssigneeIds } from '@coex/shared/tasks/assignees';
 import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { assertStaffAdditions } from '@/modules/core/services/staff.service';
 import type { Types } from 'mongoose';
@@ -195,6 +197,7 @@ export async function updateFolder(
 
   const folder = await folders().findById(id);
   if (!folder) throw new Error('Folder not found.');
+  if (!(await canOpenFolder(id))) throw new Error('You cannot open this folder.');
   await assertStaffAdditions(input.memberIds ?? [], folder.memberIds.map(String));
 
   const name = input.name.trim();
@@ -210,12 +213,12 @@ export async function updateFolder(
       folderId: folder._id,
       deletedAt: null,
       isClosed: false,
-    }).select('assigneeIds number');
+    }).select('assigneeIds subtasks.assigneeId number');
 
     const allowed = new Set(memberIds.map(String));
 
     const stranded = inside.filter((task) =>
-      task.assigneeIds.some((assignee) => !allowed.has(String(assignee))),
+      taskAssigneeIds(task).some((assignee) => !allowed.has(assignee)),
     );
 
     if (stranded.length > 0) {
@@ -280,53 +283,60 @@ export async function archiveFolder(
 ): Promise<{ tasks: number }> {
   await assertModuleAccess('tasks');
   await connectToDatabase();
-
-  const folder = await folders().findById(id);
-  if (!folder) throw new Error('Folder not found.');
   if (!(await canOpenFolder(id))) throw new Error('You cannot open this folder.');
-
-  let affected = 0;
-
-  if (options.withTasks) {
-    const taskIds = (
-      await TaskModel.find({ tenantId: folder.tenantId, folderId: folder._id }).select('_id')
-    ).map((task) => task._id);
-
-    const running = await TimeEntryModel.findOne({
-      tenantId: folder.tenantId,
-      taskId: { $in: taskIds },
-      running: true,
-    }).populate<{ userId: { name: string } }>('userId', 'name');
-    if (running) {
-      throw new Error(
-        `${running.userId?.name ?? 'Someone'} has a timer running in this folder. Stop it before archiving.`,
+  const { tenantId } = getContext();
+  return FolderModel.db.transaction(async (session) => {
+    await lockSubscription(String(tenantId), session);
+    const folder = await FolderModel.findOne({
+      _id: toObjectId(id),
+      tenantId,
+      status: 'active',
+      deletedAt: null,
+    }).session(session);
+    if (!folder) throw new Error('Folder not found.');
+    const inside = await TaskModel.find({ tenantId, folderId: folder._id, deletedAt: null })
+      .select('_id')
+      .session(session);
+    const ids = inside.map((task) => task._id);
+    const archivedAt = new Date();
+    let affected = 0;
+    if (options.withTasks) {
+      if (
+        await TimeEntryModel.exists({ tenantId, taskId: { $in: ids }, running: true }).session(
+          session,
+        )
+      )
+        throw new Error('Someone has a timer running in this folder. Stop it before archiving.');
+      const result = await TaskModel.updateMany(
+        { tenantId, _id: { $in: ids }, deletedAt: null },
+        { $set: { deletedAt: archivedAt, archivedWithFolder: true } },
+        { session },
+      );
+      affected = result.modifiedCount;
+    } else {
+      await TaskModel.updateMany(
+        { tenantId, folderId: folder._id, deletedAt: null },
+        { $set: { folderId: null } },
+        { session },
       );
     }
-
-    // The folderId stays on the task so the audit record and a later restore know where it lived.
-    const archived = await TaskModel.updateMany(
-      { tenantId: folder.tenantId, _id: { $in: taskIds } },
-      { $set: { deletedAt: new Date(), archivedWithFolder: true } },
+    await FolderModel.updateOne(
+      { _id: folder._id, tenantId },
+      { $set: { status: 'archived', archivedAt, archivedTaskIds: options.withTasks ? ids : [] } },
+      { session },
     );
-    affected = archived.modifiedCount;
-  } else {
-    await TaskModel.updateMany(
-      { tenantId: folder.tenantId, folderId: folder._id },
-      { $set: { folderId: null } },
+    await recordAudit(
+      {
+        action: 'folder.archived',
+        entityType: 'Folder',
+        entityId: folder._id,
+        before: { name: folder.name },
+        after: { withTasks: Boolean(options.withTasks), tasks: affected },
+      },
+      session,
     );
-  }
-
-  await folders().updateOne({ _id: folder._id }, { $set: { status: 'archived' } });
-
-  await recordAudit({
-    action: 'folder.archived',
-    entityType: 'Folder',
-    entityId: folder._id,
-    before: { name: folder.name },
-    after: { withTasks: Boolean(options.withTasks), tasks: affected },
+    return { tasks: affected };
   });
-
-  return { tasks: affected };
 }
 
 /** Who may be given work inside this folder: everyone, or its members when it is private. */

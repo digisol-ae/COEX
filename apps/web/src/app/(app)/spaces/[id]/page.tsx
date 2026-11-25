@@ -1,3 +1,5 @@
+import { listArchivedFolders } from '@/modules/tasks/services/folder-archive.service';
+import { ArchivedFolders } from '../archived-folders';
 import { parallel } from '@/lib/parallel';
 import { notFound } from 'next/navigation';
 import { asUser, requirePermission } from '@/lib/session';
@@ -29,14 +31,17 @@ export default async function SpacePage({
   const space = await asUser(actor, () => getSpace(id));
   if (!space) notFound();
 
-  const { tasks, users, folders, customers, runningTimer } = await asUser(actor, () =>
-    parallel({
-      tasks: listTasks({ spaceId: id, includeClosed: true }),
-      users: listStaffUsers(),
-      folders: listFolders(id),
-      customers: listOrganisationChoices(),
-      runningTimer: getRunningTimer(),
-    }),
+  const { tasks, users, folders, customers, runningTimer, archivedFolders } = await asUser(
+    actor,
+    () =>
+      parallel({
+        tasks: listTasks({ spaceId: id, includeClosed: true }),
+        users: listStaffUsers(),
+        folders: listFolders(id),
+        archivedFolders: listArchivedFolders(id),
+        customers: listOrganisationChoices(),
+        runningTimer: getRunningTimer(),
+      }),
   );
 
   const columns = [...space.statuses]
@@ -129,6 +134,7 @@ export default async function SpacePage({
         initialView={view === 'list' ? 'list' : view === 'gantt' ? 'gantt' : 'board'}
         runningTaskId={runningTimer?.kind === 'task' ? runningTimer.itemId : null}
       />
+      {actor.permissions.includes('task.manage') && <ArchivedFolders folders={archivedFolders} />}
     </div>
   );
 }

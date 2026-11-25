@@ -1,3 +1,4 @@
+import { taskAssigneeIds } from '@coex/shared/tasks/assignees';
 import { asUser, getSignedInUser } from '@/lib/session';
 import { getTask, taskUpdateImage } from '@/modules/tasks/services/task.service';
 import { PROCESSED_IMAGE_TYPES } from '@/modules/tickets/services/attachment.service';
@@ -17,8 +18,7 @@ export async function GET(
     const task = await getTask(id);
     if (
       !task ||
-      (!user.permissions.includes('task.read.all') &&
-        !task.assigneeIds.some((value) => String(value) === user.id))
+      (!user.permissions.includes('task.read.all') && !taskAssigneeIds(task).includes(user.id))
     )
       return null;
     return taskUpdateImage(id, attachmentId);

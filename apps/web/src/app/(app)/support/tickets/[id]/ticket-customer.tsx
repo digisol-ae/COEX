@@ -1,7 +1,9 @@
 'use client';
-import { useActionState, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSaveCloseAction } from '@/components/ui/use-save-close-action';
+import { SavedDialogButton } from '@/components/ui/saved-dialog-button';
 import { DetailPopup } from '@/components/ui/detail-popup';
-import { Button, Field, Select, Notice } from '@/components/ui';
+import { Field, Select, Notice } from '@/components/ui';
 import { setTicketCustomerAction } from '../../actions';
 export function TicketCustomer({
   id,
@@ -14,7 +16,13 @@ export function TicketCustomer({
   contactId: string | null;
   customers: { id: string; name: string }[];
 }) {
-  const [state, action, pending] = useActionState(setTicketCustomerAction, {});
+  const {
+    state,
+    formAction: action,
+    pending,
+    saved,
+    markEdited,
+  } = useSaveCloseAction(setTicketCustomerAction, {});
   const [customer, setCustomer] = useState(organisationId ?? '');
   const [contact, setContact] = useState(contactId ?? '');
   const [contacts, setContacts] = useState<{ id: string; name: string; email: string | null }[]>(
@@ -48,12 +56,13 @@ export function TicketCustomer({
       title="Edit customer and contact"
       icon="edit"
       onOpen={() => {
+        markEdited();
         setError('');
         setLoading(!!customer);
         setReload((value) => value + 1);
       }}
     >
-      <form action={action} className="space-y-3">
+      <form action={action} onChange={markEdited} className="space-y-3">
         <input type="hidden" name="ticketId" value={id} />
         <Field label="Customer">
           <Select
@@ -97,10 +106,8 @@ export function TicketCustomer({
         </p>
         {error ? <Notice tone="alert">{error}</Notice> : null}
         {state.error ? <Notice tone="alert">{state.error}</Notice> : null}
-        {state.saved ? <Notice tone="ok">Saved.</Notice> : null}
-        <Button type="submit" disabled={pending || loading || !!error}>
-          {pending ? 'Saving' : 'Save'}
-        </Button>
+        {saved ? <Notice tone="ok">Saved.</Notice> : null}
+        <SavedDialogButton saved={saved} pending={pending} disabled={loading || !!error} />
       </form>
     </DetailPopup>
   );

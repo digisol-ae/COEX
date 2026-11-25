@@ -1,3 +1,4 @@
+import { taskAssigneeIds } from '@coex/shared/tasks/assignees';
 import { asUser, getSignedInUser } from '@/lib/session';
 import {
   assignableUserIdsForSubtask,
@@ -35,7 +36,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     if (!task) return null;
 
     const seesEverything = user.permissions.includes('task.read.all');
-    const isMine = task.assigneeIds.some((assignee) => String(assignee) === user.id);
+    const isMine = taskAssigneeIds(task).includes(user.id);
 
     if (!seesEverything && !isMine) return null;
 
