@@ -1,4 +1,4 @@
 {
-  "sourceCommit": "8bba1b18c7de892873de5e24fb1607130b162557",
-  "reviewStatus": "Reviewed merged PR 92; production acceptance pending"
+  "sourceCommit": "83c61f1422ede997b55594a6f2ac813fb10dd847",
+  "reviewStatus": "PR94 source validation recorded; deployment and live acceptance pending MongoDB transaction prerequisite"
 }

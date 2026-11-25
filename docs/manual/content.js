@@ -1,6 +1,6 @@
 window.WORKTELLO_MANUAL = {
-  "version": "2026.11.17",
-  "updated": "17 November 2026",
+  "version": "2026.11.25",
+  "updated": "25 November 2026",
   "title": "Worktello field guide",
   "chapters": [
     {
@@ -1745,6 +1745,44 @@ window.WORKTELLO_MANUAL = {
           "../resolutions/2026-11-14-requests-and-invitations.md"
         ]
       ]
+    },
+    {
+      "id": "saas-controls",
+      "title": "Tenant plans and scoped portals",
+      "group": "Administration",
+      "roles": [
+        "Admin"
+      ],
+      "intro": "PR94 merges tenant SaaS controls, plans and module restrictions. Deployment and authenticated acceptance remain pending.",
+      "steps": [
+        {
+          "title": "Review tenant controls",
+          "text": "Use the tenant administration controls for plans and module availability after the controlled release is deployed."
+        },
+        {
+          "title": "Keep trial registration closed",
+          "text": "Public trial registration defaults to closed until the owner configures and enables it."
+        },
+        {
+          "title": "Respect release prerequisites",
+          "text": "Commercial and provisioning operations require MongoDB transactions. The recorded standalone production database needs administrator preparation before deployment."
+        }
+      ],
+      "notes": [
+        "Release notes record 877 passing tests, type checks, build, lint and formatting. This is source validation; no live workflow acceptance is claimed.",
+        "Customer portals are tenant scoped. Verify the intended customer and tenant during acceptance."
+      ],
+      "sources": [
+        [
+          "SaaS release handover",
+          "../../ai/RELEASE-2026-11-25-SAAS.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "access"
+      ],
+      "status": "Merged; deployment blocked by transaction prerequisite"
     }
   ],
   "resolutions": [
