@@ -5,7 +5,8 @@ PR #94 merged as `83c61f1`; deployed source `aefe952` is live at https://worktel
 isolated administrator recovery completed; MongoDB now runs authenticated single-member
 `worktello-rs`, still loopback-only. App credentials unchanged; 52 collection counts matched the
 quiet backup before reopening. 877 tests, head CI, server build, public HTTPS/static checks passed.
-Live authenticated acceptance awaits owner sign-in. Public registration remains closed; payments
+Live authenticated owner dashboard and tenant/module/default controls passed read-only checks on
+26 November; no live commercial changes submitted. Public registration remains closed; payments
 remain backlog. Current deployment, private backup locations and rollback:
 [release record](RELEASE-2026-11-25-SAAS.md). Earlier runtime ports below are historical.
 

@@ -5,7 +5,7 @@ Status: deployed to https://worktello.com. Payments explicitly remain in docs/BA
 Current source: aefe952; PR #94 merged as 83c61f1422ede997b55594a6f2ac813fb10dd847.
 Release: /srv/coex/releases/saas-20261125-aefe952; coex-app-saas-20261125 serves loopback
 3019. All four Worktello/COEX vhosts target 3019. All three workers use the same release.
-PM2 saved. Authenticated live browser acceptance remains pending the owner sign-in.
+PM2 saved. Authenticated live owner dashboard and SaaS administration reads passed on 26 November.
 
 The following preparation notes are historical; the deployment outcome below supersedes them.
 
@@ -99,8 +99,9 @@ build without a database; CI 45581234485 passed on aefe952; updated server produ
 Local authenticated browser verified Support list/full detail with disabled Tasks/Contracts denied.
 Live home, login and registration return 200; 12 referenced public static assets return 200.
 Public registration remains closed. No synthetic live tenants, accounts, tickets or test messages
-were created; routine workers resumed after cutover. Live authenticated owner/admin screens remain
-pending the owner sign-in. RELEASE.json and private post-deploy-summary.json record runtime evidence.
+were created; routine workers resumed after cutover. Live authenticated owner dashboard, Setup → Tenants, 30-day/2 GB defaults, legacy tenant
+usage, catalogue/application panels and current module controls passed on 26 November. No live
+commercial changes were submitted. End-to-end real registration email remains separate. RELEASE.json and private post-deploy-summary.json record runtime evidence.
 
 ## Application rollback
 
