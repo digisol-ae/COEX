@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { connection } from 'next/server';
 import { AuthShell } from '../login/auth-shell';
 import { Notice } from '@/components/ui';
 import { ApplicationForm } from './forms';
@@ -7,6 +8,7 @@ import { provisioningDefaults } from '@/modules/core/services/platform-settings.
 import { formatStorage } from '@coex/shared/core/saas';
 export const metadata = { title: 'Apply for a Worktello trial' };
 export default async function RegisterPage() {
+  await connection();
   const availability = await registrationAvailability().catch(() => ({ available: false }));
   const defaults = await provisioningDefaults().catch(() => ({
     trialDays: 30,
