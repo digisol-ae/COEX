@@ -1,3 +1,8 @@
+> Completed on 25 November 2026 after explicit owner authorization for isolated administrator
+> recovery. Production now runs authenticated worktello-rs. Do not rerun initialization or recovery.
+> Current evidence and rollback: ../ai/RELEASE-2026-11-25-SAAS.md. The procedure below records the
+> initial administrator-assisted plan, before the owner reported forgotten local administrator access.
+
 # Authenticated MongoDB transaction prerequisite
 
 Prepared 25 November 2026. Do not run during ordinary traffic. The release coordinator must first

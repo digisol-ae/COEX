@@ -1,3 +1,14 @@
+## SaaS controls live — 25 November 2026
+
+PR #94 merged as `83c61f1`; deployed source `aefe952` is live at https://worktello.com on loopback
+3019 (`coex-app-saas-20261125`), with all three workers on `saas-20261125-aefe952`. Authorized
+isolated administrator recovery completed; MongoDB now runs authenticated single-member
+`worktello-rs`, still loopback-only. App credentials unchanged; 52 collection counts matched the
+quiet backup before reopening. 877 tests, head CI, server build, public HTTPS/static checks passed.
+Live authenticated acceptance awaits owner sign-in. Public registration remains closed; payments
+remain backlog. Current deployment, private backup locations and rollback:
+[release record](RELEASE-2026-11-25-SAAS.md). Earlier runtime ports below are historical.
+
 ## Signed contract copies and invoice email — 12 November 2026
 
 PRs #82–85 merged through `80627ea`; merged-main CI passed. Confirm the mail worker supports labeled HTML links before accepting delivery. Production rollout and authenticated signing/email acceptance remain unverified. See [the resolution record](../docs/resolutions/2026-11-12-signed-contract-copies.md).
