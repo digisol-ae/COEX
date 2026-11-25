@@ -1,4 +1,5 @@
 'use client';
+import { portalAuthPath } from '@coex/shared/core/portal-links';
 
 import Link from 'next/link';
 import { useActionState } from 'react';
@@ -7,7 +8,13 @@ import { forgotPasswordAction, type ForgotState } from './actions';
 
 const initialState: ForgotState = {};
 
-export function ForgotForm() {
+export function ForgotForm({
+  tenantSlug,
+  staff = false,
+}: {
+  tenantSlug?: string;
+  staff?: boolean;
+}) {
   const [state, formAction, pending] = useActionState(forgotPasswordAction, initialState);
 
   if (state.sent) {
@@ -17,29 +24,31 @@ export function ForgotForm() {
           If that address has a Worktello account, a link is on its way. It works once, for 30
           minutes. Check your junk folder if it does not arrive in a few minutes.
         </Notice>
-        <BackToSignIn />
+        <BackToSignIn tenantSlug={tenantSlug} />
       </div>
     );
   }
 
   return (
     <form action={formAction} className="mt-8 space-y-4">
+      {staff && <input type="hidden" name="accountKind" value="staff" />}
+      {tenantSlug !== undefined && <input type="hidden" name="tenant" value={tenantSlug} />}
       <Field label="Email address">
         <Input name="email" type="email" required autoComplete="email" autoFocus />
       </Field>
       <Button type="submit" disabled={pending} className="w-full py-2.5">
         {pending ? 'Sending' : 'Email me a link'}
       </Button>
-      <BackToSignIn />
+      <BackToSignIn tenantSlug={tenantSlug} />
     </form>
   );
 }
 
-function BackToSignIn() {
+function BackToSignIn({ tenantSlug }: { tenantSlug?: string }) {
   return (
     <p className="text-center text-sm">
       <Link
-        href="/login"
+        href={portalAuthPath('/login', tenantSlug)}
         className="text-[var(--color-ink-muted)] underline-offset-4 hover:text-[var(--color-ink)] hover:underline"
       >
         Back to sign in

@@ -1,4 +1,6 @@
 'use server';
+import { resolveAuthenticatedUser } from '@/modules/core/services/auth-context.service';
+import { portalPath } from '@coex/shared/core/portal-links';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { verifyCaptcha } from '@/lib/captcha';
@@ -16,6 +18,7 @@ export async function emailLoginAction(
   const email = String(form.get('email') ?? '')
     .trim()
     .toLowerCase();
+  const tenantSlug = form.has('tenant') ? String(form.get('tenant')) : undefined;
   const step = String(form.get('step') ?? 'request');
   let session;
   try {
@@ -23,13 +26,14 @@ export async function emailLoginAction(
       await verifyCaptcha(form, 'email_login');
       if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
         throw new Error('Enter a valid email address.');
-      await requestLoginOtp(email);
+      await requestLoginOtp(email, tenantSlug);
       return { step: 'code', email };
     }
     if (step !== 'code') throw new Error('Request a new code.');
     const headerList = await headers();
     session = await signInWithEmailOtp({
       email,
+      tenantSlug,
       code: String(form.get('code') ?? ''),
       rememberMe: form.get('rememberMe') === 'on',
       ipAddress: headerList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null,
@@ -45,5 +49,10 @@ export async function emailLoginAction(
     path: '/',
     ...(form.get('rememberMe') === 'on' ? { expires: session.expiresAt } : {}),
   });
-  redirect('/portal');
+  const user = await resolveAuthenticatedUser(session.token);
+  redirect(
+    user?.workspaceAccess && user.workspaceAccess !== 'allowed'
+      ? '/workspace-status'
+      : portalPath(user?.tenantSlug),
+  );
 }

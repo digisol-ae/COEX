@@ -1,3 +1,4 @@
+import { workspaceModules } from '@/modules/core/services/module-access.service';
 import { listTasks } from './task.service';
 import { listTickets, type TicketSummary } from '@/modules/tickets/services/ticket.service';
 import { STATUS_LABELS } from '@/modules/tickets/labels';
@@ -41,16 +42,17 @@ export async function loadMyWork(options: {
   seesTickets: boolean;
   seesTasks: boolean;
 }): Promise<WorkItem[]> {
+  const modules = await workspaceModules();
   const userId = String(getContext().userId);
   const now = new Date();
   const items: WorkItem[] = [];
 
-  if (options.seesTickets && options.filter !== 'tasks') {
+  if (modules.tickets && options.seesTickets && options.filter !== 'tasks') {
     const tickets = await listTickets({ assigneeId: userId, openOnly: true });
     items.push(...tickets.map((ticket) => fromTicket(ticket, now)));
   }
 
-  if (options.seesTasks && options.filter !== 'tickets') {
+  if (modules.tasks && options.seesTasks && options.filter !== 'tickets') {
     const tasks = await listTasks({ assigneeId: userId });
     items.push(
       ...tasks.map((task) => ({

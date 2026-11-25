@@ -6,6 +6,8 @@ import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { signInWithPassword } from '@/modules/core/services/auth.service';
 import { SESSION_COOKIE, revokeSession } from '@/modules/core/services/session.service';
+import { publicPortalTenant } from '@/modules/portal/tenant';
+import { portalPath, portalAuthPath } from '@coex/shared/core/portal-links';
 
 export interface LoginState {
   error?: string;
@@ -30,6 +32,8 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
   const result = await signInWithPassword({
     email,
     password,
+    tenantSlug: formData.has('tenant') ? String(formData.get('tenant')) : undefined,
+    accountKind: formData.get('accountKind') === 'staff' ? 'staff' : 'portal',
     rememberMe: formData.get('rememberMe') === 'on',
     ipAddress: headerList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null,
     userAgent: headerList.get('user-agent'),
@@ -50,10 +54,16 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
   });
 
   const user = await resolveAuthenticatedUser(result.token);
-  redirect(user?.role === 'client_contact' ? '/portal' : '/dashboard');
+  redirect(
+    user?.workspaceAccess && user.workspaceAccess !== 'allowed'
+      ? '/workspace-status'
+      : user?.role === 'client_contact'
+        ? portalPath(user.tenantSlug)
+        : '/dashboard',
+  );
 }
 
-export async function logoutAction(): Promise<void> {
+export async function logoutAction(form?: FormData): Promise<void> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
 
@@ -62,5 +72,6 @@ export async function logoutAction(): Promise<void> {
   }
 
   cookieStore.delete(SESSION_COOKIE);
-  redirect('/login');
+  const tenant = form?.has('tenant') ? await publicPortalTenant(String(form.get('tenant'))) : null;
+  redirect(portalAuthPath('/login', tenant?.slug));
 }

@@ -1,3 +1,5 @@
+import { effectiveModules } from '@coex/shared/core/modules';
+import { workspaceAccess } from '@coex/shared/core/saas';
 import { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { runWithContext } from '@/lib/tenant-context';
@@ -47,7 +49,15 @@ export async function sendDailyReportForTenant(
   const { dayKey: today, hour } = gulfNow(now);
   if (hour < 9) return 0;
 
-  const tenant = await TenantModel.findById(tenantId).select('workingDays');
+  const tenant = await TenantModel.findOne({ _id: tenantId, deletedAt: null }).select(
+    'workingDays status commercial modules',
+  );
+  if (
+    !tenant ||
+    !effectiveModules(tenant).tasks ||
+    workspaceAccess(tenant.status, tenant.commercial, now) !== 'allowed'
+  )
+    return 0;
   const day = previousDayKey(today);
   const workingDay = isWorkingDay(day, tenant?.workingDays ?? [1, 2, 3, 4, 5]);
 
@@ -75,6 +85,7 @@ export async function sendDailyReportForTenant(
     tenantId,
     userId: { $in: agents.map((agent) => agent._id) },
     workDate: { $gte: from, $lt: until },
+    ...(!effectiveModules(tenant).tickets ? { ticketId: null } : {}),
     deletedAt: null,
   }).select('userId taskId ticketId minutes');
 

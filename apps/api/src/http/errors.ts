@@ -1,3 +1,4 @@
+import { ModuleUnavailableError } from '@/modules/core/services/module-access.service';
 import type { ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
 
@@ -24,6 +25,11 @@ export class HttpError extends Error {
 
 export const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
   if (res.headersSent) return next(error);
+
+  if (error instanceof ModuleUnavailableError) {
+    res.status(403).json({ error: { code: 'module_unavailable', message: error.message } });
+    return;
+  }
 
   if (error instanceof HttpError) {
     res

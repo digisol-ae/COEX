@@ -1,5 +1,7 @@
+import { moduleAvailable, workspaceModules } from './module-access.service';
+import type { WorkspaceModule } from '@coex/shared/core/modules';
 import { STAFF_ROLES } from '@coex/shared/core/permissions';
-import { Types } from 'mongoose';
+import { Types, type ClientSession } from 'mongoose';
 import nodemailer, { type Transporter } from 'nodemailer';
 import { ImapFlow } from 'imapflow';
 import { connectToDatabase } from '@/lib/db';
@@ -21,6 +23,8 @@ import { permissionsFor, type Role } from '@coex/shared/core/permissions';
  */
 
 export type OutboxKind =
+  | 'trial_registration'
+  | 'portal_invitation'
   | 'resource_share'
   | 'auto_reply'
   | 'ticket_reply'
@@ -48,6 +52,8 @@ export type OutboxKind =
 export type SenderRole = 'standard' | 'alert' | 'admin' | 'contracts';
 
 const SENDER_FOR: Record<OutboxKind, SenderRole> = {
+  trial_registration: 'admin',
+  portal_invitation: 'admin',
   resource_share: 'standard',
   auto_reply: 'standard',
   ticket_reply: 'standard',
@@ -539,7 +545,26 @@ export async function validateCustomerReplySender(
   return selected.role;
 }
 
+function mailModule(kind: string): WorkspaceModule | null {
+  if (
+    [
+      'resource_share',
+      'portal_invitation',
+      'auto_reply',
+      'ticket_reply',
+      'ticket_assigned',
+      'customer_replied',
+      'ticket_created',
+    ].includes(kind)
+  )
+    return 'tickets';
+  if (['task_assigned', 'activity_report', 'daily_report'].includes(kind)) return 'tasks';
+  if (['contract_renewal', 'next_step_due', 'opportunity_stale', 'contract_email'].includes(kind))
+    return 'crm';
+  return null;
+}
 export interface QueueEmailInput {
+  sourceModule?: WorkspaceModule;
   sender?: SenderRole;
   cc?: string[];
   kind: OutboxKind;
@@ -563,8 +588,13 @@ export interface QueueEmailInput {
  * Queues an email when the tenant's settings allow that kind. Returns false, and queues nothing,
  * when sending is off, the kind is switched off, or the address is not usable.
  */
-export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
+export async function queueEmail(
+  input: QueueEmailInput,
+  session?: ClientSession,
+): Promise<boolean> {
   const { tenantId } = getContext();
+  const sourceModule = input.sourceModule ?? mailModule(input.kind);
+  if (sourceModule && !(await moduleAvailable(sourceModule, String(tenantId)))) return false;
   const settings = await settingsFor(tenantId);
   if (!settings?.outbound?.enabled) return false;
 
@@ -572,6 +602,8 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
   if (!isEmailAddress(to)) return false;
 
   const allowed: Record<OutboxKind, boolean> = {
+    trial_registration: true,
+    portal_invitation: true,
     resource_share: true,
     auto_reply: settings.customer?.autoReplyEnabled ?? false,
     ticket_reply: settings.customer?.emailPublicReplies ?? true,
@@ -601,6 +633,7 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
   const message = {
     tenantId,
     kind: input.kind,
+    sourceModule,
     sender: input.sender ?? null,
     to,
     cc: [...new Set((input.cc ?? []).map((email) => email.trim().toLowerCase()))].filter(
@@ -624,13 +657,29 @@ export async function queueEmail(input: QueueEmailInput): Promise<boolean> {
     await EmailOutboxModel.updateOne(
       { _id: input.outboxId, tenantId },
       { $setOnInsert: message },
-      { upsert: true, timestamps: { createdAt: true, updatedAt: false } },
+      { session, upsert: true, timestamps: { createdAt: true, updatedAt: false } },
     );
   } else {
-    await EmailOutboxModel.create(message);
+    await EmailOutboxModel.create([message], { session });
   }
 
   return true;
+}
+
+/** Configuration check only; does not contact SMTP or send a test message. */
+export async function registrationSenderReady(tenantId: string): Promise<boolean> {
+  const settings = await settingsFor(tenantId);
+  if (!settings?.outbound?.enabled) return false;
+  const identity = identityFor(settings, 'admin');
+  const connection =
+    identity.account === 'standard' ? settings.outbound : settings.senders?.[identity.account];
+  const address = settings.senders?.admin?.fromAddress || settings.outbound.fromAddress;
+  return Boolean(
+    connection?.host &&
+    address &&
+    isEmailAddress(address) &&
+    (!connection.username || connection.passwordSealed),
+  );
 }
 
 /** Whether a public reply on a ticket will be emailed, so the reply box can say so. */
@@ -677,7 +726,7 @@ export async function alertStaff(
    * For news that did not come from the person acting: an email ticket is created in the name of
    * the administrator who turned intake on, and they still need to hear about it.
    */
-  options: { evenIfSelf?: boolean } = {},
+  options: { evenIfSelf?: boolean; sourceModule?: WorkspaceModule } = {},
 ): Promise<void> {
   if (!userId) return;
   const context = getContext();
@@ -690,6 +739,7 @@ export async function alertStaff(
 
   await queueEmail({
     kind,
+    sourceModule: options.sourceModule,
     to: user.email,
     subject,
     text: [
@@ -818,6 +868,23 @@ export async function deliverQueuedEmail(limit = 20): Promise<number> {
     >();
     if (!row) break;
 
+    const sourceModule =
+      (row.sourceModule as WorkspaceModule | null) ?? mailModule(String(row.kind));
+    const paused = sourceModule
+      ? !(await moduleAvailable(sourceModule, String(row.tenantId)))
+      : row.kind === 'mentioned' &&
+        Object.values(await workspaceModules(String(row.tenantId))).some((enabled) => !enabled);
+    if (paused) {
+      // Preserve the message and attempt budget; defer so paused tenants cannot starve other mail.
+      await EmailOutboxModel.updateOne(
+        { _id: row._id, status: 'sending' },
+        {
+          $set: { status: 'pending', sendAfter: new Date(Date.now() + 60_000) },
+          $inc: { attempts: -1 },
+        },
+      );
+      continue;
+    }
     const settings = await settingsFor(row.tenantId);
     const role = (row.sender as SenderRole | null) ?? senderRoleFor(row.kind as OutboxKind);
     const identity = settings ? identityFor(settings, role) : null;
@@ -920,6 +987,7 @@ export async function enabledMailboxes(): Promise<MailboxConfig[]> {
   const configs: MailboxConfig[] = [];
 
   for (const settings of found) {
+    if (!(await moduleAvailable('tickets', String(settings.tenantId)))) continue;
     const inbound = settings.inbound!;
     if (!inbound.host || !inbound.username || !inbound.queueId || !inbound.actorUserId) continue;
     let password: string | null = null;

@@ -16,7 +16,11 @@ export async function resetPasswordAction(
     return { error: 'The two passwords do not match.' };
   }
   try {
-    await resetPasswordWithToken(String(formData.get('token') ?? ''), password);
+    await resetPasswordWithToken(
+      String(formData.get('token') ?? ''),
+      password,
+      formData.has('tenant') ? String(formData.get('tenant')) : undefined,
+    );
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not set the password.' };
   }

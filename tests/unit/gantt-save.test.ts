@@ -1,4 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest';
+vi.mock('@/modules/core/services/module-access.service', () => ({
+  assertModuleAccess: vi.fn().mockResolvedValue(undefined),
+}));
 const m = vi.hoisted(() => ({ can: vi.fn(), get: vi.fn(), update: vi.fn(), audit: vi.fn() }));
 vi.mock('@/modules/crm/services/access.service', () => ({ actorCan: m.can }));
 vi.mock('@/modules/tasks/services/task.service', () => ({ getTask: m.get }));

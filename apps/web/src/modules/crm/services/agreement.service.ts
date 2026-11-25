@@ -1,4 +1,5 @@
 import { displayDate, displayTimestamp } from '@coex/shared/crm/display-date';
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { Types } from 'mongoose';
 import { AgreementTemplateModel } from '@coex/shared/crm/models/agreement-template.model';
 import { AgreementDraftModel } from '@coex/shared/crm/models/agreement-draft.model';
@@ -29,6 +30,7 @@ const formatAgreementDates = (body: string) =>
 const templates = () => repository(AgreementTemplateModel);
 const drafts = () => repository(AgreementDraftModel);
 export async function listAgreementTemplates(): Promise<AgreementTemplate[]> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   const custom = await templates().find().sort({ name: 1 });
   return [
@@ -52,6 +54,7 @@ export async function saveAgreementTemplate(input: {
   reviewNotes: string;
   revision: number;
 }) {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   validateAgreement(input.body);
   if (!input.name.trim() || input.name.length > 200)
@@ -81,6 +84,7 @@ export async function saveAgreementTemplate(input: {
   return String(saved._id);
 }
 export async function archiveAgreementTemplate(id: string) {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   const saved = await templates().softDelete({ _id: id });
   if (!saved) throw new Error('Template not found.');
@@ -105,6 +109,7 @@ export async function agreementSignerOptions(organisationId: string) {
 }
 
 export async function agreementValues(id: string): Promise<Record<string, string>> {
+  await assertModuleAccess('crm');
   const contract = await getContract(id);
   if (!contract) throw new Error('Contract not found.');
   const { tenantId } = getContext();
@@ -191,6 +196,7 @@ export interface DraftSummary {
   revision: number;
 }
 export async function getAgreementDraft(contractId: string): Promise<DraftSummary | null> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   if (!Types.ObjectId.isValid(contractId) || !(await getContract(contractId))) return null;
   const d = await drafts().findOne({ contractId });
@@ -213,6 +219,7 @@ export async function generateAgreementDraft(
   values: Record<string, string>,
   expectedRevision: number,
 ) {
+  await assertModuleAccess('crm');
   const contract = await getContract(contractId);
   if (!contract) throw new Error('Contract not found.');
   const template = (await listAgreementTemplates()).find((t) => t.id === templateId);
@@ -264,6 +271,7 @@ export async function saveAgreementDraft(
   reviewed: boolean,
   revision: number,
 ) {
+  await assertModuleAccess('crm');
   if (!(await getContract(contractId))) throw new Error('Contract not found.');
   body = formatAgreementDates(body);
   validateAgreement(body);

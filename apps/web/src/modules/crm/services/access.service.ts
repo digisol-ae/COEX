@@ -1,3 +1,5 @@
+import { permissionModule } from '@coex/shared/core/modules';
+import { moduleAvailable } from '@/modules/core/services/module-access.service';
 import { getContext } from '@/lib/tenant-context';
 import { permissionsFor, type Permission, type Role } from '@coex/shared/core/permissions';
 import { UserModel } from '@coex/shared/core/models/user.model';
@@ -7,6 +9,8 @@ import { UserModel } from '@coex/shared/core/models/user.model';
  * the caller, so a service refuses on its own even when a screen forgets to check.
  */
 export async function actorCan(permission: Permission): Promise<boolean> {
+  const requiredModule = permissionModule(permission);
+  if (requiredModule && !(await moduleAvailable(requiredModule))) return false;
   const context = getContext();
   if (context.isPlatformAdmin) return true;
 

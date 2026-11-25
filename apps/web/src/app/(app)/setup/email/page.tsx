@@ -13,7 +13,7 @@ export default async function EmailSettingsPage() {
   const { settings, queues } = await asUser(actor, () =>
     parallel({
       settings: getEmailSettings(),
-      queues: listQueues(),
+      queues: actor.permissions.includes('ticket.manage') ? listQueues() : [],
     }),
   );
 

@@ -45,6 +45,12 @@ export const authenticate: RequestHandler = async (req, _res, next) => {
 
     const user = await resolveAuthenticatedUser(token);
     if (!user) throw new HttpError(401, 'unauthenticated', 'Sign in first.');
+    if (user.workspaceAccess && user.workspaceAccess !== 'allowed')
+      throw new HttpError(
+        403,
+        'workspace_unavailable',
+        'This workspace has expired or is suspended. Contact the platform owner.',
+      );
 
     req.auth = user;
 

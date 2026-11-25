@@ -1,3 +1,4 @@
+import { createTestTenants } from '../setup';
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Types } from 'mongoose';
@@ -48,6 +49,7 @@ beforeAll(async () => {
 afterAll(disconnectFromTests);
 beforeEach(async () => {
   await clearDatabase();
+  await createTestTenants(other.tenantId);
   await TenantModel.create({ _id: context.tenantId, name: 'Resource QA', slug: 'resources-qa' });
   await UserModel.create({
     _id: context.userId,
@@ -314,4 +316,14 @@ it('caps OTP resends and never extends the original expiry', async () => {
   await expect(resendResourceOtp(s.token)).rejects.toThrow('ten codes');
   expect((await publicShare(s.token))!.expiresAt).toEqual(expiry);
   expect(await EmailOutboxModel.countDocuments({ kind: 'resource_share' })).toBe(1);
+});
+
+it('pauses existing resource links and verification when Support is disabled', async () => {
+  const shared = await share();
+  await TenantModel.updateOne({ _id: context.tenantId }, { $set: { 'modules.tickets': false } });
+  expect(await publicShare(shared.token)).toBeNull();
+  await expect(verifyResourceOtp(shared.token, shared.code)).rejects.toThrow();
+  expect(await ResourceAccessModel.countDocuments()).toBe(0);
+  await TenantModel.updateOne({ _id: context.tenantId }, { $set: { 'modules.tickets': true } });
+  expect(await publicShare(shared.token)).not.toBeNull();
 });

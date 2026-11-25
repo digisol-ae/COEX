@@ -55,7 +55,7 @@ export default async function AppLayout({
       ? (await listTasks({ assigneeId: user.id, includeClosed: true })).map((task) => task.id)
       : [],
     deskIds: user.permissions.includes('task.read.own') ? await listDeskTaskIds() : [],
-    timer: await getRunningTimer(),
+    timer: user.permissions.includes('task.read.own') ? await getRunningTimer() : null,
     order: await getNavigationOrder(),
     counts: {
       '/tasks': user.permissions.includes('task.read.own')

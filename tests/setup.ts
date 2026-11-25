@@ -67,3 +67,15 @@ export async function disconnectFromTests() {
     globalThis.__coexMongoose.promise = null;
   }
 }
+
+/** Explicit workspace fixtures for service tests; real module checks require a real tenant. */
+export async function createTestTenants(...ids: mongoose.Types.ObjectId[]) {
+  if (!mongoose.connection.name?.startsWith(PREFIX)) throw new Error('Test database required.');
+  const { TenantModel } = await import('@coex/shared/core/models/tenant.model');
+  for (const id of ids)
+    await TenantModel.updateOne(
+      { _id: id },
+      { $setOnInsert: { name: 'Test workspace', slug: `test-${id}` } },
+      { upsert: true },
+    );
+}

@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { Types } from 'mongoose';
 import { type ServiceModel } from '@coex/shared/crm/service-terms';
 import { connectToDatabase } from '@/lib/db';
@@ -34,6 +35,7 @@ export interface ProductSummary {
 }
 
 export async function listProducts(includeRetired = false): Promise<ProductSummary[]> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const found = await products()
@@ -112,6 +114,7 @@ async function commercialFields(input: ProductInput, id?: string) {
 }
 
 export async function createProduct(input: ProductInput): Promise<string> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const code = input.code.trim().toUpperCase();
@@ -149,6 +152,7 @@ export async function createProduct(input: ProductInput): Promise<string> {
 }
 
 export async function updateProduct(id: string, input: ProductInput): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const before = await products().findById(id);
@@ -203,6 +207,7 @@ export async function updateProduct(id: string, input: ProductInput): Promise<vo
 
 /** Retired rather than deleted, because contracts and history still refer to it. */
 export async function retireProduct(id: string): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const product = await products().updateOne({ _id: id }, { $set: { status: 'retired' } });
@@ -218,6 +223,7 @@ export async function retireProduct(id: string): Promise<void> {
 }
 
 export async function reactivateProduct(id: string): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const product = await products().updateOne({ _id: id }, { $set: { status: 'active' } });

@@ -2,10 +2,19 @@
 import { useActionState } from 'react';
 import { Button, Field, Input, Notice } from '@/components/ui';
 import { updatePortalProfile } from './actions';
-export function PortalProfileForm({ name, title }: { name: string; title: string }) {
+export function PortalProfileForm({
+  name,
+  title,
+  tenantId,
+}: {
+  name: string;
+  title: string;
+  tenantId: string;
+}) {
   const [state, action, pending] = useActionState(updatePortalProfile, {});
   return (
     <form action={action} className="space-y-3">
+      <input type="hidden" name="tenantId" value={tenantId} />
       <Field label="Name">
         <Input name="name" defaultValue={name} required maxLength={120} />
       </Field>

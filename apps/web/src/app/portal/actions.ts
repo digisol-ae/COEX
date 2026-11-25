@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { asUser, requireUser } from '@/lib/session';
 import { raisePortalTicket, replyFromPortal } from '@/modules/portal/service';
 import type { IncomingFile } from '@/modules/tickets/services/attachment.service';
+import { assertPortalFormTenant, portalPath } from '@coex/shared/core/portal-links';
 export interface PortalState {
   error?: string;
   saved?: boolean;
@@ -37,6 +38,7 @@ export async function raiseAction(_previous: PortalState, form: FormData): Promi
   const user = await actor();
   let result;
   try {
+    assertPortalFormTenant(user.tenantId, form.get('tenantId'));
     await verifyCaptcha(form, 'portal_ticket');
     const files = await filesFrom(form);
     result = await asUser(user, () =>
@@ -49,21 +51,24 @@ export async function raiseAction(_previous: PortalState, form: FormData): Promi
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not raise ticket.' };
   }
-  revalidatePath('/portal');
+  revalidatePath(portalPath(user.tenantSlug));
   revalidatePath('/support/tickets');
-  redirect(`/portal/tickets/${result.id}${result.attachmentFailed ? '?attachment=failed' : ''}`);
+  redirect(
+    `${portalPath(user.tenantSlug)}/tickets/${result.id}${result.attachmentFailed ? '?attachment=failed' : ''}`,
+  );
 }
 export async function replyAction(_previous: PortalState, form: FormData): Promise<PortalState> {
   const user = await actor();
   const id = String(form.get('ticketId') ?? '');
   try {
+    assertPortalFormTenant(user.tenantId, form.get('tenantId'));
     await verifyCaptcha(form, 'portal_reply');
     const files = await filesFrom(form);
     const result = await asUser(user, () =>
       replyFromPortal(id, String(form.get('body') ?? ''), files),
     );
-    revalidatePath(`/portal/tickets/${id}`);
-    revalidatePath('/portal');
+    revalidatePath(`${portalPath(user.tenantSlug)}/tickets/${id}`);
+    revalidatePath(portalPath(user.tenantSlug));
     revalidatePath(`/support/tickets/${id}`);
     revalidatePath('/support/tickets');
     return {

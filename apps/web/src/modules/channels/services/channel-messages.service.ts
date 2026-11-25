@@ -1,3 +1,5 @@
+import { moduleAvailable, assertModuleAccess } from '@/modules/core/services/module-access.service';
+import { workspaceAccess } from '@coex/shared/core/saas';
 import { randomUUID } from 'node:crypto';
 import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
@@ -54,7 +56,9 @@ export async function authenticateChannelRequest(
 ): Promise<ChannelAuth> {
   const denied = { ok: false as const, status: 401, error: 'Not authorised.' };
   await connectToDatabase();
-  const tenant = await TenantModel.findOne({ slug: slug.toLowerCase() }).select('_id').lean();
+  const tenant = await TenantModel.findOne({ slug: slug.toLowerCase(), deletedAt: null })
+    .select('_id status commercial')
+    .lean();
   if (!tenant) return denied;
   const settings = await ChannelSettingsModel.findOne({ tenantId: tenant._id }).lean();
   const secret = openSecret(settings?.signingSecretSealed);
@@ -67,6 +71,11 @@ export async function authenticateChannelRequest(
     body,
   });
   if (!verified.ok) return { ...denied, error: verified.reason };
+  if (
+    !(await moduleAvailable('tickets', String(tenant._id))) ||
+    workspaceAccess(tenant.status, tenant.commercial) !== 'allowed'
+  )
+    return { ok: false, status: 403, error: 'Workspace access has expired or is suspended.' };
   if (!settings.enabled) {
     return { ok: false, status: 403, error: 'WhatsApp is turned off for this tenant.' };
   }
@@ -97,6 +106,7 @@ export interface InboundResult {
  * later failure never loses a message.
  */
 export async function storeInbound(messages: CanonicalInbound[]): Promise<InboundResult> {
+  await assertModuleAccess('tickets');
   const settings = await channelSettingsDocument();
   const { tenantId } = getContext();
   const accountFor = (to: string): ChannelAccount | null =>
@@ -177,6 +187,7 @@ export function shouldApplyStatus(current: string, next: CanonicalStatus['status
 export async function applyStatuses(
   updates: CanonicalStatus[],
 ): Promise<{ updated: number; unknown: number }> {
+  await assertModuleAccess('tickets');
   const { tenantId } = getContext();
   await connectToDatabase();
   const result = { updated: 0, unknown: 0 };
@@ -223,6 +234,7 @@ export interface QueueInput {
 
 /** Puts one message in the outbox. Replies (M6.3) and notifications (M6.4) both come through here. */
 export async function queueChannelMessage(input: QueueInput): Promise<string> {
+  await assertModuleAccess('tickets');
   const settings = await channelSettingsDocument();
   const context = getContext();
   const account = settings.accounts?.[input.account];
@@ -372,6 +384,7 @@ async function markFailedAttempt(
 
 /** Case B: XVERSE collects up to `limit` due messages. Each must be acknowledged. */
 export async function leaseOutbox(limit = 50): Promise<CanonicalOutbound[]> {
+  await assertModuleAccess('tickets');
   const { tenantId } = getContext();
   await connectToDatabase();
   await expireAbandoned(tenantId);
@@ -387,6 +400,7 @@ export async function leaseOutbox(limit = 50): Promise<CanonicalOutbound[]> {
 export async function acknowledgeOutbox(
   acks: CanonicalAck[],
 ): Promise<{ acknowledged: number; unknown: number }> {
+  await assertModuleAccess('tickets');
   const { tenantId } = getContext();
   await connectToDatabase();
   const result = { acknowledged: 0, unknown: 0 };
@@ -435,6 +449,7 @@ export async function deliverPendingChannelMessages(
   const tenants = await ChannelSettingsModel.find({ enabled: true, delivery: 'push' }).lean();
 
   for (const settings of tenants) {
+    if (!(await moduleAvailable('tickets', String(settings.tenantId)))) continue;
     const provider = providerFor(settings.provider);
     let apiKey: string | null = null;
     try {
@@ -517,6 +532,7 @@ export interface ChannelMessageRow {
 }
 
 export async function recentChannelMessages(limit = 15): Promise<ChannelMessageRow[]> {
+  await assertModuleAccess('tickets');
   const { tenantId } = getContext();
   await connectToDatabase();
   const rows = await ChannelMessageModel.find({ tenantId })
@@ -544,6 +560,7 @@ export async function simulateInbound(input: {
   from: string;
   text: string;
 }): Promise<InboundResult> {
+  await assertModuleAccess('tickets');
   const settings = await channelSettingsDocument();
   if (settings.provider !== 'mock') throw new Error('Simulation is available in test mode only.');
   const to = settings.accounts?.[input.account]?.number;

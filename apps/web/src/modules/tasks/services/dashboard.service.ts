@@ -1,3 +1,4 @@
+import { moduleAvailable } from '@/modules/core/services/module-access.service';
 import { connectToDatabase } from '@/lib/db';
 import { toObjectId } from '@/lib/ids';
 import { getContext } from '@/lib/tenant-context';
@@ -54,6 +55,14 @@ export async function loadDashboard(scope: {
   /** An agent sees only their own work, a manager and above see the whole tenant. */
   onlyAssigneeId?: string;
 }): Promise<DashboardData> {
+  if (!(await moduleAvailable('tasks')))
+    return {
+      tiles: { open: 0, overdue: 0, dueToday: 0, unassigned: 0, blocked: 0 },
+      bySpace: [],
+      byAssignee: [],
+      ageing: [],
+      week: { loggedMinutes: 0, estimatedMinutes: 0 },
+    };
   await connectToDatabase();
 
   const { tenantId } = getContext();
@@ -110,6 +119,7 @@ export async function loadDashboard(scope: {
         tenantId,
         deletedAt: null,
         workDate: { $gte: weekStart, $lt: endOfWeek(new Date()) },
+        ...(!(await moduleAvailable('tickets')) ? { ticketId: null } : {}),
         ...(scope.onlyAssigneeId ? { userId: toObjectId(scope.onlyAssigneeId) } : {}),
       },
     },

@@ -1,3 +1,6 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
+import { portalPath, portalAuthPath } from '@coex/shared/core/portal-links';
+import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
 import { ticketSearchClauses } from '@/modules/tickets/services/search-filter.service';
 import { permissionsFor } from '@coex/shared/core/permissions';
 import { TenantModel } from '@coex/shared/core/models/tenant.model';
@@ -19,12 +22,12 @@ import {
   type IncomingFile,
 } from '@/modules/tickets/services/attachment.service';
 import { recordAudit } from '@/modules/core/services/audit.service';
-import { createUser } from '@/modules/core/services/user.service';
-import { alertStaff, appBaseUrl } from '@/modules/core/services/email.service';
+import { alertStaff, appBaseUrl, queueEmail } from '@/modules/core/services/email.service';
 import { RECORD_PAGE_SIZE } from '@/modules/core/record-page-size';
 
 /** Revalidate account/contact/company on every call. Never infer access from an email alone. */
 export async function portalIdentity() {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const { tenantId, userId } = getContext();
   const user = await UserModel.findOne({
@@ -45,14 +48,13 @@ export async function portalIdentity() {
     throw new Error(
       'Portal access is not linked to an active customer contact. Please contact support.',
     );
-  if (
-    !(await TenantModel.exists({
-      _id: tenantId,
-      status: 'active',
-      'modules.tickets': { $ne: false },
-    }))
-  )
-    throw new Error('Customer support is not available for this workspace.');
+  const tenant = await TenantModel.findOne({
+    _id: tenantId,
+    status: 'active',
+    deletedAt: null,
+    'modules.tickets': { $ne: false },
+  }).select('slug');
+  if (!tenant) throw new Error('Customer support is not available for this workspace.');
   const contacts = await ContactModel.find({
     tenantId,
     userId,
@@ -68,7 +70,12 @@ export async function portalIdentity() {
   if (!user.organisationId) {
     if (!user.legacySourceId?.startsWith('osticket:') || contact.organisationId)
       throw new Error('Customer assignment is pending. Please contact support.');
-    return { user, contact, organisation: { _id: null, name: 'Customer assignment pending' } };
+    return {
+      user,
+      contact,
+      tenant,
+      organisation: { _id: null, name: 'Customer assignment pending' },
+    };
   }
   const organisation = await OrganisationModel.findOne({
     _id: user.organisationId,
@@ -77,7 +84,7 @@ export async function portalIdentity() {
     deletedAt: null,
   });
   if (!organisation) throw new Error('This customer account is inactive. Please contact support.');
-  return { user, contact, organisation };
+  return { user, contact, tenant, organisation };
 }
 async function ownScope() {
   const identity = await portalIdentity();
@@ -275,6 +282,7 @@ export async function portalAttachment(id: string, attachmentId: string) {
 }
 /** Administrative provisioning only; existing staff accounts are never repurposed. */
 export async function provisionPortalAccount(contactId: string) {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const { tenantId, userId } = getContext();
   const admin = await UserModel.findOne({
@@ -310,57 +318,82 @@ export async function provisionPortalAccount(contactId: string) {
     }))
   )
     throw new Error('Customer is inactive.');
-  // Password sign-in resolves a global email; do not create an ambiguous second identity.
-  if (await UserModel.exists({ email: contact.email, deletedAt: null }))
-    throw new Error(
-      'This email already has a Worktello account. Ask an administrator to review its access.',
-    );
-  const result = await createUser({
-    name: contact.name,
-    email: contact.email,
-    role: 'client_contact',
-  });
-  const user = await UserModel.findOne({
-    tenantId,
-    email: contact.email,
-    role: 'client_contact',
+  const email = contact.email;
+  const tenant = await TenantModel.findOne({
+    _id: tenantId,
+    status: 'active',
     deletedAt: null,
+    'modules.tickets': { $ne: false },
   });
-  if (!user) throw new Error('Could not link account.');
-  await UserModel.updateOne(
-    { _id: user._id, tenantId },
-    { $set: { organisationId: contact.organisationId } },
-  );
-  const linked = await ContactModel.updateOne(
-    {
-      _id: contact._id,
-      tenantId,
-      userId: null,
-      email: contact.email,
-      organisationId: contact.organisationId,
-      status: 'active',
-      deletedAt: null,
-    },
-    { $set: { userId: user._id } },
-  );
-  if (!linked.modifiedCount) {
-    await UserModel.updateOne({ _id: user._id, tenantId }, { $set: { status: 'suspended' } });
-    throw new Error(
-      'Contact changed while linking. The new account is suspended; ask an administrator to review it.',
+  if (!tenant) throw new Error('Customer support is not available for this workspace.');
+  const activationUrl = `${appBaseUrl()}${portalAuthPath('/activate', tenant.slug)}`;
+  const database = await connectToDatabase();
+  const emailQueued = await database.connection.transaction(async (session) => {
+    // One membership per tenant/email; the same email in another company is independent.
+    if (await UserModel.exists({ tenantId, email: email, deletedAt: null }).session(session))
+      throw new Error(
+        'This email already has a Worktello account in this company. Ask an administrator to review its access.',
+      );
+    const [user] = await UserModel.create(
+      [
+        {
+          tenantId,
+          name: contact.name,
+          email: email,
+          role: 'client_contact',
+          status: 'invited',
+          passwordHash: null,
+          mustChangePassword: true,
+          organisationId: contact.organisationId,
+        },
+      ],
+      { session },
     );
-  }
-  await recordAudit({
-    action: 'contact.portal_access_created',
-    entityType: 'Contact',
-    entityId: contact._id,
-    after: { userId: String(user._id) },
+    const linked = await ContactModel.updateOne(
+      {
+        _id: contact._id,
+        tenantId,
+        userId: null,
+        email: email,
+        organisationId: contact.organisationId,
+        status: 'active',
+        deletedAt: null,
+      },
+      { $set: { userId: user._id } },
+      { session },
+    );
+    if (linked.modifiedCount !== 1)
+      throw new Error('Contact changed while linking. Refresh before trying again.');
+    const queued = await queueEmail(
+      {
+        kind: 'portal_invitation',
+        to: user.email,
+        subject: `${tenant.name} invited you to its customer portal`,
+        text: `Hello ${contact.name},\n\n${tenant.name} has invited you to submit requests and follow your own tickets.\n\nActivate your account by verifying your email and choosing your password here:\n${activationUrl}\n\nCompany portal: ${appBaseUrl()}${portalPath(tenant.slug)}\n\nThis account gives access only to this company's customer portal. If you did not expect this invitation, contact the company.`,
+      },
+      session,
+    );
+    await AuditLogModel.create(
+      [
+        {
+          tenantId,
+          actorId: userId,
+          action: 'contact.portal_access_created',
+          entityType: 'Contact',
+          entityId: contact._id,
+          after: { userId: String(user._id), emailQueued: queued },
+        },
+      ],
+      { session },
+    );
+    return queued;
   });
-  return result;
+  return { activationUrl, emailQueued };
 }
 
 /** Public support replies on this contact's own tickets only. */
 export async function portalNotifications(since: Date, until: Date) {
-  const { filter } = await ownScope();
+  const { filter, identity } = await ownScope();
   const tickets = await TicketModel.find(filter).select('_id number');
   const numbers = new Map(tickets.map((ticket) => [String(ticket._id), ticket.number]));
   const messages = await TicketMessageModel.find({
@@ -377,6 +410,6 @@ export async function portalNotifications(since: Date, until: Date) {
     id: `portal:${message._id}`,
     title: `${numbers.get(String(message.ticketId))} · Support replied`,
     body: 'Open your ticket to read the reply.',
-    url: `/portal/tickets/${message.ticketId}`,
+    url: `${portalPath(identity.tenant.slug)}/tickets/${message.ticketId}`,
   }));
 }

@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
@@ -155,6 +156,7 @@ export async function findLeadDuplicates(
   probe: { email?: string; mobile?: string; mobileCountry?: string; company?: string },
   excludeId?: string,
 ): Promise<LeadDuplicate[]> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const email = probe.email?.trim().toLowerCase() || null;
@@ -225,6 +227,7 @@ export async function createLead(
   input: LeadInput,
   options: { confirmDuplicates?: boolean } = {},
 ): Promise<string> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requireManage();
 
@@ -257,6 +260,7 @@ export async function createLead(
 }
 
 export async function updateLead(id: string, input: LeadInput): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requireManage();
 
@@ -294,6 +298,7 @@ export async function updateLead(id: string, input: LeadInput): Promise<void> {
 
 /** Marks a new lead as being worked, or puts a disqualified one back to work. */
 export async function startWorkingLead(id: string): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requireManage();
 
@@ -318,6 +323,7 @@ export async function startWorkingLead(id: string): Promise<void> {
 
 /** The lead is kept, never deleted, so the reason is what makes the decision reviewable later. */
 export async function disqualifyLead(id: string, reason: string): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requireManage();
 
@@ -346,6 +352,7 @@ export async function disqualifyLead(id: string, reason: string): Promise<void> 
 
 /** Nothing deletes: an archived lead leaves the list but stays in the audit history. */
 export async function archiveLead(id: string): Promise<void> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requireManage();
 
@@ -365,6 +372,7 @@ export interface LeadFilter {
 }
 
 export async function listLeads(filter: LeadFilter = {}): Promise<LeadSummary[]> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
 
   const query: Record<string, unknown> = {};
@@ -414,6 +422,7 @@ export async function listLeads(filter: LeadFilter = {}): Promise<LeadSummary[]>
 
 /** The sources a person can choose, from the tenant's own list. */
 export async function listLeadSources(): Promise<string[]> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   return sourceList();
 }
@@ -441,6 +450,7 @@ export interface ConvertLeadResult {
  * The lead's notes land on the customer's timeline and the lead is kept, marked converted.
  */
 export async function convertLead(id: string, input: ConvertLeadInput): Promise<ConvertLeadResult> {
+  await assertModuleAccess('crm');
   await connectToDatabase();
   await requireManage();
 

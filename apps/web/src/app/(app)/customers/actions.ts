@@ -217,9 +217,9 @@ export async function logActivityAction(
 }
 
 export async function provisionPortalAction(
-  _previous: { error?: string; password?: string },
+  _previous: { error?: string; activationUrl?: string; emailQueued?: boolean },
   form: FormData,
-): Promise<{ error?: string; password?: string }> {
+): Promise<{ error?: string; activationUrl?: string; emailQueued?: boolean }> {
   const actor = await requirePermission('user.manage');
   try {
     const { provisionPortalAccount } = await import('@/modules/portal/service');

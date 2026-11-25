@@ -9,7 +9,8 @@ import {
   type AuthenticatedUser,
   type Theme,
 } from '@/modules/core/services/auth-context.service';
-import { can, type Permission } from '@coex/shared/core/permissions';
+import { type Permission } from '@coex/shared/core/permissions';
+import { assertWorkspaceAccess } from '@/modules/core/services/workspace-access.service';
 
 /**
  * The bridge between an HTTP request and the tenant context the data layer expects.
@@ -42,6 +43,7 @@ export const getSignedInUser = cache(
 export async function requireUser(): Promise<SignedInUser> {
   const user = await getSignedInUser();
   if (!user) redirect('/login');
+  if (user.workspaceAccess && user.workspaceAccess !== 'allowed') redirect('/workspace-status');
   return user;
 }
 
@@ -68,6 +70,7 @@ export async function requirePermission(permission: Permission): Promise<SignedI
  * queries without the caller passing a tenantId.
  */
 export async function asUser<T>(user: SignedInUser, work: () => Promise<T>): Promise<T> {
+  await assertWorkspaceAccess(user.tenantId);
   const context: RequestContext = {
     tenantId: toObjectId(user.tenantId),
     userId: toObjectId(user.id),
@@ -78,7 +81,7 @@ export async function asUser<T>(user: SignedInUser, work: () => Promise<T>): Pro
 }
 
 export function userCan(user: SignedInUser, permission: Permission): boolean {
-  return can({ role: user.role, permissionGrants: user.permissions }, permission);
+  return user.permissions.includes(permission);
 }
 
 export async function requestIpAddress(): Promise<string | null> {

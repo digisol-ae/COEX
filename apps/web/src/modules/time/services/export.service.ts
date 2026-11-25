@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { loadTimesheet, loadTotals } from './timesheet.service';
 import { formatMinutes } from '@coex/shared/time/week';
 import { toDateKey } from '@coex/shared/time/week';
@@ -28,6 +29,7 @@ export function toCsv(rows: (string | number | null)[][]): string {
 }
 
 export async function timesheetCsv(week: Date, userId?: string): Promise<string> {
+  await assertModuleAccess('tasks');
   const timesheet = await loadTimesheet(week, userId);
 
   const rows: (string | number | null)[][] = [
@@ -52,6 +54,7 @@ export async function timesheetCsv(week: Date, userId?: string): Promise<string>
 }
 
 export async function totalsCsv(from: Date, to: Date): Promise<string> {
+  await assertModuleAccess('tasks');
   const totals = await loadTotals(from, to);
 
   const section = (

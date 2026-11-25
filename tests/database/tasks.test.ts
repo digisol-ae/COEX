@@ -1,3 +1,4 @@
+import { createTestTenants } from '../setup';
 import sharp from 'sharp';
 import * as taskEmail from '@/modules/core/services/email.service';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -72,6 +73,7 @@ afterAll(async () => {
 
 beforeEach(async () => {
   await clearDatabase();
+  await createTestTenants(otherTenantId);
 
   await TenantModel.create({
     _id: tenantId,

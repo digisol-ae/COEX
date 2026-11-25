@@ -1,3 +1,4 @@
+import { createTestTenants } from '../setup';
 import { afterAll, beforeAll, beforeEach, expect, it } from 'vitest';
 import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
@@ -20,7 +21,10 @@ const context = {
 const run = <T>(work: () => Promise<T>) => runWithContext(context, work);
 beforeAll(() => connectForTests('services_1021'));
 afterAll(disconnectFromTests);
-beforeEach(clearDatabase);
+beforeEach(async () => {
+  await clearDatabase();
+  await createTestTenants(context.tenantId);
+});
 async function seed() {
   const organisationId = await createOrganisation({ name: 'QA TEST Clinic', kind: 'client' });
   const parent = await createProduct({
@@ -90,8 +94,10 @@ it('calculates yearly licence support and keeps customer and product tenant boun
     });
     expect((await getContract(support))?.valueMinorUnits).toBe(300000);
     await expect(createContract({ ...input, type: 'amc' })).rejects.toThrow('not available');
+    const foreignTenant = new Types.ObjectId();
+    await createTestTenants(foreignTenant);
     await expect(
-      runWithContext({ ...context, tenantId: new Types.ObjectId() }, () => createContract(input)),
+      runWithContext({ ...context, tenantId: foreignTenant }, () => createContract(input)),
     ).rejects.toThrow('customer');
     await expect(
       createProduct({

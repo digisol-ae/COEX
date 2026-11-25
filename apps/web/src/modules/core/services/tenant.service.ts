@@ -1,5 +1,7 @@
 import { Types } from 'mongoose';
 import { STAFF_ROLES } from '@coex/shared/core/permissions';
+import { effectiveModules, type ModuleAllowance } from '@coex/shared/core/modules';
+import { occupiedStaff } from './subscription.service';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { TenantModel } from '@coex/shared/core/models/tenant.model';
@@ -9,6 +11,15 @@ import { QueueModel } from '@coex/shared/tickets/models/queue.model';
 import { recordAudit, changedFields } from './audit.service';
 import { hashPassword } from '@/lib/password';
 import { randomBytes } from 'node:crypto';
+import {
+  DAY_MS,
+  DEFAULT_STORAGE_LIMIT_BYTES,
+  positiveInteger,
+  workspaceAccess,
+} from '@coex/shared/core/saas';
+import { requirePlatformAdministrator } from './platform-access.service';
+import { provisioningDefaults } from './platform-settings.service';
+import { initialiseStorageUsage } from '@/lib/storage';
 
 /**
  * Tenant settings and tenant creation.
@@ -194,10 +205,23 @@ export interface TenantSummary {
   slug: string;
   status: string;
   userCount: number;
+  modules: ModuleAllowance;
+  effectiveModules: ModuleAllowance;
+  staffCount: number;
+  portalCount: number;
+  plan: string | null;
+  seats: number | null;
+  accessEndsAt: Date | null;
   createdAt: Date;
+  commercialStatus: string;
+  trialEndsAt: Date | null;
+  storageLimitBytes: number;
+  storageUsedBytes: number;
+  access: ReturnType<typeof workspaceAccess>;
 }
 
 export async function listTenants(): Promise<TenantSummary[]> {
+  await requirePlatformAdministrator();
   await connectToDatabase();
 
   const tenants = await TenantModel.find({ deletedAt: null }).sort({ createdAt: 1 });
@@ -208,8 +232,28 @@ export async function listTenants(): Promise<TenantSummary[]> {
       name: tenant.name,
       slug: tenant.slug,
       status: tenant.status,
+      modules: {
+        tasks: tenant.modules?.tasks !== false,
+        tickets: tenant.modules?.tickets !== false,
+        crm: tenant.modules?.crm !== false,
+      },
+      effectiveModules: effectiveModules(tenant),
       userCount: await UserModel.countDocuments({ tenantId: tenant._id, deletedAt: null }),
+      staffCount: await UserModel.countDocuments({ tenantId: tenant._id, ...occupiedStaff }),
+      portalCount: await UserModel.countDocuments({
+        tenantId: tenant._id,
+        role: 'client_contact',
+        deletedAt: null,
+      }),
+      plan: tenant.commercial?.plan ?? null,
+      seats: tenant.commercial?.seats ?? null,
+      accessEndsAt: tenant.commercial?.accessEndsAt ?? null,
       createdAt: tenant.createdAt,
+      commercialStatus: tenant.commercial?.status ?? 'legacy',
+      trialEndsAt: tenant.commercial?.trialEndsAt ?? null,
+      storageLimitBytes: tenant.storageLimitBytes ?? DEFAULT_STORAGE_LIMIT_BYTES,
+      storageUsedBytes: await initialiseStorageUsage(String(tenant._id)),
+      access: workspaceAccess(tenant.status, tenant.commercial),
     })),
   );
 }
@@ -226,9 +270,28 @@ export interface CreateTenantInput {
  * is not a tenant. Only a platform administrator may call this.
  */
 export async function createTenant(input: CreateTenantInput): Promise<{ password: string }> {
+  await requirePlatformAdministrator();
   await connectToDatabase();
 
+  if (
+    !input.name.trim() ||
+    input.name.length > 200 ||
+    !input.adminName.trim() ||
+    input.adminName.length > 200
+  )
+    throw new Error('Enter a company name and administrator name of at most 200 characters.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.adminEmail.trim()) || input.adminEmail.length > 254)
+    throw new Error('Enter a valid administrator email.');
+  // The current login resolves one account per email. Do not provision an ambiguous login.
+  if (await UserModel.exists({ email: input.adminEmail.trim().toLowerCase(), deletedAt: null }))
+    throw new Error('That email already has an account. Use a separate administrator email.');
+
   const slug = input.slug.trim().toLowerCase();
+
+  if (['new', 'tickets', 'profile'].includes(slug))
+    throw new Error(
+      'Choose a different identifier; that word is reserved for customer portal navigation.',
+    );
 
   if (!/^[a-z0-9-]{2,40}$/.test(slug)) {
     throw new Error('The identifier may use lower case letters, numbers and hyphens only.');
@@ -238,46 +301,131 @@ export async function createTenant(input: CreateTenantInput): Promise<{ password
     throw new Error('That identifier is already taken.');
   }
 
-  const tenant = await TenantModel.create({ name: input.name.trim(), slug });
-
+  const defaults = await provisioningDefaults();
+  const now = new Date();
   const password = randomBytes(9).toString('base64url');
-
-  const admin = await UserModel.create({
-    tenantId: tenant._id,
-    name: input.adminName.trim(),
-    email: input.adminEmail.trim().toLowerCase(),
-    role: 'tenant_admin',
-    passwordHash: await hashPassword(password),
-    mustChangePassword: true,
-    status: 'active',
-  });
-
-  // A tenant with no queue cannot accept a ticket, so day one comes with one rather than with a
-  // dead end. It is renamed far more often than it is deleted, which is why it is named plainly.
-  await QueueModel.create({
-    tenantId: tenant._id,
-    name: 'General support',
-    description: 'Everything that has not been sorted into a queue of its own yet.',
-    isDefault: true,
-    status: 'active',
-  });
-
-  // Written against the new tenant, so the new tenant's own audit trail starts with its creation.
-  await AuditLogModel.create({
-    tenantId: tenant._id,
-    actorId: getContext().userId,
-    action: 'tenant.created',
-    entityType: 'Tenant',
-    entityId: tenant._id,
-    after: { name: tenant.name, slug: tenant.slug, firstAdministrator: admin.email },
-  });
-
-  await recordAudit({
-    action: 'tenant.created',
-    entityType: 'Tenant',
-    entityId: tenant._id,
-    after: { name: tenant.name, slug: tenant.slug },
+  const passwordHash = await hashPassword(password);
+  const database = await connectToDatabase();
+  const context = getContext();
+  await database.connection.transaction(async (session) => {
+    const [tenant] = await TenantModel.create(
+      [
+        {
+          name: input.name.trim(),
+          slug,
+          storageLimitBytes: defaults.storageLimitBytes,
+          storageUsedBytes: 0,
+          commercial: {
+            status: 'trialing',
+            startedAt: now,
+            trialEndsAt: new Date(now.getTime() + defaults.trialDays * DAY_MS),
+          },
+        },
+      ],
+      { session },
+    );
+    const [admin] = await UserModel.create(
+      [
+        {
+          tenantId: tenant._id,
+          name: input.adminName.trim(),
+          email: input.adminEmail.trim().toLowerCase(),
+          role: 'tenant_admin',
+          passwordHash,
+          mustChangePassword: true,
+          status: 'active',
+        },
+      ],
+      { session },
+    );
+    await QueueModel.create(
+      [
+        {
+          tenantId: tenant._id,
+          name: 'General support',
+          description: 'Everything that has not been sorted into a queue of its own yet.',
+          isDefault: true,
+          status: 'active',
+        },
+      ],
+      { session },
+    );
+    await AuditLogModel.create(
+      [
+        {
+          tenantId: tenant._id,
+          actorId: context.userId,
+          action: 'tenant.created',
+          entityType: 'Tenant',
+          entityId: tenant._id,
+          after: { name: tenant.name, slug: tenant.slug, firstAdministrator: admin.email },
+        },
+        {
+          tenantId: context.tenantId,
+          actorId: context.userId,
+          action: 'tenant.created',
+          entityType: 'Tenant',
+          entityId: tenant._id,
+          after: { name: tenant.name, slug: tenant.slug },
+        },
+      ],
+      { session, ordered: true },
+    );
   });
 
   return { password };
+}
+
+/** Extend from the later of now and the current expiry; an extension cannot shorten a trial. */
+export async function extendTenantTrial(tenantId: string, days: number, reason: string) {
+  await requirePlatformAdministrator();
+  positiveInteger(days, 'Extension days', 3650);
+  if (!reason.trim() || reason.length > 500)
+    throw new Error('Enter a reason of at most 500 characters.');
+  const tenant = await TenantModel.findOne({ _id: tenantId, deletedAt: null });
+  if (!tenant || !['trialing', 'expired'].includes(tenant.commercial?.status ?? 'legacy'))
+    throw new Error('Only a trial workspace can receive a trial extension.');
+  if (tenant.status !== 'active')
+    throw new Error('A suspended workspace must be reviewed before extending its trial.');
+  const previous = tenant.commercial?.trialEndsAt ?? null;
+  const next = new Date(Math.max(Date.now(), previous?.getTime() ?? 0) + days * DAY_MS);
+  const changed = await TenantModel.updateOne(
+    { _id: tenant._id, updatedAt: tenant.updatedAt },
+    {
+      $set: { 'commercial.status': 'trialing', 'commercial.trialEndsAt': next },
+    },
+  );
+  if (changed.modifiedCount !== 1)
+    throw new Error('Workspace changed. Refresh before extending again.');
+  await recordAudit({
+    action: 'tenant.trial_extended',
+    entityType: 'Tenant',
+    entityId: tenant._id,
+    before: { trialEndsAt: previous },
+    after: { trialEndsAt: next, reason: reason.trim() },
+  });
+}
+
+export async function setTenantStorageLimit(tenantId: string, bytes: number, reason: string) {
+  await requirePlatformAdministrator();
+  positiveInteger(bytes, 'Storage bytes');
+  if (!reason.trim() || reason.length > 500)
+    throw new Error('Enter a reason of at most 500 characters.');
+  const tenant = await TenantModel.findOne({ _id: tenantId, deletedAt: null });
+  if (!tenant) throw new Error('Workspace not found.');
+  const used = await initialiseStorageUsage(tenantId);
+  if (bytes < used) throw new Error('The storage allowance cannot be lower than current usage.');
+  const changed = await TenantModel.updateOne(
+    { _id: tenant._id, storageUsedBytes: { $lte: bytes } },
+    { $set: { storageLimitBytes: bytes } },
+  );
+  if (changed.matchedCount !== 1)
+    throw new Error('Storage usage changed. Refresh before setting the limit.');
+  await recordAudit({
+    action: 'tenant.storage_limit_updated',
+    entityType: 'Tenant',
+    entityId: tenant._id,
+    before: { storageLimitBytes: tenant.storageLimitBytes ?? DEFAULT_STORAGE_LIMIT_BYTES },
+    after: { storageLimitBytes: bytes, reason: reason.trim() },
+  });
 }

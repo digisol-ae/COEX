@@ -1,3 +1,5 @@
+import { effectiveModules } from '@coex/shared/core/modules';
+import { workspaceAccess } from '@coex/shared/core/saas';
 import { STAFF_ROLES } from '@coex/shared/core/permissions';
 import { decodeJwt } from 'jose';
 import { Schema, model, models } from 'mongoose';
@@ -68,15 +70,20 @@ export async function handleTeamsActivity(
       status: 'active',
       deletedAt: null,
     }).limit(2),
-    TenantModel.findOne({ _id: settings.tenantId, status: 'active' }),
+    TenantModel.findOne({ _id: settings.tenantId, status: 'active', deletedAt: null }),
   ]);
   const actor = users.length === 1 ? users[0] : null;
-  if (!actor || !tenant || actor.role === 'client_contact')
+  if (
+    !actor ||
+    !tenant ||
+    workspaceAccess(tenant.status, tenant.commercial) !== 'allowed' ||
+    actor.role === 'client_contact'
+  )
     return messageResponse(
       'Sign in to Worktello with Microsoft first to link your staff account. If it is already linked, ask your administrator to check access.',
     );
   if (
-    !tenant.modules?.tasks ||
+    !effectiveModules(tenant).tasks ||
     !permissionsFor({
       role: actor.role as Role,
       permissionGrants: actor.permissionGrants,
@@ -247,11 +254,13 @@ export async function loadTeamsForm(
       entraObjectId: { $type: 'string' },
       role: { $in: [...STAFF_ROLES] },
     }),
-    TenantModel.findOne({ _id: settings.tenantId, status: 'active' }),
+    TenantModel.findOne({ _id: settings.tenantId, status: 'active', deletedAt: null }),
   ]);
   if (
     !actor ||
-    !tenant?.modules?.tasks ||
+    !tenant ||
+    !effectiveModules(tenant).tasks ||
+    workspaceAccess(tenant.status, tenant.commercial) !== 'allowed' ||
     !permissionsFor({
       role: actor.role as Role,
       permissionGrants: actor.permissionGrants,

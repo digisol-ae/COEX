@@ -125,7 +125,7 @@ describe('customer portal isolation and workflow', () => {
       portalNotifications(new Date(now.getTime() - 1000), new Date(now.getTime() + 1000)),
     );
     expect(events).toHaveLength(1);
-    expect(events[0].url).toBe(`/portal/tickets/${id}`);
+    expect(events[0].url).toBe(`/portal/qa-portal/tickets/${id}`);
     expect(JSON.stringify(events)).not.toContain('Sensitive body');
     await ContactModel.updateOne({ _id: contactId }, { $set: { status: 'inactive' } });
     await expect(runWithContext(context, () => portalNotifications(now, now))).rejects.toThrow();
@@ -256,10 +256,12 @@ describe('customer portal isolation and workflow', () => {
       runWithContext(context, () => provisionPortalAccount(String(contact._id))),
     ).rejects.toThrow('Not allowed');
     const result = await runWithContext(admin, () => provisionPortalAccount(String(contact._id)));
-    expect(result.password.length).toBeGreaterThan(8);
+    expect(result.activationUrl).toContain('/activate?tenant=qa-portal');
+    expect('password' in result).toBe(false);
     const updated = await ContactModel.findById(contact._id);
     const account = await UserModel.findById(updated?.userId);
     expect(account?.role).toBe('client_contact');
+    expect(account?.status).toBe('invited');
     expect(String(account?.organisationId)).toBe(String(orgId));
     await ContactModel.create({
       tenantId,

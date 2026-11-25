@@ -1,3 +1,4 @@
+import { createTestTenants } from '../setup';
 import { afterAll, beforeAll, beforeEach, expect, it } from 'vitest';
 import { Types } from 'mongoose';
 import { connectForTests, clearDatabase, disconnectFromTests } from '../setup';
@@ -20,7 +21,10 @@ const one = {
 const two = { ...one, tenantId: new Types.ObjectId() };
 const within = <T>(fn: () => Promise<T>) => runWithContext(one, fn);
 beforeAll(() => connectForTests('agreement_drafting'));
-beforeEach(clearDatabase);
+beforeEach(async () => {
+  await clearDatabase();
+  await createTestTenants(one.tenantId, two.tenantId);
+});
 afterAll(disconnectFromTests);
 it('isolates custom templates and preserves independently edited customer snapshots', async () => {
   await within(async () => {

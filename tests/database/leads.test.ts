@@ -1,3 +1,4 @@
+import { createTestTenants } from '../setup';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Types } from 'mongoose';
 import { clearDatabase, connectForTests, disconnectFromTests } from '../setup';
@@ -198,6 +199,7 @@ describe('leads', () => {
     await asManager(() => createLead({ name: 'Ours' }));
 
     const otherTenant = new Types.ObjectId();
+    await createTestTenants(otherTenant);
     const found = await runWithContext(as(managerId, otherTenant), () => listLeads());
     expect(found).toHaveLength(0);
   });

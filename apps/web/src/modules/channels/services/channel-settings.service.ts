@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { toObjectId } from '@/lib/ids';
@@ -50,6 +51,7 @@ export interface ChannelSettingsInput {
 }
 
 export async function channelSettingsDocument() {
+  await assertModuleAccess('tickets');
   const { tenantId } = getContext();
   await connectToDatabase();
   return (
@@ -59,6 +61,7 @@ export async function channelSettingsDocument() {
 }
 
 export async function getChannelSettings(): Promise<ChannelSettingsView> {
+  await assertModuleAccess('tickets');
   const settings = await channelSettingsDocument();
   const { tenantId } = getContext();
   const [tenant, pendingCount, failedCount] = await Promise.all([
@@ -113,6 +116,7 @@ function number(label: string, value: string, required: boolean): string {
 }
 
 export async function saveChannelSettings(input: ChannelSettingsInput): Promise<void> {
+  await assertModuleAccess('tickets');
   const settings = await channelSettingsDocument();
   const context = getContext();
 
@@ -183,6 +187,7 @@ export async function saveChannelSettings(input: ChannelSettingsInput): Promise<
 
 /** Creates a new signing secret, returned once to be copied into XVERSE, and stored sealed. */
 export async function rotateSigningSecret(): Promise<string> {
+  await assertModuleAccess('tickets');
   const settings = await channelSettingsDocument();
   const secret = newSigningSecret();
   settings.signingSecretSealed = sealSecret(secret);

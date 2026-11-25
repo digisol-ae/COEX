@@ -58,13 +58,19 @@ export async function alertMentioned(input: {
 }): Promise<void> {
   for (const user of mentionedIn(input.body, input.chosenIds, input.candidates)) {
     try {
-      await alertStaff('mentioned', user.id, input.subject, [
-        `${input.authorName} mentioned you on ${input.where}:`,
-        '',
-        input.body,
-        '',
-        input.link,
-      ]);
+      await alertStaff(
+        'mentioned',
+        user.id,
+        input.subject,
+        [`${input.authorName} mentioned you on ${input.where}:`, '', input.body, '', input.link],
+        {
+          sourceModule: input.link.includes('/tasks/')
+            ? 'tasks'
+            : input.link.includes('/support/')
+              ? 'tickets'
+              : 'crm',
+        },
+      );
     } catch (error) {
       console.error('Mention alert skipped:', error instanceof Error ? error.message : error);
     }

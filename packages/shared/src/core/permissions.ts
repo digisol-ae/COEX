@@ -184,6 +184,8 @@ export function permissionsFor(holder: PermissionHolder): Set<Permission> {
     if (isPermission(permission)) granted.delete(permission);
   }
 
+  if (holder.role !== 'platform_admin') granted.delete('tenant.create');
+
   return granted;
 }
 

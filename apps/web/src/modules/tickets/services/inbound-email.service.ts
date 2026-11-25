@@ -1,3 +1,5 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
+import { assertWorkspaceAccess } from '@/modules/core/services/workspace-access.service';
 import type { ParsedMail } from 'mailparser';
 import { connectToDatabase } from '@/lib/db';
 import { runWithContext } from '@/lib/tenant-context';
@@ -79,6 +81,8 @@ export async function importInboundEmail(
     throw new Error('Inbound email has no Message-ID; refusing to import an unthreadable message.');
   }
   const tenantId = toObjectId(config.tenantId);
+  await assertWorkspaceAccess(config.tenantId);
+  await assertModuleAccess('tickets', String(config.tenantId));
 
   await connectToDatabase();
 

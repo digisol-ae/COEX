@@ -1,3 +1,4 @@
+import { moduleAvailable, assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { assertStaffAdditions } from '@/modules/core/services/staff.service';
 import { ticketSearchClauses } from './search-filter.service';
 import { permissionsFor, type Role } from '@coex/shared/core/permissions';
@@ -95,6 +96,7 @@ export interface CreatedTicket {
 }
 
 export async function createTicket(input: CreateTicketInput): Promise<CreatedTicket> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const context = getContext();
@@ -249,6 +251,7 @@ export interface ReplyInput {
  * service level reports become flattering fiction.
  */
 export async function addReply(input: ReplyInput): Promise<string> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const context = getContext();
@@ -295,7 +298,7 @@ export async function addReply(input: ReplyInput): Promise<string> {
   }
 
   if (input.visibility === 'internal') {
-    if (ticket.escalatedTaskId) {
+    if (ticket.escalatedTaskId && (await moduleAvailable('tasks'))) {
       await TaskModel.updateOne(
         { _id: ticket.escalatedTaskId, tenantId: context.tenantId },
         { $set: { lastActivityAt: now } },
@@ -365,6 +368,7 @@ async function stopTimersOnTicket(ticketId: Types.ObjectId, ticketNumber: string
 }
 
 export async function changeStatus(ticketId: string, status: TicketStatus): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const ticket = await tickets().findById(ticketId);
@@ -431,6 +435,7 @@ export async function changeStatus(ticketId: string, status: TicketStatus): Prom
 
 /** Reopening a closed ticket: a new ticket, linked both ways, carrying the context across. */
 export async function createFollowOn(ticketId: string): Promise<string> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const original = await tickets().findById(ticketId);
@@ -530,6 +535,7 @@ export interface TicketFilter {
 }
 
 export async function listTickets(filter: TicketFilter = {}): Promise<TicketSummary[]> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const query: Record<string, unknown> = { mergedIntoId: null };
@@ -660,6 +666,7 @@ export interface TicketDetail extends TicketSummary {
 }
 
 export async function getTicketDetail(id: string): Promise<TicketDetail | null> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const ticket = await tickets().findById(id);
@@ -676,7 +683,7 @@ export async function getTicketDetail(id: string): Promise<TicketDetail | null> 
     tickets()
       .find({ _id: { $in: ticket.linkedTicketIds } })
       .select('number subject status'),
-    ticket.escalatedTaskId
+    ticket.escalatedTaskId && (await moduleAvailable('tasks'))
       ? TaskModel.findOne({ _id: ticket.escalatedTaskId, tenantId: getContext().tenantId }).select(
           'number',
         )
@@ -749,6 +756,7 @@ export async function assignTicket(
   userId: string | null,
   note?: string,
 ): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const ticket = await tickets().findById(ticketId);
@@ -794,6 +802,7 @@ export async function assignTicket(
 }
 
 export async function setTicketPriority(ticketId: string, priority: Priority): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const ticket = await tickets().findById(ticketId);
@@ -834,6 +843,7 @@ export async function setTicketPriority(ticketId: string, priority: Priority): P
 }
 
 export async function moveTicketToQueue(ticketId: string, queueId: string): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const ticket = await tickets().findById(ticketId);
@@ -907,6 +917,7 @@ export async function escalateToTask(input: {
   title?: string;
   assigneeIds?: string[];
 }): Promise<string> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const ticket = await tickets().findById(input.ticketId);
@@ -958,6 +969,7 @@ export async function escalateToTask(input: {
  * that leads somewhere with an explanation.
  */
 export async function mergeTickets(sourceId: string, targetId: string): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   if (sourceId === targetId) throw new Error('A ticket cannot be merged into itself.');
@@ -1007,6 +1019,7 @@ export async function mergeTickets(sourceId: string, targetId: string): Promise<
 
 /** Two tickets that are related but not the same. The link is symmetric, because relatedness is. */
 export async function linkTickets(ticketId: string, otherId: string): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   if (ticketId === otherId) throw new Error('A ticket cannot be linked to itself.');
@@ -1021,6 +1034,7 @@ export async function linkTickets(ticketId: string, otherId: string): Promise<vo
 }
 
 export async function unlinkTickets(ticketId: string, otherId: string): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const ticket = await tickets().findById(ticketId);
@@ -1034,6 +1048,7 @@ export async function unlinkTickets(ticketId: string, otherId: string): Promise<
 
 /** Finding the ticket to merge into or link to, without loading the whole desk into a dropdown. */
 export async function searchTickets(term: string, excludeId?: string): Promise<TicketSummary[]> {
+  await assertModuleAccess('tickets');
   if (!term.trim()) return [];
 
   const { tenantId, userId, isPlatformAdmin } = getContext();
@@ -1118,6 +1133,7 @@ async function recipientFor(ticket: EmailableTicket): Promise<string | null> {
 
 /** Where a public reply on this ticket will be emailed, or null when it will not be emailed. */
 export async function customerReplyAddress(ticketId: string): Promise<string | null> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const ticket = await tickets().findById(ticketId);
   if (!ticket || !(await publicRepliesAreEmailed())) return null;
@@ -1226,6 +1242,7 @@ export async function setTicketCustomer(
   organisationId: string,
   contactId: string,
 ): Promise<void> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
   const ticket = await tickets().findById(ticketId);
   if (!ticket) throw new Error('Ticket not found.');

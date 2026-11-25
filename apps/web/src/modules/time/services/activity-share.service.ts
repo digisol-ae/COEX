@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { fileStorage } from '@/lib/storage';
@@ -26,6 +27,7 @@ const formatWhen = (date: Date) =>
   });
 
 export async function buildReportFor(filter: ActivityFilter) {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const { tenantId, userId } = getContext();
 
@@ -90,6 +92,7 @@ export async function emailActivityReport(
   recipients: string[],
   note: string,
 ): Promise<number> {
+  await assertModuleAccess('tasks');
   const addresses = [...new Set(recipients.map((address) => address.trim().toLowerCase()))].filter(
     (address) => EMAIL.test(address),
   );

@@ -1,3 +1,4 @@
+import { createTestTenants } from '../setup';
 import { ContactModel } from '@coex/shared/crm/models/contact.model';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { Types } from 'mongoose';
@@ -24,6 +25,7 @@ afterAll(async () => {
 
 beforeEach(async () => {
   await clearDatabase();
+  await createTestTenants(tenantOne, tenantTwo);
 });
 
 describe('customer records', () => {

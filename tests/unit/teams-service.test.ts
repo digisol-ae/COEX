@@ -94,7 +94,7 @@ beforeEach(async () => {
     limit: async () => [actor],
     sort: () => ({ select: async () => [{ _id: actor._id, name: 'Eligible agent' }] }),
   }));
-  mocks.tenant.mockResolvedValue({ modules: { tasks: true } });
+  mocks.tenant.mockResolvedValue({ status: 'active', modules: { tasks: true } });
   mocks.space.mockResolvedValue({ _id: spaceId });
   mocks.folder.mockResolvedValue({ _id: folderId });
   mocks.canSpace.mockResolvedValue(true);
@@ -116,6 +116,16 @@ beforeEach(async () => {
 });
 
 describe('Teams task access and duplicate protection', () => {
+  it('blocks task creation and form loading after a tenant trial expires', async () => {
+    mocks.tenant.mockResolvedValue({
+      status: 'active',
+      modules: { tasks: true },
+      commercial: { status: 'trialing', trialEndsAt: new Date(0) },
+    });
+    await invoke();
+    expect(mocks.create).not.toHaveBeenCalled();
+    await expect(loadTeamsForm(draft, settings)).rejects.toThrow('Access denied');
+  });
   it('rejects invalid form-loader tokens before accessing the database', async () => {
     await expect(loadTeamsForm('not-a-signed-token', settings)).rejects.toThrow();
     expect(mocks.connect).not.toHaveBeenCalled();
@@ -225,4 +235,15 @@ describe('Teams task access and duplicate protection', () => {
     expect(mocks.reserve).toHaveBeenCalledOnce();
     expect(mocks.update).not.toHaveBeenCalled();
   });
+});
+
+it('refuses task creation and form loading when the assigned plan excludes Tasks', async () => {
+  mocks.tenant.mockResolvedValue({
+    status: 'active',
+    modules: { tasks: true },
+    commercial: { planSnapshot: { modules: { tasks: false } } },
+  });
+  await invoke();
+  expect(mocks.create).not.toHaveBeenCalled();
+  await expect(loadTeamsForm(draft, settings)).rejects.toThrow('Access denied');
 });

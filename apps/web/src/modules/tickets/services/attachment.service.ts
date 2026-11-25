@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import sharp from 'sharp';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
@@ -140,6 +141,7 @@ export async function attachToMessage(
   messageId: string,
   files: IncomingFile[],
 ): Promise<StoredAttachment[]> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const message = await messages().findById(messageId);
@@ -155,37 +157,43 @@ export async function attachToMessage(
     );
   }
 
+  // Validate the whole batch before storing any file.
   for (const file of files) {
-    if (file.body.byteLength === 0) continue;
-
-    if (file.body.byteLength > MAX_FILE_BYTES) {
+    if (file.body.byteLength > MAX_FILE_BYTES)
       throw new Error(
         `${file.fileName} is larger than ${Math.round(MAX_FILE_BYTES / (1024 * 1024))}MB. Send a cloud link instead.`,
       );
-    }
-
-    const { body, processed } = await prepare(file);
-
-    const saved = await storage.put({
-      tenantId: String(getContext().tenantId),
-      fileName: file.fileName,
-      contentType: file.contentType,
-      body,
-    });
-
-    stored.push({
-      fileName: file.fileName,
-      contentType: file.contentType,
-      storageKey: saved.key,
-      bytes: saved.bytes,
-      originalBytes: processed ? file.body.byteLength : null,
-      processedAt: processed ? new Date() : null,
-    });
   }
-
-  if (stored.length === 0) return [];
-
-  await messages().updateOne({ _id: message._id }, { $push: { attachments: { $each: stored } } });
+  try {
+    for (const file of files) {
+      if (file.body.byteLength === 0) continue;
+      const { body, processed } = await prepare(file);
+      const saved = await storage.put({
+        tenantId: String(getContext().tenantId),
+        fileName: file.fileName,
+        contentType: file.contentType,
+        body,
+      });
+      stored.push({
+        fileName: file.fileName,
+        contentType: file.contentType,
+        storageKey: saved.key,
+        bytes: saved.bytes,
+        originalBytes: processed ? file.body.byteLength : null,
+        processedAt: processed ? new Date() : null,
+      });
+    }
+    if (stored.length === 0) return [];
+    const updated = await messages().updateOne(
+      { _id: message._id },
+      { $push: { attachments: { $each: stored } } },
+    );
+    if (!updated) throw new Error('Message not found.');
+  } catch (error) {
+    // A quota failure half way through a batch must not leave inaccessible files consuming space.
+    await Promise.allSettled(stored.map((file) => storage.remove(file.storageKey)));
+    throw error;
+  }
 
   // A public reply's email is queued a few seconds before its files are stored; add them to it.
   await attachFilesToQueuedEmail(message._id, stored);
@@ -219,6 +227,7 @@ export async function attachmentForDownload(
   ticketId: string,
   attachmentId: string,
 ): Promise<AttachmentForDownload | null> {
+  await assertModuleAccess('tickets');
   await connectToDatabase();
 
   const ticket = await tickets().findById(ticketId);

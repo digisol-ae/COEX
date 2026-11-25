@@ -1,23 +1,25 @@
 'use client';
+import { portalAuthPath } from '@coex/shared/core/portal-links';
 import Link from 'next/link';
 import { useActionState } from 'react';
 import { Button, Field, Input, Notice } from '@/components/ui';
 import { Captcha } from '@/components/ui/captcha';
 import { activationAction, type ActivationState } from './actions';
-export function ActivationForm() {
+export function ActivationForm({ tenantSlug }: { tenantSlug?: string }) {
   const [state, action, pending] = useActionState(activationAction, {} as ActivationState);
   const step = state.step ?? 'request';
   if (step === 'done')
     return (
       <div className="mt-8 space-y-4">
         <Notice tone="ok">Your password is set. You can now sign in.</Notice>
-        <Link href="/login" className="underline">
+        <Link href={portalAuthPath('/login', tenantSlug)} className="underline">
           Sign in
         </Link>
       </div>
     );
   return (
     <form action={action} className="mt-8 space-y-4">
+      {tenantSlug !== undefined && <input type="hidden" name="tenant" value={tenantSlug} />}
       <input type="hidden" name="step" value={step} />
       {step === 'request' ? (
         <>
@@ -32,8 +34,8 @@ export function ActivationForm() {
       {step === 'code' ? (
         <>
           <Notice>
-            If an imported account is eligible, a code has been sent. It expires in 10 minutes. You
-            can request another after 10 minutes.
+            If this address has an invited customer account, a code has been sent. It expires in 10
+            minutes. You can request another after 10 minutes.
           </Notice>
           <Field label="Email verification code">
             <Input
@@ -83,7 +85,7 @@ export function ActivationForm() {
               : 'Set password'}
       </Button>
       <p className="text-center text-sm">
-        <Link className="underline" href="/login">
+        <Link className="underline" href={portalAuthPath('/login', tenantSlug)}>
           Back to sign in
         </Link>
       </p>

@@ -40,6 +40,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
           }
         : null,
       attachmentCount: messages.reduce((total, message) => total + message.attachments.length, 0),
+      timeAvailable: user.permissions.includes('task.read.own'),
       loggedMinutes: await loggedMinutesForTicket(id),
       lastActivityAt: ticket.lastActivityAt.toISOString(),
     };

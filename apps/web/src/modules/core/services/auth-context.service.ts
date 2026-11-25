@@ -1,8 +1,10 @@
+import { effectiveModules, modulePermissions } from '@coex/shared/core/modules';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { TenantModel } from '@coex/shared/core/models/tenant.model';
 import { permissionsFor, type Permission, type Role } from '@coex/shared/core/permissions';
 import { connectToDatabase } from '@/lib/db';
 import { resolveSession } from './session.service';
+import { workspaceAccess } from '@coex/shared/core/saas';
 
 /**
  * Who is behind a session cookie, with the permissions they hold.
@@ -22,10 +24,12 @@ export interface AuthenticatedUser {
   role: Role;
   tenantId: string;
   tenantName: string;
+  tenantSlug?: string;
   permissions: Permission[];
   theme: Theme;
   /** The What's new release this person has acknowledged; null for none yet. */
   releaseNotesSeen: string | null;
+  workspaceAccess?: ReturnType<typeof workspaceAccess>;
 }
 
 export async function resolveAuthenticatedUser(token: string): Promise<AuthenticatedUser | null> {
@@ -41,9 +45,12 @@ export async function resolveAuthenticatedUser(token: string): Promise<Authentic
   });
   if (!user) return null;
 
+  if (String(session.tenantId) !== String(user.tenantId)) return null;
+  if (session.impersonatedTenantId && user.role !== 'platform_admin') return null;
+
   const tenant = await TenantModel.findOne({
     _id: session.impersonatedTenantId ?? user.tenantId,
-    status: 'active',
+    deletedAt: null,
   });
   if (!tenant) return null;
 
@@ -54,13 +61,16 @@ export async function resolveAuthenticatedUser(token: string): Promise<Authentic
     role: user.role as Role,
     tenantId: String(tenant._id),
     tenantName: tenant.name,
-    permissions: [
-      ...permissionsFor({
+    tenantSlug: tenant.slug,
+    workspaceAccess: workspaceAccess(tenant.status, tenant.commercial),
+    permissions: modulePermissions(
+      permissionsFor({
         role: user.role as Role,
         permissionGrants: user.permissionGrants,
         permissionDenials: user.permissionDenials,
       }),
-    ],
+      effectiveModules(tenant),
+    ),
     theme: (user.theme as Theme | undefined) ?? 'sunset',
     releaseNotesSeen: user.releaseNotesSeen ?? null,
   };

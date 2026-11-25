@@ -1,3 +1,8 @@
+import { MODULES } from '@coex/shared/core/modules';
+import {
+  workspaceModules,
+  assertModuleAccess,
+} from '@/modules/core/services/module-access.service';
 import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
@@ -45,6 +50,12 @@ export interface ActivityInput {
 }
 
 export async function recordActivity(input: ActivityInput): Promise<void> {
+  if (
+    input.sourceModule === 'tasks' ||
+    input.sourceModule === 'tickets' ||
+    input.sourceModule === 'crm'
+  )
+    await assertModuleAccess(input.sourceModule);
   await connectToDatabase();
 
   const { userId } = getContext();
@@ -78,7 +89,18 @@ export interface TimelineEntry {
 export async function listTimeline(organisationId: string, limit = 50): Promise<TimelineEntry[]> {
   await connectToDatabase();
 
-  const entries = await activities().find({ organisationId }).sort({ occurredAt: -1 }).limit(limit);
+  const modules = await workspaceModules();
+  const disabled = MODULES.filter((key) => key !== 'crm' && !modules[key]);
+  const entries = await activities()
+    .find({
+      organisationId,
+      sourceModule: { $nin: disabled },
+      ...(!modules.crm
+        ? { $or: [{ sourceModule: { $ne: 'crm' as const } }, { sourceId: null }] }
+        : {}),
+    })
+    .sort({ occurredAt: -1 })
+    .limit(limit);
 
   const actorIds = [...new Set(entries.map((entry) => String(entry.actorId)).filter(Boolean))];
   const actors = await UserModel.find({ _id: { $in: actorIds } }).select('name');

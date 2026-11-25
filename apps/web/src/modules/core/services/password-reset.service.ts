@@ -1,3 +1,5 @@
+import { portalAccountScope, tokenMatchesPortal } from '@/modules/portal/tenant';
+import { portalAuthPath } from '@coex/shared/core/portal-links';
 import { createHash, randomBytes } from 'node:crypto';
 import type { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
@@ -28,9 +30,12 @@ function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
-function newLink(): { token: string; link: string } {
+function newLink(tenantSlug?: string): { token: string; link: string } {
   const token = randomBytes(32).toString('base64url');
-  return { token, link: `${appBaseUrl()}/reset-password?token=${token}` };
+  return {
+    token,
+    link: `${appBaseUrl()}${portalAuthPath('/reset-password', tenantSlug)}${tenantSlug ? '&' : '?'}token=${token}`,
+  };
 }
 
 async function storeLink(
@@ -58,7 +63,14 @@ export async function notifyPasswordSetByAdmin(
   user: { _id: Types.ObjectId; tenantId: Types.ObjectId; name: string; email: string },
   adminName: string,
 ): Promise<boolean> {
-  const { token, link } = newLink();
+  const account = await UserModel.findOne({ _id: user._id, tenantId: user.tenantId }).select(
+    'role',
+  );
+  const portalTenant =
+    account?.role === 'client_contact'
+      ? await TenantModel.findById(user.tenantId).select('slug')
+      : null;
+  const { token, link } = newLink(portalTenant?.slug);
   const queued = await queueEmail({
     kind: 'password_set_by_admin',
     to: user.email,
@@ -86,9 +98,22 @@ export type ResetRequestResult = 'sent' | 'email_off' | 'too_many' | 'no_account
  * Sends a reset link to the account with this email. The sign-in page shows the same answer
  * whatever this returns, so it never tells a stranger which addresses have accounts.
  */
-export async function requestPasswordReset(email: string): Promise<ResetRequestResult> {
+export async function requestPasswordReset(
+  email: string,
+  tenantSlug?: string,
+  accountKind?: 'staff' | 'portal',
+): Promise<ResetRequestResult> {
   await connectToDatabase();
+  const scope = await portalAccountScope(tenantSlug);
+  if (!scope) return 'no_account';
+  if (tenantSlug !== undefined && accountKind === 'staff') return 'no_account';
   const matches = await UserModel.find({
+    ...(accountKind === 'staff'
+      ? { role: { $ne: 'client_contact' } }
+      : accountKind === 'portal'
+        ? { role: 'client_contact' }
+        : {}),
+    ...scope,
     email: email.trim().toLowerCase(),
     deletedAt: null,
   }).limit(2);
@@ -104,7 +129,8 @@ export async function requestPasswordReset(email: string): Promise<ResetRequestR
       ))
   )
     return 'no_account';
-  if (!(await TenantModel.exists({ _id: user.tenantId, status: 'active' }))) return 'no_account';
+  if (!(await TenantModel.exists({ _id: user.tenantId, status: 'active', deletedAt: null })))
+    return 'no_account';
 
   const context = { tenantId: user.tenantId, userId: user._id, isPlatformAdmin: false };
   return runWithContext(context, async () => {
@@ -114,7 +140,11 @@ export async function requestPasswordReset(email: string): Promise<ResetRequestR
     });
     if (recent >= PER_HOUR) return 'too_many';
 
-    const { token, link } = newLink();
+    const portalTenant =
+      user.role === 'client_contact'
+        ? await TenantModel.findById(user.tenantId).select('slug')
+        : null;
+    const { token, link } = newLink(portalTenant?.slug);
 
     const queued = await queueEmail({
       kind: 'password_reset',
@@ -146,32 +176,48 @@ export async function requestPasswordReset(email: string): Promise<ResetRequestR
 }
 
 /** Whether a link can still be used, so the page can say so before anyone types a password. */
-export async function resetLinkIsValid(token: string): Promise<boolean> {
+export async function resetLinkIsValid(token: string, tenantSlug?: string): Promise<boolean> {
   await connectToDatabase();
   const found = await PasswordResetModel.findOne({
     tokenHash: hashToken(token),
     usedAt: null,
     expiresAt: { $gt: new Date() },
   });
-  return Boolean(found);
+  return Boolean(
+    found &&
+    (await tokenMatchesPortal(found.tenantId, tenantSlug)) &&
+    (tenantSlug === undefined ||
+      (await UserModel.exists({
+        _id: found.userId,
+        tenantId: found.tenantId,
+        role: 'client_contact',
+        deletedAt: null,
+      }))),
+  );
 }
 
 /**
  * Sets the new password from a link. Every session is signed out, because whoever else might have
  * had the old password should not keep a way in.
  */
-export async function resetPasswordWithToken(token: string, password: string): Promise<void> {
+export async function resetPasswordWithToken(
+  token: string,
+  password: string,
+  tenantSlug?: string,
+): Promise<void> {
   await connectToDatabase();
   const reset = await PasswordResetModel.findOne({
     tokenHash: hashToken(token),
     usedAt: null,
     expiresAt: { $gt: new Date() },
   });
-  if (!reset) throw new Error('This link has expired or was already used. Ask for a new one.');
+  if (!reset || !(await tokenMatchesPortal(reset.tenantId, tenantSlug)))
+    throw new Error('This link has expired or was already used. Ask for a new one.');
 
   const user = await UserModel.findOne({
     _id: reset.userId,
     tenantId: reset.tenantId,
+    ...(tenantSlug !== undefined ? { role: 'client_contact' } : {}),
     deletedAt: null,
   });
   if (
@@ -185,7 +231,7 @@ export async function resetPasswordWithToken(token: string, password: string): P
       ))
   )
     throw new Error('This account is not active.');
-  if (!(await TenantModel.exists({ _id: user.tenantId, status: 'active' })))
+  if (!(await TenantModel.exists({ _id: user.tenantId, status: 'active', deletedAt: null })))
     throw new Error('This account is not active.');
 
   const problem = passwordProblem(password, { email: user.email, name: user.name });

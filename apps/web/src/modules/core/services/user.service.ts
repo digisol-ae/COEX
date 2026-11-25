@@ -1,3 +1,4 @@
+import { assertStaffSeat, lockSubscription } from './subscription.service';
 import { randomBytes } from 'node:crypto';
 import { connectToDatabase } from '@/lib/db';
 import { hashPassword } from '@/lib/password';
@@ -8,6 +9,7 @@ import { UserModel } from '@coex/shared/core/models/user.model';
 import { recordAudit, changedFields } from './audit.service';
 import { revokeAllSessionsForUser } from './session.service';
 import { notifyPasswordSetByAdmin } from './password-reset.service';
+import { requirePlatformAdministrator } from './platform-access.service';
 import type { Role, Permission } from '@coex/shared/core/permissions';
 import { PERMISSIONS, STAFF_ROLES } from '@coex/shared/core/permissions';
 
@@ -65,6 +67,7 @@ export interface CreateUserInput {
 
 /** Returns the generated password once, for the administrator to pass on. */
 export async function createUser(input: CreateUserInput): Promise<{ password: string }> {
+  if (input.role === 'platform_admin') await requirePlatformAdministrator();
   await connectToDatabase();
 
   const email = input.email.trim().toLowerCase();
@@ -76,14 +79,27 @@ export async function createUser(input: CreateUserInput): Promise<{ password: st
 
   const password = randomBytes(9).toString('base64url');
 
-  const created = await users().create({
-    name: input.name.trim(),
-    email,
-    title: input.title?.trim() || null,
-    role: input.role,
-    passwordHash: await hashPassword(password),
-    mustChangePassword: true,
-    status: 'active',
+  const database = await connectToDatabase();
+  const tenantId = getContext().tenantId;
+  const passwordHash = await hashPassword(password);
+  const created = await database.connection.transaction(async (session) => {
+    if (input.role !== 'client_contact') await assertStaffSeat(String(tenantId), session);
+    const [user] = await UserModel.create(
+      [
+        {
+          tenantId,
+          name: input.name.trim(),
+          email,
+          title: input.title?.trim() || null,
+          role: input.role,
+          passwordHash,
+          mustChangePassword: true,
+          status: 'active',
+        },
+      ],
+      { session },
+    );
+    return user;
   });
 
   await recordAudit({
@@ -101,6 +117,9 @@ export async function updateUserRole(userId: string, role: Role): Promise<void> 
 
   const before = await users().findById(userId);
   if (!before) throw new Error('User not found.');
+
+  if (before.role === 'platform_admin' || role === 'platform_admin')
+    await requirePlatformAdministrator();
 
   if ((before.role === 'client_contact') !== (role === 'client_contact'))
     throw new Error(
@@ -164,10 +183,20 @@ export async function updateUserAccess(
 export async function setUserStatus(userId: string, status: 'active' | 'suspended'): Promise<void> {
   await connectToDatabase();
 
-  const before = await users().findById(userId);
-  if (!before) throw new Error('User not found.');
-
-  await users().updateOne({ _id: before._id }, { $set: { status } });
+  const database = await connectToDatabase();
+  const tenantId = getContext().tenantId;
+  const before = await database.connection.transaction(async (session) => {
+    // Suspension also takes the lock so capacity cannot race a plan downgrade.
+    await lockSubscription(String(tenantId), session);
+    const user = await UserModel.findOne({ _id: userId, tenantId, deletedAt: null }).session(
+      session,
+    );
+    if (!user) throw new Error('User not found.');
+    if (status === 'active' && user.status === 'suspended' && user.role !== 'client_contact')
+      await assertStaffSeat(String(tenantId), session);
+    await UserModel.updateOne({ _id: user._id, tenantId }, { $set: { status } }, { session });
+    return user;
+  });
 
   // A suspended account must lose its open sessions immediately, otherwise suspension only takes
   // effect when the cookie happens to expire.

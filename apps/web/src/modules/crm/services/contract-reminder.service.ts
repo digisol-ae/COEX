@@ -1,3 +1,5 @@
+import { effectiveModules } from '@coex/shared/core/modules';
+import { workspaceAccess } from '@coex/shared/core/saas';
 import { Types } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { runWithContext } from '@/lib/tenant-context';
@@ -39,6 +41,15 @@ export async function sendRenewalRemindersForTenant(
   tenantId: Types.ObjectId,
   today = todayKey(),
 ): Promise<number> {
+  const tenant = await TenantModel.findOne({ _id: tenantId, deletedAt: null }).select(
+    'status commercial modules',
+  );
+  if (
+    !tenant ||
+    !effectiveModules(tenant).crm ||
+    workspaceAccess(tenant.status, tenant.commercial) !== 'allowed'
+  )
+    return 0;
   // There is no signed in person; a fresh id means nobody is skipped as "the person acting".
   return runWithContext(
     { tenantId, userId: new Types.ObjectId(), isPlatformAdmin: false },

@@ -10,6 +10,7 @@ export const metadata = { title: 'WhatsApp · Worktello' };
 
 export default async function WhatsAppSettingsPage() {
   const actor = await requirePermission('tenant.manage');
+  await requirePermission('ticket.manage');
   const { settings, queues, messages } = await asUser(actor, () =>
     parallel({
       settings: getChannelSettings(),

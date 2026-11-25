@@ -6,7 +6,7 @@ export function PortalAccess({ contactId, linked }: { contactId: string; linked:
   const [state, action, pending] = useActionState(provisionPortalAction, {});
   return (
     <div className="mt-2 text-xs">
-      {linked || state.password ? (
+      {linked || state.activationUrl ? (
         <span className="text-[var(--color-status-ok)]">Portal account linked</span>
       ) : (
         <form action={action}>
@@ -16,12 +16,16 @@ export function PortalAccess({ contactId, linked }: { contactId: string; linked:
           </Button>
         </form>
       )}
-      {state.password ? (
-        <Notice tone="info">
-          <p>
-            Temporary password: <code className="select-all font-mono">{state.password}</code>
-          </p>
-          <p>Share it securely with this contact. It is shown only here. Portal: /portal</p>
+      {state.activationUrl ? (
+        <Notice tone={state.emailQueued ? 'ok' : 'warn'}>
+          {state.emailQueued
+            ? 'Invitation email queued.'
+            : 'Email could not be queued. Share this company-specific activation page with the contact:'}
+          <a href={state.activationUrl} className="mt-1 block break-all underline">
+            {state.activationUrl}
+          </a>
+          The contact verifies their own email and chooses a password. No temporary password is
+          shared.
         </Notice>
       ) : null}
       {state.error ? <Notice tone="alert">{state.error}</Notice> : null}

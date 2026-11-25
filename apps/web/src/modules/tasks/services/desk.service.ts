@@ -1,3 +1,4 @@
+import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
 import { toObjectId } from '@/lib/ids';
@@ -16,6 +17,7 @@ export function isDeskTaskDone(task: TaskSummary) {
 }
 
 export async function listDeskTaskIds() {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const context = getContext();
   return (
@@ -26,6 +28,7 @@ export async function listDeskTaskIds() {
 }
 
 export async function setDeskTaskSelected(taskId: string, selected: boolean) {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const context = getContext();
   const filter = { tenantId: context.tenantId, userId: context.userId, taskId: toObjectId(taskId) };
@@ -40,11 +43,13 @@ export async function setDeskTaskSelected(taskId: string, selected: boolean) {
 }
 
 export async function toggleDeskTask(taskId: string) {
+  await assertModuleAccess('tasks');
   const ids = await listDeskTaskIds();
   await setDeskTaskSelected(taskId, !ids.includes(taskId));
 }
 
 export async function loadMyDesk() {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const userId = getContext().userId;
   const entries = await DeskEntryModel.find({ tenantId: getContext().tenantId, userId });
@@ -68,6 +73,7 @@ export type DeskHistoryItem = {
 /** Daily desk summaries belong only to the signed-in user. The score is deliberately
  * excluded here until the performance algorithm has been agreed. */
 export async function listMyDeskHistory(limit = 60): Promise<DeskHistoryItem[]> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   const context = getContext();
   const snapshots = await DeskSnapshotModel.find({
@@ -101,6 +107,7 @@ export async function listTeamDeskHistory(
   filter: { from?: string; to?: string; userId?: string } = {},
   limit = 1000,
 ): Promise<TeamDeskHistoryItem[]> {
+  await assertModuleAccess('tasks');
   await connectToDatabase();
   if (!(await actorHasPermission('desk.read.all'))) {
     throw new Error("You do not have permission to view other people's performance history.");
@@ -198,6 +205,7 @@ export function score(tasks: TaskSummary[], now = new Date()) {
  * office-day close calls this too (see desk-close.service).
  */
 export async function finishMyDesk(at = new Date()) {
+  await assertModuleAccess('tasks');
   const workDate = officeDate(at);
   await connectToDatabase();
   const context = getContext();

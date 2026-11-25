@@ -1,4 +1,5 @@
 'use client';
+import { portalAuthPath } from '@coex/shared/core/portal-links';
 
 import Link from 'next/link';
 import { useActionState, useState } from 'react';
@@ -23,7 +24,7 @@ const COLOURS = [
   'bg-[var(--color-status-ok)]',
 ];
 
-export function ResetForm({ token }: { token: string }) {
+export function ResetForm({ token, tenantSlug }: { token: string; tenantSlug?: string }) {
   const [state, formAction, pending] = useActionState(resetPasswordAction, initialState);
   const [password, setPassword] = useState('');
 
@@ -34,7 +35,7 @@ export function ResetForm({ token }: { token: string }) {
           Your password is changed. Every device was signed out, so sign in again with the new one.
         </Notice>
         <Link
-          href="/login"
+          href={portalAuthPath('/login', tenantSlug)}
           className="block rounded-[var(--radius-control)] bg-[var(--color-action)] py-2.5 text-center text-sm font-medium text-[var(--color-ink-inverse)]"
         >
           Sign in
@@ -50,6 +51,7 @@ export function ResetForm({ token }: { token: string }) {
   return (
     <form action={formAction} className="mt-8 space-y-4">
       <input type="hidden" name="token" value={token} />
+      {tenantSlug !== undefined && <input type="hidden" name="tenant" value={tenantSlug} />}
       <Field label="New password">
         <Input
           name="password"

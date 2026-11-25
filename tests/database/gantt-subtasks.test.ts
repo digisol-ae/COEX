@@ -1,3 +1,4 @@
+import { createTestTenants } from '../setup';
 import { beforeAll, beforeEach, afterAll, expect, it } from 'vitest';
 import { Types } from 'mongoose';
 import { connectForTests, clearDatabase, disconnectFromTests } from '../setup';
@@ -32,6 +33,7 @@ beforeAll(() => connectForTests('gantt_subtasks'));
 afterAll(disconnectFromTests);
 beforeEach(async () => {
   await clearDatabase();
+  await createTestTenants(context.tenantId, other.tenantId);
   for (const c of [context, other])
     await UserModel.create({
       _id: c.userId,

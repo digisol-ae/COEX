@@ -67,7 +67,7 @@ export default async function DashboardPage({
       <MyWork items={work} filter={filter} showFilter={seesTickets && seesTasks} />
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
-        {tiles.map((tile) => (
+        {(seesTasks ? tiles : []).map((tile) => (
           <Link key={tile.label} href={tile.href}>
             <Card className="h-full px-4 py-4 transition-colors hover:bg-[var(--color-surface-muted)]">
               <p className="text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
@@ -139,31 +139,33 @@ export default async function DashboardPage({
         </Card>
       ) : null}
 
-      <Card className="mt-4 px-5 py-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <div>
-            <p className="text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
-              Logged this week
+      {seesTasks && (
+        <Card className="mt-4 px-5 py-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <div>
+              <p className="text-xs font-medium tracking-wide text-[var(--color-ink-subtle)] uppercase">
+                Logged this week
+              </p>
+              <p className="mt-1 text-2xl font-bold text-[var(--color-ink)] tabular-nums">
+                {formatMinutes(data.week.loggedMinutes)}
+              </p>
+            </div>
+
+            <p className="text-sm text-[var(--color-ink-muted)]">
+              {data.week.estimatedMinutes > 0
+                ? `against ${formatMinutes(data.week.estimatedMinutes)} estimated on open work`
+                : 'no estimates set on open work yet'}
             </p>
-            <p className="mt-1 text-2xl font-bold text-[var(--color-ink)] tabular-nums">
-              {formatMinutes(data.week.loggedMinutes)}
-            </p>
+
+            <Link
+              href="/time"
+              className="text-sm text-[var(--color-ink-muted)] underline-offset-4 hover:underline"
+            >
+              Open timesheet
+            </Link>
           </div>
-
-          <p className="text-sm text-[var(--color-ink-muted)]">
-            {data.week.estimatedMinutes > 0
-              ? `against ${formatMinutes(data.week.estimatedMinutes)} estimated on open work`
-              : 'no estimates set on open work yet'}
-          </p>
-
-          <Link
-            href="/time"
-            className="text-sm text-[var(--color-ink-muted)] underline-offset-4 hover:underline"
-          >
-            Open timesheet
-          </Link>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {desk ? (
         <Card className="mt-4">
@@ -220,68 +222,72 @@ export default async function DashboardPage({
         </Card>
       ) : null}
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardSection title="Open work by space">
-            {data.bySpace.length === 0 ? (
-              <EmptyState message="Nothing open." />
+      {seesTasks && (
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardSection title="Open work by space">
+              {data.bySpace.length === 0 ? (
+                <EmptyState message="Nothing open." />
+              ) : (
+                <ul className="space-y-2">
+                  {data.bySpace.map((row) => (
+                    <li key={row.label} className="flex items-center justify-between text-sm">
+                      <span className="text-[var(--color-ink)]">{row.label}</span>
+                      <span className="text-[var(--color-ink-muted)]">{row.count}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardSection>
+          </Card>
+
+          <Card>
+            <CardSection title="Open work by person">
+              {data.byAssignee.length === 0 ? (
+                <EmptyState message="Nothing assigned." />
+              ) : (
+                <ul className="space-y-2">
+                  {data.byAssignee.map((row) => (
+                    <li key={row.label} className="flex items-center justify-between text-sm">
+                      <span className="text-[var(--color-ink)]">{row.label}</span>
+                      <span className="text-[var(--color-ink-muted)]">{row.count}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardSection>
+          </Card>
+        </div>
+      )}
+
+      {seesTasks && (
+        <Card className="mt-6">
+          <CardSection title="Untouched for more than seven days">
+            {data.ageing.length === 0 ? (
+              <EmptyState message="Nothing is going stale. Everything open has been touched this week." />
             ) : (
               <ul className="space-y-2">
-                {data.bySpace.map((row) => (
-                  <li key={row.label} className="flex items-center justify-between text-sm">
-                    <span className="text-[var(--color-ink)]">{row.label}</span>
-                    <span className="text-[var(--color-ink-muted)]">{row.count}</span>
+                {data.ageing.map((task) => (
+                  <li key={task.id} className="flex items-center justify-between gap-3 text-sm">
+                    <Link
+                      href={`/tasks/${task.id}`}
+                      className="truncate text-[var(--color-ink)] underline-offset-4 hover:underline"
+                    >
+                      <span className="font-mono text-xs text-[var(--color-ink-subtle)]">
+                        {task.number}
+                      </span>{' '}
+                      {task.title}
+                    </Link>
+                    <span className="shrink-0 text-xs text-[var(--color-ink-muted)]">
+                      {task.days} days
+                    </span>
                   </li>
                 ))}
               </ul>
             )}
           </CardSection>
         </Card>
-
-        <Card>
-          <CardSection title="Open work by person">
-            {data.byAssignee.length === 0 ? (
-              <EmptyState message="Nothing assigned." />
-            ) : (
-              <ul className="space-y-2">
-                {data.byAssignee.map((row) => (
-                  <li key={row.label} className="flex items-center justify-between text-sm">
-                    <span className="text-[var(--color-ink)]">{row.label}</span>
-                    <span className="text-[var(--color-ink-muted)]">{row.count}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardSection>
-        </Card>
-      </div>
-
-      <Card className="mt-6">
-        <CardSection title="Untouched for more than seven days">
-          {data.ageing.length === 0 ? (
-            <EmptyState message="Nothing is going stale. Everything open has been touched this week." />
-          ) : (
-            <ul className="space-y-2">
-              {data.ageing.map((task) => (
-                <li key={task.id} className="flex items-center justify-between gap-3 text-sm">
-                  <Link
-                    href={`/tasks/${task.id}`}
-                    className="truncate text-[var(--color-ink)] underline-offset-4 hover:underline"
-                  >
-                    <span className="font-mono text-xs text-[var(--color-ink-subtle)]">
-                      {task.number}
-                    </span>{' '}
-                    {task.title}
-                  </Link>
-                  <span className="shrink-0 text-xs text-[var(--color-ink-muted)]">
-                    {task.days} days
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardSection>
-      </Card>
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useRef, useState } from 'react';
-import { previewable } from './rules';
+import { previewable } from './preview-types';
 import { ResourcePdfPreview } from './pdf-preview';
 
 /** Keep protected previews in the shared-resource page and downloads as a separate action. */

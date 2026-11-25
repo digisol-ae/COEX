@@ -85,12 +85,19 @@ export function createAuthRoutes(limits: AuthRouteLimits = DEFAULT_AUTH_LIMITS):
       summary: 'Sign in with email and password; sets the coex_session cookie',
       public: true,
       before: [loginLimit],
-      body: z.object({ email: z.string().min(1), password: z.string().min(1) }),
+      body: z.object({
+        email: z.string().min(1).max(254),
+        password: z.string().min(1).max(128),
+        tenantSlug: z.string().min(2).max(40).optional(),
+        accountKind: z.enum(['staff', 'portal']).optional(),
+      }),
       response: z.object({ user: meResponse }),
       handler: async ({ body, req, res }) => {
         const result = await signInWithPassword({
           email: body.email,
           password: body.password,
+          tenantSlug: body.tenantSlug,
+          accountKind: body.accountKind,
           ipAddress: callerAddress(req),
           userAgent: req.get('user-agent') ?? null,
         });
@@ -132,10 +139,14 @@ export function createAuthRoutes(limits: AuthRouteLimits = DEFAULT_AUTH_LIMITS):
         'Email a password reset link. Always answers the same, so it cannot reveal accounts.',
       public: true,
       before: [resetLimit],
-      body: z.object({ email: z.string().min(1) }),
+      body: z.object({
+        email: z.string().min(1).max(254),
+        tenantSlug: z.string().min(2).max(40).optional(),
+        accountKind: z.enum(['staff', 'portal']).optional(),
+      }),
       response: z.object({ sent: z.literal(true) }),
       handler: async ({ body }) => {
-        await requestPasswordReset(body.email.trim());
+        await requestPasswordReset(body.email.trim(), body.tenantSlug, body.accountKind);
         return { sent: true as const };
       },
     }),
@@ -148,9 +159,12 @@ export function createAuthRoutes(limits: AuthRouteLimits = DEFAULT_AUTH_LIMITS):
         'Whether a reset link can still be used (the token is sent in the body, not the URL)',
       public: true,
       before: [resetLimit],
-      body: z.object({ token: z.string().min(1) }),
+      body: z.object({
+        token: z.string().min(1),
+        tenantSlug: z.string().min(2).max(40).optional(),
+      }),
       response: z.object({ valid: z.boolean() }),
-      handler: async ({ body }) => ({ valid: await resetLinkIsValid(body.token) }),
+      handler: async ({ body }) => ({ valid: await resetLinkIsValid(body.token, body.tenantSlug) }),
     }),
 
     defineRoute({
@@ -164,12 +178,13 @@ export function createAuthRoutes(limits: AuthRouteLimits = DEFAULT_AUTH_LIMITS):
         token: z.string().min(1),
         password: z.string().min(1),
         confirm: z.string(),
+        tenantSlug: z.string().min(2).max(40).optional(),
       }),
       response: z.object({ done: z.literal(true) }),
       handler: async ({ body }) => {
         if (body.password !== body.confirm) throw new Error('The two passwords do not match.');
 
-        await resetPasswordWithToken(body.token, body.password);
+        await resetPasswordWithToken(body.token, body.password, body.tenantSlug);
         return { done: true as const };
       },
     }),

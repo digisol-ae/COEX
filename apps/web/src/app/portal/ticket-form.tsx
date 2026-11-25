@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef } from 'react';
 import { Button, Field, Input, Notice, Textarea } from '@/components/ui';
 import { TicketAttachmentPicker } from '@/components/ui/ticket-attachment-picker';
 import { raiseAction, replyAction } from './actions';
-export function PortalTicketForm({ ticketId }: { ticketId?: string }) {
+export function PortalTicketForm({ ticketId, tenantId }: { ticketId?: string; tenantId: string }) {
   const [state, action, pending] = useActionState(ticketId ? replyAction : raiseAction, {});
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => {
@@ -12,6 +12,7 @@ export function PortalTicketForm({ ticketId }: { ticketId?: string }) {
   }, [state]);
   return (
     <form ref={form} action={action} className="space-y-3">
+      <input type="hidden" name="tenantId" value={tenantId} />
       {ticketId ? (
         <input type="hidden" name="ticketId" value={ticketId} />
       ) : (
