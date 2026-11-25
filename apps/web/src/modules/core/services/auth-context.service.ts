@@ -43,7 +43,7 @@ export async function resolveAuthenticatedUser(token: string): Promise<Authentic
     status: 'active',
     deletedAt: null,
   });
-  if (!user) return null;
+  if (!user || user.mustChangePassword) return null;
 
   if (String(session.tenantId) !== String(user.tenantId)) return null;
   if (session.impersonatedTenantId && user.role !== 'platform_admin') return null;

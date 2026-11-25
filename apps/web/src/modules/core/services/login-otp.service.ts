@@ -115,7 +115,15 @@ export async function signInWithEmailOtp(input: {
   // Recheck status after claiming: a concurrent suspension must not be reactivated.
   const available = await UserModel.findOneAndUpdate(
     { _id: user._id, status: user.status, updatedAt: user.updatedAt, deletedAt: null },
-    { $set: { status: 'active', mustChangePassword: false, lastSignedInAt: new Date() } },
+    {
+      $set: {
+        status: 'active',
+        mustChangePassword: false,
+        lastSignedInAt: new Date(),
+        // Verified passwordless access must never leave an administrator-known temporary password usable.
+        ...(user.mustChangePassword ? { passwordHash: null } : {}),
+      },
+    },
     { returnDocument: 'after' },
   );
   if (

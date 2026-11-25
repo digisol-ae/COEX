@@ -128,6 +128,7 @@ export async function withTeamsTabActor<T>(
       tenantId: settings.tenantId,
       entraObjectId: oid,
       status: 'active',
+      mustChangePassword: { $ne: true },
       deletedAt: null,
     }).limit(2),
     TenantModel.findOne({ _id: settings.tenantId, status: 'active', deletedAt: null }),
