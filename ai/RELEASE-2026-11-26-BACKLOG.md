@@ -52,9 +52,11 @@ was left open. This verifies protected reads/rendering, not production mutations
 
 The owner explicitly cancelled the Mac shutdown request on 26 November; leave the computer running.
 
-Public applications remain closed; approval mode remains selected. One previously authorized
-registration QA message was SMTP-accepted; inbox receipt remains unconfirmed. Real XVERSE needs
-the vendor API contract. Offsite archival/shared object storage needs an approved destination.
+The owner confirmed the authorized registration QA email reached Inbox. Public trial applications
+were then opened through the platform-owner control, retaining email verification and mandatory
+owner approval. The saved-setting confirmation and public application form passed browser checks;
+an anonymous HTTP request also rendered the application fields and approval notice. No test
+application, company account or additional email was created. Real XVERSE needs the vendor API contract. Offsite archival/shared object storage needs an approved destination.
 Current retained storage is about 66.3 MB, below the 50 GB archival threshold; disk use was 45.7%,
 below the 80% warning threshold. These are dated checks, not an external monitoring subscription.
 

@@ -1831,7 +1831,7 @@ window.WORKTELLO_MANUAL = {
       "steps": [
         {
           "title": "Find the public entry",
-          "text": "Existing staff use Log in on worktello.com. New companies use Get started to reach trial applications; applications are currently closed pending readiness acceptance."
+          "text": "Existing staff use Log in on worktello.com. New companies use Get started to reach the public trial application form. Email verification and platform-owner approval are required before workspace access."
         },
         {
           "title": "Review verified applications",
@@ -1855,7 +1855,7 @@ window.WORKTELLO_MANUAL = {
         }
       ],
       "notes": [
-        "Controls are live through PR #97. Public applications remain closed, initial approval is required, and payments/future automatic registration remain deferred.",
+        "Controls are live through PR #97. Public trial applications are open with email verification and mandatory approval; and payments/future automatic registration remain deferred.",
         "The owner completed recovery under the existing password-change policy; live protected read checks passed. XVERSE and offsite archival need their external inputs."
       ],
       "sources": [
@@ -1878,7 +1878,7 @@ window.WORKTELLO_MANUAL = {
         "tasks",
         "spaces"
       ],
-      "status": "Live controls; registration closed"
+      "status": "Live; verified applications require owner approval"
     }
   ],
   "resolutions": [

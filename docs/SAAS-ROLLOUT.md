@@ -9,8 +9,8 @@ at 2 GB; tenant-bound customer portals; recurring subscriptions and payment inte
 
 The foundation and follow-up are live. Current source/runtime, tested backup restore, writer-safe
 storage reconciliation, forwarded-IP hardening, pending owner recovery and registration/provider
-boundaries: [release record](../ai/RELEASE-2026-11-26-BACKLOG.md). Public registration remains closed,
-manual approval retained, payments/future automatic activation deferred. Earlier implementation
+boundaries: [release record](../ai/RELEASE-2026-11-26-BACKLOG.md). Public applications are open after owner-confirmed Inbox delivery;
+manual approval is retained, payments/future automatic activation deferred. Earlier implementation
 labels below record their original phase rather than the current runtime.
 
 ## First implementation: tenant commercial controls

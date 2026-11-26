@@ -7,7 +7,8 @@ folder restoration, eligible subtask delegation, required-password enforcement, 
 proxy-safe Gantt PDF export, audited storage reconciliation and Setup WhatsApp message → task.
 The dated closure inventory reconciles the older T/U items against current code and tests. Older
 Open/local-only statements below are historical. Real XVERSE and offsite archival still need their
-external inputs; public registration and fresh owner acceptance remain pending recovery/readiness.
+external inputs. The owner recovered access and live protected reads passed; public trial
+applications are now open after Inbox confirmation, with verification and mandatory approval.
 Payments remain deferred. Evidence: docs/BACKLOG-COMPLETION-2026-11-26.md and
 ai/RELEASE-2026-11-26-BACKLOG.md.
 

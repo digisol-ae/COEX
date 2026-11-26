@@ -37,3 +37,7 @@ checks covered Save/Close edits, dark Lead and assignment controls, native drawe
 John Ali’s refreshed session reached sign-in under its pre-existing password-change flag. The owner subsequently completed recovery; fresh authenticated dashboard, task edit and tenant/module
 read checks passed without submitting production changes. No credentials/flags were bypassed.
 See ../../ai/RELEASE-2026-11-26-BACKLOG.md. No external provider activation or bulk mail.
+
+Owner confirmed the registration QA email arrived in Inbox. Public applications were opened with
+verification and mandatory owner approval. Saved-setting/public form and anonymous HTTP checks
+passed; no application or extra test email submitted. Mac shutdown was explicitly cancelled.

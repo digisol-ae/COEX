@@ -5,13 +5,14 @@ PR #97 merged as `13286bd`; compiled source `f26c824` is live at https://worktel
 stopped. Fresh quiet database/storage backup, rollback definitions and all four hardened proxy
 vhosts are recorded in the [release record](../ai/RELEASE-2026-11-26-BACKLOG.md). 900 isolated tests, types/lint/format,
 local/server builds and PR/main CI passed. Live landing/theme and public/static checks passed.
-Public registration remains closed; payments excluded. Storage previews match physical bytes for
+Public trial applications are open after owner-confirmed Inbox delivery; email verification and
+owner approval remain required. Payments excluded. Storage previews match physical bytes for
 both tenants, with no counter changes. The owner completed password recovery; fresh authenticated dashboard, task edit, tenant defaults
-and module controls passed read-only live checks. No production form was submitted. Nine staff, including two
+and module controls passed read-only live checks. No task, allowance or module change was submitted during these read checks. Nine staff, including two
 platform admins, were flagged before deployment. No password/flag was changed to bypass policy.
 
 Continue from the release record and `docs/BACKLOG-COMPLETION-2026-11-26.md`. Remaining external
-inputs: XVERSE API contract, offsite archive destination and registration QA inbox confirmation.
+inputs: XVERSE API contract and offsite archive destination. Registration Inbox receipt is confirmed.
 Local QA server and owned MongoDB container are stopped. **The owner cancelled the Mac shutdown
 request on 26 November: leave the computer running unless explicitly requested again.**
 Earlier deployment/port statements below are historical.

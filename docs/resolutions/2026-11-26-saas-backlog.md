@@ -44,7 +44,8 @@ recovery.
 The private production backup was restored into an isolated network namespace: 52 collections,
 45,287 documents and 484 files / 65,805,848 bytes. The temporary MongoDB port was unreachable from
 the host namespace, and the owned sandbox was removed. This verifies this backup restore, not
-high availability or recovery from complete VPS loss. The registration test was accepted by SMTP;
-recipient inbox receipt remains unconfirmed, and public applications remain closed.
+high availability or recovery from complete VPS loss. The owner confirmed Inbox receipt of the authorized registration test. Public applications were
+then opened through the owner control, retaining verification and approval. Browser saved-setting
+and form checks plus anonymous HTTP rendering passed; no QA application or additional email was sent.
 
 Validation details and remaining dependencies: [completion inventory](../BACKLOG-COMPLETION-2026-11-26.md).
