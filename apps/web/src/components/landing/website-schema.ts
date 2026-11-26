@@ -3,7 +3,13 @@ import assets from './website-assets.json';
 export const websiteImage = z
   .string()
   .max(400)
-  .refine((v) => v === '' || assets.includes(v), 'Choose an existing website raster image path.');
+  .refine(
+    (v) =>
+      v === '' ||
+      assets.includes(v) ||
+      /^\/api\/website-media\/[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(v),
+    'Choose a website image or upload a PNG, JPEG or WebP.',
+  );
 export const websiteLink = z
   .string()
   .max(1000)

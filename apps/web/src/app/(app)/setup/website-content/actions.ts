@@ -31,3 +31,29 @@ export async function updateWebsite(
     };
   }
 }
+
+export async function uploadImage(form: FormData) {
+  const actor = await requireStaffUser();
+  try {
+    return await asUser(actor, async () => {
+      const { requirePlatformAdministrator } =
+        await import('@/modules/core/services/platform-access.service');
+      await requirePlatformAdministrator();
+      const { uploadWebsiteMedia, WEBSITE_UPLOAD_LIMIT } =
+        await import('@/modules/core/services/website-media.service');
+      const file = form.get('image');
+      if (!(file instanceof File) || file.size > WEBSITE_UPLOAD_LIMIT)
+        throw new Error('Choose an image no larger than 700 KB.');
+      return {
+        ok: true as const,
+        ...(await uploadWebsiteMedia(Buffer.from(await file.arrayBuffer()))),
+      };
+    });
+  } catch {
+    return {
+      ok: false as const,
+      error:
+        'Upload failed. Choose a static PNG, JPEG or WebP no larger than 700 KB and check your storage allowance.',
+    };
+  }
+}

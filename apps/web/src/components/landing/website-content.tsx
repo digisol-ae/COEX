@@ -27,7 +27,16 @@ export function WebsiteText({ value }: { value: string }) {
 export function WebsiteImage(props: ComponentProps<typeof NextImage>) {
   const c = useWebsiteContent();
   const replacement = typeof props.src === 'string' ? c?.images[props.src] : undefined;
-  return <NextImage {...props} src={replacement || props.src} />;
+  const src = replacement || props.src;
+  return (
+    <NextImage
+      {...props}
+      src={src}
+      unoptimized={
+        props.unoptimized || (typeof src === 'string' && src.startsWith('/api/website-media/'))
+      }
+    />
+  );
 }
 
 import NextLink from 'next/link';

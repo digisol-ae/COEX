@@ -114,3 +114,105 @@ it('rejects script URLs and arbitrary/private media paths', async () => {
     ).rejects.toThrow();
   expect(await WebsiteVersionModel.countDocuments()).toBe(0);
 });
+
+import sharp from 'sharp';
+import {
+  uploadWebsiteMedia,
+  readWebsiteMedia,
+  WEBSITE_UPLOAD_LIMIT,
+} from '@/modules/core/services/website-media.service';
+import { WebsiteMediaModel } from '@coex/shared/core/models/website-media.model';
+import { GET as mediaGET } from '@/app/api/website-media/[id]/route';
+vi.mock('@/lib/session', () => ({ getSignedInUser: async () => null, asUser: vi.fn() }));
+const picture = () =>
+  sharp({ create: { width: 8, height: 8, channels: 3, background: '#ff4422' } })
+    .png()
+    .toBuffer();
+it('keeps uploaded bytes private until publication and hides them again when removed', async () => {
+  const media = await owner(async () => uploadWebsiteMedia(await picture()));
+  const id = media.url.split('/').pop()!;
+  await expect(readWebsiteMedia(id)).rejects.toThrow();
+  expect(await owner(() => readWebsiteMedia(id, true))).toBeInstanceOf(Buffer);
+  let response = await mediaGET(new Request('http://localhost' + media.url), {
+    params: Promise.resolve({ id }),
+  });
+  expect(response.status).toBe(404);
+  expect(response.headers.get('cache-control')).toContain('no-store');
+  const draft = {
+    ...content,
+    images: { '/website/figma/17a2a.png': media.url },
+    seo: { ...content.seo, image: media.url },
+  };
+  await owner(() => changeWebsite('save', 0, draft));
+  await expect(readWebsiteMedia(id)).rejects.toThrow();
+  await owner(() => changeWebsite('publish', 1));
+  response = await mediaGET(new Request('http://localhost' + media.url), {
+    params: Promise.resolve({ id }),
+  });
+  expect(response.status).toBe(200);
+  expect(response.headers.get('content-type')).toBe('image/webp');
+  expect(response.headers.get('cache-control')).toContain('no-store');
+  expect((await sharp(await readWebsiteMedia(id)).metadata()).format).toBe('webp');
+  await owner(() => changeWebsite('save', 2, content));
+  await owner(() => changeWebsite('publish', 3));
+  await expect(readWebsiteMedia(id)).rejects.toThrow();
+  await owner(() => changeWebsite('restore', 4, undefined, 1));
+  expect(await owner(() => readWebsiteMedia(id, true))).toBeInstanceOf(Buffer);
+  await owner(() => changeWebsite('publish', 5));
+  expect(await readWebsiteMedia(id)).toBeInstanceOf(Buffer);
+});
+it('rejects uploads and private media reads for ordinary tenant administrators even with owner context', async () => {
+  const uploaded = await owner(async () => uploadWebsiteMedia(await picture()));
+  await UserModel.updateOne(
+    { _id: context.userId },
+    { $set: { role: 'admin', permissionGrants: ['tenant.manage'] } },
+  );
+  await expect(owner(async () => uploadWebsiteMedia(await picture()))).rejects.toThrow(
+    /platform owner/,
+  );
+  await expect(owner(() => readWebsiteMedia(uploaded.url.split('/').pop()!, true))).rejects.toThrow(
+    /platform owner/,
+  );
+});
+it('rejects SVG, corrupt files, oversized uploads and unknown media references', async () => {
+  for (const body of [
+    Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>'),
+    Buffer.from('not an image'),
+    Buffer.alloc(WEBSITE_UPLOAD_LIMIT + 1),
+  ])
+    await expect(owner(() => uploadWebsiteMedia(body))).rejects.toThrow();
+  await expect(
+    owner(() =>
+      changeWebsite('save', 0, {
+        ...content,
+        seo: { ...content.seo, image: '/api/website-media/11111111-1111-1111-1111-111111111111' },
+      }),
+    ),
+  ).rejects.toThrow(/Invalid website image/);
+  expect(await WebsiteMediaModel.countDocuments()).toBe(0);
+});
+it('honors workspace storage limits for website uploads', async () => {
+  await TenantModel.updateOne(
+    { _id: context.tenantId },
+    { $set: { storageUsedBytes: 0, storageLimitBytes: 1 } },
+  );
+  await expect(owner(async () => uploadWebsiteMedia(await picture()))).rejects.toThrow(
+    /storage limit/,
+  );
+  expect(await WebsiteMediaModel.countDocuments()).toBe(0);
+});
+it('rolls back uploaded media metadata and quota if the audit transaction fails', async () => {
+  await TenantModel.updateOne({ _id: context.tenantId }, { $set: { storageUsedBytes: 0 } });
+  const spy = vi
+    .spyOn(AuditLogModel, 'create')
+    .mockRejectedValueOnce(new Error('Audit unavailable'));
+  try {
+    await expect(owner(async () => uploadWebsiteMedia(await picture()))).rejects.toThrow(
+      'Audit unavailable',
+    );
+  } finally {
+    spy.mockRestore();
+  }
+  expect(await WebsiteMediaModel.countDocuments()).toBe(0);
+  expect((await TenantModel.findById(context.tenantId))?.storageUsedBytes).toBe(0);
+});

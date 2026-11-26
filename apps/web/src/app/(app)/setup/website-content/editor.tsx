@@ -1,12 +1,13 @@
 'use client';
 import { useState, useTransition } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui';
 import { defaultFaq } from '@/components/landing/landing-page';
 import assets from '@/components/landing/website-assets.json';
 import defaults from '@/components/landing/website-defaults.json';
 import type { WebsiteContent } from '@/components/landing/website-schema';
 import type { websiteEditor } from '@/modules/core/services/website-content.service';
-import { updateWebsite } from './actions';
+import { updateWebsite, uploadImage } from './actions';
 const initialContent: WebsiteContent = {
   links: { '/register': '/register', '#explore': '#explore' },
   texts: defaults,
@@ -27,7 +28,8 @@ export function WebsiteEditor({ initial }: { initial: Awaited<ReturnType<typeof 
     [width, setWidth] = useState(1280),
     [preview, setPreview] = useState(false),
     [dirty, setDirty] = useState(false),
-    [search, setSearch] = useState('');
+    [search, setSearch] = useState(''),
+    [uploaded, setUploaded] = useState<string[]>(initial.media.map((m) => m.url));
   function edit(next: WebsiteContent) {
     setContent(next);
     setDirty(true);
@@ -62,7 +64,7 @@ export function WebsiteEditor({ initial }: { initial: Awaited<ReturnType<typeof 
   }
   const field = 'w-full rounded border border-[var(--color-line-strong)] bg-transparent p-2';
   return (
-    <div className="mx-auto max-w-5xl space-y-5 p-4">
+    <fieldset disabled={pending} className="mx-auto max-w-5xl space-y-5 p-4">
       <h1 className="text-2xl font-semibold">Website Content</h1>
       <p>
         Only active platform owners can access drafts and history. Save a draft, preview it, then
@@ -228,6 +230,7 @@ export function WebsiteEditor({ initial }: { initial: Awaited<ReturnType<typeof 
             {key}
             <input
               className={field}
+              list="website-assets"
               value={value}
               onChange={(e) =>
                 edit({ ...content, links: { ...content.links, [key]: e.target.value } })
@@ -238,35 +241,79 @@ export function WebsiteEditor({ initial }: { initial: Awaited<ReturnType<typeof 
       </details>
       <details>
         <summary>Images</summary>
+        <label className="block">
+          Upload a website image (PNG, JPEG or WebP, up to 700 KB)
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            disabled={pending}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (!file) return;
+              start(async () => {
+                const form = new FormData();
+                form.set('image', file);
+                const result = await uploadImage(form);
+                if (result.ok) {
+                  setMessage(
+                    'Image uploaded privately. Choose it for an image or the social image, save your draft, then publish.',
+                  );
+                  setUploaded((current) => [...current, result.url]);
+                } else setMessage(result.error);
+              });
+              event.target.value = '';
+            }}
+          />
+        </label>
+        {uploaded.map((url) => (
+          <div key={url}>
+            <Image
+              src={url}
+              alt="Uploaded website image"
+              width={160}
+              height={90}
+              unoptimized
+              className="object-contain"
+            />
+            <Button
+              variant="secondary"
+              onClick={() => edit({ ...content, seo: { ...content.seo, image: url } })}
+            >
+              Use as social image
+            </Button>
+          </div>
+        ))}
         <datalist id="website-assets">
-          {assets.map((path) => (
+          {[...assets, ...uploaded].map((path) => (
             <option key={path} value={path} />
           ))}
         </datalist>
         <p>
-          Use existing raster assets under /website/. SVG illustrations retain the supplied design.
+          Uploads stay private until a saved draft using them is published. SVG illustrations retain
+          the supplied design.
         </p>
         {Object.entries(content.images).map(([key, value]) => (
           <label key={key} className="block">
-            {key}
-            <input
+            {key.split('/').pop()}
+            <select
               className={field}
               value={value}
               onChange={(e) =>
                 edit({ ...content, images: { ...content.images, [key]: e.target.value } })
               }
-            />
+            >
+              {[...new Set([...assets, ...uploaded, ...Object.values(content.images)])].map(
+                (url) => (
+                  <option key={url} value={url}>
+                    {url.startsWith('/api/website-media/')
+                      ? 'Uploaded image ' + (uploaded.indexOf(url) + 1)
+                      : url.split('/').pop()}
+                  </option>
+                ),
+              )}
+            </select>
           </label>
         ))}
-        <Button
-          variant="secondary"
-          onClick={() => {
-            const key = window.prompt('Original website image path');
-            if (key) edit({ ...content, images: { ...content.images, [key]: key } });
-          }}
-        >
-          Replace an image
-        </Button>
       </details>
       <details>
         <summary>Version history</summary>
@@ -286,6 +333,6 @@ export function WebsiteEditor({ initial }: { initial: Awaited<ReturnType<typeof 
           </div>
         ))}
       </details>
-    </div>
+    </fieldset>
   );
 }

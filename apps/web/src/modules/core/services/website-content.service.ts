@@ -1,3 +1,5 @@
+import { WebsiteMediaModel } from '@coex/shared/core/models/website-media.model';
+import { validateWebsiteMedia } from './website-media.service';
 import { connectToDatabase } from '@/lib/db';
 import { requirePlatformAdministrator } from './platform-access.service';
 import { recordAudit } from './audit.service';
@@ -21,6 +23,13 @@ export async function websiteEditor() {
     .limit(50)
     .lean();
   return {
+    media: (
+      await WebsiteMediaModel.find({})
+        .select('publicId width height')
+        .sort({ createdAt: -1 })
+        .limit(200)
+        .lean()
+    ).map((m) => ({ url: '/api/website-media/' + m.publicId, width: m.width, height: m.height })),
     revision: row?.revision ?? 0,
     draft: row?.draft ? websiteSchema.parse(row.draft) : null,
     history: history.map((v) => ({
@@ -56,6 +65,7 @@ export async function changeWebsite(
         if (!before) throw new Error('Save a draft first');
         content = websiteSchema.parse(before.draft);
       } else content = websiteSchema.parse(input);
+      await validateWebsiteMedia(content);
       const revision = expected + 1;
       if (before) {
         const result = await WebsiteContentModel.updateOne(
