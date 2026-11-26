@@ -28,6 +28,19 @@ const repositoryRoot = existsSync(path.resolve(process.cwd(), '../../packages/sh
  */
 const nextConfig: NextConfig = {
   distDir: process.env.COEX_NEXT_DIST_DIR || '.next',
+  // Uploaded website images must pass the publication/owner guard on every request.
+  // Restrict the public optimizer to static asset paths so it cannot cache a protected route.
+  images: {
+    localPatterns: [
+      { pathname: '/website/**', search: '' },
+      { pathname: '/brand/**', search: '' },
+      { pathname: '/outlook/**', search: '' },
+      { pathname: '/*.png', search: '' },
+      { pathname: '/*.jpg', search: '' },
+      { pathname: '/*.jpeg', search: '' },
+      { pathname: '/*.webp', search: '' },
+    ],
+  },
   async headers() {
     return [
       {

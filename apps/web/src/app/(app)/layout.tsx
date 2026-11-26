@@ -75,7 +75,7 @@ export default async function AppLayout({
 
   const news = await asUser(user, getPublishedReleases);
 
-  const groups = orderGroups(visibleGroups(user.permissions), order);
+  const groups = orderGroups(visibleGroups(user.permissions, user.role), order);
 
   return (
     <ToastProvider>

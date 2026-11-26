@@ -18,6 +18,7 @@ export interface NavigationItem {
   href: string;
   label: string;
   permission?: Permission;
+  platformOwnerOnly?: boolean;
 }
 
 export interface NavigationGroup {
@@ -96,6 +97,7 @@ export const GROUPS: NavigationGroup[] = [
     id: 'setup',
     label: 'Setup',
     items: [
+      { href: '/setup/website-content', label: 'Website Content', platformOwnerOnly: true },
       { href: '/setup/queues', label: 'Queues', permission: 'tenant.manage' },
       { href: '/setup/tutorials', label: 'Tutorials', permission: 'tenant.manage' },
       { href: '/setup/whats-new', label: 'What’s New Management', permission: 'tenant.manage' },
@@ -123,7 +125,12 @@ export function orderGroups<T extends { id: string }>(groups: T[], order: string
   return [...groups].sort((a, b) => rank(a.id) - rank(b.id));
 }
 
-export function navigationItemAllowed(item: NavigationItem, permissions: Permission[]) {
+export function navigationItemAllowed(
+  item: NavigationItem,
+  permissions: Permission[],
+  role?: string,
+) {
+  if (item.platformOwnerOnly && role !== 'platform_admin') return false;
   if (item.permission && !permissions.includes(item.permission)) return false;
   if (
     ['/setup/queues', '/setup/whatsapp'].includes(item.href) &&
@@ -134,9 +141,9 @@ export function navigationItemAllowed(item: NavigationItem, permissions: Permiss
 }
 
 /** Groups the signed in person may actually open, with empty groups dropped entirely. */
-export function visibleGroups(permissions: Permission[]): NavigationGroup[] {
+export function visibleGroups(permissions: Permission[], role?: string): NavigationGroup[] {
   return GROUPS.map((group) => ({
     ...group,
-    items: group.items.filter((item) => navigationItemAllowed(item, permissions)),
+    items: group.items.filter((item) => navigationItemAllowed(item, permissions, role)),
   })).filter((group) => group.items.length > 0);
 }

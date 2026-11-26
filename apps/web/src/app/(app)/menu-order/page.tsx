@@ -10,7 +10,7 @@ export const metadata = { title: 'Arrange my menu · Worktello' };
 export default async function MenuOrderPage() {
   const user = await requireUser();
   const order = await asUser(user, () => getNavigationOrder());
-  const standard = visibleGroups(user.permissions);
+  const standard = visibleGroups(user.permissions, user.role);
   const groups = orderGroups(standard, order);
   const simple = (list: typeof standard) =>
     list.map((group) => ({ id: group.id, label: group.label }));
