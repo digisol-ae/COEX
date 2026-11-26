@@ -1,4 +1,4 @@
-import type { Types } from 'mongoose';
+import type { Types, ClientSession } from 'mongoose';
 import { AuditLogModel } from '@coex/shared/core/models/audit-log.model';
 import { UserModel } from '@coex/shared/core/models/user.model';
 import { getContext, peekContext } from '@/lib/tenant-context';
@@ -21,10 +21,10 @@ export interface AuditInput {
   ipAddress?: string | null;
 }
 
-export async function recordAudit(input: AuditInput): Promise<void> {
+export async function recordAudit(input: AuditInput, session?: ClientSession): Promise<void> {
   const context = getContext();
 
-  await AuditLogModel.create({
+  const entry = {
     tenantId: context.tenantId,
     actorId: context.userId,
     actorEmail: input.actorEmail ?? null,
@@ -35,7 +35,9 @@ export async function recordAudit(input: AuditInput): Promise<void> {
     after: input.after ?? null,
     ipAddress: input.ipAddress ?? null,
     at: new Date(),
-  });
+  };
+  if (session) await AuditLogModel.create([entry], { session });
+  else await AuditLogModel.create(entry);
 }
 
 /**

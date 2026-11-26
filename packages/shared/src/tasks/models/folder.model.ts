@@ -27,6 +27,9 @@ const folderSchema = new Schema(
     sortOrder: { type: Number, default: 0 },
 
     status: { type: String, enum: ['active', 'archived'], default: 'active', index: true },
+    archivedAt: { type: Date, default: null },
+    /** Exact provenance for a folder archive; absent on historical archives. */
+    archivedTaskIds: { type: [Schema.Types.ObjectId], ref: 'Task', default: undefined },
     deletedAt: { type: Date, default: null, index: true },
     /** Archived because its Space was; see the same field on tasks. */
     archivedWithSpace: { type: Boolean, default: false },

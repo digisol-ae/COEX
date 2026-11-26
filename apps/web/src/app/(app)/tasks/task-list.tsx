@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { taskAssigneeIds } from '@coex/shared/tasks/assignees';
 import { ShowMore, useRecordWindow } from '@/components/ui/record-window';
 import { useOptimistic, useState, useTransition } from 'react';
 import { clsx } from 'clsx';
@@ -309,7 +310,7 @@ export function TaskList({
                   </div>
                   <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 text-[12px] text-[var(--color-ink-muted)]">
                     {deskActionLabel === 'Desk' ? (
-                      <DeskTaskButton taskId={task.id} assigneeIds={task.assigneeIds} />
+                      <DeskTaskButton taskId={task.id} assigneeIds={taskAssigneeIds(task)} />
                     ) : null}
                     {moveTargets && canManage ? (
                       <MoveToSpaceButton taskId={task.id} targets={moveTargets} />
@@ -436,7 +437,7 @@ export function TaskList({
 
                         <span className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--color-ink-subtle)]">
                           {deskActionLabel === 'Desk' ? (
-                            <DeskTaskButton taskId={task.id} assigneeIds={task.assigneeIds} />
+                            <DeskTaskButton taskId={task.id} assigneeIds={taskAssigneeIds(task)} />
                           ) : null}
                           {moveTargets && canManage ? (
                             <MoveToSpaceButton taskId={task.id} targets={moveTargets} />

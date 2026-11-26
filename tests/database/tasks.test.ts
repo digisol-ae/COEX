@@ -1005,8 +1005,12 @@ it('alerts only the new subtask assignee after a changed assignment', async () =
       await setSubtaskAssignee(taskId, subtaskId, String(strangerId));
       await setSubtaskAssignee(taskId, subtaskId, null);
       expect(alert).toHaveBeenCalledTimes(1);
-      await expect(setSubtaskAssignee(taskId, subtaskId, String(adminId))).rejects.toThrow();
-      expect(alert).toHaveBeenCalledTimes(1);
+      await setSubtaskAssignee(taskId, subtaskId, String(adminId));
+      expect(alert).toHaveBeenCalledTimes(2);
+      await expect(
+        setSubtaskAssignee(taskId, subtaskId, String(new Types.ObjectId())),
+      ).rejects.toThrow();
+      expect(alert).toHaveBeenCalledTimes(2);
     });
   } finally {
     alert.mockRestore();
@@ -1136,5 +1140,206 @@ it('stores pasted task images privately and keeps linked ticket images internal'
     expect(note!.attachments).toHaveLength(1);
     expect((await listTaskComments(id))[0].attachments).toHaveLength(1);
     expect((await taskUpdateImage(id, String(note!.attachments[0]._id)))!.body).toEqual(png);
+  });
+});
+
+it('delegates a subtask beyond parent owners and includes it in the delegate’s personal work', async () => {
+  await runWithContext(context, async () => {
+    const spaceId = await aSpace();
+    const taskId = await createTask({
+      spaceId,
+      title: 'Delegated work',
+      assigneeIds: [String(userId)],
+    });
+    await addSubtask(taskId, 'Independent contribution');
+    const subtaskId = String((await getTask(taskId))!.subtasks[0]._id);
+    await setSubtaskAssignee(taskId, subtaskId, String(strangerId));
+    expect((await getTask(taskId))!.assigneeIds.map(String)).toEqual([String(userId)]);
+    await runWithContext({ ...context, userId: strangerId }, async () => {
+      expect((await listTasks({ assigneeId: String(strangerId) })).map((row) => row.id)).toContain(
+        taskId,
+      );
+      expect(await countMyOpenTasks(String(strangerId))).toBe(1);
+      expect((await loadDashboard({ onlyAssigneeId: String(strangerId) })).tiles.open).toBe(1);
+      await expect(setMySubtaskDone(taskId, true)).rejects.toThrow(
+        'Complete your assigned subtasks first',
+      );
+    });
+    await toggleSubtask(taskId, subtaskId, true);
+    await runWithContext({ ...context, userId: strangerId }, async () => {
+      await setMySubtaskDone(taskId, true);
+      expect(
+        (await listTasks({ assigneeId: String(strangerId) })).map((row) => row.id),
+      ).not.toContain(taskId);
+    });
+    expect((await getTask(taskId))!.isClosed).toBe(false);
+  });
+});
+
+it('keeps delegated subtask owners inside private boundaries when assigning or moving work', async () => {
+  await runWithContext(context, async () => {
+    const spaceId = await aSpace();
+    const folderId = await createFolder({ spaceId, name: 'Private', memberIds: [String(userId)] });
+    const taskId = await createTask({
+      spaceId,
+      title: 'Delegated work',
+      assigneeIds: [String(userId)],
+    });
+    await addSubtask(taskId, 'Contribution');
+    const subtaskId = String((await getTask(taskId))!.subtasks[0]._id);
+    await setSubtaskAssignee(taskId, subtaskId, String(strangerId));
+    await expect(patchTask(taskId, { folderId })).rejects.toThrow('folder is private');
+    const privateTask = await createTask({
+      spaceId,
+      folderId,
+      title: 'Private work',
+      assigneeIds: [String(userId)],
+    });
+    await addSubtask(privateTask, 'Private contribution');
+    const privateSubtask = String((await getTask(privateTask))!.subtasks[0]._id);
+    await expect(
+      setSubtaskAssignee(privateTask, privateSubtask, String(strangerId)),
+    ).rejects.toThrow('private Space or Folder');
+    await runWithContext({ ...context, userId: strangerId }, async () => {
+      await expect(setSubtaskAssignee(privateTask, privateSubtask, String(userId))).rejects.toThrow(
+        'Task not found',
+      );
+    });
+  });
+});
+
+it('refuses narrowing a Space or Folder around a delegated subtask owner', async () => {
+  const { updateSpace } = await import('@/modules/tasks/services/space.service');
+  await runWithContext(context, async () => {
+    const spaceId = await aSpace();
+    const folderId = await createFolder({ spaceId, name: 'Shared folder' });
+    const taskId = await createTask({
+      spaceId,
+      folderId,
+      title: 'Delegated work',
+      assigneeIds: [String(userId)],
+    });
+    await addSubtask(taskId, 'Contribution');
+    await setSubtaskAssignee(
+      taskId,
+      String((await getTask(taskId))!.subtasks[0]._id),
+      String(strangerId),
+    );
+    await expect(
+      updateFolder(folderId, { name: 'Private folder', memberIds: [String(userId)] }),
+    ).rejects.toThrow('outside this list');
+    await expect(
+      updateSpace(spaceId, { name: 'Private space', memberIds: [String(userId)] }),
+    ).rejects.toThrow('outside this private Space');
+  });
+});
+
+it('validates initial subtask staff and privacy before creating the parent', async () => {
+  await runWithContext(context, async () => {
+    const spaceId = await aSpace();
+    const folderId = await createFolder({ spaceId, name: 'Private', memberIds: [String(userId)] });
+    await expect(
+      createTask({
+        spaceId,
+        folderId,
+        title: 'Must not be created',
+        subtasks: [{ title: 'Outside', assigneeId: String(strangerId) }],
+      }),
+    ).rejects.toThrow('folder is private');
+    expect((await listTasks({ spaceId })).length).toBe(0);
+    const id = await createTask({
+      spaceId,
+      title: 'Delegated initially',
+      assigneeIds: [String(userId)],
+      subtasks: [{ title: 'Contribution', assigneeId: String(strangerId) }],
+    });
+    expect(String((await getTask(id))!.subtasks[0].assigneeId)).toBe(String(strangerId));
+  });
+});
+
+it('restores an archived folder and only the tasks captured by that archive', async () => {
+  const { archiveFolder } = await import('@/modules/tasks/services/folder.service');
+  const { restoreFolder, listArchivedFolders } =
+    await import('@/modules/tasks/services/folder-archive.service');
+  await runWithContext(context, async () => {
+    const spaceId = await aSpace();
+    const folderId = await createFolder({ spaceId, name: 'Recoverable' });
+    const kept = await createTask({ spaceId, folderId, title: 'Retained with folder' });
+    const separate = await createTask({ spaceId, folderId, title: 'Individually archived' });
+    await archiveTask(separate);
+    await archiveFolder(folderId, { withTasks: true });
+    expect((await listArchivedFolders(spaceId))[0]).toMatchObject({
+      id: folderId,
+      taskCount: 1,
+      legacyArchive: false,
+    });
+    expect(await restoreFolder(folderId)).toEqual({ tasks: 1 });
+    expect(await getTask(kept)).not.toBeNull();
+    expect(await getTask(separate)).toBeNull();
+    expect(await listArchivedFolders(spaceId)).toEqual([]);
+    await expect(restoreFolder(folderId)).rejects.toThrow('no longer archived');
+  });
+});
+
+it('does not list or restore another tenant or private folder', async () => {
+  const { archiveFolder } = await import('@/modules/tasks/services/folder.service');
+  const { restoreFolder, listArchivedFolders } =
+    await import('@/modules/tasks/services/folder-archive.service');
+  const spaceId = await aSpace();
+  const folderId = await runWithContext(context, async () => {
+    const id = await createFolder({
+      spaceId,
+      name: 'Private archive',
+      memberIds: [String(userId)],
+    });
+    await archiveFolder(id, { withTasks: true });
+    return id;
+  });
+  await runWithContext({ ...context, userId: strangerId }, async () => {
+    expect(await listArchivedFolders(spaceId)).toEqual([]);
+    await expect(restoreFolder(folderId)).rejects.toThrow('Folder not found');
+  });
+  await runWithContext(otherContext, async () => {
+    expect(await listArchivedFolders(spaceId)).toEqual([]);
+    await expect(restoreFolder(folderId)).rejects.toThrow('Folder not found');
+  });
+});
+
+it('rolls back a folder restoration if its audit cannot be recorded', async () => {
+  const { archiveFolder } = await import('@/modules/tasks/services/folder.service');
+  const { restoreFolder, listArchivedFolders } =
+    await import('@/modules/tasks/services/folder-archive.service');
+  await runWithContext(context, async () => {
+    const spaceId = await aSpace();
+    const folderId = await createFolder({ spaceId, name: 'Atomic restore' });
+    const taskId = await createTask({ spaceId, folderId, title: 'Retained work' });
+    await archiveFolder(folderId, { withTasks: true });
+    const audit = vi
+      .spyOn(AuditLogModel, 'create')
+      .mockRejectedValueOnce(new Error('Audit unavailable'));
+    try {
+      await expect(restoreFolder(folderId)).rejects.toThrow('Audit unavailable');
+    } finally {
+      audit.mockRestore();
+    }
+    expect(await getTask(taskId)).toBeNull();
+    expect((await listArchivedFolders(spaceId)).map((folder) => folder.id)).toContain(folderId);
+  });
+});
+
+it('restores legacy folders conservatively without reviving unproven historical task deletions', async () => {
+  const { FolderModel } = await import('@coex/shared/tasks/models/folder.model');
+  const { restoreFolder } = await import('@/modules/tasks/services/folder-archive.service');
+  await runWithContext(context, async () => {
+    const spaceId = await aSpace();
+    const folderId = await createFolder({ spaceId, name: 'Old archive' });
+    const taskId = await createTask({ spaceId, folderId, title: 'Older archived task' });
+    await TaskModel.updateOne(
+      { _id: taskId },
+      { $set: { deletedAt: new Date(), archivedWithFolder: true } },
+    );
+    await FolderModel.updateOne({ _id: folderId }, { $set: { status: 'archived' } });
+    expect(await restoreFolder(folderId)).toEqual({ tasks: 0 });
+    expect(await getTask(taskId)).toBeNull();
   });
 });

@@ -24,6 +24,7 @@ import { createUser, updateUserRole } from '@/modules/core/services/user.service
 import { DAY_MS } from '@coex/shared/core/saas';
 import { TicketMessageModel } from '@coex/shared/tickets/models/ticket-message.model';
 import { attachToMessage } from '@/modules/tickets/services/attachment.service';
+import { reconcileStorageUsage } from '@/modules/core/services/storage-reconciliation.service';
 
 let tenantId: Types.ObjectId;
 let actorId: Types.ObjectId;
@@ -66,6 +67,59 @@ const put = (bytes: number) =>
   );
 
 describe('tenant storage quotas', () => {
+  it('previews and audits actual retained bytes without removing orphan files', async () => {
+    await put(4);
+    const path = join(process.env.STORAGE_DIR!, String(tenantId));
+    await writeFile(join(path, 'orphan.bin'), Buffer.alloc(3));
+    await TenantModel.updateOne({ _id: tenantId }, { $set: { storageUsedBytes: 9 } });
+    expect(
+      await asOwner(() => reconcileStorageUsage({ tenantId: String(tenantId) })),
+    ).toMatchObject({ recordedBytes: 9, measuredBytes: 7, applied: false });
+    expect((await TenantModel.findById(tenantId))!.storageUsedBytes).toBe(9);
+    await asOwner(() =>
+      reconcileStorageUsage({
+        tenantId: String(tenantId),
+        apply: true,
+        reason: 'Recover stale reservation',
+      }),
+    );
+    expect((await TenantModel.findById(tenantId))!.storageUsedBytes).toBe(7);
+    expect(
+      await AuditLogModel.countDocuments({
+        action: 'tenant.storage_reconciled',
+        entityId: tenantId,
+      }),
+    ).toBe(1);
+    expect(
+      (await asOwner(() => reconcileStorageUsage({ tenantId: String(tenantId) }))).measuredBytes,
+    ).toBe(7);
+  });
+  it('rolls back accounting if the reconciliation audit cannot be saved', async () => {
+    await put(4);
+    await TenantModel.updateOne({ _id: tenantId }, { $set: { storageUsedBytes: 8 } });
+    const audit = vi
+      .spyOn(AuditLogModel, 'create')
+      .mockRejectedValueOnce(new Error('audit unavailable'));
+    try {
+      await expect(
+        asOwner(() =>
+          reconcileStorageUsage({ tenantId: String(tenantId), apply: true, reason: 'Recovery' }),
+        ),
+      ).rejects.toThrow('audit unavailable');
+      expect((await TenantModel.findById(tenantId))!.storageUsedBytes).toBe(8);
+    } finally {
+      audit.mockRestore();
+    }
+    await expect(put(1)).resolves.toBeDefined();
+  });
+  it('denies reconciliation to ordinary tenant administrators even with a forged platform flag', async () => {
+    await UserModel.updateOne({ _id: actorId }, { $set: { role: 'tenant_admin' } });
+    await expect(
+      asOwner(() =>
+        reconcileStorageUsage({ tenantId: String(tenantId), apply: true, reason: 'Forged' }),
+      ),
+    ).rejects.toThrow('platform owner');
+  });
   it('releases a reservation when the filesystem write fails', async () => {
     const now = new Date();
     const path = join(process.env.STORAGE_DIR!, String(tenantId));

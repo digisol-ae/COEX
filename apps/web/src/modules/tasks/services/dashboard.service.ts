@@ -68,7 +68,10 @@ export async function loadDashboard(scope: {
   const { tenantId } = getContext();
 
   const base: Record<string, unknown> = { tenantId, deletedAt: null, isClosed: false };
-  if (scope.onlyAssigneeId) base.assigneeIds = toObjectId(scope.onlyAssigneeId);
+  if (scope.onlyAssigneeId) {
+    const assigneeId = toObjectId(scope.onlyAssigneeId);
+    base.$or = [{ assigneeIds: assigneeId }, { 'subtasks.assigneeId': assigneeId }];
+  }
 
   const [open, overdue, dueToday, unassigned, blocked] = await Promise.all([
     TaskModel.countDocuments(base),

@@ -333,3 +333,37 @@ describe('portal memberships and tenant-bound records', () => {
     expect(portalAuthPath('/login', 'clinic-a')).toBe('/login?tenant=clinic-a');
   });
 });
+
+it('refuses temporary passwords and existing sessions until a required password change completes', async () => {
+  const login = await signInWithPassword({ email, password: passwordA, tenantSlug: 'clinic-a' });
+  expect(login.ok).toBe(true);
+  await UserModel.updateOne({ _id: userA }, { $set: { mustChangePassword: true } });
+  expect(await resolveAuthenticatedUser(login.token!)).toBeNull();
+  const refused = await signInWithPassword({ email, password: passwordA, tenantSlug: 'clinic-a' });
+  expect(refused.ok).toBe(false);
+  expect(refused.error).toContain('Set a new password');
+  await requestPasswordReset(email, 'clinic-a');
+  const reset = await EmailOutboxModel.findOne({ tenantId: tenantA, kind: 'password_reset' });
+  const token = reset!.text.match(/token=([A-Za-z0-9_-]+)/)![1];
+  await resetPasswordWithToken(token, passwordB, 'clinic-a');
+  expect(
+    (await signInWithPassword({ email, password: passwordB, tenantSlug: 'clinic-a' })).ok,
+  ).toBe(true);
+  expect(
+    (await signInWithPassword({ email, password: passwordA, tenantSlug: 'clinic-a' })).ok,
+  ).toBe(false);
+});
+
+it('discards a temporary password after verified passwordless customer access', async () => {
+  await UserModel.updateOne({ _id: userA }, { $set: { mustChangePassword: true } });
+  await requestLoginOtp(email, 'clinic-a');
+  const code = await latestCode(tenantA, 'Your Worktello sign-in code');
+  const login = await signInWithEmailOtp({ email, code, tenantSlug: 'clinic-a' });
+  expect((await resolveAuthenticatedUser(login.token))?.id).toBe(String(userA));
+  const user = await UserModel.findById(userA).select('+passwordHash');
+  expect(user?.mustChangePassword).toBe(false);
+  expect(user?.passwordHash).toBeNull();
+  expect(
+    (await signInWithPassword({ email, password: passwordA, tenantSlug: 'clinic-a' })).ok,
+  ).toBe(false);
+});

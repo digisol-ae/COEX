@@ -1,3 +1,4 @@
+import { taskAssigneeIds } from '@coex/shared/tasks/assignees';
 import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { connectToDatabase } from '@/lib/db';
 import { getContext } from '@/lib/tenant-context';
@@ -37,7 +38,7 @@ export async function setDeskTaskSelected(taskId: string, selected: boolean) {
     return;
   }
   const task = await getTask(taskId);
-  if (!task || !task.assigneeIds.some((id) => String(id) === String(context.userId)))
+  if (!task || !taskAssigneeIds(task).includes(String(context.userId)))
     throw new Error('Only a task assigned to you can be put on your desk.');
   await DeskEntryModel.updateOne(filter, { $setOnInsert: filter }, { upsert: true });
 }

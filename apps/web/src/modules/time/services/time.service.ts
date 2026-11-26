@@ -339,6 +339,11 @@ async function createRunningTimer(input: Partial<TimeEntry>) {
       (input.ticketId && !modules.tickets)
     )
       throw new Error('This module is not available for this workspace.');
+    if (
+      input.taskId &&
+      !(await TaskModel.exists({ _id: input.taskId, tenantId, deletedAt: null }).session(session))
+    )
+      throw new Error('Task not found.');
     await TimeEntryModel.create([{ ...input, tenantId }], { session });
   });
 }

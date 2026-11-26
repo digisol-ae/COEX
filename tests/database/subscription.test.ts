@@ -112,6 +112,8 @@ it('updates existing sessions immediately for cancellation and manual renewal', 
   await save(1);
   await staff('one@example.test');
   const user = await UserModel.findOne({ tenantId: target });
+  // This test models an administrator who has completed activation/password setup.
+  await UserModel.updateOne({ _id: user!._id }, { $set: { mustChangePassword: false } });
   const session = await createSession({ tenantId: target, userId: user!._id });
   expect((await resolveAuthenticatedUser(session.token))?.workspaceAccess).toBe('allowed');
   await save(1, 'canceled');

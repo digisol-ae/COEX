@@ -1,0 +1,74 @@
+{
+  "downloadedDate": "2026-11-26",
+  "fonts": [
+    {
+      "family": "Poppins",
+      "weight": 300,
+      "style": "normal",
+      "filename": "Poppins-Light.ttf",
+      "url": "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Light.ttf",
+      "format": "truetype",
+      "bytes": 161936,
+      "sha256": "650ba57fa99d12ec40c31ccfb680be656be4497fbe14164617d67e32ffe9cd46",
+      "webPath": "/website/fonts/Poppins-Light.ttf"
+    },
+    {
+      "family": "Poppins",
+      "weight": 400,
+      "style": "normal",
+      "filename": "Poppins-Regular.ttf",
+      "url": "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Regular.ttf",
+      "format": "truetype",
+      "bytes": 160316,
+      "sha256": "7e65201e9b79159e2300267cc885e16c8dcef2424cdfa09a29bfb0980a94a7ba",
+      "webPath": "/website/fonts/Poppins-Regular.ttf"
+    },
+    {
+      "family": "Poppins",
+      "weight": 500,
+      "style": "normal",
+      "filename": "Poppins-Medium.ttf",
+      "url": "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Medium.ttf",
+      "format": "truetype",
+      "bytes": 158576,
+      "sha256": "90373e7d838d32468438fc3e152dca0bdb12edcab99ea639f158790b1ba1fd05",
+      "webPath": "/website/fonts/Poppins-Medium.ttf"
+    },
+    {
+      "family": "Poppins",
+      "weight": 600,
+      "style": "normal",
+      "filename": "Poppins-SemiBold.ttf",
+      "url": "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-SemiBold.ttf",
+      "format": "truetype",
+      "bytes": 157312,
+      "sha256": "d3bf1bdaf0550e83da9ac0b1d1d9fe6db086835a83aa28578e609a394b9a0286",
+      "webPath": "/website/fonts/Poppins-SemiBold.ttf"
+    },
+    {
+      "family": "Poppins",
+      "weight": 700,
+      "style": "normal",
+      "filename": "Poppins-Bold.ttf",
+      "url": "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Bold.ttf",
+      "format": "truetype",
+      "bytes": 155996,
+      "sha256": "983676516167748b74de6f4771fb384c664fd913acb8b471122ecacf5da5ea6c",
+      "webPath": "/website/fonts/Poppins-Bold.ttf"
+    },
+    {
+      "family": "General Sans",
+      "weight": 400,
+      "style": "normal",
+      "filename": "GeneralSans-Regular.woff2",
+      "url": "https://api.fontshare.com/v2/fonts/download/general-sans",
+      "archivePath": "GeneralSans_Complete/Fonts/WEB/fonts/GeneralSans-Regular.woff2",
+      "format": "woff2",
+      "bytes": 23904,
+      "sha256": "1336dc6137440a94f87d883bcc3ee26bdbd580606d61e89e6e530757d9328886",
+      "webPath": "/website/fonts/GeneralSans-Regular.woff2"
+    }
+  ],
+  "poppinsLicense": "SIL Open Font License 1.1",
+  "generalSansLicense": "ITF Free Font License 2.0 - 17 Aug 2026"
+}

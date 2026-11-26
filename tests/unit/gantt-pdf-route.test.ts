@@ -56,3 +56,12 @@ it('exports only selected authorized tasks, carries collapse settings and sends 
   expect(m.tasks).toHaveBeenCalledWith({ spaceId, ids: [taskId], includeClosed: true });
   expect(m.pdf.mock.calls[0][0]).toMatchObject({ showSubtasks: true, collapsedIds: [taskId] });
 });
+it('accepts the configured public origin behind an internal reverse proxy URL', async () => {
+  vi.stubEnv('COEX_APP_URL', 'https://worktello.example');
+  try {
+    expect((await POST(request(undefined, 'https://worktello.example'), params)).status).toBe(200);
+    expect((await POST(request(undefined, 'https://attacker.example'), params)).status).toBe(403);
+  } finally {
+    vi.unstubAllEnvs();
+  }
+});

@@ -1,6 +1,6 @@
 window.WORKTELLO_MANUAL = {
-  "version": "2026.11.25",
-  "updated": "25 November 2026",
+  "version": "2026.11.26",
+  "updated": "26 November 2026",
   "title": "Worktello field guide",
   "chapters": [
     {
@@ -87,11 +87,16 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Sign out",
           "text": "Use your avatar menu and Sign out on a shared device. Administrators may expire old sessions during a release; sign in again when asked."
+        },
+        {
+          "title": "Replace a temporary password",
+          "text": "If your account requires a password change, use Forgot your password to choose a new password before signing in. A verified customer email code can provide portal access while invalidating the flagged temporary password."
         }
       ],
       "notes": [
         "A Microsoft account alone does not create Worktello access. The account must match an active staff identity.",
-        "Browser Microsoft sign-in to production was verified on 25 October. Customer portal interaction evidence comes from isolated synthetic QA."
+        "Browser Microsoft sign-in to production was verified on 25 October. Customer portal interaction evidence comes from isolated synthetic QA.",
+        "26 November follow-up: candidate behavior verified in isolated synthetic QA; deployment is tracked in the dated resolution."
       ],
       "sources": [
         [
@@ -101,6 +106,10 @@ window.WORKTELLO_MANUAL = {
         [
           "Customer access record",
           "../CUSTOMER-PORTAL.md"
+        ],
+        [
+          "SaaS backlog follow-up",
+          "../resolutions/2026-11-26-saas-backlog.md"
         ]
       ],
       "images": [
@@ -294,12 +303,17 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Expand a Space Board column",
           "text": "Each status column starts with up to 10 tasks. Use its Show more control to reveal the next batch independently. Editing retains expansion; a newly created task is revealed in its own column. Changing filters resets the windows."
+        },
+        {
+          "title": "Save and close an edit",
+          "text": "After a successful task save, Save becomes Close. Changing any field brings Save back. Close dismisses the edit dialog."
         }
       ],
       "notes": [
         "Task creation may queue an assignment email for another person according to tenant email settings. Self-assignment mail remains intentionally suppressed.",
         "This guide does not create production tasks as examples.",
-        "29 October release handover records signed-in live Board expansion from 10 to 20 Done cards while To do remained unchanged. Creation/edit checks used isolated synthetic data. A narrow-viewport floating timer overlapped the far-right footer control; keyboard activation worked in the recorded live check."
+        "29 October release handover records signed-in live Board expansion from 10 to 20 Done cards while To do remained unchanged. Creation/edit checks used isolated synthetic data. A narrow-viewport floating timer overlapped the far-right footer control; keyboard activation worked in the recorded live check.",
+        "26 November follow-up: candidate behavior verified in isolated synthetic QA; deployment is tracked in the dated resolution."
       ],
       "sources": [
         [
@@ -309,6 +323,10 @@ window.WORKTELLO_MANUAL = {
         [
           "Board expansion resolution",
           "../resolutions/2026-10-30-board-and-ui.md"
+        ],
+        [
+          "SaaS backlog follow-up",
+          "../resolutions/2026-11-26-saas-backlog.md"
         ]
       ],
       "images": [],
@@ -345,16 +363,25 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Resume if needed",
           "text": "Choose Resume my work when you want it active again. New or reopened assigned subtasks can bring the task back automatically."
+        },
+        {
+          "title": "Delegate part of the work",
+          "text": "A subtask can go to another active staff member who is eligible for its Space and Folder. Parent task owners stay unchanged; the delegate sees the work in their personal list."
         }
       ],
       "notes": [
         "Personal completion does not close the main task, complete another person’s subtask, or remove their access.",
-        "The controlled checkbox/count fix was verified with a synthetic record, reload and reversal; ordinary-account production mutations were not repeated."
+        "The controlled checkbox/count fix was verified with a synthetic record, reload and reversal; ordinary-account production mutations were not repeated.",
+        "26 November follow-up: candidate behavior verified in isolated synthetic QA; deployment is tracked in the dated resolution."
       ],
       "sources": [
         [
           "Checkbox QA",
           "../SUBTASK-CHECKBOX-QA.md"
+        ],
+        [
+          "SaaS backlog follow-up",
+          "../resolutions/2026-11-26-saas-backlog.md"
         ]
       ],
       "images": [],
@@ -394,16 +421,25 @@ window.WORKTELLO_MANUAL = {
         {
           "title": "Archive with care",
           "text": "Administrators can archive a Space or Folder through settings. Read whether its tasks are archived too or retained in the Space; restore through the corresponding archived view."
+        },
+        {
+          "title": "Restore an archived folder",
+          "text": "Use Archived folders in the Space to restore a folder you may manage. Tasks archived with a recorded folder snapshot return; separately archived tasks stay archived. Older archives without that snapshot restore only the folder for review."
         }
       ],
       "notes": [
         "Being an assignee does not bypass a private Space or Folder boundary.",
-        "Archiving and hiding are different operations. Do not archive shared work merely to clear your own list."
+        "Archiving and hiding are different operations. Do not archive shared work merely to clear your own list.",
+        "26 November follow-up: candidate behavior verified in isolated synthetic QA; deployment is tracked in the dated resolution."
       ],
       "sources": [
         [
           "Open Spaces",
           "https://worktello.com/spaces"
+        ],
+        [
+          "SaaS backlog follow-up",
+          "../resolutions/2026-11-26-saas-backlog.md"
         ]
       ],
       "images": [],

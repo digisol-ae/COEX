@@ -5,6 +5,8 @@ import { getChannelSettings } from '@/modules/channels/services/channel-settings
 import { recentChannelMessages } from '@/modules/channels/services/channel-messages.service';
 import { listQueues } from '@/modules/tickets/services/queue.service';
 import { WhatsAppSettingsForm } from './whatsapp-settings-form';
+import { listSpaces } from '@/modules/tasks/services/space.service';
+import { moduleAvailable } from '@/modules/core/services/module-access.service';
 
 export const metadata = { title: 'WhatsApp · Worktello' };
 
@@ -23,6 +25,9 @@ export default async function WhatsAppSettingsPage() {
     process.env.AUTH_URL ??
     'http://localhost:3100'
   ).replace(/\/+$/, '');
+  const spaces = actor.permissions.includes('task.manage')
+    ? await asUser(actor, async () => ((await moduleAvailable('tasks')) ? listSpaces() : []))
+    : [];
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -34,6 +39,7 @@ export default async function WhatsAppSettingsPage() {
         settings={settings}
         queues={queues.map((queue) => ({ id: queue.id, name: queue.name }))}
         messages={messages}
+        taskSpaces={spaces.map((space) => ({ id: space.id, name: space.name }))}
         endpointBase={`${appUrl}/api/channels/${settings.tenantSlug}`}
       />
     </div>

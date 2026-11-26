@@ -1,4 +1,5 @@
 'use client';
+import { taskAssigneeIds } from '@coex/shared/tasks/assignees';
 import { TeamsShare } from './teams-share';
 import { TaskFilesDrawer } from '@/app/(app)/tasks/[id]/task-files-drawer';
 import { TicketAttachmentPicker } from '@/components/ui/ticket-attachment-picker';
@@ -120,7 +121,7 @@ export function TaskPanel({
   const { canManage, users } = handlers;
   const columns = handlers.columnsFor(task);
 
-  // Owners come from the Space and Folder members; subtask owners from the task's own owners.
+  // Both task and subtask owners respect the parent Space and Folder membership.
   // Whoever is already selected stays listed, so an older assignment is shown rather than hidden.
   const ownerAllowed = detail?.assignableUserIds ?? null;
   const ownerOptions =
@@ -128,8 +129,7 @@ export function TaskPanel({
     (ownerAllowed
       ? users.filter((user) => ownerAllowed.includes(user.id) || task.assigneeIds.includes(user.id))
       : users);
-  const subtaskAllowed =
-    task.assigneeIds.length > 0 ? task.assigneeIds : (detail?.subtaskAssignableUserIds ?? null);
+  const subtaskAllowed = detail?.subtaskAssignableUserIds ?? ownerAllowed;
   const subtaskOptionsFor = (current: string | null) =>
     subtaskAllowed
       ? users.filter((user) => subtaskAllowed.includes(user.id) || user.id === current)
@@ -208,7 +208,7 @@ export function TaskPanel({
             </Link>
           ) : null}
 
-          <DeskTaskButton taskId={task.id} assigneeIds={task.assigneeIds} />
+          <DeskTaskButton taskId={task.id} assigneeIds={taskAssigneeIds(task)} />
 
           <IconLink
             icon="open"

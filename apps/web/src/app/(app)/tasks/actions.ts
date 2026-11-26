@@ -836,3 +836,15 @@ export async function setMySubtaskDoneAction(
   revalidatePath('/', 'layout');
   return {};
 }
+
+export async function restoreFolderAction(id: string): Promise<{ error?: string }> {
+  const actor = await requirePermission('task.manage');
+  try {
+    const { restoreFolder } = await import('@/modules/tasks/services/folder-archive.service');
+    await asUser(actor, () => restoreFolder(id));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not restore the folder.' };
+  }
+  revalidatePath('/', 'layout');
+  return {};
+}

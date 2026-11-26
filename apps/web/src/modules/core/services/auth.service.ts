@@ -102,6 +102,9 @@ export async function signInWithPassword(input: {
     if (upgraded.modifiedCount !== 1) return { ok: false, error: GENERIC_FAILURE };
   }
 
+  if (user.mustChangePassword && !legacy)
+    return { ok: false, error: 'Set a new password using Forgot your password before signing in.' };
+
   if (user.status !== 'active') {
     return { ok: false, error: 'This account is not active. Ask an administrator to enable it.' };
   }
@@ -172,6 +175,11 @@ export async function signInWithEntra(input: {
       };
     await UserModel.updateOne({ _id: user._id }, { $set: { entraObjectId: input.entraObjectId } });
   }
+  if (user.mustChangePassword)
+    return {
+      ok: false,
+      error: 'Set a new Worktello password using Forgot your password before signing in.',
+    };
   if (user.status !== 'active')
     return { ok: false, error: 'This account is not active. Ask an administrator to enable it.' };
   const tenant = await TenantModel.findOne({

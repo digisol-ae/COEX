@@ -3,6 +3,7 @@ import { asUser, getSignedInUser } from '@/lib/session';
 import { getSpace } from '@/modules/tasks/services/space.service';
 import { listTasks } from '@/modules/tasks/services/task.service';
 import { buildGanttPDF } from '@/modules/tasks/gantt-report';
+import { hasTrustedRequestOrigin } from '@/lib/request-origin';
 const id = z.string().regex(/^[a-f0-9]{24}$/i);
 const selection = z.object({
   taskIds: z.array(id).max(1000),
@@ -14,8 +15,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!user) return new Response('Sign in first.', { status: 401 });
   if (user.role === 'client_contact' || !user.permissions.includes('task.read.all'))
     return new Response('Not allowed.', { status: 403 });
-  if (request.headers.get('origin') !== new URL(request.url).origin)
-    return new Response('Origin denied.', { status: 403 });
+  if (!hasTrustedRequestOrigin(request)) return new Response('Origin denied.', { status: 403 });
   const { id: spaceId } = await params;
   if (!id.safeParse(spaceId).success) return new Response('Not found.', { status: 404 });
   const reader = request.body?.getReader();

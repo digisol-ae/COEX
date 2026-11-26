@@ -1,3 +1,4 @@
+import { taskAssigneeIds } from '@coex/shared/tasks/assignees';
 import { moduleAvailable, assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { assertStaffAdditions } from '@/modules/core/services/staff.service';
 import { taskTeamsSource, teamsMessageLink } from '@coex/shared/tasks/teams-sharing';
@@ -177,9 +178,16 @@ export async function listTasks(filter: TaskFilter = {}): Promise<TaskSummary[]>
   if (filter.spaceId) query.spaceId = toObjectId(filter.spaceId);
   else if (filter.spaceIds?.length) query.spaceId = { $in: filter.spaceIds.map(toObjectId) };
   if (filter.folderId) query.folderId = toObjectId(filter.folderId);
-  if (filter.assigneeId) query.assigneeIds = toObjectId(filter.assigneeId);
+  if (filter.assigneeId)
+    query.$or = [
+      { assigneeIds: toObjectId(filter.assigneeId) },
+      { 'subtasks.assigneeId': toObjectId(filter.assigneeId) },
+    ];
   else if (filter.assigneeIds?.length) {
-    query.assigneeIds = { $in: filter.assigneeIds.map(toObjectId) };
+    query.$or = [
+      { assigneeIds: { $in: filter.assigneeIds.map(toObjectId) } },
+      { 'subtasks.assigneeId': { $in: filter.assigneeIds.map(toObjectId) } },
+    ];
   }
   const personalWork =
     filter.personalWork ?? (filter.assigneeId === String(getContext().userId) ? 'active' : 'all');
@@ -327,7 +335,7 @@ export async function countMyOpenTasks(userId: string): Promise<number> {
 
   const conditions = [
     {
-      assigneeIds: toObjectId(userId),
+      $or: [{ assigneeIds: toObjectId(userId) }, { 'subtasks.assigneeId': toObjectId(userId) }],
       isClosed: false,
       mySubtaskDoneByIds: { $ne: toObjectId(userId) },
     },
@@ -351,10 +359,13 @@ export async function setMySubtaskDone(taskId: string, done: boolean): Promise<v
   await assertModuleAccess('tasks');
   const task = await getTask(taskId);
   const actor = getContext().userId;
-  if (!task || !task.assigneeIds.some((id) => String(id) === String(actor))) {
+  if (!task || !taskAssigneeIds(task).includes(String(actor))) {
     throw new Error('Only an assignee can change their own subtask completion.');
   }
-  const query: Record<string, unknown> = { _id: task._id, assigneeIds: actor };
+  const query: Record<string, unknown> = {
+    _id: task._id,
+    $or: [{ assigneeIds: actor }, { 'subtasks.assigneeId': actor }],
+  };
   if (done) {
     query.subtasks = { $not: { $elemMatch: { assigneeId: actor, done: false } } };
   }
@@ -818,8 +829,7 @@ export async function assignableUserIdsForTask(task: {
 }
 
 /**
- * Who a subtask may go to: the task's own assignees, because a subtask is a slice of their work.
- * An unassigned task falls back to whoever may own the task itself.
+ * Subtasks may go to any eligible staff member, while retaining the parent Space/Folder privacy.
  */
 export async function assignableUserIdsForSubtask(task: {
   spaceId: Types.ObjectId | string;
@@ -827,7 +837,6 @@ export async function assignableUserIdsForSubtask(task: {
   assigneeIds: (Types.ObjectId | string)[];
 }): Promise<string[] | null> {
   await assertModuleAccess('tasks');
-  if (task.assigneeIds.length > 0) return task.assigneeIds.map(String);
   return assignableUserIdsForTask(task);
 }
 
@@ -860,6 +869,15 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     (input.assigneeIds ?? []).filter(Boolean),
     input.spaceId,
   );
+
+  const subtaskAssignees = [
+    ...new Set(
+      (input.subtasks ?? []).flatMap((subtask) => (subtask.assigneeId ? [subtask.assigneeId] : [])),
+    ),
+  ];
+  if (subtaskAssignees.length) {
+    await assertAssignable(input.folderId ?? null, subtaskAssignees, input.spaceId);
+  }
 
   const assigneeIds = (input.assigneeIds ?? []).filter(Boolean).map((id) => toObjectId(id));
 
@@ -904,10 +922,7 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
               subtasks: input.subtasks.map((subtask) => ({
                 title: subtask.title.trim(),
                 done: false,
-                assigneeId:
-                  subtask.assigneeId && assigneeIds.some((id) => String(id) === subtask.assigneeId)
-                    ? toObjectId(subtask.assigneeId)
-                    : null,
+                assigneeId: subtask.assigneeId ? toObjectId(subtask.assigneeId) : null,
                 completedAt: null,
                 startAt: toDate(subtask.startAt),
                 endAt: toDate(subtask.endAt),
@@ -994,9 +1009,9 @@ export async function moveTaskToSpace(
 
   await assertAssignable(
     folderId,
-    task.assigneeIds.map(String),
+    taskAssigneeIds(task),
     String(target._id),
-    task.assigneeIds.map(String),
+    taskAssigneeIds(task),
   );
 
   const firstColumn = [...target.statuses].sort(
@@ -1188,9 +1203,9 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
       : before.folderId
         ? String(before.folderId)
         : null,
-    input.assigneeIds.filter(Boolean),
+    taskAssigneeIds({ ...before.toObject(), assigneeIds: input.assigneeIds.filter(Boolean) }),
     String(before.spaceId),
-    before.assigneeIds.map(String),
+    taskAssigneeIds(before),
   );
 
   const assigneeIds = input.assigneeIds.filter(Boolean).map((value) => toObjectId(value));
@@ -1223,7 +1238,7 @@ export async function updateTask(id: string, input: UpdateTaskInput): Promise<vo
           before.assigneeIds.map(String),
         ),
         mySubtaskDoneByIds: (before.mySubtaskDoneByIds ?? []).filter((id) =>
-          assigneeIds.some((current) => String(current) === String(id)),
+          taskAssigneeIds({ ...before.toObject(), assigneeIds }).includes(String(id)),
         ),
         primaryAssigneeId: assigneeIds[0] ?? null,
         startAt,
@@ -1301,9 +1316,12 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
     // Moving into a private folder has to respect the same rule as assigning into one.
     await assertAssignable(
       patch.folderId,
-      (patch.assigneeIds ?? before.assigneeIds.map(String)).filter(Boolean),
+      taskAssigneeIds({
+        ...before.toObject(),
+        assigneeIds: (patch.assigneeIds ?? before.assigneeIds.map(String)).filter(Boolean),
+      }),
       String(before.spaceId),
-      before.assigneeIds.map(String),
+      taskAssigneeIds(before),
     );
 
     set.folderId = toOptionalObjectId(patch.folderId);
@@ -1331,7 +1349,7 @@ export async function patchTask(id: string, patch: TaskPatch): Promise<void> {
       before.assigneeIds.map(String),
     );
     set.mySubtaskDoneByIds = (before.mySubtaskDoneByIds ?? []).filter((id) =>
-      assigneeIds.some((current) => String(current) === String(id)),
+      taskAssigneeIds({ ...before.toObject(), assigneeIds }).includes(String(id)),
     );
     set.primaryAssigneeId = assigneeIds[0] ?? null;
   }
@@ -1434,7 +1452,7 @@ export async function setSubtaskAssignee(
   await assertModuleAccess('tasks');
   await connectToDatabase();
 
-  const task = await tasks().findById(taskId);
+  const task = await getTask(taskId);
   if (!task) throw new Error('Task not found.');
 
   const subtask = task.subtasks.find((candidate) => String(candidate._id) === subtaskId);
@@ -1443,11 +1461,7 @@ export async function setSubtaskAssignee(
   if (assigneeId) {
     const allowed = await assignableUserIdsForSubtask(task);
     if (allowed && !allowed.includes(assigneeId)) {
-      throw new Error(
-        task.assigneeIds.length > 0
-          ? 'A subtask can only go to someone already assigned to its task.'
-          : 'That person is not a member of this private Space or Folder.',
-      );
+      throw new Error('That person is not a member of this private Space or Folder.');
     }
   }
 

@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="sun" clip-path="url(#clip0_0_54)">
+<path id="Icon" d="M9 0.75V2.25M9 15.75V17.25M3.165 3.165L4.23 4.23M13.77 13.77L14.835 14.835M0.75 9H2.25M15.75 9H17.25M3.165 14.835L4.23 13.77M13.77 4.23L14.835 3.165M12.75 9C12.75 11.0711 11.0711 12.75 9 12.75C6.92893 12.75 5.25 11.0711 5.25 9C5.25 6.92893 6.92893 5.25 9 5.25C11.0711 5.25 12.75 6.92893 12.75 9Z" stroke-linecap="round" stroke-linejoin="round" stroke="#A0A2A4"/>
+</g>
+<defs>
+<clipPath id="clip0_0_54">
+<rect width="18" height="18" fill="white"/>
+</clipPath>
+</defs>
+</svg>

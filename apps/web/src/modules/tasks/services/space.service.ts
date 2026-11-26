@@ -1,3 +1,4 @@
+import { taskAssigneeIds } from '@coex/shared/tasks/assignees';
 import { assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { assertStaffAdditions } from '@/modules/core/services/staff.service';
 import {
@@ -265,6 +266,19 @@ export async function updateSpace(id: string, input: SpaceInput): Promise<void> 
     assertUsedStatusesPreserved(space.statuses, statuses, used);
   }
   const memberIds = (input.memberIds ?? []).filter(Boolean).map(toObjectId);
+  if (memberIds.length > 0) {
+    const allowed = new Set(memberIds.map(String));
+    const inside = await TaskModel.find({
+      tenantId: getContext().tenantId,
+      spaceId: space._id,
+      deletedAt: null,
+      isClosed: false,
+    }).select('assigneeIds subtasks.assigneeId');
+    if (inside.some((task) => taskAssigneeIds(task).some((id) => !allowed.has(id))))
+      throw new Error(
+        'Open work is assigned to people outside this private Space. Add them or reassign the work first.',
+      );
+  }
   await spaces().updateOne(
     { _id: space._id },
     {
