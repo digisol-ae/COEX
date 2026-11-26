@@ -1,3 +1,14 @@
+# Standalone Website Manager live — 26 November 2026
+
+PR #101 / source `2e7637e` is live on **3022**, process `coex-app-website-manager-20261126` id31.
+Content management now has its own `/website-manager` layout and section navigation, outside Setup.
+Live owner reads and legacy redirects passed; no production content was saved/published as a test.
+505 automated tests, types/lint/format, builds and PR/main CI passed. Prior3021 is warm rollback;
+workers27/28/29 and sessions/settings are unchanged. Follow-up worktree is
+`/Users/syedali/.codex/worktrees/website-manager-redesign/worktello`.
+Release/acceptance limits/rollback: [standalone release](../ai/RELEASE-2026-11-26-STANDALONE-MANAGER.md).
+Earlier runtime statements below are historical. Local QA app/test database are stopped.
+
 # Website editor live — 26 November 2026
 
 PR #99 merged as `2eeaad9`; source `4ffbcb2` is live at https://worktello.com on loopback **3021**
