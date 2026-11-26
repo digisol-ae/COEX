@@ -2,7 +2,7 @@
 
 Owner authorized all remaining SaaS work and older application feedback on 26 November 2026.
 Payments remain explicitly excluded. Test email recipient authorized: ali@digisol.ae. Production
-SaaS foundation is already live via PR #94; authenticated owner reads passed. This follow-up is now live through PR #97; see ai/RELEASE-2026-11-26-BACKLOG.md. Fresh authenticated acceptance is pending owner password recovery.
+SaaS foundation is already live via PR #94; authenticated owner reads passed. This follow-up is now live through PR #97; see ai/RELEASE-2026-11-26-BACKLOG.md. Owner recovery and fresh authenticated live read checks are complete; the dashboard remains signed in.
 
 ## Work queue
 
@@ -11,7 +11,7 @@ SaaS foundation is already live via PR #94; authenticated owner reads passed. Th
 | Original task/ticket Save → Close → Save          | Implemented; synthetic browser verified Save → Close → edit → Save and actual dialog dismissal for task and ticket. Controlled form reset corrected after QA.                                                                                                                                                                                                                                                                                        |
 | Archived folder restore screen                    | Implemented with transactional snapshot restoration, tenant/private boundaries, audit rollback and conservative legacy-folder handling. Focused tests passed.                                                                                                                                                                                                                                                                                        |
 | T9 subtask delegation beyond parent assignees     | Implemented with Space/Folder privacy and staff validation. Personal work, badges, My Desk, dashboard and Teams include delegated owners without changing parent assignees. Regression tests passed.                                                                                                                                                                                                                                                 |
-| Forced password change                            | Enforced for password/web/API/Entra/Teams. Nine flagged staff (including two platform owners) need recovery; one flagged portal account retains verified email-code access, which discards its temporary password. John Ali’s old live session now reaches sign-in. No password or flag bypass performed.                                                                                                                                            |
+| Forced password change                            | Enforced for password/web/API/Entra/Teams. Nine flagged staff (including two platform owners) need recovery; one flagged portal account retains verified email-code access, which discards its temporary password. John Ali’s initial old session reached sign-in; the owner subsequently recovered access and passed fresh authenticated read checks. No password or flag bypass performed.                                                                                                                                            |
 | Compact Leads, Spaces and settings; Dark controls | Spaces/settings already use shared compact drawers. Lead create/edit/convert/disqualify now use the same native drawer, adding focus/Escape handling and token styling. Synthetic dark drawer and Escape dismissal checked; original QA theme restored.                                                                                                                                                                                              |
 | T10 WhatsApp message → task                       | Transactional, idempotent message → task added to authorized Setup message tools; tenant/role/module/private boundaries and audit rollback tested. Broader M6.3–M6.5 roadmap is separate from T10; real XVERSE go-live still requires the missing API contract.                                                                                                                                                                                      |
 | 50 GB attachment archival                         | No archive destination selected. Need recoverable storage strategy and destination before moving live attachments; monitor can be added independently.                                                                                                                                                                                                                                                                                               |
@@ -44,8 +44,7 @@ one clearly labelled registration email to the named recipient.
   and omitting unapproved testimonials. Public image files supplied by the team are staged under
   apps/web/public/website/handoff; exact Figma raw assets are under website/figma. Handoff hero
   is bottom-cropped relative to Figma; use Figma layers for exact geometry.
-- Owner requested computer shutdown after completion. Save/push work and final handoff first;
-  do not shut down while authorized implementation or deployment work is still running.
+- Owner initially requested shutdown, then explicitly cancelled it on 26 November. Leave the computer running unless requested again.
 - Original mixed source contains one missing SaaS route: workspace-status/page.tsx. It is now
   restored in the follow-up tree. Two absent paint-loader files are unrelated branding work,
   deliberately excluded from the SaaS integration.
@@ -60,8 +59,7 @@ Screenshots are under docs/manual/assets/backlog-20261126-*.jpg. Deployed at 302
 
 ## Required continuation
 
-Complete owner password recovery manually in live Agent login, then verify authenticated controls
-read-only. Keep public applications closed until the registration test inbox check/readiness is
-accepted. XVERSE API contract and offsite archival destination remain absent; do not claim those
+Owner recovery and authenticated read checks are complete. Keep public applications closed until
+the registration test inbox check/readiness is accepted. XVERSE API contract and offsite archival destination remain absent; do not claim those
 external integrations are complete. Payment and future automatic registration stay deferred.
-After acceptance and saved handoff, honor the pending normal Mac shutdown request.
+The Mac shutdown request was cancelled by the owner; do not shut down the computer.

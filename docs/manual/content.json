@@ -96,7 +96,7 @@
       "notes": [
         "A Microsoft account alone does not create Worktello access. The account must match an active staff identity.",
         "Browser Microsoft sign-in to production was verified on 25 October. Customer portal interaction evidence comes from isolated synthetic QA.",
-        "26 November follow-up deployed through PR #97; synthetic workflow QA passed. Fresh authenticated live acceptance awaits owner password recovery."
+        "26 November follow-up deployed through PR #97; synthetic workflow QA passed. Recovered owner dashboard, task edit and tenant/module live read checks passed."
       ],
       "sources": [
         [
@@ -313,7 +313,7 @@
         "Task creation may queue an assignment email for another person according to tenant email settings. Self-assignment mail remains intentionally suppressed.",
         "This guide does not create production tasks as examples.",
         "29 October release handover records signed-in live Board expansion from 10 to 20 Done cards while To do remained unchanged. Creation/edit checks used isolated synthetic data. A narrow-viewport floating timer overlapped the far-right footer control; keyboard activation worked in the recorded live check.",
-        "26 November follow-up deployed through PR #97; synthetic workflow QA passed. Fresh authenticated live acceptance awaits owner password recovery."
+        "26 November follow-up deployed through PR #97; synthetic workflow QA passed. Recovered owner dashboard, task edit and tenant/module live read checks passed."
       ],
       "sources": [
         [
@@ -372,7 +372,7 @@
       "notes": [
         "Personal completion does not close the main task, complete another person’s subtask, or remove their access.",
         "The controlled checkbox/count fix was verified with a synthetic record, reload and reversal; ordinary-account production mutations were not repeated.",
-        "26 November follow-up deployed through PR #97; synthetic workflow QA passed. Fresh authenticated live acceptance awaits owner password recovery."
+        "26 November follow-up deployed through PR #97; synthetic workflow QA passed. Recovered owner dashboard, task edit and tenant/module live read checks passed."
       ],
       "sources": [
         [
@@ -430,7 +430,7 @@
       "notes": [
         "Being an assignee does not bypass a private Space or Folder boundary.",
         "Archiving and hiding are different operations. Do not archive shared work merely to clear your own list.",
-        "26 November follow-up deployed through PR #97; synthetic workflow QA passed. Fresh authenticated live acceptance awaits owner password recovery."
+        "26 November follow-up deployed through PR #97; synthetic workflow QA passed. Recovered owner dashboard, task edit and tenant/module live read checks passed."
       ],
       "sources": [
         [
@@ -1856,7 +1856,7 @@
       ],
       "notes": [
         "Controls are live through PR #97. Public applications remain closed, initial approval is required, and payments/future automatic registration remain deferred.",
-        "Fresh authenticated owner acceptance awaits password recovery under the existing password-change flag. XVERSE and offsite archival need their external inputs."
+        "The owner completed recovery under the existing password-change policy; live protected read checks passed. XVERSE and offsite archival need their external inputs."
       ],
       "sources": [
         [
@@ -1889,8 +1889,8 @@
       "symptom": "The public landing, saved-dialog behavior and older app feedback needed completion.",
       "cause": "The supplied design and remaining access, restoration and accounting paths were not integrated.",
       "fix": "PR #97 deploys the supplied landing, Save/Close controls, safe folder restore, delegated subtasks, password-change gate, Lead drawers, Gantt origin fix, storage reconciliation and message-to-task tool.",
-      "verification": "900 isolated tests, types/lint/format, local/server builds and PR/main CI passed; public live landing/theme passed. Fresh signed-in acceptance awaits owner recovery.",
-      "status": "Live; authenticated acceptance pending",
+      "verification": "900 isolated tests, types/lint/format, local/server builds and PR/main CI passed; public live landing/theme passed. Recovered owner dashboard, task-edit and tenant/module protected reads passed without production form submissions.",
+      "status": "Live; protected reads verified",
       "record": "../resolutions/2026-11-26-saas-backlog.md"
     },
     {

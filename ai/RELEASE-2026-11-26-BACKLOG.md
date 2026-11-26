@@ -45,7 +45,12 @@ The existing John Ali session redirected to sign-in after refreshing against the
 its existing password-change flag is now enforced. A read-only count found **9 flagged staff**,
 including **2 platform administrators**, plus one flagged legacy portal account. That portal account retains verified email-code access,
 which discards its flagged temporary password. Ordinary staff need password recovery; no flag or password was
-cleared to bypass this check. **Fresh authenticated live acceptance remains pending owner recovery.**
+cleared to bypass this check. The owner subsequently completed recovery. Fresh authenticated dashboard, the original R4 task
+edit dialog, tenant defaults (30 days / 2 GB), and Module access controls passed live read-only
+checks. The task and management dialogs were cancelled without saving; the signed-in dashboard
+was left open. This verifies protected reads/rendering, not production mutations.
+
+The owner explicitly cancelled the Mac shutdown request on 26 November; leave the computer running.
 
 Public applications remain closed; approval mode remains selected. One previously authorized
 registration QA message was SMTP-accepted; inbox receipt remains unconfirmed. Real XVERSE needs

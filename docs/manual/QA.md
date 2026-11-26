@@ -34,6 +34,6 @@ Customer password compatibility, email-code sign-in and reset instructions updat
 900 isolated tests, types/lint/format, local/server builds and PR/main CI passed. Synthetic browser
 checks covered Save/Close edits, dark Lead and assignment controls, native drawer Escape, message
 → task creation and responsive landing interactions/assets. The live public landing/theme passed;
-John Ali’s refreshed session reached sign-in under its pre-existing password-change flag. Fresh
-authenticated acceptance awaits manual owner recovery; no credentials/flags were bypassed.
+John Ali’s refreshed session reached sign-in under its pre-existing password-change flag. The owner subsequently completed recovery; fresh authenticated dashboard, task edit and tenant/module
+read checks passed without submitting production changes. No credentials/flags were bypassed.
 See ../../ai/RELEASE-2026-11-26-BACKLOG.md. No external provider activation or bulk mail.

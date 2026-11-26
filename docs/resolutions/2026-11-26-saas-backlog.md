@@ -17,7 +17,7 @@ membership and active-staff rules still apply. Narrowing membership cannot stran
 
 Flagged temporary passwords require the existing recovery flow. Ordinary web/API sessions and
 Microsoft/Teams paths cannot bypass that flag. Verified customer email-code access discards a
-flagged temporary password. A read-only production count found nine flagged staff (including two platform owners), plus one flagged portal account with verified email-code access that discards its temporary password. John Ali’s old session now reaches login; fresh authenticated acceptance awaits owner recovery. No password/flag bypass was performed.
+flagged temporary password. A read-only production count found nine flagged staff (including two platform owners), plus one flagged portal account with verified email-code access that discards its temporary password. John Ali’s old session initially reached login; the owner completed recovery and subsequent dashboard, task-edit and tenant/module read checks passed. No password/flag bypass was performed.
 
 Lead forms now use the shared native drawer, including Escape/focus behavior and themed controls.
 Gantt PDF export accepts the configured public origin behind the reverse proxy and still refuses
