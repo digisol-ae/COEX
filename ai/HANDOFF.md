@@ -1,3 +1,5 @@
+Latest continuation checkpoint: [NEXT_CHAT.md](NEXT_CHAT.md).
+
 ## Landing and non-payment feedback live — 26 November 2026
 
 PR #97 merged as `13286bd`; compiled source `f26c824` is live at https://worktello.com on loopback
