@@ -13,7 +13,9 @@ import Fields from './fields/page';
 import Tenants from './tenants/page';
 import DataTransfer from './data-transfer/page';
 import WhatsNewManagement from './whats-new/page';
+import WebsiteContent from './website-content/page';
 const PAGES = {
+  'website-content': WebsiteContent,
   'whats-new': WhatsNewManagement,
   queues: Queues,
   tutorials: Tutorials,
@@ -29,7 +31,7 @@ const PAGES = {
 export async function setupTabs() {
   const user = await requireStaffUser();
   return GROUPS.find((group) => group.id === 'setup')!.items.filter((tab) =>
-    navigationItemAllowed(tab, user.permissions),
+    navigationItemAllowed(tab, user.permissions, user.role),
   );
 }
 export async function SetupContent({ section }: { section?: string }) {
