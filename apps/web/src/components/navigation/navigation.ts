@@ -37,6 +37,11 @@ export const DESK: NavigationItem = {
 
 export const GROUPS: NavigationGroup[] = [
   {
+    id: 'website',
+    label: 'Website',
+    items: [{ href: '/website-manager', label: 'Website Manager', platformOwnerOnly: true }],
+  },
+  {
     id: 'tasks',
     label: 'Tasks and planning',
     items: [
@@ -97,7 +102,6 @@ export const GROUPS: NavigationGroup[] = [
     id: 'setup',
     label: 'Setup',
     items: [
-      { href: '/setup/website-content', label: 'Website Content', platformOwnerOnly: true },
       { href: '/setup/queues', label: 'Queues', permission: 'tenant.manage' },
       { href: '/setup/tutorials', label: 'Tutorials', permission: 'tenant.manage' },
       { href: '/setup/whats-new', label: 'What’s New Management', permission: 'tenant.manage' },

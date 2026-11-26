@@ -1,0 +1,1074 @@
+[
+  {
+    "id": "navigation",
+    "anchor": "top",
+    "label": "Header & navigation",
+    "description": "Edit the website’s navigation labels.",
+    "groups": [
+      {
+        "label": "Navigation labels",
+        "fields": [
+          {
+            "key": "Features",
+            "label": "Features",
+            "multiline": false
+          },
+          {
+            "key": "Solutions",
+            "label": "Solutions",
+            "multiline": false
+          },
+          {
+            "key": "Company",
+            "label": "Company",
+            "multiline": false
+          },
+          {
+            "key": "Contact",
+            "label": "Contact",
+            "multiline": false
+          },
+          {
+            "key": "Log in",
+            "label": "Log in",
+            "multiline": false
+          },
+          {
+            "key": "Pricing",
+            "label": "Pricing",
+            "multiline": false
+          }
+        ]
+      }
+    ],
+    "images": [
+      {
+        "source": "/website/figma/17a2a.png",
+        "label": "Worktello logo"
+      }
+    ]
+  },
+  {
+    "id": "hero",
+    "anchor": "top",
+    "label": "Hero",
+    "description": "The first impression of your home page.",
+    "groups": [
+      {
+        "label": "Main message",
+        "fields": [
+          {
+            "key": "Bring your work together.",
+            "label": "Headline",
+            "multiline": false
+          },
+          {
+            "key": "Move everything",
+            "label": "Second line",
+            "multiline": false
+          },
+          {
+            "key": "Manage projects, track time, organize customers, and handle support — all in one connected workspace built to keep your team on track.",
+            "label": "Introduction",
+            "multiline": true
+          },
+          {
+            "key": "Work management · Time tracking · CRM · Customer support",
+            "label": "Supporting line",
+            "multiline": false
+          }
+        ]
+      },
+      {
+        "label": "Animated words",
+        "fields": [
+          {
+            "key": "forward.",
+            "label": "Word 1",
+            "multiline": false
+          },
+          {
+            "key": "fast.",
+            "label": "Word 2",
+            "multiline": false
+          },
+          {
+            "key": "in flow.",
+            "label": "Word 3",
+            "multiline": false
+          },
+          {
+            "key": "on time.",
+            "label": "Word 4",
+            "multiline": false
+          }
+        ]
+      },
+      {
+        "label": "Buttons",
+        "fields": [
+          {
+            "key": "Get started",
+            "label": "Primary button label",
+            "multiline": false
+          },
+          {
+            "key": "Explore Worktello",
+            "label": "Secondary button label",
+            "multiline": false
+          }
+        ]
+      }
+    ],
+    "images": [
+      {
+        "source": "/website/figma/3ad0f.png",
+        "label": "Dashboard screenshot"
+      }
+    ],
+    "links": [
+      {
+        "key": "/register",
+        "label": "Primary button destination",
+        "fallback": "/register"
+      },
+      {
+        "key": "#explore",
+        "label": "Secondary button destination",
+        "fallback": "#explore"
+      }
+    ]
+  },
+  {
+    "id": "captains",
+    "anchor": "captains",
+    "label": "Team captains",
+    "description": "Explain how Worktello helps people lead.",
+    "groups": [
+      {
+        "label": "Section heading",
+        "fields": [
+          {
+            "key": "For team captains",
+            "label": "Eyebrow",
+            "multiline": false
+          },
+          {
+            "key": "How captains stay in control",
+            "label": "Heading",
+            "multiline": false
+          },
+          {
+            "key": "Keep your team aligned, work organized, and business moving forward. Worktello gives captains everything they need to manage team activities, handle requests, and maintain strong client relationships — all in one place.",
+            "label": "Introduction",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Team Activity",
+        "fields": [
+          {
+            "key": "Team Activity",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Get a clear overview of your team’s daily activities, assigned tasks, opportunities, time tracking, and support. See who’s working on what, how much time they’re spending, and how work is progressing.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Requests and Approvals",
+        "fields": [
+          {
+            "key": "Requests and Approvals",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Review task updates, work reviews, and contract signing requests. Keep decisions organized and give your team a clear record of each approval.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "CRM",
+        "fields": [
+          {
+            "key": "CRM",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Manage client information, track opportunities, and keep customer interactions organized. Give your team the visibility they need to move business forward.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "connected",
+    "anchor": "connected",
+    "label": "Connected workspace",
+    "description": "Introduce the connected platform.",
+    "groups": [
+      {
+        "label": "Section content",
+        "fields": [
+          {
+            "key": "One connected workspace",
+            "label": "Eyebrow",
+            "multiline": false
+          },
+          {
+            "key": "Worktello brings your entire business workflow together in one powerful platform. From task planning and team management to client support, timesheets, CRM, and administration, everything works seamlessly together to keep your business organized, connected, and moving forward.",
+            "label": "Introduction",
+            "multiline": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "features",
+    "anchor": "capabilities",
+    "label": "Features",
+    "description": "Manage the six feature cards.",
+    "groups": [
+      {
+        "label": "Section heading",
+        "fields": [
+          {
+            "key": "Powerful tools. One platform.",
+            "label": "Eyebrow",
+            "multiline": false
+          },
+          {
+            "key": "More than project management.",
+            "label": "Heading",
+            "multiline": false
+          },
+          {
+            "key": "Bring the tools your team depends on into one workspace. From planning and collaboration to customer relationships and reporting, Worktello keeps your work connected.",
+            "label": "Introduction",
+            "multiline": true
+          },
+          {
+            "key": "Explore all capabilities",
+            "label": "Button label",
+            "multiline": false
+          }
+        ]
+      },
+      {
+        "label": "Keep every task moving.",
+        "fields": [
+          {
+            "key": "Keep every task moving.",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Create, assign, and organize tasks across spaces. Manage deadlines, update statuses, and follow progress as work gets done.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Make every hour count.",
+        "fields": [
+          {
+            "key": "Make every hour count.",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Track time directly against tasks, manage timesheets, and understand how working hours are distributed.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Keep oversight within reach.",
+        "fields": [
+          {
+            "key": "Keep oversight within reach.",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Review security audit activity and access platform configuration and administrative settings from your workspace.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Stay on top of every request.",
+        "fields": [
+          {
+            "key": "Stay on top of every request.",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Organize support tickets, track ownership, monitor workloads, and maintain visibility into customer requests.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Turn activity into clarity.",
+        "fields": [
+          {
+            "key": "Turn activity into clarity.",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Review time reports, team activity, open workloads, and progress indicators to make more informed decisions.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Keep every opportunity in sight.",
+        "fields": [
+          {
+            "key": "Keep every opportunity in sight.",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Manage customer records, leads, products, contracts, and opportunities while monitoring progress through your sales pipeline.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      }
+    ],
+    "images": [
+      {
+        "source": "/website/handoff/powerful-tools-one-platform/keep-every-task-moving.png",
+        "label": "Keep every task moving image"
+      },
+      {
+        "source": "/website/handoff/powerful-tools-one-platform/make-every-hour-count.png",
+        "label": "Make every hour count image"
+      },
+      {
+        "source": "/website/handoff/powerful-tools-one-platform/keep-oversight-within-reach.png",
+        "label": "Keep oversight within reach image"
+      },
+      {
+        "source": "/website/handoff/powerful-tools-one-platform/stay-on-top-of-every-request.png",
+        "label": "Stay on top of every request image"
+      },
+      {
+        "source": "/website/handoff/powerful-tools-one-platform/turn-activity-into-clarity.png",
+        "label": "Turn activity into clarity image"
+      },
+      {
+        "source": "/website/handoff/powerful-tools-one-platform/keep-every-opportunity-in-sight.png",
+        "label": "Keep every opportunity in sight image"
+      }
+    ]
+  },
+  {
+    "id": "integrations",
+    "anchor": "integrations",
+    "label": "Integrations",
+    "description": "Teams, Outlook and notifications.",
+    "groups": [
+      {
+        "label": "Section heading",
+        "fields": [
+          {
+            "key": "Connected workspace",
+            "label": "Eyebrow",
+            "multiline": false
+          },
+          {
+            "key": "Stay connected. Stay informed",
+            "label": "Heading",
+            "multiline": false
+          },
+          {
+            "key": "Worktello keeps your workflow connected with the tools you already use while making sure you never miss an important business update. Integrate with Microsoft Teams and Outlook, and stay informed through timely notifications.",
+            "label": "Introduction",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "MS Teams integration",
+        "fields": [
+          {
+            "key": "MS Teams integration",
+            "label": "Label",
+            "multiline": false
+          },
+          {
+            "key": "Keep your team connected",
+            "label": "Heading",
+            "multiline": false
+          },
+          {
+            "key": "Connect Worktello with Microsoft Teams to bring your team communication closer to your daily workflows and stay connected with important updates.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Outlook integration",
+        "fields": [
+          {
+            "key": "Outlook integration",
+            "label": "Label",
+            "multiline": false
+          },
+          {
+            "key": "Keep your work in sync",
+            "label": "Heading",
+            "multiline": false
+          },
+          {
+            "key": "Connect Outlook with Worktello to streamline your workflow and keep important business communication within reach.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Smart notifications",
+        "fields": [
+          {
+            "key": "Smart notifications",
+            "label": "Label",
+            "multiline": false
+          },
+          {
+            "key": "Never miss what matters",
+            "label": "Heading",
+            "multiline": false
+          },
+          {
+            "key": "Stay informed about assigned work, customer replies, and contract renewals through your workspace’s notification preferences.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      }
+    ],
+    "images": [
+      {
+        "source": "/website/handoff/connected-workspace/ms-teams-integration.png",
+        "label": "Teams image"
+      },
+      {
+        "source": "/website/handoff/connected-workspace/outlook-integration.png",
+        "label": "Outlook image"
+      },
+      {
+        "source": "/website/handoff/connected-workspace/smart-notifications.png",
+        "label": "Notifications image"
+      }
+    ]
+  },
+  {
+    "id": "tour",
+    "anchor": "explore",
+    "label": "Product tour",
+    "description": "Show visitors what they can do.",
+    "groups": [
+      {
+        "label": "Section heading",
+        "fields": [
+          {
+            "key": "See Worktello in action",
+            "label": "Eyebrow",
+            "multiline": false
+          },
+          {
+            "key": "A clearer view of how work gets done.",
+            "label": "Heading",
+            "multiline": false
+          },
+          {
+            "key": "Explore the workspace that brings your projects, people, and business workflows together.",
+            "label": "Introduction",
+            "multiline": true
+          },
+          {
+            "key": "Switch between your tasks, timesheets, customer records, and support tickets with dedicated views for different types of work.",
+            "label": "Supporting text",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Dashboard",
+        "fields": [
+          {
+            "key": "Dashboard",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Your work, opportunities, time, and support activity in one overview.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Tasks & Spaces",
+        "fields": [
+          {
+            "key": "Tasks & Spaces",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Organize work in spaces, folders, tasks, and subtasks. Follow progress with board, list, and Gantt views.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "CRM",
+        "fields": [
+          {
+            "key": "CRM",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Keep customers, contacts, leads, opportunities, and contracts connected.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Time Reports",
+        "fields": [
+          {
+            "key": "Time Reports",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Review logged time, team activity, and working hours with clear reports.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Support",
+        "fields": [
+          {
+            "key": "Support",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Track customer requests, replies, ownership, and service targets in one place.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      }
+    ],
+    "images": [
+      {
+        "source": "/website/handoff/see-worktello-in-action/dashboard.png",
+        "label": "Dashboard screenshot"
+      },
+      {
+        "source": "/website/handoff/see-worktello-in-action/tasks-spaces.png",
+        "label": "Tasks & Spaces screenshot"
+      },
+      {
+        "source": "/website/handoff/see-worktello-in-action/crm.png",
+        "label": "CRM screenshot"
+      },
+      {
+        "source": "/website/handoff/see-worktello-in-action/time-reports.png",
+        "label": "Time Reports screenshot"
+      },
+      {
+        "source": "/website/handoff/see-worktello-in-action/support.png",
+        "label": "Support screenshot"
+      }
+    ]
+  },
+  {
+    "id": "audiences",
+    "anchor": "audiences",
+    "label": "Who it’s for",
+    "description": "Speak to each audience.",
+    "groups": [
+      {
+        "label": "Section heading",
+        "fields": [
+          {
+            "key": "Who is Worktello for?",
+            "label": "Eyebrow",
+            "multiline": false
+          },
+          {
+            "key": "Built for people who lead and manage",
+            "label": "Heading",
+            "multiline": false
+          },
+          {
+            "key": "From business owners to team leaders, Worktello empowers decision-makers to manage teams, track performance, oversee operations, and keep everything moving in the right direction.",
+            "label": "Introduction",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Business owners",
+        "fields": [
+          {
+            "key": "Business owners",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Get a complete overview of business operations, team performance, and overall progress.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "C-suite executives",
+        "fields": [
+          {
+            "key": "C-suite executives",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Make informed decisions with clear visibility into business performance and organizational activities.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Business managers",
+        "fields": [
+          {
+            "key": "Business managers",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Manage daily operations, monitor team productivity, and keep business activities on track.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Team leads",
+        "fields": [
+          {
+            "key": "Team leads",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Oversee team activities, assign tasks, track progress, and keep everyone aligned.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Product owners",
+        "fields": [
+          {
+            "key": "Product owners",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Manage product workflows, prioritize tasks, and ensure teams stay focused on delivery.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      }
+    ],
+    "images": [
+      {
+        "source": "/website/handoff/who-is-worktello-for/business-owners.png",
+        "label": "Business owners image"
+      },
+      {
+        "source": "/website/handoff/who-is-worktello-for/c-suite-executives.png",
+        "label": "C-suite executives image"
+      },
+      {
+        "source": "/website/handoff/who-is-worktello-for/business-managers.png",
+        "label": "Business managers image"
+      },
+      {
+        "source": "/website/handoff/who-is-worktello-for/team-leads.png",
+        "label": "Team leads image"
+      },
+      {
+        "source": "/website/handoff/who-is-worktello-for/product-owners.png",
+        "label": "Product owners image"
+      }
+    ]
+  },
+  {
+    "id": "meet",
+    "anchor": "meet-worktello",
+    "label": "Meet Worktello",
+    "description": "Introduce the product’s core capabilities.",
+    "groups": [
+      {
+        "label": "Section heading",
+        "fields": [
+          {
+            "key": "Meet Worktello",
+            "label": "Eyebrow",
+            "multiline": false
+          },
+          {
+            "key": "Everything your team needs, working together.",
+            "label": "Heading",
+            "multiline": false
+          },
+          {
+            "key": "From daily tasks to customer relationships, Worktello brings your essential business workflows into one organized platform.",
+            "label": "Introduction",
+            "multiline": true
+          },
+          {
+            "key": "Meet Worktello now",
+            "label": "Button label",
+            "multiline": false
+          }
+        ]
+      },
+      {
+        "label": "Manage Work",
+        "fields": [
+          {
+            "key": "Manage Work",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Organize projects, assign tasks, and keep your team aligned.",
+            "label": "Description",
+            "multiline": true
+          },
+          {
+            "key": "Design handoff · Review content",
+            "label": "Example",
+            "multiline": false
+          }
+        ]
+      },
+      {
+        "label": "Track Time",
+        "fields": [
+          {
+            "key": "Track Time",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Log working hours and understand where your team’s time goes.",
+            "label": "Description",
+            "multiline": true
+          },
+          {
+            "key": "31h 24m · Weekly logged time",
+            "label": "Example",
+            "multiline": false
+          }
+        ]
+      },
+      {
+        "label": "Manage Customers",
+        "fields": [
+          {
+            "key": "Manage Customers",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Keep customer information, leads, contracts, and opportunities connected.",
+            "label": "Description",
+            "multiline": true
+          },
+          {
+            "key": "Customers · Leads · Opportunities",
+            "label": "Example",
+            "multiline": false
+          }
+        ]
+      },
+      {
+        "label": "Customer Support",
+        "fields": [
+          {
+            "key": "Customer Support",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Organize tickets, monitor workloads, and manage customer requests.",
+            "label": "Description",
+            "multiline": true
+          },
+          {
+            "key": "Account access · Open",
+            "label": "Example",
+            "multiline": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "why",
+    "anchor": "why-worktello",
+    "label": "Why Worktello",
+    "description": "Explain what makes the product useful.",
+    "groups": [
+      {
+        "label": "Section heading",
+        "fields": [
+          {
+            "key": "Why Worktello",
+            "label": "Eyebrow",
+            "multiline": false
+          },
+          {
+            "key": "Less complexity. More clarity.",
+            "label": "Heading",
+            "multiline": false
+          },
+          {
+            "key": "Worktello brings essential business workflows into one connected environment, helping teams stay focused while giving managers better visibility into the work that matters.",
+            "label": "Introduction",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "One Connected Workspace",
+        "fields": [
+          {
+            "key": "One Connected Workspace",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Bring projects, time tracking, CRM, and customer support together.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Clarity at Every Level",
+        "fields": [
+          {
+            "key": "Clarity at Every Level",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Stay focused on personal priorities while maintaining visibility across team workloads.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Better Visibility",
+        "fields": [
+          {
+            "key": "Better Visibility",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Monitor tasks, working hours, opportunities, and support activity.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Organized Workflows",
+        "fields": [
+          {
+            "key": "Organized Workflows",
+            "label": "Title",
+            "multiline": false
+          },
+          {
+            "key": "Structure responsibilities across teams, projects, and business activities.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "faq",
+    "anchor": "faq",
+    "label": "FAQs",
+    "description": "Add, edit and arrange frequently asked questions.",
+    "groups": [
+      {
+        "label": "Section heading",
+        "fields": [
+          {
+            "key": "FAQ",
+            "label": "Eyebrow",
+            "multiline": false
+          },
+          {
+            "key": "Have questions? We’ve got answers.",
+            "label": "Heading",
+            "multiline": false
+          },
+          {
+            "key": "Everything you need to know about Worktello and how it helps your team stay organized.",
+            "label": "Introduction",
+            "multiline": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "footer",
+    "anchor": "contact",
+    "label": "Closing & footer",
+    "description": "Finish the page with a clear next step.",
+    "groups": [
+      {
+        "label": "Closing message",
+        "fields": [
+          {
+            "key": "Your workspace starts here",
+            "label": "Eyebrow",
+            "multiline": false
+          },
+          {
+            "key": "Bring everything together. Work better.",
+            "label": "Heading",
+            "multiline": false
+          },
+          {
+            "key": "Give your team one place to manage work, track progress, and stay connected across everyday business operations.",
+            "label": "Description",
+            "multiline": true
+          }
+        ]
+      },
+      {
+        "label": "Footer",
+        "fields": [
+          {
+            "key": "Manage projects, track time, connect customer relationships, and handle support — all in one workspace built to keep your team moving.",
+            "label": "Description",
+            "multiline": true
+          },
+          {
+            "key": "Connect with us",
+            "label": "Social heading",
+            "multiline": false
+          },
+          {
+            "key": "info@digisol.ae",
+            "label": "Contact email",
+            "multiline": false
+          },
+          {
+            "key": "Customer login",
+            "label": "Login label",
+            "multiline": false
+          },
+          {
+            "key": "Cookies",
+            "label": "Cookies label",
+            "multiline": false
+          },
+          {
+            "key": "Privacy",
+            "label": "Privacy label",
+            "multiline": false
+          },
+          {
+            "key": "Terms & conditions",
+            "label": "Terms label",
+            "multiline": false
+          }
+        ]
+      },
+      {
+        "label": "Buttons",
+        "fields": [
+          {
+            "key": "Get started",
+            "label": "Primary button label",
+            "multiline": false
+          },
+          {
+            "key": "Explore Worktello",
+            "label": "Secondary button label",
+            "multiline": false
+          }
+        ]
+      }
+    ],
+    "images": [
+      {
+        "source": "/website/handoff/footer/cta-section.png",
+        "label": "Closing section background"
+      }
+    ],
+    "links": [
+      {
+        "key": "/register",
+        "label": "Primary button destination",
+        "fallback": "/register"
+      },
+      {
+        "key": "#explore",
+        "label": "Secondary button destination",
+        "fallback": "#explore"
+      }
+    ]
+  }
+]

@@ -13,9 +13,7 @@ import Fields from './fields/page';
 import Tenants from './tenants/page';
 import DataTransfer from './data-transfer/page';
 import WhatsNewManagement from './whats-new/page';
-import WebsiteContent from './website-content/page';
 const PAGES = {
-  'website-content': WebsiteContent,
   'whats-new': WhatsNewManagement,
   queues: Queues,
   tutorials: Tutorials,
