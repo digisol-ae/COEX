@@ -1,7 +1,6 @@
 # SaaS launch and older feedback follow-up
 
-Status: candidate implementation, not yet deployed. Payments remain excluded. The SaaS foundation
-from PR #94 is already live; this record describes the separate follow-up branch.
+Status: deployed through PR #97, merged as 13286bd. The web and all three workers use source f26c824 on loopback 3020. Payments remain excluded. See ../../ai/RELEASE-2026-11-26-BACKLOG.md for runtime, backup and rollback evidence.
 
 Task and ticket edit dialogs change Save to Close only after a successful save. Editing returns
 the button to Save; an edit made during a pending save cannot be marked saved by the older
@@ -18,8 +17,7 @@ membership and active-staff rules still apply. Narrowing membership cannot stran
 
 Flagged temporary passwords require the existing recovery flow. Ordinary web/API sessions and
 Microsoft/Teams paths cannot bypass that flag. Verified customer email-code access discards a
-flagged temporary password. A read-only production count found 10 active flagged accounts; the
-check changed no passwords, sessions or users.
+flagged temporary password. A read-only production count found nine flagged staff (including two platform owners), plus one flagged portal account with verified email-code access that discards its temporary password. John Ali’s old session now reaches login; fresh authenticated acceptance awaits owner recovery. No password/flag bypass was performed.
 
 Lead forms now use the shared native drawer, including Escape/focus behavior and themed controls.
 Gantt PDF export accepts the configured public origin behind the reverse proxy and still refuses

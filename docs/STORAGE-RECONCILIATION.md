@@ -31,3 +31,7 @@ an incident reason. Never automatically expire a lock while an operation could s
 This repairs accounting, not capacity. The 50 GB offsite archival policy still needs an approved
 archive destination and a recoverable storage adapter. A single-member replica set supports the
 audit transaction but does not provide database high availability.
+
+26 November rollout: all 19 older web slots are stopped and all three workers use the guarded
+adapter. Live previews matched both tenant counters (66,264,257 bytes and zero), so no counter
+changes were applied. Root-only operation evidence is in the release backup.

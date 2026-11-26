@@ -96,7 +96,7 @@
       "notes": [
         "A Microsoft account alone does not create Worktello access. The account must match an active staff identity.",
         "Browser Microsoft sign-in to production was verified on 25 October. Customer portal interaction evidence comes from isolated synthetic QA.",
-        "26 November follow-up: candidate behavior verified in isolated synthetic QA; deployment is tracked in the dated resolution."
+        "26 November follow-up deployed through PR #97; synthetic workflow QA passed. Fresh authenticated live acceptance awaits owner password recovery."
       ],
       "sources": [
         [
@@ -313,7 +313,7 @@
         "Task creation may queue an assignment email for another person according to tenant email settings. Self-assignment mail remains intentionally suppressed.",
         "This guide does not create production tasks as examples.",
         "29 October release handover records signed-in live Board expansion from 10 to 20 Done cards while To do remained unchanged. Creation/edit checks used isolated synthetic data. A narrow-viewport floating timer overlapped the far-right footer control; keyboard activation worked in the recorded live check.",
-        "26 November follow-up: candidate behavior verified in isolated synthetic QA; deployment is tracked in the dated resolution."
+        "26 November follow-up deployed through PR #97; synthetic workflow QA passed. Fresh authenticated live acceptance awaits owner password recovery."
       ],
       "sources": [
         [
@@ -372,7 +372,7 @@
       "notes": [
         "Personal completion does not close the main task, complete another person’s subtask, or remove their access.",
         "The controlled checkbox/count fix was verified with a synthetic record, reload and reversal; ordinary-account production mutations were not repeated.",
-        "26 November follow-up: candidate behavior verified in isolated synthetic QA; deployment is tracked in the dated resolution."
+        "26 November follow-up deployed through PR #97; synthetic workflow QA passed. Fresh authenticated live acceptance awaits owner password recovery."
       ],
       "sources": [
         [
@@ -430,7 +430,7 @@
       "notes": [
         "Being an assignee does not bypass a private Space or Folder boundary.",
         "Archiving and hiding are different operations. Do not archive shared work merely to clear your own list.",
-        "26 November follow-up: candidate behavior verified in isolated synthetic QA; deployment is tracked in the dated resolution."
+        "26 November follow-up deployed through PR #97; synthetic workflow QA passed. Fresh authenticated live acceptance awaits owner password recovery."
       ],
       "sources": [
         [
@@ -1819,9 +1819,80 @@
         "access"
       ],
       "status": "Merged; deployment blocked by transaction prerequisite"
+    },
+    {
+      "id": "workspace-access",
+      "title": "Workspace trials, modules and storage",
+      "group": "Administration",
+      "roles": [
+        "Admin"
+      ],
+      "intro": "Platform owners control company workspaces and commercial allowances. Tenant administrators manage only their own company; customer contacts remain inside their company portal.",
+      "steps": [
+        {
+          "title": "Find the public entry",
+          "text": "Existing staff use Log in on worktello.com. New companies use Get started to reach trial applications; applications are currently closed pending readiness acceptance."
+        },
+        {
+          "title": "Review verified applications",
+          "text": "When applications are opened, the platform owner reviews verified applications in Setup → Tenants. Approval provisions the company and emails the first administrator an activation link. The trial starts at approval."
+        },
+        {
+          "title": "Set the trial and file allowance",
+          "text": "The initial defaults are 30 days and 2 GB. Platform owners can adjust future provisioning defaults and change an individual company allowance or extend its trial with a recorded reason. Tenant administrators can view their own allowance and usage."
+        },
+        {
+          "title": "Restrict modules",
+          "text": "Platform owners use each company’s Module access controls for Tasks, Support and CRM. Server checks enforce the allowance for staff, portal access and background work."
+        },
+        {
+          "title": "Use the company portal",
+          "text": "Share the company-specific /portal/company-identifier URL. Sign-in remains bound to that company and a verified customer contact; it does not grant staff access."
+        },
+        {
+          "title": "Understand retained files",
+          "text": "Stored attachments count toward the file allowance while retained. Archiving a task or ticket does not free file storage. Reconciliation is an owner/operator maintenance tool and does not delete files."
+        }
+      ],
+      "notes": [
+        "Controls are live through PR #97. Public applications remain closed, initial approval is required, and payments/future automatic registration remain deferred.",
+        "Fresh authenticated owner acceptance awaits password recovery under the existing password-change flag. XVERSE and offsite archival need their external inputs."
+      ],
+      "sources": [
+        [
+          "26 November release",
+          "../../ai/RELEASE-2026-11-26-BACKLOG.md"
+        ],
+        [
+          "Subscription rollout",
+          "../SAAS-ROLLOUT.md"
+        ],
+        [
+          "Storage reconciliation",
+          "../STORAGE-RECONCILIATION.md"
+        ]
+      ],
+      "images": [],
+      "related": [
+        "login",
+        "tasks",
+        "spaces"
+      ],
+      "status": "Live controls; registration closed"
     }
   ],
   "resolutions": [
+    {
+      "id": "saas-backlog-20261126",
+      "title": "SaaS launch and older feedback follow-up",
+      "date": "26 Nov 2026",
+      "symptom": "The public landing, saved-dialog behavior and older app feedback needed completion.",
+      "cause": "The supplied design and remaining access, restoration and accounting paths were not integrated.",
+      "fix": "PR #97 deploys the supplied landing, Save/Close controls, safe folder restore, delegated subtasks, password-change gate, Lead drawers, Gantt origin fix, storage reconciliation and message-to-task tool.",
+      "verification": "900 isolated tests, types/lint/format, local/server builds and PR/main CI passed; public live landing/theme passed. Fresh signed-in acceptance awaits owner recovery.",
+      "status": "Live; authenticated acceptance pending",
+      "record": "../resolutions/2026-11-26-saas-backlog.md"
+    },
     {
       "id": "unsigned-contract-pdfs",
       "title": "Unsigned contract PDF downloads",

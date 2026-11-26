@@ -1,3 +1,21 @@
+## Landing and non-payment feedback live — 26 November 2026
+
+PR #97 merged as `13286bd`; compiled source `f26c824` is live at https://worktello.com on loopback
+3020 (`coex-app-backlog-20261126`). All three workers use the same release; 19 old web slots are
+stopped. Fresh quiet database/storage backup, rollback definitions and all four hardened proxy
+vhosts are recorded in the [release record](RELEASE-2026-11-26-BACKLOG.md). 900 isolated tests, types/lint/format,
+local/server builds and PR/main CI passed. Live landing/theme and public/static checks passed.
+Public registration remains closed; payments excluded. Storage previews match physical bytes for
+both tenants, with no counter changes. John Ali's existing password-change flag now blocks his old
+session; fresh authenticated acceptance requires owner recovery. Nine staff, including two
+platform admins, were flagged before deployment. No password/flag was changed to bypass policy.
+
+Continue from the release record and `docs/BACKLOG-COMPLETION-2026-11-26.md`. Remaining external
+inputs: XVERSE API contract, offsite archive destination and registration QA inbox confirmation.
+Local QA server and owned MongoDB container are stopped. The owner's requested Mac shutdown
+remains pending completion; do not shut down during manual password recovery or unfinished QA.
+Earlier deployment/port statements below are historical.
+
 ## SaaS controls live — 25 November 2026
 
 PR #94 merged as `83c61f1`; deployed source `aefe952` is live at https://worktello.com on loopback

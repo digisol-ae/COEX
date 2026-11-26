@@ -1,5 +1,16 @@
 # FEEDBACK
 
+## 26 November 2026 — Landing and older feedback follow-up live
+
+PR #97 is live at Worktello with the supplied landing design, task/ticket Save → Close → Save, safe
+folder restoration, eligible subtask delegation, required-password enforcement, native Lead drawers,
+proxy-safe Gantt PDF export, audited storage reconciliation and Setup WhatsApp message → task.
+The dated closure inventory reconciles the older T/U items against current code and tests. Older
+Open/local-only statements below are historical. Real XVERSE and offsite archival still need their
+external inputs; public registration and fresh owner acceptance remain pending recovery/readiness.
+Payments remain deferred. Evidence: docs/BACKLOG-COMPLETION-2026-11-26.md and
+ai/RELEASE-2026-11-26-BACKLOG.md.
+
 ## 28 October 2026 — Completed feedback release deployed
 
 Completed feedback bundle is live at PR #70 / application SHA `515649d`. It includes the contract year change, customer contacts sourced from tickets, Team Activity last-active factor, Outlook email-to-task backend/pane assets, Gantt subtasks and PDF export, 10-record progressive lists, staff-only assignee filtering and team/customer separation, shared filter/icon refinements, recurring tasks and application-wide account/query/refresh optimizations. Owner/admin task assignment requests remain deferred for the next release. Deployment evidence and known limits: `ai/RELEASE-2026-10-28-FEEDBACK.md`. Outlook still needs the prepared production manifest sideloaded and tested in Outlook. Production freeze reports have not been proven resolved by this release.
