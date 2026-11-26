@@ -1,3 +1,16 @@
+# Website editor live — 26 November 2026
+
+PR #99 merged as `2eeaad9`; source `4ffbcb2` is live at https://worktello.com on loopback **3021**
+from `/srv/coex/releases/website-editor-20261126-4ffbcb2` (PM2 `coex-app-website-20261126`, id30).
+Setup → Website Content includes owner-only drafts, previews, private raster uploads, explicit
+publication and restore history. Stored active platform_admin checks enforce all management access.
+PR/main CI, 486 unit tests, 14 isolated database tests, production builds, public health/privacy and
+signed-in owner editor reads passed. No production content or upload was submitted as a test.
+Prior web3020 remains online for rollback; workers27/28/29 and sessions/settings are unchanged.
+Backup, acceptance and rollback: [website editor release](../ai/RELEASE-2026-11-26-WEBSITE-EDITOR.md).
+The supplied landing is preserved. Local QA app/test database are stopped. Leave the Mac running.
+Earlier runtime statements below are historical.
+
 ## Landing and non-payment feedback live — 26 November 2026
 
 PR #97 merged as `13286bd`; compiled source `f26c824` is live at https://worktello.com on loopback
