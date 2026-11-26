@@ -1,3 +1,22 @@
+## Landing and non-payment feedback live — 26 November 2026
+
+PR #97 merged as `13286bd`; compiled source `f26c824` is live at https://worktello.com on loopback
+3020 (`coex-app-backlog-20261126`). All three workers use the same release; 19 old web slots are
+stopped. Fresh quiet database/storage backup, rollback definitions and all four hardened proxy
+vhosts are recorded in the [release record](../ai/RELEASE-2026-11-26-BACKLOG.md). 900 isolated tests, types/lint/format,
+local/server builds and PR/main CI passed. Live landing/theme and public/static checks passed.
+Public trial applications are open after owner-confirmed Inbox delivery; email verification and
+owner approval remain required. Payments excluded. Storage previews match physical bytes for
+both tenants, with no counter changes. The owner completed password recovery; fresh authenticated dashboard, task edit, tenant defaults
+and module controls passed read-only live checks. No task, allowance or module change was submitted during these read checks. Nine staff, including two
+platform admins, were flagged before deployment. No password/flag was changed to bypass policy.
+
+Continue from the release record and `docs/BACKLOG-COMPLETION-2026-11-26.md`. Remaining external
+inputs: XVERSE API contract and offsite archive destination. Registration Inbox receipt is confirmed.
+Local QA server and owned MongoDB container are stopped. **The owner cancelled the Mac shutdown
+request on 26 November: leave the computer running unless explicitly requested again.**
+Earlier deployment/port statements below are historical.
+
 ## PWA installation live — 4 November 2026
 
 PR #80 merged as `5657097385434b0e66b267f613c415bb4d4b5cdb` and deployed at 01:18 PKT on 4 November 2026. Active `coex-app-pwa` id 12/PID 61787 serves loopback 3010 from `/srv/coex/releases/pwa-20261104` using Node 22.23.4 / Next 16.4.5. All four app vhosts target 3010; PM2 saved. Native signing on 3009 remains healthy immediate rollback. Workers retained PIDs 906/907/908 with zero restarts.

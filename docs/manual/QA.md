@@ -28,3 +28,16 @@ Reviewed merged main through 0539bad and existing dated release/resolution evide
 ## 26 October customer login update
 
 Customer password compatibility, email-code sign-in and reset instructions updated. Blank production email-code and Forgot-password forms read in a separate in-app browser tab; original staff session preserved. Thirteen eligible customer hashes imported, zero repeat overwrites and all12 staff fingerprints preserved. Authentication integration is synthetic/isolated; real inbox delivery/customer password entry remains untested. See ../resolutions/2026-10-26-customer-login.md for runtime, CI, backup and rollback evidence.
+
+## 26 November SaaS and feedback update
+
+900 isolated tests, types/lint/format, local/server builds and PR/main CI passed. Synthetic browser
+checks covered Save/Close edits, dark Lead and assignment controls, native drawer Escape, message
+→ task creation and responsive landing interactions/assets. The live public landing/theme passed;
+John Ali’s refreshed session reached sign-in under its pre-existing password-change flag. The owner subsequently completed recovery; fresh authenticated dashboard, task edit and tenant/module
+read checks passed without submitting production changes. No credentials/flags were bypassed.
+See ../../ai/RELEASE-2026-11-26-BACKLOG.md. No external provider activation or bulk mail.
+
+Owner confirmed the registration QA email arrived in Inbox. Public applications were opened with
+verification and mandatory owner approval. Saved-setting/public form and anonymous HTTP checks
+passed; no application or extra test email submitted. Mac shutdown was explicitly cancelled.

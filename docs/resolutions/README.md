@@ -37,4 +37,4 @@ Interactive user guide: `../manual/index.html#resolutions`. Secrets and raw priv
 
 - [17 November — Unsigned contract PDF downloads](2026-11-17-unsigned-contract-pdfs.md) — Merged. Production acceptance pending.
 
-- [26 November SaaS backlog follow-up](2026-11-26-saas-backlog.md) — Candidate implementation; deployment pending.
+- [26 November SaaS backlog follow-up](2026-11-26-saas-backlog.md) — Deployed; recovered owner and live read-only acceptance verified.
