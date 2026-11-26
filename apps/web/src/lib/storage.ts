@@ -6,6 +6,7 @@ import { DEFAULT_STORAGE_LIMIT_BYTES } from '@coex/shared/core/saas';
 import { connectToDatabase } from './db';
 import { getContext, peekContext } from './tenant-context';
 import { assertWorkspaceAccess } from '@/modules/core/services/workspace-access.service';
+import { withStorageMutation } from './storage-maintenance';
 
 /**
  * Where uploaded files live.
@@ -152,31 +153,33 @@ function keyFor(tenantId: string, fileName: string): string {
 
 const localStorage: FileStorage = {
   async put({ tenantId, fileName, body }) {
-    if (String(getContext().tenantId) !== tenantId)
-      throw new Error('This file belongs to another workspace.');
-    if (!/^[a-f0-9]{24}$/i.test(tenantId)) throw new Error('Invalid storage tenant.');
-    const key = keyFor(tenantId, fileName);
-    const path = safePath(key);
+    return withStorageMutation(rootDirectory(), async () => {
+      if (String(getContext().tenantId) !== tenantId)
+        throw new Error('This file belongs to another workspace.');
+      if (!/^[a-f0-9]{24}$/i.test(tenantId)) throw new Error('Invalid storage tenant.');
+      const key = keyFor(tenantId, fileName);
+      const path = safePath(key);
 
-    await reserveStorage(tenantId, body.byteLength);
-    try {
-      await mkdir(dirname(path), { recursive: true });
-      await writeFile(path, body, { flag: 'wx' });
-    } catch (error) {
-      // A failed write can leave a partial file. Remove it before releasing its reservation.
-      await rm(path, { force: true }).catch((cleanupError: NodeJS.ErrnoException) => {
-        // mkdir can fail because a parent is a file; then no partial file could exist.
-        if (!['ENOENT', 'ENOTDIR'].includes(cleanupError.code ?? '')) throw cleanupError;
-      });
-      await releaseStorage(tenantId, body.byteLength);
-      throw error;
-    }
+      await reserveStorage(tenantId, body.byteLength);
+      try {
+        await mkdir(dirname(path), { recursive: true });
+        await writeFile(path, body, { flag: 'wx' });
+      } catch (error) {
+        // A failed write can leave a partial file. Remove it before releasing its reservation.
+        await rm(path, { force: true }).catch((cleanupError: NodeJS.ErrnoException) => {
+          // mkdir can fail because a parent is a file; then no partial file could exist.
+          if (!['ENOENT', 'ENOTDIR'].includes(cleanupError.code ?? '')) throw cleanupError;
+        });
+        await releaseStorage(tenantId, body.byteLength);
+        throw error;
+      }
 
-    return {
-      key,
-      bytes: body.byteLength,
-      checksum: createHash('sha256').update(body).digest('hex'),
-    };
+      return {
+        key,
+        bytes: body.byteLength,
+        checksum: createHash('sha256').update(body).digest('hex'),
+      };
+    });
   },
 
   async get(key) {
@@ -185,20 +188,22 @@ const localStorage: FileStorage = {
   },
 
   async remove(key) {
-    const tenantId = tenantFromKey(key);
-    await initialiseStorageUsage(tenantId);
-    const path = safePath(key);
-    const tombstone = `${path}.removing-${randomUUID()}`;
-    // Atomic rename gives exactly one remover ownership, avoiding a double quota refund.
-    try {
-      await rename(path, tombstone);
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return;
-      throw error;
-    }
-    const bytes = (await stat(tombstone)).size;
-    await rm(tombstone);
-    await releaseStorage(tenantId, bytes);
+    return withStorageMutation(rootDirectory(), async () => {
+      const tenantId = tenantFromKey(key);
+      await initialiseStorageUsage(tenantId);
+      const path = safePath(key);
+      const tombstone = `${path}.removing-${randomUUID()}`;
+      // Atomic rename gives exactly one remover ownership, avoiding a double quota refund.
+      try {
+        await rename(path, tombstone);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') return;
+        throw error;
+      }
+      const bytes = (await stat(tombstone)).size;
+      await rm(tombstone);
+      await releaseStorage(tenantId, bytes);
+    });
   },
 };
 

@@ -11,6 +11,30 @@ import {
   simulateInbound,
 } from '@/modules/channels/services/channel-messages.service';
 import { processPendingSupportInbound } from '@/modules/channels/services/support-inbound.service';
+import { createTaskFromChannelMessage } from '@/modules/channels/services/channel-task.service';
+
+export async function createChannelTaskAction(
+  _previous: { error?: string; taskId?: string },
+  formData: FormData,
+): Promise<{ error?: string; taskId?: string }> {
+  const actor = await requirePermission('tenant.manage');
+  await requirePermission('ticket.manage');
+  await requirePermission('task.manage');
+  try {
+    const taskId = await asUser(actor, () =>
+      createTaskFromChannelMessage({
+        messageId: String(formData.get('messageId') ?? ''),
+        spaceId: String(formData.get('spaceId') ?? ''),
+        title: String(formData.get('title') ?? ''),
+      }),
+    );
+    revalidatePath('/setup/whatsapp');
+    revalidatePath('/tasks');
+    return { taskId };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not create task.' };
+  }
+}
 
 export interface ChannelFormState {
   error?: string;

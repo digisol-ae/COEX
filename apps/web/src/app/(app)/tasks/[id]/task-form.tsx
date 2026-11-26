@@ -95,7 +95,12 @@ export function TaskForm({
 
   return (
     <div className="space-y-4">
-      <form action={formAction} onChange={markEdited} className="space-y-3">
+      <form
+        action={formAction}
+        onChange={markEdited}
+        onReset={(event) => event.preventDefault()}
+        className="space-y-3"
+      >
         <input type="hidden" name="id" value={task.id} />
 
         <Field label="Title">

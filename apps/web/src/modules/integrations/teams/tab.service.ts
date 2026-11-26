@@ -23,6 +23,7 @@ import { formChoices } from './form-model';
 import { verifyTeamsTabToken, COPILOT_CLIENT_IDS } from './tab-auth';
 import { z } from 'zod';
 import { taskTeamsSource } from '@coex/shared/tasks/teams-sharing';
+import { taskAssigneeIds } from '@coex/shared/tasks/assignees';
 import { toDateKey } from '@coex/shared/time/week';
 import { TimeEntryModel } from '@coex/shared/time/models/time-entry.model';
 import { getContext } from '@/lib/tenant-context';
@@ -396,8 +397,7 @@ async function accessibleTask(taskId: string, actorId: string, permissions: Set<
   const task = await getTask(taskId);
   if (
     !task ||
-    (!permissions.has('teams.tasks.read.others') &&
-      !task.assigneeIds.some((id) => String(id) === actorId))
+    (!permissions.has('teams.tasks.read.others') && !taskAssigneeIds(task).includes(actorId))
   )
     throw new TeamsTabError(404, 'This task is unavailable or your access changed.');
   return task;

@@ -47,6 +47,7 @@ const channelMessageSchema = new Schema(
     nextAttemptAt: { type: Date, default: null },
     leaseUntil: { type: Date, default: null },
     ticketId: { type: Schema.Types.ObjectId, ref: 'Ticket', default: null },
+    taskId: { type: Schema.Types.ObjectId, ref: 'Task', default: null },
     contactId: { type: Schema.Types.ObjectId, ref: 'Contact', default: null },
     processedAt: { type: Date, default: null },
     createdById: { type: Schema.Types.ObjectId, ref: 'User', default: null },

@@ -1160,6 +1160,7 @@ it('delegates a subtask beyond parent owners and includes it in the delegate’s
         taskId,
       );
       expect(await countMyOpenTasks(String(strangerId))).toBe(1);
+      expect((await loadDashboard({ onlyAssigneeId: String(strangerId) })).tiles.open).toBe(1);
       await expect(setMySubtaskDone(taskId, true)).rejects.toThrow(
         'Complete your assigned subtasks first',
       );

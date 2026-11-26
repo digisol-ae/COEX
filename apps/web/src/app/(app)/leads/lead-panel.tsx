@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { Button, Field, Input, Notice, Select } from '@/components/ui';
 import { IconButton } from '@/components/ui/icon-button';
+import { SettingsDrawer } from '@/components/ui/settings-drawer';
 import { useToast } from '@/components/ui/toast';
 import { MobileInput } from '@/modules/crm/components/mobile-input';
 import { CustomFields, type CustomFieldValues } from '@/modules/crm/components/custom-fields';
@@ -79,103 +80,103 @@ export function LeadPanel({
     lead?.source && !sources.includes(lead.source) ? [...sources, lead.source] : sources;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 popup-backdrop-light">
-      <div className="popup-glass-gradient max-h-[90vh] w-full max-w-xl overflow-y-auto p-5 text-left">
-        <h2 className="font-medium">{lead ? `Edit ${lead.name}` : 'New lead'}</h2>
+    <SettingsDrawer
+      title={lead ? `Edit ${lead.name}` : 'New lead'}
+      open={open}
+      onClose={() => setOpen(false)}
+    >
+      <form action={formAction} className="mt-3 space-y-3" autoComplete="off">
+        {lead ? <input type="hidden" name="id" value={lead.id} /> : null}
 
-        <form action={formAction} className="mt-3 space-y-3" autoComplete="off">
-          {lead ? <input type="hidden" name="id" value={lead.id} /> : null}
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Name">
-              <Input name="name" required defaultValue={text('name', lead?.name)} />
-            </Field>
-            <Field label="Company">
-              <Input name="company" defaultValue={text('company', lead?.company)} />
-            </Field>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Email">
-              <Input name="email" type="email" defaultValue={text('email', lead?.email)} />
-            </Field>
-            <Field label="Mobile" hint="Stored with the country code, so WhatsApp can find it">
-              <MobileInput
-                key={`mobile-${text('mobile')}`}
-                defaultCountry={text('mobileCountry', stored.country)}
-                defaultValue={text('mobile', stored.local)}
-              />
-            </Field>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Source">
-              <Select
-                key={`source-${text('source')}`}
-                name="source"
-                defaultValue={text('source', lead?.source)}
-              >
-                <option value="">Not set</option>
-                {sourceChoices.map((source) => (
-                  <option key={source} value={source}>
-                    {source}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Owner" hint="The salesperson responsible">
-              <Select
-                key={`owner-${text('ownerId')}`}
-                name="ownerId"
-                defaultValue={text('ownerId', lead?.ownerId ?? currentUserId)}
-              >
-                {owners.map((owner) => (
-                  <option key={owner.id} value={owner.id}>
-                    {owner.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-          </div>
-
-          <Field label="Notes">
-            <Input name="notes" defaultValue={text('notes', lead?.notes)} />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Name">
+            <Input name="name" required defaultValue={text('name', lead?.name)} />
           </Field>
+          <Field label="Company">
+            <Input name="company" defaultValue={text('company', lead?.company)} />
+          </Field>
+        </div>
 
-          <CustomFields fields={fields} values={lead?.customFields ?? {}} />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Email">
+            <Input name="email" type="email" defaultValue={text('email', lead?.email)} />
+          </Field>
+          <Field label="Mobile" hint="Stored with the country code, so WhatsApp can find it">
+            <MobileInput
+              key={`mobile-${text('mobile')}`}
+              defaultCountry={text('mobileCountry', stored.country)}
+              defaultValue={text('mobile', stored.local)}
+            />
+          </Field>
+        </div>
 
-          {state.duplicates?.length ? (
-            <Notice tone="warn">
-              <p className="font-medium">This looks like someone already in Worktello:</p>
-              <ul className="mt-1 list-disc pl-5">
-                {state.duplicates.map((duplicate) => (
-                  <li key={`${duplicate.kind}-${duplicate.id}`}>
-                    {KIND_LABEL[duplicate.kind]}: {duplicate.label} (
-                    {duplicate.reasons.map((reason) => REASON_LABEL[reason]).join(', ')})
-                  </li>
-                ))}
-              </ul>
-              <label className="mt-2 flex items-center gap-2 text-sm">
-                <input type="checkbox" name="confirmDuplicates" value="yes" />
-                Save it as a new lead anyway
-              </label>
-            </Notice>
-          ) : null}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Source">
+            <Select
+              key={`source-${text('source')}`}
+              name="source"
+              defaultValue={text('source', lead?.source)}
+            >
+              <option value="">Not set</option>
+              {sourceChoices.map((source) => (
+                <option key={source} value={source}>
+                  {source}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Owner" hint="The salesperson responsible">
+            <Select
+              key={`owner-${text('ownerId')}`}
+              name="ownerId"
+              defaultValue={text('ownerId', lead?.ownerId ?? currentUserId)}
+            >
+              {owners.map((owner) => (
+                <option key={owner.id} value={owner.id}>
+                  {owner.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
 
-          {state.error && !state.duplicates?.length ? (
-            <Notice tone="alert">{state.error}</Notice>
-          ) : null}
+        <Field label="Notes">
+          <Input name="notes" defaultValue={text('notes', lead?.notes)} />
+        </Field>
 
-          <div className="flex gap-2 pt-1">
-            <Button type="submit" disabled={pending}>
-              {pending ? 'Saving' : 'Save lead'}
-            </Button>
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-              Close
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <CustomFields fields={fields} values={lead?.customFields ?? {}} />
+
+        {state.duplicates?.length ? (
+          <Notice tone="warn">
+            <p className="font-medium">This looks like someone already in Worktello:</p>
+            <ul className="mt-1 list-disc pl-5">
+              {state.duplicates.map((duplicate) => (
+                <li key={`${duplicate.kind}-${duplicate.id}`}>
+                  {KIND_LABEL[duplicate.kind]}: {duplicate.label} (
+                  {duplicate.reasons.map((reason) => REASON_LABEL[reason]).join(', ')})
+                </li>
+              ))}
+            </ul>
+            <label className="mt-2 flex items-center gap-2 text-sm">
+              <input type="checkbox" name="confirmDuplicates" value="yes" />
+              Save it as a new lead anyway
+            </label>
+          </Notice>
+        ) : null}
+
+        {state.error && !state.duplicates?.length ? (
+          <Notice tone="alert">{state.error}</Notice>
+        ) : null}
+
+        <div className="flex gap-2 pt-1">
+          <Button type="submit" disabled={pending}>
+            {pending ? 'Saving' : 'Save lead'}
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+            Close
+          </Button>
+        </div>
+      </form>
+    </SettingsDrawer>
   );
 }

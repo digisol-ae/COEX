@@ -221,6 +221,16 @@ it('filters multiple agents through the existing privacy-scoped task service', a
   await readTeamsTab('token', { action: 'list', agents: actorId + ',' + taskId });
   expect(mocks.list).toHaveBeenCalledWith({ assigneeIds: [actorId, taskId], personalWork: 'all' });
 });
+it('allows a delegated subtask owner to read the parent in Teams without changing parent owners', async () => {
+  ordinary();
+  mocks.task.mockResolvedValue({
+    _id: taskId,
+    assigneeIds: [spaceId],
+    subtasks: [{ assigneeId: actorId }],
+  });
+  await expect(readTeamsTab('token', { action: 'detail', taskId })).resolves.toBeDefined();
+  expect(mocks.comments).toHaveBeenCalledWith(taskId);
+});
 it('denies assignment and forged multi-agent creation without assignment permission', async () => {
   ordinary();
   await expect(

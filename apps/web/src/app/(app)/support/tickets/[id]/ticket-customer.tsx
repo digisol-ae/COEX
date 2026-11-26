@@ -62,7 +62,12 @@ export function TicketCustomer({
         setReload((value) => value + 1);
       }}
     >
-      <form action={action} onChange={markEdited} className="space-y-3">
+      <form
+        action={action}
+        onChange={markEdited}
+        onReset={(event) => event.preventDefault()}
+        className="space-y-3"
+      >
         <input type="hidden" name="ticketId" value={id} />
         <Field label="Customer">
           <Select

@@ -1,6 +1,7 @@
 'use client';
 
 import { RecordList } from '@/components/ui/record-window';
+import { MessageTask } from './message-task';
 import { useActionState, useState, useTransition } from 'react';
 import { Badge, Button, Card, CardSection, Field, Input, Notice, Select } from '@/components/ui';
 import type { ChannelSettingsView } from '@/modules/channels/services/channel-settings.service';
@@ -71,11 +72,13 @@ export function WhatsAppSettingsForm({
   queues,
   messages,
   endpointBase,
+  taskSpaces,
 }: {
   settings: ChannelSettingsView;
   queues: { id: string; name: string }[];
   messages: ChannelMessageRow[];
   endpointBase: string;
+  taskSpaces: { id: string; name: string }[];
 }) {
   const [state, formAction, pending] = useActionState(saveChannelSettingsAction, initialState);
   const [provider, setProvider] = useState(settings.provider);
@@ -384,6 +387,9 @@ export function WhatsAppSettingsForm({
                     ) : null}
                   </div>
                   <div className="shrink-0 text-right">
+                    {message.direction === 'in' && taskSpaces.length > 0 ? (
+                      <MessageTask messageId={message.id} text={message.text} spaces={taskSpaces} />
+                    ) : null}
                     <Badge tone={STATUS_TONE[message.status] ?? 'neutral'}>{message.status}</Badge>
                     <p className="mt-1 text-xs text-[var(--color-ink-subtle)]">
                       {new Date(message.createdAt).toLocaleString()}

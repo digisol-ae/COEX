@@ -7,6 +7,7 @@ type Record = { id: string };
 const records = (name: string, count: number) =>
   Array.from({ length: count }, (_, index) => ({ id: `${name}-${index + 1}` }));
 const column = (name: string, count: number, revealId?: string) =>
+  // eslint-disable-next-line react/no-children-prop -- The render prop is a function, not a React node.
   createElement(RecordWindow<Record>, {
     records: records(name, count),
     resetKey: 'board:all',
