@@ -1,4 +1,4 @@
-import { SetupPopup } from '../../../setup/workspace-content';
-export default function Page() {
-  return <SetupPopup section="website-content" />;
+import { redirect } from 'next/navigation';
+export default function LegacyWebsiteContent() {
+  redirect('/website-manager');
 }

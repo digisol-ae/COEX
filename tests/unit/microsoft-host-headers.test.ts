@@ -8,6 +8,8 @@ describe('embedded Microsoft workspace headers', () => {
       '/integrations/outlook/:path*',
       '/integrations/teams/:path*',
       '/sign/:path*',
+      '/website-manager',
+      '/website-preview',
     ]);
     const teams = rules.find((rule) => rule.source === '/integrations/teams/:path*')!;
     const outlook = rules.find((rule) => rule.source === '/integrations/outlook/:path*')!;
@@ -39,5 +41,14 @@ describe('embedded Microsoft workspace headers', () => {
     expect(signingHeaders['Content-Security-Policy']).toBe("frame-ancestors 'none'");
     expect(signingHeaders['Cache-Control']).toBe('no-store');
     expect(signingHeaders['Referrer-Policy']).toBe('no-referrer');
+    for (const [source, ancestors] of [
+      ['/website-manager', "frame-ancestors 'none'"],
+      ['/website-preview', "frame-ancestors 'self'"],
+    ]) {
+      const rule = rules.find((rule) => rule.source === source)!;
+      const headers = Object.fromEntries(rule.headers.map(({ key, value }) => [key, value]));
+      expect(headers['Content-Security-Policy']).toBe(ancestors);
+      expect(headers['Cache-Control']).toContain('no-store');
+    }
   });
 });

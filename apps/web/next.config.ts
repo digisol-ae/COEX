@@ -44,6 +44,21 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: '/website-manager',
+        headers: [
+          { key: 'Cache-Control', value: 'private, no-store' },
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
+        ],
+      },
+      {
+        source: '/website-preview',
+        headers: [
+          { key: 'Cache-Control', value: 'private, no-store' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'self'" },
+        ],
+      },
+      {
         source: '/sign/:path*',
         headers: [
           { key: 'Referrer-Policy', value: 'no-referrer' },
