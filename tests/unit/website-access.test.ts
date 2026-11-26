@@ -26,3 +26,15 @@ it('rejects executable links and unknown media', () => {
     }).success,
   ).toBe(false);
 });
+
+import config from '../../apps/web/next.config';
+import { hasLocalMatch } from 'next/dist/shared/lib/match-local-pattern';
+it('prevents the image optimizer from caching protected website media', () => {
+  const patterns = config.images!.localPatterns;
+  expect(hasLocalMatch(patterns, '/website/figma/17a2a.png')).toBe(true);
+  for (const path of [
+    '/api/website-media/11111111-1111-1111-1111-111111111111',
+    '/website/../api/website-media/11111111-1111-1111-1111-111111111111',
+  ])
+    expect(hasLocalMatch(patterns, path)).toBe(false);
+});
