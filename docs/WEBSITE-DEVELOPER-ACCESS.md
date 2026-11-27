@@ -31,3 +31,5 @@ The COEX repository was found public during setup. A separate private website re
 ## Current GitHub control limit
 
 The new private repository has only digisol-ae as collaborator. GitHub rejected branch protection on the current plan (requires GitHub Pro or public visibility). CODEOWNERS is advisory until protection is available. Keep owner-only access; provide a website-only source archive for developer work and review/import patches. Do not grant direct repository write access while enforced owner review is unavailable. No subscription purchase or visibility change was made. CI does not trigger production deployment.
+
+The supplied illustration components require Tailwind/PostCSS utility generation. The independent website production build verifies the required positioning/display CSS; keep this check when changing animation or styling tooling.
