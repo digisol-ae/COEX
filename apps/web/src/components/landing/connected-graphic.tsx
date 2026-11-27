@@ -17,6 +17,9 @@ const imgLine246 = '/website/figma/2449d.svg';
 const imgEllipse4 = '/website/figma/7f92a.svg';
 const imgEllipse5 = '/website/figma/53889.svg';
 
+/** Red copy of a grey stroke, faded in by the Connections loop in landing.css (Figma 132:706). */
+const red = (src: string) => src.replace(/\.svg$/, '-red.svg');
+
 export function ConnectedGraphic({ className }: { className?: string }) {
   return (
     <div className={className || 'h-[928px] relative w-[1397px]'} data-node-id="132:705">
@@ -53,6 +56,11 @@ export function ConnectedGraphic({ className }: { className?: string }) {
             data-node-id="121:194"
           >
             <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgEllipse3} />
+            <img
+              alt=""
+              className="lp-conn-red absolute inset-0 block max-w-none size-full"
+              src={red(imgEllipse3)}
+            />
           </div>
           <div
             className="absolute flex inset-[56.9%_50.25%_19.4%_49.75%] items-center justify-center"
@@ -63,6 +71,11 @@ export function ConnectedGraphic({ className }: { className?: string }) {
               <div className="relative size-full">
                 <div className="absolute inset-[-1px_0_0_0]">
                   <img alt="" className="block max-w-none size-full" src={imgLine235} />
+                  <img
+                    alt=""
+                    className="lp-conn-red absolute inset-0 block max-w-none size-full"
+                    src={red(imgLine235)}
+                  />
                 </div>
               </div>
             </div>
@@ -76,6 +89,11 @@ export function ConnectedGraphic({ className }: { className?: string }) {
               <div className="relative size-full">
                 <div className="absolute inset-[-0.5px_-0.25%]">
                   <img alt="" className="block max-w-none size-full" src={imgLine238} />
+                  <img
+                    alt=""
+                    className="lp-conn-red absolute inset-0 block max-w-none size-full"
+                    src={red(imgLine238)}
+                  />
                 </div>
               </div>
             </div>
@@ -83,11 +101,21 @@ export function ConnectedGraphic({ className }: { className?: string }) {
           <div className="absolute inset-[46.12%_18.04%_53.88%_56.91%]" data-node-id="121:263">
             <div className="absolute inset-[-1px_0_0_0]">
               <img alt="" className="block max-w-none size-full" src={imgLine236} />
+              <img
+                alt=""
+                className="lp-conn-red absolute inset-0 block max-w-none size-full"
+                src={red(imgLine236)}
+              />
             </div>
           </div>
           <div className="absolute inset-[40.09%_14.89%_53.91%_56.94%]" data-node-id="121:267">
             <div className="absolute inset-[-0.9%_-0.13%]">
               <img alt="" className="block max-w-none size-full" src={imgLine239} />
+              <img
+                alt=""
+                className="lp-conn-red absolute inset-0 block max-w-none size-full"
+                src={red(imgLine239)}
+              />
             </div>
           </div>
           <div
@@ -99,6 +127,11 @@ export function ConnectedGraphic({ className }: { className?: string }) {
               <div className="relative size-full">
                 <div className="absolute inset-[-0.9%_-0.13%]">
                   <img alt="" className="block max-w-none size-full" src={imgLine240} />
+                  <img
+                    alt=""
+                    className="lp-conn-red absolute inset-0 block max-w-none size-full"
+                    src={red(imgLine240)}
+                  />
                 </div>
               </div>
             </div>
@@ -112,6 +145,11 @@ export function ConnectedGraphic({ className }: { className?: string }) {
               <div className="relative size-full">
                 <div className="absolute inset-[-0.9%_-0.13%]">
                   <img alt="" className="block max-w-none size-full" src={imgLine243} />
+                  <img
+                    alt=""
+                    className="lp-conn-red absolute inset-0 block max-w-none size-full"
+                    src={red(imgLine243)}
+                  />
                 </div>
               </div>
             </div>
@@ -125,6 +163,11 @@ export function ConnectedGraphic({ className }: { className?: string }) {
               <div className="relative size-full">
                 <div className="absolute inset-[-0.9%_-0.13%]">
                   <img alt="" className="block max-w-none size-full" src={imgLine244} />
+                  <img
+                    alt=""
+                    className="lp-conn-red absolute inset-0 block max-w-none size-full"
+                    src={red(imgLine244)}
+                  />
                 </div>
               </div>
             </div>
@@ -138,6 +181,11 @@ export function ConnectedGraphic({ className }: { className?: string }) {
               <div className="relative size-full">
                 <div className="absolute inset-[-0.75%_-0.19%]">
                   <img alt="" className="block max-w-none size-full" src={imgLine241} />
+                  <img
+                    alt=""
+                    className="lp-conn-red absolute inset-0 block max-w-none size-full"
+                    src={red(imgLine241)}
+                  />
                 </div>
               </div>
             </div>
@@ -151,6 +199,11 @@ export function ConnectedGraphic({ className }: { className?: string }) {
               <div className="relative size-full">
                 <div className="absolute inset-[-0.75%_-0.17%]">
                   <img alt="" className="block max-w-none size-full" src={imgLine247} />
+                  <img
+                    alt=""
+                    className="lp-conn-red absolute inset-0 block max-w-none size-full"
+                    src={red(imgLine247)}
+                  />
                 </div>
               </div>
             </div>
@@ -164,6 +217,11 @@ export function ConnectedGraphic({ className }: { className?: string }) {
               <div className="relative size-full">
                 <div className="absolute inset-[-0.77%_-0.2%]">
                   <img alt="" className="block max-w-none size-full" src={imgLine248} />
+                  <img
+                    alt=""
+                    className="lp-conn-red absolute inset-0 block max-w-none size-full"
+                    src={red(imgLine248)}
+                  />
                 </div>
               </div>
             </div>
@@ -177,6 +235,11 @@ export function ConnectedGraphic({ className }: { className?: string }) {
               <div className="relative size-full">
                 <div className="absolute inset-[-0.77%_-0.19%]">
                   <img alt="" className="block max-w-none size-full" src={imgLine246} />
+                  <img
+                    alt=""
+                    className="lp-conn-red absolute inset-0 block max-w-none size-full"
+                    src={red(imgLine246)}
+                  />
                 </div>
               </div>
             </div>
@@ -184,6 +247,11 @@ export function ConnectedGraphic({ className }: { className?: string }) {
           <div className="absolute inset-[46.12%_57.41%_53.88%_17.54%]" data-node-id="121:265">
             <div className="absolute inset-[-1px_0_0_0]">
               <img alt="" className="block max-w-none size-full" src={imgLine236} />
+              <img
+                alt=""
+                className="lp-conn-red absolute inset-0 block max-w-none size-full"
+                src={red(imgLine236)}
+              />
             </div>
           </div>
           <div
@@ -191,12 +259,22 @@ export function ConnectedGraphic({ className }: { className?: string }) {
             data-node-id="121:196"
           >
             <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgEllipse4} />
+            <img
+              alt=""
+              className="lp-conn-red absolute inset-0 block max-w-none size-full"
+              src={red(imgEllipse4)}
+            />
           </div>
           <div
             className="absolute aspect-[327/327] left-[33%] right-[33.5%] top-[194px]"
             data-node-id="121:198"
           >
             <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgEllipse5} />
+            <img
+              alt=""
+              className="lp-conn-red absolute inset-0 block max-w-none size-full"
+              src={red(imgEllipse5)}
+            />
           </div>
           <div
             className="absolute bg-white content-stretch drop-shadow-[0px_0px_7px_rgba(0,0,0,0.16)] flex inset-[68.97%_42.95%_26.29%_42.45%] items-center justify-center px-[14px] py-[10px] rounded-[30px]"

@@ -373,7 +373,8 @@ function ProductAction() {
           aria-label={`${actionItems[active].title} product preview`}
         >
           <Image src={`${figma}f1fb2.png`} alt="" fill sizes="(max-width: 800px) 90vw, 46vw" />
-          <Image src={`${figma}7dd3e.svg`} alt="" fill unoptimized />
+          {/* Figma's frosted layer (7dd3e.svg) uses an SVG backdrop filter, which browsers ignore inside <img>. */}
+          <span className="lp-action-frost" aria-hidden="true" />
           {active === 0 ? (
             <div className="lp-action-montage">
               <ScaledGraphic width={719} height={585}>
@@ -1009,6 +1010,13 @@ export function LandingPage({
                   rel="noopener noreferrer"
                 >
                   <Image src={`${figma}461e0.svg`} alt="" width={48} height={48} />
+                  <Image
+                    className="lp-social-hover"
+                    src={`${figma}461e0-hover.svg`}
+                    alt=""
+                    width={48}
+                    height={48}
+                  />
                 </WebsiteAnchor>
                 <WebsiteAnchor
                   href="https://www.instagram.com/digisol.ae/"
@@ -1017,6 +1025,13 @@ export function LandingPage({
                   rel="noopener noreferrer"
                 >
                   <Image src={`${figma}b3eee.svg`} alt="" width={48} height={48} />
+                  <Image
+                    className="lp-social-hover"
+                    src={`${figma}b3eee-hover.svg`}
+                    alt=""
+                    width={48}
+                    height={48}
+                  />
                 </WebsiteAnchor>
                 <WebsiteAnchor
                   href="https://www.facebook.com/digisol.ae/"
@@ -1025,6 +1040,13 @@ export function LandingPage({
                   rel="noopener noreferrer"
                 >
                   <Image src={`${figma}f4d56.svg`} alt="" width={48} height={48} />
+                  <Image
+                    className="lp-social-hover"
+                    src={`${figma}f4d56-hover.svg`}
+                    alt=""
+                    width={48}
+                    height={48}
+                  />
                 </WebsiteAnchor>
                 <WebsiteAnchor className="lp-email" href={contact}>
                   {<WebsiteText value="info@digisol.ae" />}

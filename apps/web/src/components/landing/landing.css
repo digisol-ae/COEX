@@ -143,23 +143,55 @@ html:has(.landing-shell) {
   padding: 13px 28px;
   background: var(--lp-ink);
   color: #fff;
-  transition:
-    background 0.15s,
-    transform 0.15s;
+  transition: box-shadow 0.3s ease-out;
 }
 .landing-shell .lp-button:hover {
-  background: #163664;
-  transform: translateY(-1px);
+  box-shadow: 6px 6px 12px rgba(10, 28, 61, 0.56);
+}
+@property --lp-spin {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 90deg;
 }
 .landing-shell .lp-rainbow-button {
   padding: 3px;
-  background: conic-gradient(from 90deg, #fbb54b, #fd853a, #8a38f5, #007dff, #eb001b, #fbb54b);
+  background: conic-gradient(
+    from var(--lp-spin),
+    #fbb54b,
+    #fd853a,
+    #8a38f5,
+    #007dff,
+    #eb001b,
+    #fbb54b
+  );
+  background-clip: padding-box;
   color: var(--lp-ink);
+  /* Figma "Button" cycles four 90° variants every 0.3s: one full turn per 1.2s. */
+  animation: lp-spin 1.2s linear infinite;
 }
 .lp-rainbow-button > span {
   padding: 10px 29px;
   background: rgba(255, 255, 255, 0.96);
   border-radius: 10px;
+  transition:
+    background 0.3s cubic-bezier(0, 0, 0.54, 0.57),
+    backdrop-filter 0.3s;
+}
+/* Hover (Figma 6:90): a pastel pill inset 3px. The white wash and the gradient are painted as one
+   background so their edges coincide; a separate translucent label left a gradient fringe. */
+.landing-shell .lp-rainbow-button:hover {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.68)) content-box,
+    conic-gradient(from var(--lp-spin), #fbb54b, #fd853a, #8a38f5, #007dff, #eb001b, #fbb54b)
+      content-box;
+}
+.landing-shell .lp-rainbow-button:hover > span {
+  background: transparent;
+}
+@keyframes lp-spin {
+  to {
+    --lp-spin: 450deg;
+  }
 }
 .lp-actions {
   display: flex;
@@ -314,6 +346,8 @@ html:has(.landing-shell) {
   white-space: nowrap;
   padding-left: 14%;
   gap: 0.125em;
+  /* The 1.08em word window would otherwise push this line 1px past Figma's 68px row. */
+  height: 1.0625em;
 }
 .lp-word-window {
   display: inline-block;
@@ -326,7 +360,7 @@ html:has(.landing-shell) {
 .lp-word-track {
   display: flex;
   flex-direction: column;
-  animation: lp-words 12s ease infinite;
+  animation: lp-words 10s cubic-bezier(0.997, 0, 0.033, 1.005) infinite;
 }
 .lp-word-track > span {
   display: block;
@@ -346,19 +380,19 @@ html:has(.landing-shell) {
 }
 @keyframes lp-words {
   0%,
-  18% {
+  20% {
     transform: translateY(0);
   }
   25%,
-  43% {
+  45% {
     transform: translateY(-20%);
   }
   50%,
-  68% {
+  70% {
     transform: translateY(-40%);
   }
   75%,
-  93% {
+  95% {
     transform: translateY(-60%);
   }
   100% {
@@ -527,6 +561,9 @@ html:has(.landing-shell) {
   font-size: 26px;
   line-height: 34px;
 }
+.lp-captain-accordion .lp-accordion-item > p {
+  margin-bottom: 8px;
+}
 .lp-pale {
   background: var(--lp-pale);
   padding: 50px;
@@ -548,17 +585,33 @@ html:has(.landing-shell) {
   top: 8.38px;
   width: 100%;
   height: auto;
+  /* Hide the navy "your business needs" letters under the gradient copy (x 292.9–872.3 of 1279),
+     keeping "Everything" and ", all connected"; otherwise anti-aliased navy edges peek out. */
+  mask-image: linear-gradient(90deg, #000 22.9%, transparent 22.9%, transparent 68.2%, #000 68.2%);
 }
 .lp-connected-heading h2 > span {
   position: absolute;
   left: 23.49%;
   top: 0;
+  /* Figma 146:827: a 574px centred text box whose gradient spans the full box. */
+  width: 44.88%;
+  text-align: center;
+  letter-spacing: 0;
   font-size: 4.378cqw;
   font-weight: 400;
   line-height: 1.1072;
   white-space: nowrap;
   color: transparent;
-  background: linear-gradient(90deg, #f79009, #12b76a, #365cf5, #a855f7, #f93647);
+  background: linear-gradient(
+    90deg,
+    #fbb54b 0%,
+    #8a38f5 12.102%,
+    #12b76a 26.99%,
+    #365cf5 45.484%,
+    #f93647 64.909%,
+    #5d7af5 83.636%,
+    #091d3d 100%
+  );
   background-clip: text;
 }
 .lp-connected-heading > p {
@@ -696,8 +749,9 @@ html:has(.landing-shell) {
   padding: 20px;
   min-height: 336px;
   height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 12px;
-  background: #000a;
+  background: rgba(17, 17, 17, 0.66);
   backdrop-filter: blur(3px);
 }
 .lp-integration-label {
@@ -707,11 +761,12 @@ html:has(.landing-shell) {
   max-width: calc(100% - 76px);
 }
 .lp-integration-card h3 {
-  font-size: 36px;
+  font-size: 34px;
   line-height: 40px;
-  max-width: 273px;
+  /* Figma breaks after "Keep your team" and "Never miss"; 280px reproduces both. */
+  max-width: 280px;
   margin-top: 10px;
-  font-weight: 400;
+  font-weight: 500;
 }
 .lp-integration-icon {
   position: absolute;
@@ -737,6 +792,12 @@ html:has(.landing-shell) {
   aspect-ratio: 890/732;
   border-radius: 16px;
   overflow: hidden;
+}
+.lp-action-frost {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(20px);
 }
 .lp-action-montage {
   position: absolute;
@@ -956,7 +1017,8 @@ html:has(.landing-shell) {
   pointer-events: none;
 }
 .lp-footer-brand {
-  display: inline-block;
+  display: flex;
+  width: fit-content;
 }
 .lp-footer-description {
   max-width: 482px;
@@ -979,7 +1041,7 @@ html:has(.landing-shell) {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-top: 12px;
+  margin-top: 16px;
 }
 .lp-socials > a > img {
   width: 48px;
@@ -993,7 +1055,7 @@ html:has(.landing-shell) {
   justify-content: space-between;
   gap: 24px;
   border-top: 1px solid #ffffff38;
-  padding-top: 28px;
+  padding-top: 27px;
   margin-top: 50px;
   font-size: 16px;
   line-height: 20px;
@@ -1763,11 +1825,304 @@ html:has(.landing-shell) {
     opacity: 0.7;
   }
 }
+/* Prototype interactions from the Figma "Final Design" frame (146:762). */
+
+/* Hero theme toggle: Smart Animate 0.3s ease-out between dark and light. */
+.lp-hero-preview [data-node-id='121:663'],
+.lp-hero-preview [data-node-id='121:664'],
+.lp-hero-preview [data-node-id='121:671'] {
+  transition:
+    background-color 0.3s ease-out,
+    border-color 0.3s ease-out;
+}
+.lp-hero-preview[data-preview-theme='light'] [data-node-id='121:663'] {
+  background: #f5f8ed;
+  border-color: #dfe2d9;
+}
+.lp-hero-preview [data-node-id='121:681'] img,
+.lp-hero-preview [data-node-id='121:679'] img {
+  animation: lp-fade-in 0.3s ease-out;
+}
+@keyframes lp-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Accordions and menus open with the prototype's 0.3s ease-out. */
+.lp-accordion-item > p,
+.lp-nav-dropdown {
+  animation: lp-reveal 0.3s ease-out;
+}
+@keyframes lp-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+/* Connections diagram (132:706): eight Smart Animate steps, 0.8s then 1s each, ease-out. */
+.lp-conn-red {
+  opacity: 0;
+  /* Longhands: the CSS pipeline rewrites a name-less animation shorthand to zero duration. */
+  animation-duration: 7.8s;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+}
+[data-node-id='121:194'] .lp-conn-red {
+  animation-name: lp-conn-1;
+}
+[data-node-id='121:196'] .lp-conn-red {
+  animation-name: lp-conn-2;
+}
+[data-node-id='121:198'] .lp-conn-red {
+  animation-name: lp-conn-3;
+}
+:is(
+    [data-node-id='121:209'],
+    [data-node-id='121:266'],
+    [data-node-id='121:263'],
+    [data-node-id='121:265']
+  )
+  .lp-conn-red {
+  animation-name: lp-conn-4;
+}
+:is(
+    [data-node-id='121:270'],
+    [data-node-id='121:276'],
+    [data-node-id='121:282'],
+    [data-node-id='121:279']
+  )
+  .lp-conn-red {
+  animation-name: lp-conn-5;
+}
+:is(
+    [data-node-id='121:267'],
+    [data-node-id='121:275'],
+    [data-node-id='121:272'],
+    [data-node-id='121:281']
+  )
+  .lp-conn-red {
+  animation-name: lp-conn-6;
+}
+:is(
+  [data-node-id='121:286'],
+  [data-node-id='121:298'],
+  [data-node-id='121:305'],
+  [data-node-id='121:292']
+) {
+  animation: lp-chip-4 7.8s ease-out infinite;
+}
+:is(
+  [data-node-id='121:300'],
+  [data-node-id='121:307'],
+  [data-node-id='121:294'],
+  [data-node-id='121:288']
+) {
+  animation: lp-chip-5 7.8s ease-out infinite;
+}
+:is(
+  [data-node-id='121:284'],
+  [data-node-id='121:296'],
+  [data-node-id='121:290'],
+  [data-node-id='121:303']
+) {
+  animation: lp-chip-6 7.8s ease-out infinite;
+}
+[data-node-id='121:193'] {
+  animation: lp-conn-glow 7.8s ease-out infinite;
+}
+@keyframes lp-conn-1 {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  10.26%,
+  87.18% {
+    opacity: 1;
+  }
+}
+@keyframes lp-conn-2 {
+  0%,
+  10.26%,
+  100% {
+    opacity: 0;
+  }
+  23.08%,
+  87.18% {
+    opacity: 1;
+  }
+}
+@keyframes lp-conn-3 {
+  0%,
+  23.08%,
+  100% {
+    opacity: 0;
+  }
+  35.9%,
+  87.18% {
+    opacity: 1;
+  }
+}
+@keyframes lp-conn-4 {
+  0%,
+  35.9%,
+  100% {
+    opacity: 0;
+  }
+  48.72%,
+  87.18% {
+    opacity: 1;
+  }
+}
+@keyframes lp-conn-5 {
+  0%,
+  48.72%,
+  100% {
+    opacity: 0;
+  }
+  61.54%,
+  87.18% {
+    opacity: 1;
+  }
+}
+@keyframes lp-conn-6 {
+  0%,
+  61.54%,
+  100% {
+    opacity: 0;
+  }
+  74.36%,
+  87.18% {
+    opacity: 1;
+  }
+}
+@keyframes lp-chip-4 {
+  0%,
+  35.9%,
+  100% {
+    filter: drop-shadow(0 0 7px rgba(0, 0, 0, 0.16));
+  }
+  48.72%,
+  87.18% {
+    filter: drop-shadow(0 0 7px rgba(253, 48, 73, 0.6));
+  }
+}
+@keyframes lp-chip-5 {
+  0%,
+  48.72%,
+  100% {
+    filter: drop-shadow(0 0 7px rgba(0, 0, 0, 0.16));
+  }
+  61.54%,
+  87.18% {
+    filter: drop-shadow(0 0 7px rgba(253, 48, 73, 0.6));
+  }
+}
+@keyframes lp-chip-6 {
+  0%,
+  61.54%,
+  100% {
+    filter: drop-shadow(0 0 7px rgba(0, 0, 0, 0.16));
+  }
+  74.36%,
+  87.18% {
+    filter: drop-shadow(0 0 7px rgba(253, 48, 73, 0.6));
+  }
+}
+@keyframes lp-conn-glow {
+  0%,
+  74.36%,
+  100% {
+    filter: none;
+  }
+  87.18% {
+    filter: drop-shadow(0 0 25px rgba(253, 48, 73, 0.4));
+  }
+}
+
+/* Meet Worktello cards (136:1802): hover lifts the card and inverts the icon tile. */
+.lp-desktop-meet [data-name='Article'] {
+  transition:
+    border-color 0.3s ease-out,
+    border-radius 0.3s ease-out,
+    box-shadow 0.3s ease-out;
+}
+.lp-desktop-meet [data-name='Article']:hover {
+  border-color: #eee;
+  border-radius: 22px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.12);
+}
+.lp-desktop-meet [data-name='Article'] > div:first-child {
+  transition: background-color 0.3s ease-out;
+}
+.lp-desktop-meet [data-name='Article']:hover > div:first-child {
+  background-color: #091d3d;
+}
+.lp-desktop-meet [data-name='Article'] > div:first-child img {
+  transition: filter 0.3s ease-out;
+}
+.lp-desktop-meet [data-name='Article']:hover > div:first-child img {
+  filter: brightness(0) invert(1);
+}
+
+/* Why Worktello cards (138:3308): hover swaps the fill for a 3px outline in the card colour. */
+.lp-why-grid article {
+  --lp-card: #dc72b0;
+  transition:
+    background-color 0.3s ease-out,
+    box-shadow 0.3s ease-out;
+}
+.lp-why-grid article:nth-child(2) {
+  --lp-card: #9474e7;
+}
+.lp-why-grid article:nth-child(3) {
+  --lp-card: #6283dd;
+}
+.lp-why-grid article:nth-child(4) {
+  --lp-card: #dda650;
+}
+.lp-why-grid article > * {
+  transition:
+    color 0.3s ease-out,
+    transform 0.3s ease-out;
+}
+.lp-why-grid article:hover {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 3px var(--lp-card);
+}
+.lp-why-grid article:hover > * {
+  transform: translate(3px, 3px);
+}
+.lp-why-grid article:hover h3 {
+  color: var(--lp-card);
+}
+
+/* Footer social icons (6:1300): hover fills the circle white with an orange glyph. */
+.lp-socials > a {
+  position: relative;
+  display: block;
+}
+.lp-socials > a > .lp-social-hover {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+.lp-socials > a:hover > .lp-social-hover,
+.lp-socials > a:focus-visible > .lp-social-hover {
+  opacity: 1;
+}
 @media (prefers-reduced-motion: reduce) {
   html:has(.landing-shell) {
     scroll-behavior: auto;
   }
-  .lp-word-track {
+  .lp-word-track,
+  .landing-shell .lp-rainbow-button,
+  .lp-conn-red,
+  .landing-shell [data-node-id],
+  .lp-accordion-item > p,
+  .lp-nav-dropdown {
     animation: none;
   }
   .landing-shell * {
