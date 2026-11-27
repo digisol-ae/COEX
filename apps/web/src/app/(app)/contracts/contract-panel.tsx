@@ -10,6 +10,7 @@ import { saveContractAction, type ContractFormState } from './actions';
 export interface ContractFormValues extends TermsValues {
   id: string;
   organisationId: string;
+  opportunityId?: string;
   title: string;
   type: string;
   startDate: string;
@@ -117,6 +118,9 @@ export function ContractPanel({
         <h2 className="font-medium">{contract ? `Edit ${contract.title}` : 'New contract'}</h2>
 
         <form action={formAction} className="mt-3 space-y-3">
+          {seed?.opportunityId ? (
+            <input type="hidden" name="opportunityId" value={seed.opportunityId} />
+          ) : null}
           {contract ? <input type="hidden" name="id" value={contract.id} /> : null}
 
           <div className="grid gap-3 sm:grid-cols-2">

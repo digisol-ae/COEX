@@ -1,3 +1,7 @@
+## Payroll release preparation — 28 November 2026
+
+Owner now authorizes deployment with no automatic What’s New popup. Payroll-only release is prepared on current main in this canonical checkout; unrelated consolidated signing/archive/loader work stays on `codex/consolidated-worktello-20261127`. Zoho and final payslip design remain deferred.
+
 # Independent website live — 27 November 2026
 
 Public website is now a separate private source repository and Contabo runtime: website3025

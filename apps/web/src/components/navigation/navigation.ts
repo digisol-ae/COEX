@@ -37,6 +37,14 @@ export const DESK: NavigationItem = {
 
 export const GROUPS: NavigationGroup[] = [
   {
+    id: 'payroll',
+    label: 'Payroll',
+    items: [
+      { href: '/payroll', label: 'Payroll', permission: 'payroll.read.all' },
+      { href: '/payroll/my-pay', label: 'My pay', permission: 'payroll.read.own' },
+    ],
+  },
+  {
     id: 'website',
     label: 'Website',
     items: [{ href: '/website-manager', label: 'Website Manager', platformOwnerOnly: true }],

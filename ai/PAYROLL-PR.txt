@@ -1,0 +1,5 @@
+Payroll's existing standalone engine had no application persistence, permissions or screens. This integrates it into Worktello with explicit module enablement, tenant-scoped salary access, own-payslip projections, versioned salary history and transactional approval/payment workflows.
+
+Includes employees/structures/runs, leave/loans/expenses, private files, recurring pay items, receipt-based commission and confirmed clawbacks, reports, bank/register CSV, Excel opening-data import and provisional two-page payslips. Approved bank information is snapshotted; payment retries are idempotent; stale calculations and implicit currency conversion are refused. Final Zoho account mapping remains pending and journal export is blocked. Final payslip design is deliberately deferred to the owner's last-stage review.
+
+Validation: see docs/resolutions/2026-11-28-payroll-integration.md and outputs/qa/payroll/2026-11-28/QA.md. Local synthetic multi-role browser checks cover calculate, independent approval, paid/locked transitions, own payslip download, advance requests and salary-list access denial. No production enabling, real payment/email or deployment is claimed.

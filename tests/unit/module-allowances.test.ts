@@ -13,7 +13,7 @@ it('requires both plan and tenant allowance and preserves older snapshots', () =
       modules: { tasks: false },
       commercial: { planSnapshot: { modules: { crm: false } } },
     }),
-  ).toEqual({ tasks: false, tickets: true, crm: false });
+  ).toEqual({ tasks: false, tickets: true, crm: false, payroll: false });
 });
 it('masks role grants, implications and overrides while preserving foundations and account administration', () => {
   const permissions = modulePermissions(

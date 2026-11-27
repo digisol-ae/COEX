@@ -40,8 +40,8 @@ import {
 import { startTimer, getRunningTimer } from '@/modules/time/services/time.service';
 let context: RequestContext;
 let target: Types.ObjectId;
-const on = { tasks: true, tickets: true, crm: true };
-const off = { tasks: false, tickets: false, crm: false };
+const on = { tasks: true, tickets: true, crm: true, payroll: false };
+const off = { tasks: false, tickets: false, crm: false, payroll: false };
 const owner = <T>(fn: () => T) => runWithContext(context, fn);
 const company = <T>(fn: () => T) =>
   runWithContext({ ...context, tenantId: target, isPlatformAdmin: false }, fn);
@@ -87,7 +87,12 @@ it('defaults legacy tenants to all modules and resolves plan/tenant intersection
       },
     },
   );
-  expect(await company(workspaceModules)).toEqual({ tasks: false, tickets: true, crm: false });
+  expect(await company(workspaceModules)).toEqual({
+    tasks: false,
+    tickets: true,
+    crm: false,
+    payroll: false,
+  });
   await owner(() => setTenantModules(String(target), on, 'Enable allowed modules'));
   expect(await company(workspaceModules)).toEqual({ ...on, crm: false });
 });
@@ -221,7 +226,12 @@ it('snapshots restricted plans and does not let tenant switches bypass them', as
     }),
   );
   await expect(company(() => assertModuleAccess('tasks'))).rejects.toThrow(/not available/);
-  expect(await company(workspaceModules)).toEqual({ tasks: false, tickets: true, crm: false });
+  expect(await company(workspaceModules)).toEqual({
+    tasks: false,
+    tickets: true,
+    crm: false,
+    payroll: false,
+  });
   expect(await owner(workspaceModules)).toEqual(on);
 });
 it('serialises disabling tasks against a concurrent timer start', async () => {
@@ -276,5 +286,10 @@ it('keeps restrictions when a manual seat adjustment replaces an assigned snapsh
       reason: 'Custom seats',
     }),
   );
-  expect(await company(workspaceModules)).toEqual({ tasks: false, tickets: true, crm: false });
+  expect(await company(workspaceModules)).toEqual({
+    tasks: false,
+    tickets: true,
+    crm: false,
+    payroll: false,
+  });
 });

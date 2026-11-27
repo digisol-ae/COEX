@@ -64,6 +64,7 @@ const tenantSchema = new Schema(
       tasks: { type: Boolean, default: true },
       tickets: { type: Boolean, default: true },
       crm: { type: Boolean, default: true },
+      payroll: { type: Boolean, default: false },
     },
 
     /** Platform-owned subscription data. Tenant settings must never accept these fields. */

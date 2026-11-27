@@ -23,6 +23,7 @@ import { permissionsFor, type Role } from '@coex/shared/core/permissions';
  */
 
 export type OutboxKind =
+  | 'payroll_paid'
   | 'trial_registration'
   | 'portal_invitation'
   | 'resource_share'
@@ -52,6 +53,7 @@ export type OutboxKind =
 export type SenderRole = 'standard' | 'alert' | 'admin' | 'contracts';
 
 const SENDER_FOR: Record<OutboxKind, SenderRole> = {
+  payroll_paid: 'admin',
   trial_registration: 'admin',
   portal_invitation: 'admin',
   resource_share: 'standard',
@@ -546,6 +548,7 @@ export async function validateCustomerReplySender(
 }
 
 function mailModule(kind: string): WorkspaceModule | null {
+  if (kind === 'payroll_paid') return 'payroll';
   if (
     [
       'resource_share',
@@ -602,6 +605,7 @@ export async function queueEmail(
   if (!isEmailAddress(to)) return false;
 
   const allowed: Record<OutboxKind, boolean> = {
+    payroll_paid: true,
     trial_registration: true,
     portal_invitation: true,
     resource_share: true,
@@ -873,7 +877,9 @@ export async function deliverQueuedEmail(limit = 20): Promise<number> {
     const paused = sourceModule
       ? !(await moduleAvailable(sourceModule, String(row.tenantId)))
       : row.kind === 'mentioned' &&
-        Object.values(await workspaceModules(String(row.tenantId))).some((enabled) => !enabled);
+        Object.entries(await workspaceModules(String(row.tenantId))).some(
+          ([module, enabled]) => module !== 'payroll' && !enabled,
+        );
     if (paused) {
       // Preserve the message and attempt budget; defer so paused tenants cannot starve other mail.
       await EmailOutboxModel.updateOne(

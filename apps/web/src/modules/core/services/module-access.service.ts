@@ -16,7 +16,7 @@ export async function workspaceModules(tenantId = String(getContext().tenantId))
     'status commercial modules',
   );
   if (!tenant || workspaceAccess(tenant.status, tenant.commercial) !== 'allowed')
-    return { tasks: false, tickets: false, crm: false };
+    return { tasks: false, tickets: false, crm: false, payroll: false };
   return effectiveModules(tenant);
 }
 export async function moduleAvailable(module: WorkspaceModule, tenantId?: string) {

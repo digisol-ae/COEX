@@ -1,0 +1,205 @@
+
+COMMAND: npm run lint
+
+> coex@0.1.0 lint
+> eslint apps packages scripts tests
+
+
+COMMAND: npm run typecheck
+
+> coex@0.1.0 typecheck
+> npm run typecheck -w @coex/web && tsc --noEmit && npm run typecheck -w @coex/shared && npm run typecheck -w @coex/api
+
+
+> @coex/web@0.1.0 typecheck
+> tsc --noEmit -p tsconfig.json
+
+
+> @coex/shared@0.1.0 typecheck
+> tsc --noEmit -p tsconfig.json
+
+
+> @coex/api@0.1.0 typecheck
+> tsc --noEmit -p tsconfig.json
+
+
+COMMAND: npm run build
+
+> coex@0.1.0 build
+> cd apps/web && npm run build --
+
+
+> @coex/web@0.1.0 build
+> node bin/run-next.mjs build
+
+▲ Next.js 16.4.5 (Turbopack)
+✓ Running next.config.ts took 95ms
+- Experiments (use with caution):
+  · serverActions
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.2s
+  Running TypeScript ...
+  Finished TypeScript in 3.0s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/100) ...
+  Generating static pages using 7 workers (25/100)
+  Generating static pages using 7 workers (50/100)
+  Generating static pages using 7 workers (75/100)
+✓ Generating static pages using 7 workers (100/100) in 4.1s
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /(.)setup
+├ ƒ /(.)setup/canned-replies
+├ ƒ /(.)setup/data-transfer
+├ ƒ /(.)setup/email
+├ ƒ /(.)setup/fields
+├ ƒ /(.)setup/pipeline
+├ ƒ /(.)setup/queues
+├ ƒ /(.)setup/tenant
+├ ƒ /(.)setup/tenants
+├ ƒ /(.)setup/tutorials
+├ ƒ /(.)setup/website-content
+├ ƒ /(.)setup/whats-new
+├ ƒ /(.)setup/whatsapp
+├ ƒ /[...catchAll]
+├ ƒ /activate
+├ ƒ /api/auth/entra
+├ ƒ /api/auth/entra/callback
+├ ƒ /api/channels/[tenant]/inbound
+├ ƒ /api/channels/[tenant]/outbox
+├ ƒ /api/channels/[tenant]/outbox/ack
+├ ƒ /api/channels/[tenant]/status
+├ ƒ /api/crm/contacts
+├ ƒ /api/crm/ticket-people
+├ ƒ /api/data-transfer/[entity]
+├ ƒ /api/integrations/copilot/[operation]
+├ ƒ /api/integrations/outlook/tasks
+├ ƒ /api/integrations/teams/app
+├ ƒ /api/integrations/teams/form
+├ ƒ /api/integrations/teams/messages
+├ ƒ /api/navigation/spaces
+├ ƒ /api/navigation/spaces/[id]/folders
+├ ƒ /api/notifications
+├ ƒ /api/payroll/files/[id]
+├ ƒ /api/payroll/runs/[id]/export
+├ ƒ /api/payroll/runs/[id]/payslip
+├ ƒ /api/payroll/template
+├ ƒ /api/portal/notifications
+├ ƒ /api/portal/tickets/[id]/attachments/[attachmentId]
+├ ƒ /api/resources
+├ ƒ /api/resources/[id]/file
+├ ƒ /api/resources/recipients
+├ ƒ /api/search
+├ ƒ /api/tasks/[id]/attachments/[attachmentId]
+├ ƒ /api/tasks/[id]/panel
+├ ƒ /api/tickets/[id]/attachments/[attachmentId]
+├ ƒ /api/tickets/[id]/preview
+├ ƒ /api/tickets/search
+├ ƒ /api/tickets/unread
+├ ƒ /api/time/today
+├ ƒ /api/tutorials
+├ ƒ /api/tutorials/video
+├ ƒ /api/v1/payroll/[[...path]]
+├ ƒ /api/website-media/[id]
+├ ƒ /api/website/v1/content
+├ ƒ /api/website/v1/entry
+├ ƒ /api/website/v1/preview
+├ ○ /apple-icon.png
+├ ƒ /contracts
+├ ƒ /contracts/[id]
+├ ƒ /contracts/[id]/draft
+├ ƒ /contracts/[id]/draft/download
+├ ƒ /contracts/[id]/signature
+├ ƒ /contracts/[id]/signature/[requestId]/download
+├ ƒ /contracts/[id]/signature/[requestId]/receipt
+├ ƒ /contracts/signatures
+├ ƒ /contracts/templates
+├ ƒ /customers
+├ ƒ /customers/[id]
+├ ƒ /dashboard
+├ ƒ /email-login
+├ ƒ /forgot-password
+├ ○ /icon.svg
+├ ƒ /install
+├ ƒ /integrations/outlook/create
+├ ƒ /integrations/teams/app
+├ ƒ /integrations/teams/create
+├ ƒ /leads
+├ ƒ /login
+├ ○ /manifest.webmanifest
+├ ƒ /menu-order
+├ ƒ /my-desk
+├ ƒ /opportunities
+├ ƒ /opportunities/[id]
+├ ƒ /payroll
+├ ƒ /payroll/[section]
+├ ƒ /payroll/my-pay
+├ ƒ /payroll/runs/[id]
+├ ƒ /personal
+├ ƒ /portal
+├ ƒ /portal/[tenant]
+├ ƒ /portal/[tenant]/new
+├ ƒ /portal/[tenant]/profile
+├ ƒ /portal/[tenant]/tickets/[id]
+├ ƒ /portal/new
+├ ƒ /portal/profile
+├ ƒ /portal/tickets/[id]
+├ ƒ /privacy
+├ ƒ /products
+├ ƒ /profile
+├ ƒ /register
+├ ƒ /register/activate
+├ ƒ /register/verify
+├ ƒ /requests
+├ ƒ /requests/[id]
+├ ƒ /reset-password
+├ ƒ /security/audit
+├ ƒ /security/users
+├ ƒ /setup
+├ ƒ /setup/canned-replies
+├ ƒ /setup/data-transfer
+├ ƒ /setup/email
+├ ƒ /setup/fields
+├ ƒ /setup/pipeline
+├ ƒ /setup/queues
+├ ƒ /setup/tenant
+├ ƒ /setup/tenants
+├ ƒ /setup/tutorials
+├ ƒ /setup/website-content
+├ ƒ /setup/whats-new
+├ ƒ /setup/whatsapp
+├ ƒ /shared/resources/[token]
+├ ƒ /shared/resources/[token]/access
+├ ƒ /shared/resources/[token]/files/[id]
+├ ƒ /sign/[token]
+├ ƒ /sign/[token]/download
+├ ƒ /sign/[token]/draft
+├ ƒ /sign/[token]/receipt
+├ ƒ /spaces
+├ ƒ /spaces/[id]
+├ ƒ /spaces/[id]/gantt/pdf
+├ ƒ /support/metrics
+├ ƒ /support/resources
+├ ƒ /support/tickets
+├ ƒ /support/tickets/[id]
+├ ƒ /tasks
+├ ƒ /tasks/[id]
+├ ƒ /terms
+├ ƒ /time
+├ ƒ /time/activity
+├ ƒ /time/activity/pdf
+├ ƒ /time/all
+├ ƒ /time/export
+├ ƒ /time/report
+├ ƒ /time/report/export
+├ ƒ /website-manager
+├ ƒ /website-preview
+└ ƒ /workspace-status
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand

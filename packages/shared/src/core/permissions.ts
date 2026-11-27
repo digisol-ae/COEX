@@ -19,6 +19,12 @@ export const ROLES = [...STAFF_ROLES, 'client_contact'] as const;
 export type Role = (typeof ROLES)[number];
 
 export const PERMISSIONS = [
+  'payroll.read.own',
+  'payroll.read.all',
+  'payroll.manage',
+  'payroll.approve',
+  'payroll.pay',
+  'payroll.settings',
   'resource.read',
   'resource.manage',
   'resource.share',
@@ -161,6 +167,10 @@ export interface PermissionHolder {
  * whatever else the role grants.
  */
 const IMPLIES: Partial<Record<Permission, Permission[]>> = {
+  'payroll.manage': ['payroll.read.all'],
+  'payroll.approve': ['payroll.read.all'],
+  'payroll.pay': ['payroll.read.all'],
+  'payroll.settings': ['payroll.read.all'],
   'lead.read.all': ['lead.read'],
   'lead.manage': ['lead.read'],
   'opportunity.read.all': ['opportunity.read'],
@@ -171,6 +181,8 @@ const IMPLIES: Partial<Record<Permission, Permission[]>> = {
 
 export function permissionsFor(holder: PermissionHolder): Set<Permission> {
   const granted = new Set<Permission>(ROLE_PERMISSIONS[holder.role]);
+
+  if (holder.role !== 'client_contact') granted.add('payroll.read.own');
 
   for (const permission of holder.permissionGrants ?? []) {
     if (isPermission(permission)) granted.add(permission);

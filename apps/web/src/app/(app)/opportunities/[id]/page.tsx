@@ -166,6 +166,7 @@ export default async function OpportunityPage({
                   .map(({ id: productId, name, code }) => ({ id: productId, name, code }))}
                 defaultOpen={openContract}
                 prefill={{
+                  opportunityId: opportunity.id,
                   organisationId: opportunity.organisationId,
                   title: opportunity.title,
                   type:

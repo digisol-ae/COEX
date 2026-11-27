@@ -94,7 +94,9 @@ export async function listTimeline(organisationId: string, limit = 50): Promise<
   const entries = await activities()
     .find({
       organisationId,
-      sourceModule: { $nin: disabled },
+      sourceModule: {
+        $nin: disabled.filter((key): key is 'tasks' | 'tickets' | 'crm' => key !== 'payroll'),
+      },
       ...(!modules.crm
         ? { $or: [{ sourceModule: { $ne: 'crm' as const } }, { sourceId: null }] }
         : {}),

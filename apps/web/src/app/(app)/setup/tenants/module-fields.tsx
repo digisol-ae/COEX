@@ -9,6 +9,7 @@ export function ModuleFields({ defaults }: { defaults: ModuleAllowance }) {
           ['tasks', 'Tasks and time'],
           ['tickets', 'Support and customer resources'],
           ['crm', 'Sales CRM: products, leads, opportunities and contracts'],
+          ['payroll', 'Payroll (explicit enablement required)'],
         ] as const
       ).map(([key, label]) => (
         <label key={key} className="flex gap-2 text-sm">

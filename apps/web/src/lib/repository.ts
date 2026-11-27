@@ -1,4 +1,4 @@
-import type { Model, QueryFilter, Types, UpdateQuery } from 'mongoose';
+import type { Model, QueryFilter, Types, UpdateQuery, ClientSession } from 'mongoose';
 import { getContext } from './tenant-context';
 
 /**
@@ -19,6 +19,7 @@ interface TenantScopedDocument {
 
 export interface QueryOptions {
   withDeleted?: boolean;
+  session?: ClientSession;
 }
 
 export function repository<T extends TenantScopedDocument>(model: Model<T>) {
@@ -42,39 +43,50 @@ export function repository<T extends TenantScopedDocument>(model: Model<T>) {
     scope,
 
     findOne(filter: Filter = {}, options: QueryOptions = {}) {
-      return model.findOne(scope(filter, options));
+      const query = model.findOne(scope(filter, options));
+      return options.session ? query.session(options.session) : query;
     },
 
     findById(id: Types.ObjectId | string, options: QueryOptions = {}) {
-      return model.findOne(scope({ _id: id } as Filter, options));
+      const query = model.findOne(scope({ _id: id } as Filter, options));
+      return options.session ? query.session(options.session) : query;
     },
 
     find(filter: Filter = {}, options: QueryOptions = {}) {
-      return model.find(scope(filter, options));
+      const query = model.find(scope(filter, options));
+      return options.session ? query.session(options.session) : query;
     },
 
     count(filter: Filter = {}, options: QueryOptions = {}) {
-      return model.countDocuments(scope(filter, options));
+      const query = model.countDocuments(scope(filter, options));
+      return options.session ? query.session(options.session) : query;
     },
 
-    create(document: Omit<Partial<T>, 'tenantId'>) {
+    create(document: Omit<Partial<T>, 'tenantId'>, options: QueryOptions = {}) {
       const { tenantId } = getContext();
 
       // The tenant always comes from the session, never from the caller, which is why the input
       // type excludes it and the cast is confined to this one line.
+      if (options.session)
+        return model
+          .create([{ ...document, tenantId } as CreateInput], { session: options.session })
+          .then((rows) => rows[0]);
       return model.create({ ...document, tenantId } as CreateInput);
     },
 
     updateOne(filter: Filter, update: UpdateQuery<T>, options: QueryOptions = {}) {
-      return model.findOneAndUpdate(scope(filter, options), update, { returnDocument: 'after' });
+      return model.findOneAndUpdate(scope(filter, options), update, {
+        returnDocument: 'after',
+        session: options.session,
+      });
     },
 
     /** Soft delete. Records never leave the database, so history and audit stay intact. */
-    softDelete(filter: Filter) {
+    softDelete(filter: Filter, options: QueryOptions = {}) {
       return model.findOneAndUpdate(
-        scope(filter),
+        scope(filter, options),
         { $set: { deletedAt: new Date() } },
-        { returnDocument: 'after' },
+        { returnDocument: 'after', session: options.session },
       );
     },
   };
