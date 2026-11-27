@@ -27,3 +27,7 @@ Keep hosting on the current Contabo VPS, with separate loopback processes and im
 Proxy exact `/` and `/website-preview`, public `/website/` assets, and the dedicated website static prefix to the website process. All other routes remain on the app. Preserve session/auth/action keys, storage and workers. Retain old app/proxy configuration for rollback; rollback changes routes/code, not business data.
 
 The COEX repository was found public during setup. A separate private website repository cannot hide already-public application source. Changing COEX visibility requires the owner's separate decision and has not been assumed by this implementation.
+
+## Current GitHub control limit
+
+The new private repository has only digisol-ae as collaborator. GitHub rejected branch protection on the current plan (requires GitHub Pro or public visibility). CODEOWNERS is advisory until protection is available. Keep owner-only access; provide a website-only source archive for developer work and review/import patches. Do not grant direct repository write access while enforced owner review is unavailable. No subscription purchase or visibility change was made. CI does not trigger production deployment.

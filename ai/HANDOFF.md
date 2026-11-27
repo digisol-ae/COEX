@@ -1,3 +1,21 @@
+# Independent website live — 27 November 2026
+
+Public website is now a separate private source repository and Contabo runtime: website3024
+(PM2 id35), application3023 (id36), prior3022 warm rollback. App PR103 merged `ba06092`,
+compiled `6ece330`; website compiled `df71780` matches main `aa50023` runtime files.
+Owner manager stays at `/website-manager`; its private preview uses the actual separate renderer.
+515 tests, types/lint/format, builds, PR/main CI, public health and existing owner desktop/mobile
+preview passed. No production content/account/session mutation; workers27/28/29 retain their PIDs.
+
+Website repo: https://github.com/digisol-ae/worktello-website (private, owner-only).
+Developer source bundle: `/Volumes/sd-mac/Developer/DigiSol/worktello-website-source.zip`.
+Private branch protection needs GitHub Pro on the current plan: do not grant developer write access
+until enforced review exists; use reviewed source-bundle patches meanwhile. COEX remains PUBLIC;
+owner decision to make it private is pending, and no visibility change was assumed.
+
+Full release, exact routing, acceptance limits, backup evidence and rollback: [release record](RELEASE-2026-11-27-WEBSITE-SEPARATION.md).
+Keep the Mac running. Earlier runtime statements below are historical.
+
 Latest continuation checkpoint: [NEXT_CHAT.md](NEXT_CHAT.md).
 
 ## Landing and non-payment feedback live — 26 November 2026
