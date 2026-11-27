@@ -1,8 +1,8 @@
 # Independent website live — 27 November 2026
 
-Public website is now a separate private source repository and Contabo runtime: website3024
-(PM2 id35), application3023 (id36), prior3022 warm rollback. App PR103 merged `ba06092`,
-compiled `6ece330`; website compiled `df71780` matches main `aa50023` runtime files.
+Public website is now a separate private source repository and Contabo runtime: website3025
+(PM2 id37), application3023 (id36), prior3022 warm rollback. App PR103 merged `ba06092`,
+compiled `6ece330`; website compiled `81d3ca0` matches main `f68b0d0` runtime files.
 Owner manager stays at `/website-manager`; its private preview uses the actual separate renderer.
 515 tests, types/lint/format, builds, PR/main CI, public health and existing owner desktop/mobile
 preview passed. No production content/account/session mutation; workers27/28/29 retain their PIDs.
@@ -14,6 +14,7 @@ until enforced review exists; use reviewed source-bundle patches meanwhile. COEX
 owner decision to make it private is pending, and no visibility change was assumed.
 
 Full release, exact routing, acceptance limits, backup evidence and rollback: [release record](../ai/RELEASE-2026-11-27-WEBSITE-SEPARATION.md).
+Final illustration dependency correction, generated CSS checks and live layered/mobile preview passed.
 Keep the Mac running. Earlier runtime statements below are historical.
 
 # Standalone Website Manager live — 26 November 2026

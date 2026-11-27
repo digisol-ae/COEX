@@ -1,5 +1,35 @@
 # Independent public website live — 27 November 2026
 
+## Final website illustration correction — 13:10 PKT / 08:10 UTC
+
+The final live website is `/srv/coex/releases/public-website-20261127-81d3ca0`, PM2
+`worktello-public-website-style-20261127` id37/PID1009034, loopback **3025**. Website PR
+[#1](https://github.com/digisol-ae/worktello-website/pull/1) merged as `f68b0d0`; its runtime
+files match candidate81d3ca0. App3023/id36 and workers are unchanged. Prior website3024/id35
+is retained as website-only rollback; combined-app3022 remains full rollback.
+
+Final inspection found the extracted Figma illustration components depended on Tailwind utilities,
+which were omitted from the initial standalone package. Restored Tailwind/PostCSS without changing
+the design, and added a production generated-CSS check for essential positioning/display utilities.
+This omission was corrected before final handoff; initial visual acceptance below did not establish
+correct internal illustration layering. Local dark/light toggle and computed layer positioning now
+pass; live owner iframe confirms absolute/contents styles, desktop and390px mobile preview.
+
+Website boundary tests/typecheck/build, generated CSS verification, PR CI
+[45963261452](https://github.com/digisol-ae/worktello-website/actions/runs/45963261452) and main CI
+[45963463820](https://github.com/digisol-ae/worktello-website/actions/runs/45963463820) passed.
+A separate server candidate build/CSS check passed. Website-only cutover passed Apache configtest,
+10 HTTPS login/landing sample pairs,9 static assets, private preview denial and actual served CSS
+positioning/display checks. PM2 saved, final website online with zero restarts.
+
+Correction evidence and original3024 proxy files:
+`/srv/coex/shared/backups/website-style-20261127`. To roll back only this correction, verify3024,
+restore these four `*.conf.before` files, configtest/graceful, verify HTTPS and save PM2.
+No app rebuild/restart, content mutation, session reset or worker change. The developer source ZIP
+was refreshed from f68b0d0 and includes the required illustration build. Earlier3024 statements
+below document the initial separation; **3025 is current**.
+
+
 Cutover completed at **12:58 PKT / 07:58 UTC**. Application PR [#103](https://github.com/digisol-ae/COEX/pull/103) merged as `ba06092bd296a448673f7d5a58faa6ff4ae88f5b`; candidate source `6ece330` matches the merged application tree. The original supplied landing design is retained.
 
 ## Ownership and developer handoff
