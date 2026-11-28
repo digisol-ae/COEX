@@ -29,22 +29,18 @@ export default async function PayrollPage() {
                 fields={[
                   {
                     key: 'hrIds',
-                    label: 'HR (Umbreen and Mehak)',
+                    label: 'HR users',
                     type: 'multiple',
                     options,
-                    value: staff
-                      .filter((u) => /umbreen|mehak/i.test(u.name))
-                      .map((u) => String(u._id)),
+                    value: [],
                   },
                   {
                     key: 'approverIds',
-                    label: 'Approvers (Umbreen and John)',
+                    label: 'Payroll approvers',
                     type: 'multiple',
                     options,
                     required: true,
-                    value: staff
-                      .filter((u) => /umbreen|john/i.test(u.name))
-                      .map((u) => String(u._id)),
+                    value: [],
                   },
                   { key: 'accountsIds', label: 'Accounts users', type: 'multiple', options },
                 ]}
