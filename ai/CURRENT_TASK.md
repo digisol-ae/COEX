@@ -1,3 +1,7 @@
+# Payroll deployed — 28 November 2026
+
+PR106 / merge `608d3ff` is live: app3026, identical website source on3027 with its app origin updated, mail worker id40 on the same release. PR/main CI, server build, 999 release tests, public health/privacy and existing owner browser setup passed. What’s New opens only manually and the Payroll note is concise. Payroll remains off until the owner selects HR/approver/Accounts at `/payroll`; no salary import, permission grant or real payment was performed. Zoho and final payslip design remain deferred. Previous app3023/site3025 stay warm for rollback. Current evidence: [Payroll release](RELEASE-2026-11-28-PAYROLL.md). Earlier local-only and shutdown statements below are historical.
+
 ## Payroll release preparation — 28 November 2026
 
 Owner now authorizes deployment with no automatic What’s New popup. Payroll-only release is prepared on current main in this canonical checkout; unrelated consolidated signing/archive/loader work stays on `codex/consolidated-worktello-20261127`. Zoho and final payslip design remain deferred.

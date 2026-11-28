@@ -1,3 +1,12 @@
+## Required local working location — owner instruction
+
+All Worktello development must stay in `/Volumes/sd-mac/Developer/DigiSol/worktello`.
+The independent website repository is `website/` inside that folder. Do not create sibling
+or home-folder checkouts or new worktrees without an explicit owner instruction.
+`.local-development/` holds private recovery copies, not active development.
+Read `ai/LOCAL-DEVELOPMENT.md` for preserved work and `ai/RELEASE-2026-11-28-PAYROLL.md`
+for the current deployment. Older paths and ports in historical notes are not current instructions.
+
 # Worktello (formerly COEX)
 
 ## Contacts from tickets — 26 October 2026 (local, not committed)

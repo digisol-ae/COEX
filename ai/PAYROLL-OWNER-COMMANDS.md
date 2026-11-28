@@ -1,29 +1,8 @@
-# Payroll: owner review and release commands
+# Payroll owner setup and local QA
 
-Prepared 28 November 2026. These commands are for John to review and execute; they were not run by the implementation task.
+Payroll is deployed through PR106 / merge `608d3ff`. See `ai/RELEASE-2026-11-28-PAYROLL.md` for exact live processes, verification and rollback. Do not deploy the unrelated consolidation branch to reproduce this release.
 
-```bash
-cd /Volumes/sd-mac/Developer/DigiSol/worktello
-git status --short
-git log --oneline origin/main..HEAD
-git diff --stat origin/main...HEAD
-git push -u origin codex/consolidated-worktello-20261127
-```
-
-This branch includes the preceding local consolidation checkpoint as well as Payroll. Review both commits. The checkout contains historical untracked outputs and separately maintained manual automation changes; do not stage them indiscriminately. Real payslip samples, environments, credentials, old source copies and the staff Zoho-account mapping are excluded from the Payroll commit.
-
-For a PR after pushing:
-
-```bash
-gh pr create --repo digisol-ae/COEX --base main \
-  --head codex/consolidated-worktello-20261127 \
-  --title "Integrate Payroll with isolated salary access and transactional payment recording" \
-  --body-file ai/PAYROLL-PR.txt
-```
-
-Use the latest `deploy/DEPLOYMENT-STATUS.md` and `deploy/ZERO-DOWNTIME.md` for production rollout. Inspect the current service/release paths before executing the repository deployment scripts; older ports in historical records are not current commands. Keep the separate `website/` repository and its deployment intact. No production deploy/restart command is guessed here.
-
-After deploying, the platform owner opens `/payroll` in DigiSol, selects HR, approvers and Accounts and enables the module. Configure PKR thresholds, leave policy, employees, salary structures/assignments and approved opening data. Confirm Zoho account mapping separately before implementing/enabling journal export. Final payslip design review remains the last stage.
+Open https://worktello.com/payroll as the platform owner. Select HR, named approvers and Accounts and enable DigiSol Payroll. Configure PKR thresholds, leave policy, employees, salary structures/assignments and approved opening data. Confirm Zoho account mapping separately before enabling journal export. Final payslip design review remains last. What’s New opens only from the account menu.
 
 To reproduce disposable local browser QA only:
 

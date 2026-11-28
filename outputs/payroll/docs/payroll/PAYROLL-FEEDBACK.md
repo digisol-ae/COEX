@@ -27,3 +27,7 @@ Add team test results here after each release.
 - Commission uses recurring term value, excludes setup/training, and refuses implicit FX conversion. Actual paid amounts drive confirmed clawbacks.
 - Final payslip styling/content and stamp/signature remain the agreed last review stage.
 - Owner requested final QA, local commit and shutdown. Evidence/results: outputs/qa/payroll/2026-11-28/QA.md.
+
+## Deployment follow-up — 28 November 2026
+
+Owner authorized deployment without automatic What’s New popups and requested brief, specific notes. PR106 is live, 999 release tests and CI passed, owner setup rendered without a popup. Accounts selection/enablement remains an owner setup action; Zoho stays pending. Full evidence: `ai/RELEASE-2026-11-28-PAYROLL.md`.
