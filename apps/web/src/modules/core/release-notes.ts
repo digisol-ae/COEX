@@ -17,6 +17,20 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    id: '2026-11-28-payroll',
+    date: '28 November 2026',
+    title: 'Payroll',
+    sections: [
+      {
+        heading: 'Pay and requests',
+        items: [
+          'HR can prepare payroll; approvers review it and Accounts records payment.',
+          'When Payroll is enabled, employees can view paid payslips and request leave, advances or reimbursements.',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-11-03-install-worktello',
     date: '3 November 2026',
     title: 'Launch Worktello from your own app icon',

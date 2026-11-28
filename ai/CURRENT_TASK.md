@@ -110,7 +110,6 @@ Owner approved a customer document/video library, sharing by email or customer t
 
 Staff can draft/publish/archive resources, select existing customer contacts, share with custom expiry and revoke access. Protected public pages support PDF preview and downloads after verification. Ticket sharing posts only the link; the OTP goes solely to the server-selected recipient. Local browser QA, 455 unit tests, 20 focused Mongo/email tests and production build passed. No real emails, production upload, migration, account change or deployment. Canonical requirements/implementation: `docs/CUSTOMER-RESOURCES.md`; QA: `docs/qa/CUSTOMER-RESOURCES-2026-11-03.md`.
 
-
 ## UI improvements release live — 29 October 2026
 
 PR #73 merged as `93ec4211da581b99010e9e4ba0ca60b98155b3cb`. Active `coex-app-ui-improvements` PID 544805 serves loopback port 3005 from `/srv/coex/releases/ui-improvements-20261029`, using Node 22.23.4. All four Worktello/COEX application vhosts target 3005. The feedback release on 3004, green 3002 and blue 3001 remain online rollback slots. PM2 was saved; osTicket and workers 10/11/12 were untouched.
@@ -163,7 +162,6 @@ Customer sign-in and email-code pages show a friendly DigiSol welcome, existing 
 
 Application rollback: verify3002/email-login healthy, restore http-before.conf/https-before.conf from /srv/coex/shared/backups/customer-welcome-20261026 into canonical Apache vhosts, configtest and graceful reload. Keep data/workers intact. Private PM2/environment snapshot is in that directory and must not be published. Docs/manual-only sync requires no restart.
 
-
 ## Migrated customer login live — 26 October 2026
 
 PR59 merged as cf36b4fa613e7d38311c705296ecfcdcc5fbbe27; compiled application tree cb603ad. Active green coex-app-green id19/PID383390 on3002 in /srv/coex/releases/customer-auth-20261026. Both canonical Apache proxies target3002; PM2 saved. Node22.23.4 verified for actual launcher/Node descendants. Blue coex-app id18/PID362319 on3001 remains application rollback. Workers10/11/12 retain PIDs303634/303723/303820 and zero restarts.
@@ -176,7 +174,6 @@ Private backup: /srv/coex/shared/backups/customer-auth-20261026/before-auth.arch
 
 Application rollback: verify3001/login, restore http-before.conf/https-before.conf from that private backup directory to canonical vhosts, configtest and graceful reload. Preserve data/workers. The older application cannot verify imported bcrypt or provide the new OTP route; do not automatically restore the database or overwrite a customer's later password change. Assess the targeted snapshot/lastSignedInAt/current hash before any separately scoped account rollback. Documentation-only sync requires no restart.
 
-
 ## DigiSol sidebar logo live — 25 October 2026
 
 Expanded desktop/mobile menu headers use the existing DigiSol artwork; narrow rail keeps Worktello W. PR55 merge6567610 and theme correction PR56 merge eeb0c6c1094de8d2656910f2d156836a02d89a93; compiled final application tree6a82d01. Active blue coex-app id18/PID362319 on3001 in /srv/coex/releases/digisol-sidebar-20261025. Canonical Apache proxies target3001; PM2 saved. Explicit Node22.23.4 verified for actual Node descendants. Green17/PID356977 on3002 remains rollback. Workers10/11/12 retain their PIDs and zero restarts.
@@ -185,7 +182,6 @@ PR and merged-main CI passed, 402 tests, workspace types and focused lint/format
 
 Rollback: verify3002/login healthy, restore http-before.conf and https-before.conf from /srv/coex/shared/backups/digisol-sidebar-20261025 to canonical vhosts, apache configtest and graceful reload. Preserve database/workers. Private PM2 environment snapshots must not be published. Documentation-only updates need no restart.
 
-
 ## Section-aware header search live — 25 October 2026
 
 PR #53 merged as 9d8e10ef66c3e026c7622ba743ff48018f4c152b. Compiled application tree33ef43d (b9f32d7 only preserves generated manual formatting). Active green coex-app-green id17/PID356977, port3002, /srv/coex/releases/section-search-20261025; both canonical Apache proxies target3002 and PM2 is saved. Patched Node22.23.4 verified for launcher and actual Node descendants. Blue coex-app id16/PID352576 on3001 remains the immediate rollback; osTicket3003 also remains. Workers10/11/12 retain the same PIDs and zero restarts.
@@ -193,7 +189,6 @@ PR #53 merged as 9d8e10ef66c3e026c7622ba743ff48018f4c152b. Compiled application 
 PR and merged-main CI passed, 402 unit tests, workspace types/lint/format and server production build passed. Twenty HTTPS switch samples returned200. In a separate authenticated browser tab: Tickets header returned only ticket suggestions including resolved/closed history, Enter applied the query to the existing list and header; a lower-list query update appeared in the header; Customers changed to Search customers with Customer name hint. Existing lower search/filter component is unchanged. Original user tab preserved; no business records/messages modified. Private UI evidence: exports/osticket_db/section-search-live.png. Native mobile/touch and every CRM write flow were not exercised.
 
 Rollback: verify http://127.0.0.1:3001/login returns200, restore http-before.conf and https-before.conf from /srv/coex/shared/backups/section-search-20261025 into canonical Apache vhosts, configtest and graceful reload. Keep data/workers intact. That private directory contains the PM2/environment snapshot and must never be published. Documentation-only follow-up requires no runtime restart.
-
 
 ## Expanded ticket search live — 25 October 2026
 
