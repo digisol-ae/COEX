@@ -1,3 +1,7 @@
+## Payroll role assignments — owner clarification, 28 November 2026
+
+HR and approvers may be any authorized members. Use generic role labels and explicit user selections; never hardcode or preselect people by name.
+
 ## What’s New — owner instruction, 28 November 2026
 
 Keep entries specific, brief and informative: describe the user-facing change and its action.
