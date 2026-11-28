@@ -1,3 +1,8 @@
+## What’s New — owner instruction, 28 November 2026
+
+Keep entries specific, brief and informative: describe the user-facing change and its action.
+The Payroll release must not automatically open the What’s New popup for any user.
+
 ## Required local working location — owner instruction
 
 All Worktello development must stay in `/Volumes/sd-mac/Developer/DigiSol/worktello`.
