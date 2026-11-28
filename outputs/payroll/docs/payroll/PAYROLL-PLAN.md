@@ -1,3 +1,7 @@
+## Live deployment — 28 November 2026
+
+PR106 / merge `608d3ff` is deployed at worktello.com. What’s New remains manual-only. Payroll is off until the platform owner selects HR/approver/Accounts at `/payroll`; no salary import or access grant was guessed. Zoho and final payslip design remain deferred. See `ai/RELEASE-2026-11-28-PAYROLL.md` for the 999-test release QA, CI, live checks and rollback. Earlier local-only statements below describe the original checkpoint.
+
 # Worktello Payroll: Development Plan
 
 ## Local application integration — 28 November 2026
