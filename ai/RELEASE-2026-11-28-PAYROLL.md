@@ -1,3 +1,7 @@
+## Generic Payroll role selection live — 28 November 2026
+
+PR108 / merge `c817d4a` (compiled source `34578e6`) is live on app3028 / website3029. HR users, Payroll approvers and Accounts users are generic selectors, initially unselected. No name matching or fixed person is used for role assignment. Existing grants/settings remain unchanged. PR CI, server build, candidate health/privacy, 20 HTTPS sample sets and the existing owner browser passed. No form was submitted and no What’s New popup/entry was added. Mail id40 and desk/channels ids28/29 are unchanged. Prior app3026/site3027 remain warm rollback. Private proxy/PM2 snapshots and checks: `/srv/coex/shared/backups/payroll-roles-20261128`. Restore that folder’s four `*.conf.before` files and run Apache configtest/graceful to roll back this UI correction; no worker or database restore is needed. The initial candidate probe ran before startup completed; readiness and the full candidate suite passed separately before cutover. Earlier ports below are historical.
+
 # Payroll live — 28 November 2026
 
 Cutover completed at **07:02 PKT**. Owner explicitly requested deployment and no automatic What’s New popup. PR [#106](https://github.com/digisol-ae/COEX/pull/106) merged as `608d3ff9475303d3eadd0c30af061367aa15775a`. Compiled source `c22334e` has the same tracked tree as that merge. Payroll was applied to current main, retaining newer landing changes; unrelated consolidated signing, user-archive and loader work remains on `codex/consolidated-worktello-20261127`.
