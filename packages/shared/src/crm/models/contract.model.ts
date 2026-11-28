@@ -24,6 +24,10 @@ const contractSchema = new Schema(
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
 
     number: { type: String, required: true },
+    salesOwnerId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+    commissionSignedAt: { type: Date, default: null },
+    commissionRate: { type: Number, min: 0, max: 100, default: null },
+    cancelledAt: { type: Date, default: null },
     organisationId: {
       type: Schema.Types.ObjectId,
       ref: 'Organisation',

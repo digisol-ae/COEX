@@ -6,6 +6,7 @@ const termsDefinition = {
     tasks: { type: Boolean, default: true },
     tickets: { type: Boolean, default: true },
     crm: { type: Boolean, default: true },
+    payroll: { type: Boolean, default: false },
   },
   code: { type: String, required: true },
   version: { type: Number, required: true, min: 1 },

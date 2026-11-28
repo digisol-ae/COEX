@@ -10,11 +10,16 @@ import { Schema, model, models, type InferSchemaType, type Model } from 'mongoos
 const emailOutboxSchema = new Schema(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
-    sourceModule: { type: String, enum: ['tasks', 'tickets', 'crm', null], default: null },
+    sourceModule: {
+      type: String,
+      enum: ['tasks', 'tickets', 'crm', 'payroll', null],
+      default: null,
+    },
     kind: {
       type: String,
       enum: [
         'resource_share',
+        'payroll_paid',
         'trial_registration',
         'portal_invitation',
         'auto_reply',

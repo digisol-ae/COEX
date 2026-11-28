@@ -1,3 +1,4 @@
+import { OpportunityModel } from '@coex/shared/crm/models/opportunity.model';
 import { displayDate } from '@coex/shared/crm/display-date';
 import { moduleAvailable, assertModuleAccess } from '@/modules/core/services/module-access.service';
 import { STAFF_ROLES } from '@coex/shared/core/permissions';
@@ -102,6 +103,7 @@ export interface ContractSummary {
 
 export interface ContractInput extends ServiceTermsInput {
   organisationId: string;
+  opportunityId?: string;
   title: string;
   type: ContractType;
   startDate: string;
@@ -257,8 +259,18 @@ export async function createContract(input: ContractInput): Promise<string> {
   await connectToDatabase();
 
   const linked = await validate(input);
+  const opportunity = input.opportunityId
+    ? await repository(OpportunityModel).findOne({
+        _id: input.opportunityId,
+        organisationId: input.organisationId,
+        status: 'won',
+      })
+    : null;
+  if (input.opportunityId && !opportunity)
+    throw new Error('Won opportunity not found for this customer.');
   const created = await contracts().create({
     ...fields(input, linked),
+    salesOwnerId: opportunity?.ownerId ?? getContext().userId,
     number: await nextContractNumber(input.organisationId),
     status: 'draft',
   });
@@ -338,7 +350,15 @@ export async function setContractStatus(
   if (!before) throw new Error('Contract not found.');
   if (before.status === 'renewed') throw new Error('A renewed contract cannot change status.');
 
-  await contracts().updateOne({ _id: before._id }, { $set: { status } });
+  await contracts().updateOne(
+    { _id: before._id },
+    {
+      $set: {
+        status,
+        ...(status === 'cancelled' ? { cancelledAt: before.cancelledAt ?? new Date() } : {}),
+      },
+    },
+  );
 
   // Putting a renewal in force is what retires the contract it replaces, so the old one stops
   // warning and the list shows a single live contract for the term.
@@ -462,6 +482,8 @@ export async function renewContract(id: string): Promise<string> {
   const term = renewalTerm(old.startDate, old.endDate);
   const created = await contracts().create({
     organisationId: old.organisationId,
+    salesOwnerId: old.salesOwnerId,
+    commissionRate: null,
     title: old.title,
     type: old.type,
     startDate: term.startDate,

@@ -69,4 +69,15 @@ export const PERMISSION_GROUPS: {
       { id: 'tenant.create', label: 'Create new tenants (platform administrators)' },
     ],
   },
+  {
+    label: 'Payroll',
+    permissions: [
+      { id: 'payroll.read.own', label: 'View own payslips and payroll requests' },
+      { id: 'payroll.read.all', label: 'View all payroll records' },
+      { id: 'payroll.manage', label: 'Manage employees, pay inputs and requests (HR)' },
+      { id: 'payroll.approve', label: 'Approve payroll and over-limit items' },
+      { id: 'payroll.pay', label: 'Record payments and lock payroll' },
+      { id: 'payroll.settings', label: 'Manage payroll settings and salary structures' },
+    ],
+  },
 ];

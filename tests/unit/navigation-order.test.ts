@@ -21,6 +21,7 @@ describe('a person’s menu order', () => {
       'support',
       'crm',
       'tasks',
+      'payroll',
       'website',
       'time',
       'administration',

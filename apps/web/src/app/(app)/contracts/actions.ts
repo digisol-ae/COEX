@@ -109,6 +109,7 @@ export async function saveContractAction(
         hardwareTerms: text(formData, 'hardwareTerms'),
         serviceLines,
         organisationId: text(formData, 'organisationId'),
+        opportunityId: text(formData, 'opportunityId') || undefined,
         title: text(formData, 'title'),
         type: oneOf<ContractType>(CONTRACT_TYPES, text(formData, 'type'), 'amc'),
         startDate: text(formData, 'startDate'),

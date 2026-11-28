@@ -159,6 +159,14 @@ export async function updateUserAccess(
       'Customer portal access is managed separately from Worktello staff permissions.',
     );
 
+  const previousPayroll = [...before.permissionGrants, ...before.permissionDenials]
+    .filter((p) => p.startsWith('payroll.'))
+    .sort();
+  const nextPayroll = [...input.grants, ...input.denials]
+    .filter((p) => p.startsWith('payroll.'))
+    .sort();
+  if (JSON.stringify(previousPayroll) !== JSON.stringify(nextPayroll))
+    await requirePlatformAdministrator();
   const valid = new Set<string>(PERMISSIONS);
   const grants = input.grants.filter((permission) => valid.has(permission));
   const denials = input.denials.filter((permission) => valid.has(permission));

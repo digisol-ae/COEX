@@ -11,7 +11,10 @@ export function validateModules(modules: ModuleAllowance) {
   if (
     !modules ||
     Object.keys(modules).some((key) => !(MODULES as readonly string[]).includes(key)) ||
-    MODULES.some((key) => typeof modules[key] !== 'boolean')
+    MODULES.some(
+      (key) =>
+        typeof modules[key] !== 'boolean' && !(key === 'payroll' && modules[key] === undefined),
+    )
   )
     throw new Error('Choose an allowance for each module.');
 }
