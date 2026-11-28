@@ -35,7 +35,7 @@ export const PayrollSettings = z.object({
     .prefault({}),
   /** Payslips are emailed when the run is marked paid */
   emailPayslipsOnPaid: z.boolean().default(true),
-  /** Users allowed to approve runs (John 27 Nov: Umbreen and/or John Ali) */
+  /** Users selected in settings to approve payroll runs */
   approverUserIds: z.array(z.string()).default([]),
   /** 1 = either approver is enough; 2 = both must approve */
   requiredApprovals: z.union([z.literal(1), z.literal(2)]).default(1),

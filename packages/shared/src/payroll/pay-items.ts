@@ -1,6 +1,6 @@
 // Pay-items catalogue (additions & deductions) and the default salary structure.
 // Admin edits the catalogue; only HR adds items to a run; items over the
-// approval limit need Umbreen or John (either) before the run can be approved.
+// approval limit need a configured approver before the run can be approved.
 import { z } from 'zod';
 import { PayrollError } from './engine';
 import { Adjustment, SalaryStructure, type PayrollSettings } from './schemas';
@@ -275,7 +275,7 @@ export function addRunItem(opts: {
   });
 }
 
-/** Umbreen or John (any user in approverUserIds) approves an over-limit item. */
+/** A configured user in approverUserIds approves an over-limit item. */
 export function approveRunItem(
   item: Adjustment,
   approverId: string,
